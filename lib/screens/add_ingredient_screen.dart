@@ -6,6 +6,8 @@ import '../models/ingredient.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../widgets/freshness_meter.dart';
+import '../services/open_food_facts_service.dart';
+import 'barcode_scanner_screen.dart';
 
 class AddIngredientScreen extends ConsumerStatefulWidget {
   const AddIngredientScreen({super.key});
@@ -49,6 +51,45 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       _selectedCategory = '乳制品与蛋类';
       _freshnessPreview = 0.85;
     });
+  }
+
+  Future<void> _scanBarcode() async {
+    final result = await Navigator.of(context).push<BarcodeResult>(
+      MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
+    );
+
+    if (result == null || !mounted) return;
+
+    // If a category was resolved from the API, use it.
+    if (result.category != null) {
+      _nameController.text = result.productName;
+      setState(() => _selectedCategory = result.category!);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('已识别：${result.productName}'),
+          backgroundColor: AppColors.primary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    } else {
+      // No product info found — put barcode as name.
+      _nameController.text = result.productName;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('未找到商品信息，已填入条码号'),
+          backgroundColor: AppColors.secondary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
   }
 
   void _save() {
@@ -187,54 +228,57 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
   // ─── Sub-widgets ────────────────────────────────────────────────────
 
   Widget _buildBarcodeScanner() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: AppColors.primaryContainer,
-              borderRadius: BorderRadius.circular(999),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+    return GestureDetector(
+      onTap: _scanBarcode,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppColors.primaryContainer,
+                borderRadius: BorderRadius.circular(999),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.qr_code_scanner,
+                color: AppColors.onPrimaryContainer,
+                size: 28,
+              ),
             ),
-            child: const Icon(
-              Icons.qr_code_scanner,
-              color: AppColors.onPrimaryContainer,
-              size: 28,
+            const SizedBox(height: 12),
+            Text(
+              '快速扫描条码',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '快速扫描条码',
-            style: GoogleFonts.plusJakartaSans(
-              fontWeight: FontWeight.w700,
-              color: AppColors.primary,
+            const SizedBox(height: 4),
+            Text(
+              '即时同步库存',
+              style: GoogleFonts.manrope(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 2,
+                color: AppColors.onSurfaceVariant,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '即时同步库存',
-            style: GoogleFonts.manrope(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 2,
-              color: AppColors.onSurfaceVariant,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

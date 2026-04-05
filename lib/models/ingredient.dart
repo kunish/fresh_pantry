@@ -9,6 +9,7 @@ class Ingredient {
   final FreshnessState state;
   final String? expiryLabel;
   final String? category;
+  final String? barcode;
 
   const Ingredient({
     required this.name,
@@ -19,6 +20,7 @@ class Ingredient {
     required this.state,
     this.expiryLabel,
     this.category,
+    this.barcode,
   });
 
   Ingredient copyWith({
@@ -30,6 +32,7 @@ class Ingredient {
     FreshnessState? state,
     String? expiryLabel,
     String? category,
+    String? barcode,
   }) {
     return Ingredient(
       name: name ?? this.name,
@@ -40,6 +43,7 @@ class Ingredient {
       state: state ?? this.state,
       expiryLabel: expiryLabel ?? this.expiryLabel,
       category: category ?? this.category,
+      barcode: barcode ?? this.barcode,
     );
   }
 
@@ -53,6 +57,7 @@ class Ingredient {
       'state': state.name,
       'expiryLabel': expiryLabel,
       'category': category,
+      'barcode': barcode,
     };
   }
 
@@ -66,6 +71,7 @@ class Ingredient {
       state: FreshnessState.values.byName(json['state'] as String),
       expiryLabel: json['expiryLabel'] as String?,
       category: json['category'] as String?,
+      barcode: json['barcode'] as String?,
     );
   }
 }
