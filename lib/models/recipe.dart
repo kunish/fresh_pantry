@@ -22,6 +22,7 @@ class Recipe {
   final List<RecipeIngredient> ingredients;
   final List<String> steps;
   final List<String> tags;
+  final String? imageUrl;
 
   const Recipe({
     required this.id,
@@ -33,6 +34,7 @@ class Recipe {
     required this.ingredients,
     required this.steps,
     this.tags = const [],
+    this.imageUrl,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -48,6 +50,7 @@ class Recipe {
           .toList(),
       steps: (json['steps'] as List<dynamic>).cast<String>(),
       tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? const [],
+      imageUrl: json['imageUrl'] as String?,
     );
   }
 }
