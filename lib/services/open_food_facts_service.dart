@@ -6,11 +6,13 @@ class BarcodeResult {
   final String productName;
   final String? category;
   final String barcode;
+  final String? imageUrl;
 
   const BarcodeResult({
     required this.productName,
     required this.barcode,
     this.category,
+    this.imageUrl,
   });
 }
 
@@ -37,6 +39,7 @@ class OpenFoodFactsService {
     'legume': '新鲜蔬果',
     'salad': '新鲜蔬果',
     'produce': '新鲜蔬果',
+    'fresh': '新鲜蔬果',
     // 肉类与海鲜
     'meat': '肉类与海鲜',
     'beef': '肉类与海鲜',
@@ -52,8 +55,10 @@ class OpenFoodFactsService {
     'spice': '香料与草本',
     'herb': '香料与草本',
     'seasoning': '香料与草本',
-    'condiment': '香料与草本',
-    'sauce': '香料与草本',
+    'pepper': '香料与草本',
+    'salt': '香料与草本',
+    'condiment': '食品柜常备',
+    'sauce': '食品柜常备',
     'épice': '香料与草本',
     // 食品柜常备 (pantry staples — broad catch)
     'cereal': '食品柜常备',
@@ -107,10 +112,52 @@ class OpenFoodFactsService {
       final categoriesTags = product['categories_tags'] as List<dynamic>?;
       final category = _resolveCategory(categoriesTags);
 
+      final imageUrl = product['image_front_url'] as String? ??
+          product['image_url'] as String?;
+
       return BarcodeResult(
         productName: name,
         barcode: barcode,
         category: category,
+        imageUrl: imageUrl,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Search for a product by name. Returns the best match as a [BarcodeResult]
+  /// or `null` if nothing relevant is found.
+  static Future<BarcodeResult?> searchByName(String name) async {
+    try {
+      final uri = Uri.parse(
+        'https://world.openfoodfacts.org/cgi/search.pl'
+        '?search_terms=${Uri.encodeComponent(name)}'
+        '&search_simple=1&action=process&json=1&page_size=1'
+        '&fields=product_name,categories_tags,image_front_small_url,code',
+      );
+      final response = await http.get(uri).timeout(_timeout);
+
+      if (response.statusCode != 200) return null;
+
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      final products = json['products'] as List<dynamic>?;
+      if (products == null || products.isEmpty) return null;
+
+      final product = products.first as Map<String, dynamic>;
+      final productName = product['product_name'] as String?;
+      if (productName == null || productName.trim().isEmpty) return null;
+
+      final categoriesTags = product['categories_tags'] as List<dynamic>?;
+      final category = _resolveCategory(categoriesTags);
+      final imageUrl = product['image_front_small_url'] as String?;
+      final code = product['code'] as String? ?? '';
+
+      return BarcodeResult(
+        productName: productName.trim(),
+        barcode: code,
+        category: category,
+        imageUrl: imageUrl,
       );
     } catch (_) {
       return null;
