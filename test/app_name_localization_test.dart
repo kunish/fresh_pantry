@@ -36,21 +36,27 @@ void main() {
       _expectFileContains('ios/Runner.xcodeproj/project.pbxproj', 'zh-Hans');
     });
 
-    test('macOS bundle name is localized for English and Simplified Chinese', () {
-      _expectFileContains(
-        'macos/Runner/en.lproj/InfoPlist.strings',
-        'CFBundleDisplayName = "Fresh Pantry";',
-      );
-      _expectFileContains(
-        'macos/Runner/zh-Hans.lproj/InfoPlist.strings',
-        'CFBundleDisplayName = "食材管家";',
-      );
-      _expectFileContains(
-        'macos/Runner.xcodeproj/project.pbxproj',
-        'InfoPlist.strings in Resources',
-      );
-      _expectFileContains('macos/Runner.xcodeproj/project.pbxproj', 'zh-Hans');
-    });
+    test(
+      'macOS bundle name is localized for English and Simplified Chinese',
+      () {
+        _expectFileContains(
+          'macos/Runner/en.lproj/InfoPlist.strings',
+          'CFBundleDisplayName = "Fresh Pantry";',
+        );
+        _expectFileContains(
+          'macos/Runner/zh-Hans.lproj/InfoPlist.strings',
+          'CFBundleDisplayName = "食材管家";',
+        );
+        _expectFileContains(
+          'macos/Runner.xcodeproj/project.pbxproj',
+          'InfoPlist.strings in Resources',
+        );
+        _expectFileContains(
+          'macos/Runner.xcodeproj/project.pbxproj',
+          'zh-Hans',
+        );
+      },
+    );
 
     test('Flutter app title is generated from the system locale', () {
       final app = File('lib/app.dart').readAsStringSync();

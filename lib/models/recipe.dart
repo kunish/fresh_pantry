@@ -62,9 +62,7 @@ class Recipe {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Recipe &&
-          runtimeType == other.runtimeType &&
-          id == other.id;
+      other is Recipe && runtimeType == other.runtimeType && id == other.id;
 
   @override
   int get hashCode => id.hashCode;
@@ -164,10 +162,12 @@ class ScoredRecipe {
       identical(this, other) ||
       other is ScoredRecipe &&
           runtimeType == other.runtimeType &&
-          recipe == other.recipe;
+          recipe == other.recipe &&
+          score == other.score &&
+          matchedCount == other.matchedCount;
 
   @override
-  int get hashCode => recipe.hashCode;
+  int get hashCode => Object.hash(recipe, score, matchedCount);
 
   ScoredRecipe copyWith({
     Recipe? recipe,

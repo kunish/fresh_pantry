@@ -24,7 +24,9 @@ class TheMealDbService {
   /// Search recipes by name. Returns up to [_maxSearchResults] results.
   static Future<List<Recipe>> searchByName(String query) async {
     try {
-      final uri = Uri.parse('$_baseUrl/search.php?s=${Uri.encodeComponent(query)}');
+      final uri = Uri.parse(
+        '$_baseUrl/search.php?s=${Uri.encodeComponent(query)}',
+      );
       final response = await _fetch(uri);
 
       if (response.statusCode != 200) return [];
@@ -72,12 +74,13 @@ class TheMealDbService {
       if (meals == null) return [];
 
       // filter.php returns minimal data; fetch full details for top [_maxIngredientResults]
-      final ids = meals
-          .take(_maxIngredientResults)
-          .whereType<Map<String, dynamic>>()
-          .map((m) => m['idMeal']?.toString())
-          .whereType<String>()
-          .toList();
+      final ids =
+          meals
+              .take(_maxIngredientResults)
+              .whereType<Map<String, dynamic>>()
+              .map((m) => m['idMeal']?.toString())
+              .whereType<String>()
+              .toList();
 
       final recipes = <Recipe>[];
       for (final id in ids) {
@@ -178,30 +181,36 @@ class TheMealDbService {
       final ing = _asString(meal['strIngredient$i']);
       final measure = _asString(meal['strMeasure$i']);
       if (ing != null && ing.trim().isNotEmpty) {
-        ingredients.add(RecipeIngredient(
-          name: ing.trim(),
-          amount: measure?.trim() ?? '',
-        ));
+        ingredients.add(
+          RecipeIngredient(name: ing.trim(), amount: measure?.trim() ?? ''),
+        );
       }
     }
 
     // Split instructions into steps by newline
-    final steps = instructions
-        .split(RegExp(r'\r?\n'))
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
+    final steps =
+        instructions
+            .split(RegExp(r'\r?\n'))
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
 
     // Extract tags
     final tagsStr = _asString(meal['strTags']);
-    final tags = tagsStr != null
-        ? tagsStr.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty).toList()
-        : <String>[];
+    final tags =
+        tagsStr != null
+            ? tagsStr
+                .split(',')
+                .map((t) => t.trim())
+                .where((t) => t.isNotEmpty)
+                .toList()
+            : <String>[];
 
     // Estimate difficulty based on ingredient count
-    final difficulty = ingredients.length <= _easyIngredientThreshold
-        ? 1
-        : ingredients.length <= _mediumIngredientThreshold
+    final difficulty =
+        ingredients.length <= _easyIngredientThreshold
+            ? 1
+            : ingredients.length <= _mediumIngredientThreshold
             ? 2
             : 3;
 
@@ -225,8 +234,9 @@ class TheMealDbService {
     try {
       for (var attempt = 0; attempt <= _retryCount; attempt++) {
         try {
-          final response =
-              await client.get(uri, headers: _headers).timeout(_timeout);
+          final response = await client
+              .get(uri, headers: _headers)
+              .timeout(_timeout);
           return response;
         } on TimeoutException {
           if (attempt == _retryCount) rethrow;

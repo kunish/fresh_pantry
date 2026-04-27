@@ -21,8 +21,8 @@ void main() {
     final defaults = FoodKnowledge.lookup('大米');
 
     expect(defaults, isNotNull);
-    expect(defaults!.category, '其他');
-    expect(defaults.storage, IconType.pantry);
+    expect(defaults?.category, '其他');
+    expect(defaults?.storage, IconType.pantry);
   });
 
   test(

@@ -6,6 +6,7 @@ import 'package:fresh_pantry/models/ingredient.dart';
 import 'package:fresh_pantry/models/recipe.dart';
 import 'package:fresh_pantry/models/shopping_item.dart';
 import 'package:fresh_pantry/models/storage_area.dart';
+
 import 'package:fresh_pantry/data/food_categories.dart';
 import 'package:fresh_pantry/providers/custom_recipe_provider.dart';
 import 'package:fresh_pantry/providers/inventory_provider.dart';
@@ -73,7 +74,7 @@ void main() {
         final add = container
             .read(inventoryProvider.notifier)
             .add(_ingredient('鸡蛋'));
-        await container.pump();
+        await Future.microtask(() {});
         await add;
 
         final frequentItems = container.read(frequentItemsProvider);
@@ -345,7 +346,9 @@ void main() {
         expect(history['鸡蛋']['count'], 1);
       },
     );
+  });
 
+  group('expiryLabelFor', () {
     test('formats expiry labels consistently', () {
       final now = DateTime(2026, 4, 27, 14);
 

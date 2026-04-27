@@ -23,6 +23,9 @@ class TopAppBar extends ConsumerWidget {
                   width: 40,
                   height: 40,
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.error, size: 40);
+                  },
                 ),
               ),
               const SizedBox(width: 12),

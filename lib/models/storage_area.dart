@@ -21,15 +21,19 @@ class StorageArea {
     required this.capacityPercent,
   });
 
+  /// `name` is the business key (natural identifier) for a storage area.
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is StorageArea &&
           runtimeType == other.runtimeType &&
-          name == other.name;
+          name == other.name &&
+          icon == other.icon &&
+          itemCount == other.itemCount &&
+          capacityPercent == other.capacityPercent;
 
   @override
-  int get hashCode => name.hashCode;
+  int get hashCode => Object.hash(name, icon, itemCount, capacityPercent);
 
   StorageArea copyWith({
     String? name,

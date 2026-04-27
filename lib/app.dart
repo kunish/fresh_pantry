@@ -12,6 +12,11 @@ import 'widgets/common/top_app_bar.dart';
 import 'widgets/common/bottom_nav_bar.dart';
 import 'widgets/common/search_overlay.dart';
 
+String _localizedTitle(BuildContext context) {
+  final locale = Localizations.localeOf(context);
+  return locale.languageCode == 'zh' ? '食材管家' : 'Fresh Pantry';
+}
+
 class FreshPantryApp extends StatelessWidget {
   const FreshPantryApp({super.key});
 
@@ -23,11 +28,6 @@ class FreshPantryApp extends StatelessWidget {
     systemNavigationBarDividerColor: Colors.transparent,
     systemNavigationBarIconBrightness: Brightness.dark,
   );
-
-  static String _localizedTitle(BuildContext context) {
-    final locale = Localizations.localeOf(context);
-    return locale.languageCode == 'zh' ? '食材管家' : 'Fresh Pantry';
-  }
 
   @override
   Widget build(BuildContext context) {

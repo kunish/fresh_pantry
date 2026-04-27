@@ -3,9 +3,16 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_theme.dart';
 
 class SmartPlannerCard extends StatelessWidget {
+  final String title;
+  final String recipeName;
   final VoidCallback? onViewRecipe;
 
-  const SmartPlannerCard({super.key, this.onViewRecipe});
+  const SmartPlannerCard({
+    super.key,
+    required this.title,
+    required this.recipeName,
+    this.onViewRecipe,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +38,7 @@ class SmartPlannerCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                '再买2样食材，就能完成您的卡博纳拉意面食谱。',
+                title,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,

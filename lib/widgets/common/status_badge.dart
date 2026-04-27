@@ -11,11 +11,7 @@ class StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (backgroundColor, textColor, defaultLabel) = switch (state) {
-      FreshnessState.fresh => (
-        AppColors.primaryFixed,
-        AppColors.primary,
-        '新鲜',
-      ),
+      FreshnessState.fresh => (AppColors.primaryFixed, AppColors.primary, '新鲜'),
       FreshnessState.expiringSoon => (
         AppColors.secondaryContainer,
         AppColors.onSecondaryContainer,

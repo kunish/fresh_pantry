@@ -32,7 +32,6 @@ String dashboardSubtitleFor(DateTime now) {
         now.day,
       ).difference(DateTime.utc(1970)).inDays;
 
-  return _dashboardSubtitlePlaceholders[dayNumber.remainder(
-    _dashboardSubtitlePlaceholders.length,
-  )];
+  final index = dayNumber % _dashboardSubtitlePlaceholders.length;
+  return _dashboardSubtitlePlaceholders[index];
 }
