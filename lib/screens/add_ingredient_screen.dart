@@ -167,12 +167,21 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     if (name.length < 2) return;
     try {
       final result = await OpenFoodFactsService.searchByName(name);
-      if (result?.imageUrl != null && mounted) {
-        setState(() => _resolvedImageUrl = result!.imageUrl!);
-      }
+      if (!mounted || _nameController.text.trim() != name) return;
+      setState(() {
+        _resolvedImageUrl = result?.imageUrl ?? '';
+      });
     } catch (_) {
-      // Network failure is non-critical; image stays empty
+      if (!mounted || _nameController.text.trim() != name) return;
+      setState(() {
+        _resolvedImageUrl = '';
+      });
     }
+  }
+
+  void _clearResolvedImage() {
+    if (_resolvedImageUrl.isEmpty) return;
+    _resolvedImageUrl = '';
   }
 
   void _onNameChanged() {
@@ -190,6 +199,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
         if (!_shelfLifeManuallySelected) {
           _setShelfDays(defaults.shelfLifeDays);
         }
+        _clearResolvedImage();
         _autoFilled = true;
       });
       _lookupImage(name);
@@ -197,6 +207,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       setState(() {
         _autoFilled = false;
         _suggestedShelfDays = null;
+        _clearResolvedImage();
       });
     }
   }
@@ -246,11 +257,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     if (_selectedExpiryDate == null) {
       return widget.initialIngredient?.expiryLabel ?? '新鲜';
     }
-    final days = daysUntilExpiry(_selectedExpiryDate!);
-    if (days < 0) return '已过期${-days}天';
-    if (days == 0) return '今天过期';
-    if (days == 1) return '明天过期';
-    return '$days天后过期';
+    return expiryLabelFor(_selectedExpiryDate!);
   }
 
   void _resetForm() {
@@ -304,15 +311,21 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     );
 
     if (_isEditing) {
-      ref
-          .read(inventoryProvider.notifier)
-          .update(widget.inventoryIndex!, ingredient);
+      final index = inventoryIndexOf(
+        ref.read(inventoryProvider),
+        widget.initialIngredient!,
+      );
+      if (index == -1) {
+        Navigator.of(context).maybePop();
+        return;
+      }
+      ref.read(inventoryProvider.notifier).update(index, ingredient);
       Navigator.of(context).pop(name);
       return;
     }
 
     ref.read(inventoryProvider.notifier).add(ingredient);
-    final addedIndex = ref.read(inventoryProvider).length - 1;
+    final addedItem = ref.read(inventoryProvider).last;
 
     _resetForm();
 
@@ -328,7 +341,13 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
           label: '撤销',
           textColor: AppColors.onPrimary,
           onPressed: () {
-            ref.read(inventoryProvider.notifier).remove(addedIndex);
+            final index = inventoryIndexOf(
+              ref.read(inventoryProvider),
+              addedItem,
+            );
+            if (index != -1) {
+              ref.read(inventoryProvider.notifier).remove(index);
+            }
           },
         ),
       ),

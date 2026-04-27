@@ -28,6 +28,34 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     return inventoryIndexOf(ref.read(inventoryProvider), item);
   }
 
+  ShoppingItem _shoppingItemFor(Ingredient item) {
+    return ShoppingItem(
+      id: 'si_${DateTime.now().millisecondsSinceEpoch}',
+      name: item.name,
+      detail: '${item.quantity} ${item.unit}',
+      category: item.category ?? '其他',
+    );
+  }
+
+  Future<void> _addToShoppingList(Ingredient item) async {
+    final added = await ref
+        .read(shoppingProvider.notifier)
+        .add(_shoppingItemFor(item));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          added ? '已将「${item.name}」加入购物清单' : '「${item.name}」已在购物清单中',
+        ),
+        persist: false,
+        backgroundColor: added ? AppColors.primary : AppColors.tertiary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
   Future<void> _editItem(Ingredient item) async {
     final index = _indexOfInventoryItem(item);
     if (index == -1) return;
@@ -100,28 +128,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                     color: AppColors.primary,
                     onTap: () {
                       Navigator.pop(ctx);
-                      ref
-                          .read(shoppingProvider.notifier)
-                          .add(
-                            ShoppingItem(
-                              id: 'si_${DateTime.now().millisecondsSinceEpoch}',
-                              name: item.name,
-                              detail: '${item.quantity} ${item.unit}',
-                              category: item.category ?? '其他',
-                            ),
-                          );
-                      ScaffoldMessenger.of(context).clearSnackBars();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('已将「${item.name}」加入购物清单'),
-                          persist: false,
-                          backgroundColor: AppColors.primary,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      );
+                      _addToShoppingList(item);
                     },
                   ),
                   _buildActionTile(
@@ -209,7 +216,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
           label: '撤销',
           textColor: AppColors.onError,
           onPressed: () {
-            ref.read(inventoryProvider.notifier).add(item);
+            ref.read(inventoryProvider.notifier).insertAt(index, item);
           },
         ),
       ),
@@ -320,31 +327,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                             child: IngredientCard(
                               ingredient: item,
                               onTap: () => _showItemActions(item),
-                              onBuyAgain: () {
-                                ref
-                                    .read(shoppingProvider.notifier)
-                                    .add(
-                                      ShoppingItem(
-                                        id:
-                                            'si_${DateTime.now().millisecondsSinceEpoch}',
-                                        name: item.name,
-                                        detail: '${item.quantity} ${item.unit}',
-                                        category: item.category ?? '其他',
-                                      ),
-                                    );
-                                ScaffoldMessenger.of(context).clearSnackBars();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('已将「${item.name}」加入购物清单'),
-                                    persist: false,
-                                    backgroundColor: AppColors.primary,
-                                    behavior: SnackBarBehavior.floating,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                );
-                              },
+                              onBuyAgain: () => _addToShoppingList(item),
                             ),
                           );
                         },

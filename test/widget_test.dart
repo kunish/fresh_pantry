@@ -9,7 +9,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:fresh_pantry/app.dart';
+import 'package:fresh_pantry/data/food_categories.dart';
 import 'package:fresh_pantry/models/ingredient.dart';
+import 'package:fresh_pantry/models/shopping_item.dart';
 import 'package:fresh_pantry/models/storage_area.dart';
 import 'package:fresh_pantry/providers/inventory_provider.dart';
 import 'package:fresh_pantry/providers/navigation_provider.dart';
@@ -374,6 +376,35 @@ void main() {
     );
   });
 
+  testWidgets(
+    'dashboard urgent attention uses the item expiry label as badge',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({
+        'inventory_items': jsonEncode([
+          _ingredient(
+            '面包',
+            state: FreshnessState.expired,
+          ).copyWith(expiryLabel: '已过期2天').toJson(),
+        ]),
+        'shopping_items': '[]',
+        'add_history': '{}',
+      });
+      final prefs = await SharedPreferences.getInstance();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+          child: const FreshPantryApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('已过期2天'), findsWidgets);
+      expect(find.text('今天'), findsNothing);
+      expect(find.text('48H'), findsNothing);
+    },
+  );
+
   testWidgets('dashboard total overview resets inventory filter to all', (
     tester,
   ) async {
@@ -528,6 +559,93 @@ void main() {
     expect(container.read(navigationProvider), 2);
     expect(find.text('策划您的食材库'), findsOneWidget);
     expect(find.widgetWithText(TextField, '牛奶'), findsNothing);
+  });
+
+  testWidgets('search inventory result resets selected inventory category', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      'inventory_items': jsonEncode([
+        _ingredient(
+          '牛奶',
+        ).copyWith(category: FoodCategories.dairyAndEggs).toJson(),
+      ]),
+      'shopping_items': '[]',
+      'add_history': '{}',
+    });
+    final prefs = await SharedPreferences.getInstance();
+    late ProviderContainer container;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          selectedCategoryProvider.overrideWith(
+            (ref) => inventoryFilterNotFresh,
+          ),
+        ],
+        child: Builder(
+          builder: (context) {
+            container = ProviderScope.containerOf(context);
+            return const FreshPantryApp();
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('搜索'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, '搜索食材...'), '牛奶');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('牛奶').last);
+    await tester.pumpAndSettle();
+
+    expect(container.read(navigationProvider), 1);
+    expect(container.read(selectedCategoryProvider), inventoryFilterAll);
+    expect(find.text('牛奶'), findsOneWidget);
+  });
+
+  testWidgets('search shopping result expands the matched category', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      'inventory_items': '[]',
+      'shopping_items': jsonEncode([
+        const ShoppingItem(
+          id: 'tomato',
+          name: '番茄',
+          detail: '',
+          category: FoodCategories.freshProduce,
+        ).toJson(),
+      ]),
+      'add_history': '{}',
+    });
+    final prefs = await SharedPreferences.getInstance();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          navigationProvider.overrideWith((ref) => 3),
+        ],
+        child: const FreshPantryApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(FoodCategories.freshProduce));
+    await tester.pumpAndSettle();
+    expect(find.text('番茄'), findsNothing);
+
+    await tester.tap(find.byTooltip('搜索'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, '搜索食材...'), '番茄');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('番茄').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('番茄'), findsOneWidget);
   });
 }
 

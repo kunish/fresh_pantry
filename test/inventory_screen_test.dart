@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fresh_pantry/data/food_categories.dart';
 import 'package:fresh_pantry/models/ingredient.dart';
+import 'package:fresh_pantry/models/shopping_item.dart';
 import 'package:fresh_pantry/models/storage_area.dart';
 import 'package:fresh_pantry/providers/inventory_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
@@ -214,6 +215,99 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('「番茄」已删除'), findsNothing);
+  });
+
+  testWidgets('delete undo restores the original inventory position', (
+    tester,
+  ) async {
+    final firstItem = _ingredient(
+      name: '牛奶',
+      category: FoodCategories.dairyAndEggs,
+    );
+    final secondItem = _ingredient(
+      name: '番茄',
+      category: FoodCategories.freshProduce,
+    );
+    final thirdItem = _ingredient(name: '米饭', category: FoodCategories.other);
+    SharedPreferences.setMockInitialValues({
+      'inventory_items': jsonEncode([
+        firstItem.toJson(),
+        secondItem.toJson(),
+        thirdItem.toJson(),
+      ]),
+      'add_history': jsonEncode({
+        '番茄': {
+          'count': 1,
+          'category': FoodCategories.freshProduce,
+          'storage': 'fridge',
+          'unit': '份',
+        },
+      }),
+    });
+    final prefs = await SharedPreferences.getInstance();
+    late ProviderContainer container;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        child: Builder(
+          builder: (context) {
+            container = ProviderScope.containerOf(context);
+            return const MaterialApp(home: Scaffold(body: InventoryScreen()));
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('番茄'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('删除'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('删除').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('撤销'));
+    await tester.pumpAndSettle();
+
+    expect(container.read(inventoryProvider).map((item) => item.name), [
+      '牛奶',
+      '番茄',
+      '米饭',
+    ]);
+    final history = jsonDecode(prefs.getString('add_history')!);
+    expect(history['番茄']['count'], 1);
+  });
+
+  testWidgets('buy again reports duplicate shopping items', (tester) async {
+    final targetItem = _ingredient(
+      name: '牛奶',
+      category: FoodCategories.dairyAndEggs,
+    ).copyWith(state: FreshnessState.expiringSoon, expiryLabel: '明天过期');
+    SharedPreferences.setMockInitialValues({
+      'inventory_items': jsonEncode([targetItem.toJson()]),
+      'shopping_items': jsonEncode([
+        const ShoppingItem(
+          id: 'milk',
+          name: '牛奶',
+          detail: '',
+          category: FoodCategories.dairyAndEggs,
+        ).toJson(),
+      ]),
+    });
+    final prefs = await SharedPreferences.getInstance();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        child: const MaterialApp(home: Scaffold(body: InventoryScreen())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('再买一次'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('「牛奶」已在购物清单中'), findsOneWidget);
   });
 
   testWidgets('edit action opens form and updates selected inventory item', (

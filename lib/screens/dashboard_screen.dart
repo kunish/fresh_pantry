@@ -196,10 +196,7 @@ class DashboardScreen extends ConsumerWidget {
                         name: e.value.name,
                         subtitle: e.value.expiryLabel ?? '即将过期',
                         storageTag: _storageLabel(e.value.storage),
-                        badge:
-                            e.value.state == FreshnessState.expired
-                                ? '今天'
-                                : '48H',
+                        badge: e.value.expiryLabel ?? '即将过期',
                         badgeBg:
                             e.value.state == FreshnessState.expired
                                 ? AppColors.secondaryContainer
@@ -218,17 +215,7 @@ class DashboardScreen extends ConsumerWidget {
                           }
                         },
                         onAddToCart: () {
-                          ref
-                              .read(shoppingProvider.notifier)
-                              .add(
-                                ShoppingItem(
-                                  id:
-                                      'si_${DateTime.now().millisecondsSinceEpoch}',
-                                  name: e.value.name,
-                                  detail: '${e.value.quantity} ${e.value.unit}',
-                                  category: e.value.category ?? '其他',
-                                ),
-                              );
+                          _addToShoppingList(context, ref, e.value);
                         },
                       ),
                     ),
@@ -376,6 +363,36 @@ class DashboardScreen extends ConsumerWidget {
       IconType.fridge => '冰箱',
       IconType.pantry => '食品柜',
     };
+  }
+
+  Future<void> _addToShoppingList(
+    BuildContext context,
+    WidgetRef ref,
+    Ingredient item,
+  ) async {
+    final added = await ref
+        .read(shoppingProvider.notifier)
+        .add(
+          ShoppingItem(
+            id: 'si_${DateTime.now().millisecondsSinceEpoch}',
+            name: item.name,
+            detail: '${item.quantity} ${item.unit}',
+            category: item.category ?? '其他',
+          ),
+        );
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          added ? '已将「${item.name}」加入购物清单' : '「${item.name}」已在购物清单中',
+        ),
+        persist: false,
+        backgroundColor: added ? AppColors.primary : AppColors.tertiary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   void _showRecipeSheet(BuildContext context, WidgetRef ref) {

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_theme.dart';
 import '../../models/ingredient.dart';
 import '../../models/shopping_item.dart';
+import '../../providers/inventory_provider.dart';
 import '../../providers/navigation_provider.dart';
 import '../../providers/search_provider.dart';
 
@@ -134,11 +135,15 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
                           ),
                         ],
                       ),
-                      child: ClipRRect(
+                      child: Material(
+                        color: AppColors.surface,
                         borderRadius: BorderRadius.circular(16),
-                        child: _buildResultsList(
-                          inventoryResults,
-                          shoppingResults,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: _buildResultsList(
+                            inventoryResults,
+                            shoppingResults,
+                          ),
                         ),
                       ),
                     ),
@@ -172,71 +177,75 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
             ),
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 8, 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '最近搜索',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      ref.read(searchHistoryProvider.notifier).clear();
-                    },
-                    child: Text(
-                      '清除',
-                      style: GoogleFonts.manrope(
+        child: Material(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 8, 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '最近搜索',
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
-                        color: AppColors.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1,
+                        color: AppColors.primary,
                       ),
                     ),
-                  ),
-                ],
+                    TextButton(
+                      onPressed: () {
+                        ref.read(searchHistoryProvider.notifier).clear();
+                      },
+                      child: Text(
+                        '清除',
+                        style: GoogleFonts.manrope(
+                          fontSize: 12,
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            ...history.map(
-              (term) => ListTile(
-                dense: true,
-                leading: const Icon(
-                  Icons.history,
-                  size: 18,
-                  color: AppColors.outline,
-                ),
-                title: Text(
-                  term,
-                  style: GoogleFonts.manrope(
-                    fontSize: 14,
-                    color: AppColors.onSurface,
-                  ),
-                ),
-                trailing: GestureDetector(
-                  onTap: () {
-                    ref.read(searchHistoryProvider.notifier).remove(term);
-                  },
-                  child: const Icon(
-                    Icons.close,
-                    size: 16,
+              ...history.map(
+                (term) => ListTile(
+                  dense: true,
+                  leading: const Icon(
+                    Icons.history,
+                    size: 18,
                     color: AppColors.outline,
                   ),
+                  title: Text(
+                    term,
+                    style: GoogleFonts.manrope(
+                      fontSize: 14,
+                      color: AppColors.onSurface,
+                    ),
+                  ),
+                  trailing: GestureDetector(
+                    onTap: () {
+                      ref.read(searchHistoryProvider.notifier).remove(term);
+                    },
+                    child: const Icon(
+                      Icons.close,
+                      size: 16,
+                      color: AppColors.outline,
+                    ),
+                  ),
+                  onTap: () {
+                    _controller.text = term;
+                    ref.read(searchProvider.notifier).state = term;
+                  },
                 ),
-                onTap: () {
-                  _controller.text = term;
-                  ref.read(searchProvider.notifier).state = term;
-                },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -379,6 +388,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
               : null,
       onTap: () {
         // Navigate to inventory tab and close search
+        ref.read(selectedCategoryProvider.notifier).state = inventoryFilterAll;
         ref.navigateToTab(1);
         _close();
       },
@@ -412,6 +422,8 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
       ),
       onTap: () {
         // Navigate to shopping list tab and close search
+        ref.read(shoppingCategoryToExpandProvider.notifier).state =
+            item.category;
         ref.navigateToTab(3);
         _close();
       },

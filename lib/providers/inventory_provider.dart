@@ -35,7 +35,7 @@ Ingredient _normalizeIngredientCategory(Ingredient item) {
   return item.copyWith(category: category);
 }
 
-String _expiryLabelFor(DateTime expiryDate, {DateTime? now}) {
+String expiryLabelFor(DateTime expiryDate, {DateTime? now}) {
   final days = daysUntilExpiry(expiryDate, now: now);
   if (days < 0) return '已过期${-days}天';
   if (days == 0) return '今天过期';
@@ -69,7 +69,7 @@ Ingredient _refreshIngredientFreshness(Ingredient item, {DateTime? now}) {
 
   final shelfLifeDays = _shelfLifeDaysFor(item);
   if (shelfLifeDays == null) {
-    return item.copyWith(expiryLabel: _expiryLabelFor(expiryDate, now: now));
+    return item.copyWith(expiryLabel: expiryLabelFor(expiryDate, now: now));
   }
 
   final freshness = expiryFreshness(
@@ -85,7 +85,7 @@ Ingredient _refreshIngredientFreshness(Ingredient item, {DateTime? now}) {
       expiryDate: expiryDate,
       now: now,
     ),
-    expiryLabel: _expiryLabelFor(expiryDate, now: now),
+    expiryLabel: expiryLabelFor(expiryDate, now: now),
   );
 }
 
@@ -150,6 +150,14 @@ class InventoryNotifier extends Notifier<List<Ingredient>> {
   Future<void> remove(int index) async {
     if (index < 0 || index >= state.length) return;
     final updated = [...state]..removeAt(index);
+    state = updated;
+    return _queuePersistence(() => _save(updated));
+  }
+
+  Future<void> insertAt(int index, Ingredient item) async {
+    final updated = [...state];
+    final clampedIndex = index.clamp(0, updated.length).toInt();
+    updated.insert(clampedIndex, _normalizeInventoryIngredient(item));
     state = updated;
     return _queuePersistence(() => _save(updated));
   }

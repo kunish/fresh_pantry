@@ -8,6 +8,7 @@ import '../data/food_knowledge.dart';
 import '../data/mock_data.dart';
 import '../theme/app_theme.dart';
 import '../providers/inventory_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../providers/shopping_provider.dart';
 import 'recipe_detail_screen.dart';
 import '../widgets/common/swipe_reveal_delete_action.dart';
@@ -32,6 +33,13 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
     final allItems = ref.watch(shoppingProvider);
     final checkedCount = ref.watch(checkedCountProvider);
     final uncheckedCount = ref.watch(uncheckedCountProvider);
+    ref.listen<String?>(shoppingCategoryToExpandProvider, (previous, category) {
+      if (category == null) return;
+      if (_collapsedCategories.remove(category)) {
+        setState(() {});
+      }
+      ref.read(shoppingCategoryToExpandProvider.notifier).state = null;
+    });
 
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),

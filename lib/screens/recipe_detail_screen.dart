@@ -53,9 +53,10 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     });
   }
 
-  void _addMissingToCart(List<RecipeIngredient> missing) {
+  Future<void> _addMissingToCart(List<RecipeIngredient> missing) async {
+    var addedCount = 0;
     for (final ing in missing) {
-      ref
+      final added = await ref
           .read(shoppingProvider.notifier)
           .add(
             ShoppingItem(
@@ -65,14 +66,20 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
               category: FoodKnowledge.categoryFor(ing.name),
             ),
           );
+      if (added) addedCount++;
     }
+
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('已将 ${missing.length} 个食材加入购物清单'),
+        content: Text(
+          addedCount == 0 ? '缺失食材已在购物清单中' : '已将 $addedCount 个食材加入购物清单',
+        ),
         persist: false,
-        backgroundColor: AppColors.primary,
+        backgroundColor:
+            addedCount == 0 ? AppColors.tertiary : AppColors.primary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),

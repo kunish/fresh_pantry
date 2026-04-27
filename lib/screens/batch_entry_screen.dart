@@ -149,9 +149,7 @@ class _BatchEntryScreenState extends ConsumerState<BatchEntryScreen> {
           expiryDate: item.expiryDate,
           shelfLifeDays: item.shelfLifeDays,
           expiryLabel:
-              item.expiryDate != null
-                  ? '${daysUntilExpiry(item.expiryDate!)}天后过期'
-                  : '新鲜',
+              item.expiryDate != null ? expiryLabelFor(item.expiryDate!) : '新鲜',
         ),
       );
     }

@@ -308,6 +308,52 @@ void main() {
         expect(frequentItems.map((item) => item.name), contains('鸡蛋'));
       },
     );
+
+    test(
+      'inserts inventory item at the requested index without recording add history',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'inventory_items': json.encode([
+            _ingredient('牛奶').toJson(),
+            _ingredient('番茄').toJson(),
+          ]),
+          'add_history': json.encode({
+            '鸡蛋': {
+              'count': 1,
+              'category': '蛋类',
+              'storage': 'fridge',
+              'unit': '个',
+            },
+          }),
+        });
+        final prefs = await SharedPreferences.getInstance();
+        final container = ProviderContainer(
+          overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        );
+        addTearDown(container.dispose);
+
+        await container
+            .read(inventoryProvider.notifier)
+            .insertAt(1, _ingredient('鸡蛋'));
+
+        expect(container.read(inventoryProvider).map((item) => item.name), [
+          '牛奶',
+          '鸡蛋',
+          '番茄',
+        ]);
+        final history = json.decode(prefs.getString('add_history')!);
+        expect(history['鸡蛋']['count'], 1);
+      },
+    );
+
+    test('formats expiry labels consistently', () {
+      final now = DateTime(2026, 4, 27, 14);
+
+      expect(expiryLabelFor(DateTime(2026, 4, 26), now: now), '已过期1天');
+      expect(expiryLabelFor(DateTime(2026, 4, 27), now: now), '今天过期');
+      expect(expiryLabelFor(DateTime(2026, 4, 28), now: now), '明天过期');
+      expect(expiryLabelFor(DateTime(2026, 5, 1), now: now), '4天后过期');
+    });
   });
 
   group('ShoppingNotifier.load', () {
