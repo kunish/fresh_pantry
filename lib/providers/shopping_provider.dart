@@ -1,11 +1,37 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/shopping_item.dart';
+import '../data/food_categories.dart';
+import '../data/food_knowledge.dart';
 import '../data/mock_data.dart';
 import 'storage_service_provider.dart';
 
 const _kShoppingKey = 'shopping_items';
+
+ShoppingItem _normalizeShoppingItemCategory(ShoppingItem item) {
+  final category =
+      FoodCategories.normalize(item.category) ?? FoodCategories.other;
+  if (category == item.category) return item;
+  return item.copyWith(category: category);
+}
+
+String _shoppingItemNameKey(String name) => name.trim().toLowerCase();
+
+List<ShoppingItem> _deduplicateShoppingItems(Iterable<ShoppingItem> items) {
+  final seenNames = <String>{};
+  final deduplicated = <ShoppingItem>[];
+
+  for (final item in items) {
+    final nameKey = _shoppingItemNameKey(item.name);
+    if (nameKey.isEmpty || seenNames.contains(nameKey)) continue;
+    seenNames.add(nameKey);
+    deduplicated.add(item);
+  }
+
+  return deduplicated;
+}
 
 /// Shopping list state with local persistence
 class ShoppingNotifier extends Notifier<List<ShoppingItem>> {
@@ -20,52 +46,64 @@ class ShoppingNotifier extends Notifier<List<ShoppingItem>> {
   List<ShoppingItem> _load() {
     final jsonString = _prefs.getString(_kShoppingKey);
     if (jsonString == null) {
-      return List.from(MockData.shoppingItems);
+      return kDebugMode ? List.from(MockData.shoppingItems) : [];
     }
     try {
       final List<dynamic> jsonList = json.decode(jsonString) as List<dynamic>;
-      return jsonList
+      final items = jsonList
           .map((e) => ShoppingItem.fromJson(e as Map<String, dynamic>))
-          .toList();
+          .map(_normalizeShoppingItemCategory);
+      return _deduplicateShoppingItems(items);
     } catch (_) {
-      return List.from(MockData.shoppingItems);
+      return kDebugMode ? List.from(MockData.shoppingItems) : [];
     }
   }
 
-  void _save() {
+  Future<void> _save() async {
     final jsonString = json.encode(state.map((e) => e.toJson()).toList());
-    _prefs.setString(_kShoppingKey, jsonString);
+    await _prefs.setString(_kShoppingKey, jsonString);
   }
 
-  void add(ShoppingItem item) {
-    state = [...state, item];
-    _save();
+  Future<bool> add(ShoppingItem item) async {
+    final normalizedItem = _normalizeShoppingItemCategory(item);
+    final nameKey = _shoppingItemNameKey(normalizedItem.name);
+    if (nameKey.isEmpty ||
+        state.any((item) => _shoppingItemNameKey(item.name) == nameKey)) {
+      return false;
+    }
+
+    state = [...state, normalizedItem];
+    await _save();
+    return true;
   }
 
-  void remove(String id) {
+  Future<void> remove(String id) async {
     state = state.where((item) => item.id != id).toList();
-    _save();
+    await _save();
   }
 
-  void toggleCheck(String id) {
-    state = state.map((item) {
-      if (item.id == id) {
-        return item.copyWith(isChecked: !item.isChecked);
-      }
-      return item;
-    }).toList();
-    _save();
+  Future<void> toggleCheck(String id) async {
+    state =
+        state.map((item) {
+          if (item.id == id) {
+            return item.copyWith(isChecked: !item.isChecked);
+          }
+          return item;
+        }).toList();
+    await _save();
   }
 
-  void addFromSuggestion(String name) {
+  Future<bool> addFromSuggestion(String name) async {
+    final trimmedName = name.trim();
+    if (trimmedName.isEmpty) return false;
+
     final newItem = ShoppingItem(
       id: 'si_${DateTime.now().millisecondsSinceEpoch}',
-      name: name,
+      name: trimmedName,
       detail: '',
-      category: '其他',
+      category: FoodKnowledge.categoryFor(trimmedName),
     );
-    state = [...state, newItem];
-    _save();
+    return add(newItem);
   }
 }
 

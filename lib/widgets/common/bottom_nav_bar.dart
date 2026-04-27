@@ -52,54 +52,62 @@ class BottomNavBar extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: _items.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final item = entry.value;
-                  final isSelected = index == currentIndex;
+                children:
+                    _items.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+                      final isSelected = index == currentIndex;
 
-                  return GestureDetector(
-                    onTap: () =>
-                        ref.read(navigationProvider.notifier).state = index,
-                    behavior: HitTestBehavior.opaque,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isSelected ? 16 : 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.primaryContainer
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            item.icon,
-                            color: isSelected
-                                ? AppColors.primary
-                                : AppColors.outline,
-                            size: 24,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            item.label.toUpperCase(),
-                            style: GoogleFonts.manrope(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.5,
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.outline,
+                      return Semantics(
+                        selected: isSelected,
+                        button: true,
+                        label: item.label,
+                        child: GestureDetector(
+                          onTap: () => ref.navigateToTab(index),
+                          behavior: HitTestBehavior.opaque,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isSelected ? 16 : 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color:
+                                  isSelected
+                                      ? AppColors.primaryContainer
+                                      : Colors.transparent,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  item.icon,
+                                  color:
+                                      isSelected
+                                          ? Colors.white
+                                          : AppColors.outline,
+                                  size: 24,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  item.label.toUpperCase(),
+                                  style: GoogleFonts.manrope(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.5,
+                                    color:
+                                        isSelected
+                                            ? Colors.white
+                                            : AppColors.outline,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
+                        ),
+                      );
+                    }).toList(),
               ),
             ),
           ),

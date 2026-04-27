@@ -1,15 +1,94 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/ingredient.dart';
+import '../models/storage_area.dart';
+import '../data/food_categories.dart';
+import '../data/food_knowledge.dart';
 import '../data/mock_data.dart';
+import '../utils/expiry_calculator.dart';
 import 'storage_service_provider.dart';
 
 const _kInventoryKey = 'inventory_items';
+const _kAddHistoryKey = 'add_history';
+const inventoryFilterAll = '全部';
+const inventoryFilterNotFresh = '不新鲜';
+
+bool isNotFreshIngredient(Ingredient item) {
+  return item.state == FreshnessState.expiringSoon ||
+      item.state == FreshnessState.expired;
+}
+
+Ingredient _normalizeIngredientCategory(Ingredient item) {
+  final category = FoodCategories.normalize(item.category);
+  if (category == item.category) return item;
+  return item.copyWith(category: category);
+}
+
+String _expiryLabelFor(DateTime expiryDate, {DateTime? now}) {
+  final days = daysUntilExpiry(expiryDate, now: now);
+  if (days < 0) return '已过期${-days}天';
+  if (days == 0) return '今天过期';
+  if (days == 1) return '明天过期';
+  return '$days天后过期';
+}
+
+int? _shelfLifeDaysFor(Ingredient item) {
+  final expiryDate = item.expiryDate;
+  if (expiryDate == null) return null;
+
+  final savedShelfLifeDays = item.shelfLifeDays;
+  if (savedShelfLifeDays != null && savedShelfLifeDays > 0) {
+    return savedShelfLifeDays;
+  }
+
+  final defaultShelfLifeDays = FoodKnowledge.lookup(item.name)?.shelfLifeDays;
+  if (defaultShelfLifeDays != null && defaultShelfLifeDays > 0) {
+    return defaultShelfLifeDays;
+  }
+
+  if (item.addedAt == null) return null;
+
+  final days = calendarDaysBetween(item.addedAt!, expiryDate);
+  return days > 0 ? days : null;
+}
+
+Ingredient _refreshIngredientFreshness(Ingredient item, {DateTime? now}) {
+  final expiryDate = item.expiryDate;
+  if (expiryDate == null) return item;
+
+  final shelfLifeDays = _shelfLifeDaysFor(item);
+  if (shelfLifeDays == null) {
+    return item.copyWith(expiryLabel: _expiryLabelFor(expiryDate, now: now));
+  }
+
+  final freshness = expiryFreshness(
+    expiryDate: expiryDate,
+    totalShelfLifeDays: shelfLifeDays,
+    now: now,
+  );
+
+  return item.copyWith(
+    freshnessPercent: freshness,
+    state: freshnessStateForExpiry(
+      freshness: freshness,
+      expiryDate: expiryDate,
+      now: now,
+    ),
+    expiryLabel: _expiryLabelFor(expiryDate, now: now),
+  );
+}
+
+Ingredient _normalizeInventoryIngredient(Ingredient item) {
+  return _refreshIngredientFreshness(_normalizeIngredientCategory(item));
+}
 
 /// Inventory state (CRUD) with local persistence
 class InventoryNotifier extends Notifier<List<Ingredient>> {
   late final SharedPreferences _prefs;
+  Future<void> _pendingPersistence = Future.value();
 
   @override
   List<Ingredient> build() {
@@ -20,43 +99,108 @@ class InventoryNotifier extends Notifier<List<Ingredient>> {
   List<Ingredient> _load() {
     final jsonString = _prefs.getString(_kInventoryKey);
     if (jsonString == null) {
-      return List.from(MockData.inventoryItems);
+      return kDebugMode ? List.from(MockData.inventoryItems) : [];
     }
     try {
       final List<dynamic> jsonList = json.decode(jsonString) as List<dynamic>;
       return jsonList
           .map((e) => Ingredient.fromJson(e as Map<String, dynamic>))
+          .map(_normalizeInventoryIngredient)
           .toList();
     } catch (_) {
-      return List.from(MockData.inventoryItems);
+      return kDebugMode ? List.from(MockData.inventoryItems) : [];
     }
   }
 
-  void _save() {
-    final jsonString = json.encode(state.map((e) => e.toJson()).toList());
-    _prefs.setString(_kInventoryKey, jsonString);
+  Future<void> _save(List<Ingredient> items) async {
+    final jsonString = json.encode(items.map((e) => e.toJson()).toList());
+    await _prefs.setString(_kInventoryKey, jsonString);
   }
 
-  void add(Ingredient item) {
-    state = [...state, item];
-    _save();
+  Future<void> _queuePersistence(Future<void> Function() persist) {
+    final next = _pendingPersistence.then((_) => persist());
+    _pendingPersistence = next.catchError((_) {});
+    return next;
   }
 
-  void remove(int index) {
-    state = [...state]..removeAt(index);
-    _save();
-  }
-
-  void update(int index, Ingredient item) {
-    final updated = [...state];
-    updated[index] = item;
+  Future<void> add(Ingredient item) async {
+    final normalizedItem = _normalizeIngredientCategory(item);
+    final stampedItem =
+        normalizedItem.addedAt == null
+            ? normalizedItem.copyWith(addedAt: DateTime.now())
+            : normalizedItem;
+    final itemToAdd = _refreshIngredientFreshness(stampedItem);
+    final updated = [...state, itemToAdd];
     state = updated;
-    _save();
+    return _queuePersistence(() async {
+      await _save(updated);
+      await _recordAddHistory(itemToAdd);
+      ref.read(_addHistoryVersionProvider.notifier).state++;
+    });
+  }
+
+  Future<void> remove(int index) async {
+    if (index < 0 || index >= state.length) return;
+    final updated = [...state]..removeAt(index);
+    state = updated;
+    return _queuePersistence(() => _save(updated));
+  }
+
+  Future<void> update(int index, Ingredient item) async {
+    if (index < 0 || index >= state.length) return;
+    final updated = [...state];
+    final normalizedItem = _normalizeIngredientCategory(item);
+    final stampedItem =
+        normalizedItem.addedAt == null
+            ? normalizedItem.copyWith(addedAt: state[index].addedAt)
+            : normalizedItem;
+    updated[index] = _refreshIngredientFreshness(stampedItem);
+    state = updated;
+    return _queuePersistence(() => _save(updated));
   }
 
   List<Ingredient> getByCategory(String category) {
-    if (category == '全部' || category.isEmpty) return state;
-    return state.where((item) => item.category == category).toList();
+    if (category == inventoryFilterAll || category.isEmpty) return state;
+    if (category == inventoryFilterNotFresh) {
+      return state.where(isNotFreshIngredient).toList();
+    }
+    final normalizedCategory = FoodCategories.normalize(category);
+    return state
+        .where(
+          (item) =>
+              FoodCategories.normalize(item.category) == normalizedCategory,
+        )
+        .toList();
+  }
+
+  Future<void> _recordAddHistory(Ingredient item) async {
+    final historyJson = _prefs.getString(_kAddHistoryKey);
+    final history = <String, dynamic>{};
+    if (historyJson != null) {
+      try {
+        history.addAll((json.decode(historyJson) as Map<String, dynamic>));
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error decoding add history: $e');
+        }
+      }
+    }
+
+    final key = item.name;
+    final existing = history[key];
+    final existingCount = switch (existing) {
+      {'count': final num count} => count.toInt(),
+      num count => count.toInt(),
+      _ => 0,
+    };
+    history[key] = {
+      'count': existingCount + 1,
+      'category': FoodCategories.normalize(item.category) ?? '',
+      'storage': item.storage.name,
+      'unit': item.unit,
+    };
+
+    await _prefs.setString(_kAddHistoryKey, json.encode(history));
   }
 }
 
@@ -64,51 +208,134 @@ final inventoryProvider = NotifierProvider<InventoryNotifier, List<Ingredient>>(
   InventoryNotifier.new,
 );
 
+final _addHistoryVersionProvider = StateProvider<int>((ref) => 0);
+
 /// Items expiring soon (state == expiringSoon or expired)
 final expiringItemsProvider = Provider<List<Ingredient>>((ref) {
   final items = ref.watch(inventoryProvider);
-  return items
-      .where(
-        (item) =>
-            item.state == FreshnessState.expiringSoon ||
-            item.state == FreshnessState.expired,
-      )
-      .toList();
+  return items.where(isNotFreshIngredient).toList();
 });
 
-/// Recent additions (from mock data)
+/// Recent additions from the current inventory, newest first.
 final recentAdditionsProvider = Provider<List<Ingredient>>((ref) {
-  // In a real app, this would be sorted by date added
-  // For now, use the dedicated mock data list
-  return List.from(MockData.recentAdditions);
+  final items = ref.watch(inventoryProvider);
+  return items.reversed.take(2).toList();
 });
 
 /// Stat counts for dashboard
 final statCountsProvider = Provider<({int total, int expiringSoon})>((ref) {
   final items = ref.watch(inventoryProvider);
-  final expiring = ref.watch(expiringItemsProvider);
-  return (total: items.length, expiringSoon: expiring.length);
+  final expiringSoon = items.where(isNotFreshIngredient).length;
+  return (total: items.length, expiringSoon: expiringSoon);
 });
 
-/// Available categories derived from inventory
+/// Fixed category filters for inventory.
 final categoriesProvider = Provider<List<String>>((ref) {
+  return const [inventoryFilterAll, ...FoodCategories.values];
+});
+
+/// Storage area stats derived from actual inventory
+final storageAreasProvider = Provider<List<StorageArea>>((ref) {
   final items = ref.watch(inventoryProvider);
-  final categories = <String>{'全部'};
-  for (final item in items) {
-    if (item.category != null && item.category!.isNotEmpty) {
-      categories.add(item.category!);
-    }
-  }
-  return categories.toList();
+  const maxCapacity = {IconType.fridge: 20, IconType.pantry: 50};
+  const names = {IconType.fridge: '冰箱', IconType.pantry: '食品柜'};
+
+  return IconType.values.map((type) {
+    final count = items.where((i) => i.storage == type).length;
+    final cap = maxCapacity[type]!;
+    return StorageArea(
+      name: names[type]!,
+      icon: type,
+      itemCount: count,
+      capacityPercent: (count / cap).clamp(0.0, 1.0),
+    );
+  }).toList();
 });
 
 /// Currently selected category filter
-final selectedCategoryProvider = StateProvider<String>((ref) => '全部');
+final selectedCategoryProvider = StateProvider<String>(
+  (ref) => inventoryFilterAll,
+);
 
 /// Inventory filtered by selected category
 final filteredByCategoryProvider = Provider<List<Ingredient>>((ref) {
   final category = ref.watch(selectedCategoryProvider);
   final items = ref.watch(inventoryProvider);
-  if (category == '全部') return items;
-  return items.where((item) => item.category == category).toList();
+  if (category == inventoryFilterAll) return items;
+  if (category == inventoryFilterNotFresh) {
+    return items.where(isNotFreshIngredient).toList();
+  }
+  final normalizedCategory = FoodCategories.normalize(category);
+  return items
+      .where(
+        (item) => FoodCategories.normalize(item.category) == normalizedCategory,
+      )
+      .toList();
+});
+
+/// A frequently added item with remembered defaults.
+class FrequentItem {
+  final String name;
+  final String category;
+  final IconType storage;
+  final String unit;
+  final int? shelfLifeDays;
+  final int count;
+
+  const FrequentItem({
+    required this.name,
+    required this.category,
+    required this.storage,
+    required this.unit,
+    this.shelfLifeDays,
+    required this.count,
+  });
+}
+
+/// Top frequent items derived from add history.
+final frequentItemsProvider = Provider<List<FrequentItem>>((ref) {
+  // Re-read after add history changes.
+  ref.watch(_addHistoryVersionProvider);
+  final prefs = ref.read(sharedPreferencesProvider);
+  final historyJson = prefs.getString(_kAddHistoryKey);
+  if (historyJson == null) return [];
+
+  try {
+    final history = json.decode(historyJson) as Map<String, dynamic>;
+    final items =
+        history.entries.map((e) {
+          final value = e.value;
+          final data = value is Map<String, dynamic> ? value : const {};
+          final count = switch (value) {
+            {'count': final num count} => count.toInt(),
+            num count => count.toInt(),
+            _ => 1,
+          };
+          final category = data['category'];
+          final storageValue = data['storage'];
+          final unit = data['unit'];
+          final storageName = storageValue is String ? storageValue : 'fridge';
+          final defaults = FoodKnowledge.lookup(e.key);
+
+          final storage = iconTypeFromName(storageName);
+
+          final rememberedCategory =
+              category is String ? category : defaults?.category;
+
+          return FrequentItem(
+            name: e.key,
+            category: FoodCategories.dropdownValue(rememberedCategory),
+            storage: storage,
+            unit: unit is String ? unit : '个',
+            shelfLifeDays: defaults?.shelfLifeDays,
+            count: count,
+          );
+        }).toList();
+
+    // Sort by frequency, take top 6
+    items.sort((a, b) => b.count.compareTo(a.count));
+    return items.where((i) => i.count >= 2).take(6).toList();
+  } catch (_) {
+    return [];
+  }
 });

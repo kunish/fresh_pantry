@@ -1,0 +1,82 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../models/shopping_item.dart';
+import '../../theme/app_theme.dart';
+
+class ShoppingItemTile extends StatelessWidget {
+  final ShoppingItem item;
+  final VoidCallback onTap;
+
+  const ShoppingItemTile({super.key, required this.item, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Semantics(
+        toggled: item.isChecked,
+        label: item.name,
+        child: GestureDetector(
+          onTap: onTap,
+          child: AnimatedOpacity(
+            opacity: item.isChecked ? 0.6 : 1.0,
+            duration: const Duration(milliseconds: 200),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color:
+                    item.isChecked
+                        ? AppColors.surfaceContainerLow.withValues(alpha: 0.5)
+                        : AppColors.surfaceContainerLowest,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  // Checkbox
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color:
+                          item.isChecked
+                              ? AppColors.primary
+                              : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      border:
+                          item.isChecked
+                              ? null
+                              : Border.all(color: AppColors.outline, width: 2),
+                    ),
+                    child:
+                        item.isChecked
+                            ? const Icon(
+                              Icons.check,
+                              color: AppColors.onPrimary,
+                              size: 16,
+                            )
+                            : null,
+                  ),
+                  const SizedBox(width: 16),
+                  // Info
+                  Expanded(
+                    child: Text(
+                      item.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.manrope(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.onSurface,
+                        decoration:
+                            item.isChecked ? TextDecoration.lineThrough : null,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

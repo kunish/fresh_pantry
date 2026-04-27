@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/ingredient.dart';
 import '../../theme/app_theme.dart';
+import '../shared/category_icon.dart';
 
 class RecentAdditionItem extends StatelessWidget {
   final Ingredient item;
@@ -13,24 +14,13 @@ class RecentAdditionItem extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                item.imageUrl,
-                width: 64,
-                height: 64,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => Container(
-                  width: 64,
-                  height: 64,
-                  color: AppColors.surfaceContainerLow,
-                  child: const Icon(Icons.restaurant),
-                ),
-              ),
-            ),
+            CategoryIconAvatar(category: item.category, size: 64, iconSize: 30),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -41,7 +31,7 @@ class RecentAdditionItem extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                   Text(
-                    item.unit,
+                    _addedAtLabel(item.addedAt),
                     style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.onSurfaceVariant,
@@ -54,7 +44,7 @@ class RecentAdditionItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  item.quantity,
+                  '${item.quantity} ${item.unit}'.trim(),
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 4),
@@ -78,5 +68,18 @@ class RecentAdditionItem extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _addedAtLabel(DateTime? addedAt) {
+    if (addedAt == null) return '最近添加';
+
+    var elapsed = DateTime.now().difference(addedAt);
+    if (elapsed.isNegative) elapsed = Duration.zero;
+
+    if (elapsed.inMinutes < 1) return '刚刚添加';
+    if (elapsed.inHours < 1) return '${elapsed.inMinutes}分钟前添加';
+    if (elapsed.inHours < 24) return '${elapsed.inHours}小时前添加';
+    if (elapsed.inHours < 48) return '昨天添加';
+    return '${elapsed.inDays}天前添加';
   }
 }

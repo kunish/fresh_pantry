@@ -12,13 +12,13 @@ class StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final (backgroundColor, textColor, defaultLabel) = switch (state) {
       FreshnessState.fresh => (
-        AppColors.primaryContainer,
+        AppColors.primaryFixed,
         AppColors.primary,
         '新鲜',
       ),
       FreshnessState.expiringSoon => (
-        AppColors.tertiaryContainer,
-        AppColors.tertiary,
+        AppColors.secondaryContainer,
+        AppColors.onSecondaryContainer,
         '即将过期',
       ),
       FreshnessState.expired => (

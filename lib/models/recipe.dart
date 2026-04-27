@@ -4,10 +4,21 @@ class RecipeIngredient {
 
   const RecipeIngredient({required this.name, required this.amount});
 
+  RecipeIngredient copyWith({String? name, String? amount}) {
+    return RecipeIngredient(
+      name: name ?? this.name,
+      amount: amount ?? this.amount,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'name': name, 'amount': amount};
+  }
+
   factory RecipeIngredient.fromJson(Map<String, dynamic> json) {
     return RecipeIngredient(
-      name: json['name'] as String,
-      amount: json['amount'] as String,
+      name: json['name'] as String? ?? '',
+      amount: json['amount'] as String? ?? '',
     );
   }
 }
@@ -37,21 +48,80 @@ class Recipe {
     this.imageUrl,
   });
 
+  Recipe copyWith({
+    String? id,
+    String? name,
+    String? category,
+    int? difficulty,
+    int? cookingMinutes,
+    String? description,
+    List<RecipeIngredient>? ingredients,
+    List<String>? steps,
+    List<String>? tags,
+    String? imageUrl,
+  }) {
+    return Recipe(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      category: category ?? this.category,
+      difficulty: difficulty ?? this.difficulty,
+      cookingMinutes: cookingMinutes ?? this.cookingMinutes,
+      description: description ?? this.description,
+      ingredients: ingredients ?? this.ingredients,
+      steps: steps ?? this.steps,
+      tags: tags ?? this.tags,
+      imageUrl: imageUrl ?? this.imageUrl,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'category': category,
+      'difficulty': difficulty,
+      'cookingMinutes': cookingMinutes,
+      'description': description,
+      'ingredients': ingredients.map((e) => e.toJson()).toList(),
+      'steps': steps,
+      'tags': tags,
+      'imageUrl': imageUrl,
+    };
+  }
+
   factory Recipe.fromJson(Map<String, dynamic> json) {
     return Recipe(
-      id: json['id'] as String,
-      name: json['name'] as String,
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
       category: json['category'] as String? ?? '',
-      difficulty: json['difficulty'] as int? ?? 0,
-      cookingMinutes: json['cookingMinutes'] as int,
-      description: json['description'] as String,
-      ingredients: (json['ingredients'] as List<dynamic>)
-          .map((e) => RecipeIngredient.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      steps: (json['steps'] as List<dynamic>).cast<String>(),
-      tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? const [],
+      difficulty: (json['difficulty'] as num?)?.toInt() ?? 0,
+      cookingMinutes: (json['cookingMinutes'] as num?)?.toInt() ?? 30,
+      description: json['description'] as String? ?? '',
+      ingredients:
+          (json['ingredients'] as List<dynamic>?)
+              ?.whereType<Map<String, dynamic>>()
+              .map((e) => RecipeIngredient.fromJson(e))
+              .toList() ??
+          const [],
+      steps:
+          (json['steps'] as List<dynamic>?)?.whereType<String>().toList() ??
+          const [],
+      tags:
+          (json['tags'] as List<dynamic>?)?.whereType<String>().toList() ??
+          const [],
       imageUrl: json['imageUrl'] as String?,
     );
+  }
+}
+
+extension RecipeDifficultyLabel on Recipe {
+  String get difficultyLabel {
+    if (difficulty <= 0) {
+      return '难度未设置';
+    }
+
+    final level = difficulty.clamp(1, 5).toInt();
+    return '难度 $level/5';
   }
 }
 
@@ -67,4 +137,40 @@ class ScoredRecipe {
     required this.matchedCount,
     required this.expiringMatchedCount,
   });
+
+  ScoredRecipe copyWith({
+    Recipe? recipe,
+    double? score,
+    int? matchedCount,
+    int? expiringMatchedCount,
+  }) {
+    return ScoredRecipe(
+      recipe: recipe ?? this.recipe,
+      score: score ?? this.score,
+      matchedCount: matchedCount ?? this.matchedCount,
+      expiringMatchedCount: expiringMatchedCount ?? this.expiringMatchedCount,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'recipe': recipe.toJson(),
+      'score': score,
+      'matchedCount': matchedCount,
+      'expiringMatchedCount': expiringMatchedCount,
+    };
+  }
+
+  factory ScoredRecipe.fromJson(Map<String, dynamic> json) {
+    return ScoredRecipe(
+      recipe:
+          json['recipe'] is Map<String, dynamic>
+              ? Recipe.fromJson(json['recipe'] as Map<String, dynamic>)
+              : Recipe.fromJson({}),
+      score: (json['score'] as num?)?.toDouble() ?? 0.0,
+      matchedCount: (json['matchedCount'] as num?)?.toInt() ?? 0,
+      expiringMatchedCount:
+          (json['expiringMatchedCount'] as num?)?.toInt() ?? 0,
+    );
+  }
 }

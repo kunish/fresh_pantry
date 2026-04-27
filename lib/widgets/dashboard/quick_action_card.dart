@@ -8,6 +8,7 @@ class QuickActionCard extends StatelessWidget {
   final Color backgroundColor;
   final Color contentColor;
   final VoidCallback? onTap;
+  final String? semanticLabel;
 
   const QuickActionCard({
     super.key,
@@ -17,38 +18,45 @@ class QuickActionCard extends StatelessWidget {
     required this.backgroundColor,
     required this.contentColor,
     this.onTap,
+    this.semanticLabel,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(28),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: contentColor, size: 36),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: contentColor,
+    return Semantics(
+      button: true,
+      label: semanticLabel ?? '$title, $subtitle',
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(icon, color: contentColor, size: 32),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: contentColor,
+                ),
               ),
-            ),
-            Text(
-              subtitle,
-              style: GoogleFonts.manrope(
-                color: contentColor.withValues(alpha: 0.8),
+              Text(
+                subtitle,
+                style: GoogleFonts.manrope(
+                  fontSize: 13,
+                  color: contentColor.withValues(alpha: 0.8),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

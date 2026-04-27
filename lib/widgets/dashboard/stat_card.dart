@@ -6,17 +6,21 @@ class StatCard extends StatelessWidget {
   final String value;
   final String label;
   final bool isWarning;
+  final VoidCallback? onTap;
+  final String? semanticLabel;
 
   const StatCard({
     super.key,
     required this.value,
     required this.label,
     this.isWarning = false,
+    this.onTap,
+    this.semanticLabel,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final card = Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
@@ -50,6 +54,20 @@ class StatCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+
+    if (onTap == null) {
+      return card;
+    }
+
+    return Semantics(
+      button: true,
+      label: semanticLabel ?? '$value $label',
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: card,
       ),
     );
   }

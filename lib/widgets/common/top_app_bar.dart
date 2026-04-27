@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../data/mock_data.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/navigation_provider.dart';
 
@@ -17,23 +16,13 @@ class TopAppBar extends ConsumerWidget {
         children: [
           Row(
             children: [
-              // Profile avatar
               ClipRRect(
-                borderRadius: BorderRadius.circular(999),
-                child: Image.network(
-                  MockData.profileImageUrl,
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset(
+                  'assets/icons/app_icon.png',
                   width: 40,
                   height: 40,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceContainerHigh,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: const Icon(Icons.person, color: AppColors.outline),
-                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -54,6 +43,7 @@ class TopAppBar extends ConsumerWidget {
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(999)),
             child: IconButton(
               icon: const Icon(Icons.search, color: AppColors.primary),
+              tooltip: '搜索',
               onPressed: () {
                 ref.read(searchActiveProvider.notifier).state = true;
               },

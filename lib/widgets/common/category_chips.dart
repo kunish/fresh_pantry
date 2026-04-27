@@ -3,53 +3,148 @@ import '../../theme/app_theme.dart';
 
 class CategoryChips extends StatelessWidget {
   final List<String> categories;
+  final List<String> leadingCategories;
   final String selectedCategory;
   final ValueChanged<String> onSelected;
 
   const CategoryChips({
     super.key,
     required this.categories,
+    this.leadingCategories = const [],
     required this.selectedCategory,
     required this.onSelected,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 40,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        itemCount: categories.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final category = categories[index];
-          final isSelected = category == selectedCategory;
+    final fixedCategory = categories.contains('全部') ? '全部' : null;
+    final fixedCategories = [
+      ...leadingCategories,
+      if (fixedCategory != null) fixedCategory,
+    ];
+    final scrollableCategories =
+        fixedCategory == null
+            ? categories
+            : categories
+                .where((category) => category != fixedCategory)
+                .toList();
 
-          return GestureDetector(
-            onTap: () => onSelected(category),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary
-                    : AppColors.surfaceContainerHigh,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                category,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isSelected
-                      ? AppColors.onPrimary
-                      : AppColors.onSurfaceVariant,
+    if (fixedCategories.isNotEmpty) {
+      return SizedBox(
+        height: 40,
+        child: Row(
+          children: [
+            const SizedBox(width: 24),
+            ...fixedCategories.expand(
+              (category) => [
+                _CategoryChip(
+                  category: category,
+                  isSelected: category == selectedCategory,
+                  onSelected: onSelected,
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
+            if (scrollableCategories.isNotEmpty) ...[
+              Expanded(
+                child: _ScrollableCategoryChips(
+                  categories: scrollableCategories,
+                  selectedCategory: selectedCategory,
+                  onSelected: onSelected,
+                  padding: const EdgeInsets.only(right: 24),
                 ),
               ),
+            ],
+          ],
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 40,
+      child: _ScrollableCategoryChips(
+        categories: categories,
+        selectedCategory: selectedCategory,
+        onSelected: onSelected,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+      ),
+    );
+  }
+}
+
+class _ScrollableCategoryChips extends StatelessWidget {
+  final List<String> categories;
+  final String selectedCategory;
+  final ValueChanged<String> onSelected;
+  final EdgeInsetsGeometry padding;
+
+  const _ScrollableCategoryChips({
+    required this.categories,
+    required this.selectedCategory,
+    required this.onSelected,
+    required this.padding,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: padding,
+      itemCount: categories.length,
+      separatorBuilder: (_, _) => const SizedBox(width: 8),
+      itemBuilder: (context, index) {
+        final category = categories[index];
+
+        return _CategoryChip(
+          category: category,
+          isSelected: category == selectedCategory,
+          onSelected: onSelected,
+        );
+      },
+    );
+  }
+}
+
+class _CategoryChip extends StatelessWidget {
+  final String category;
+  final bool isSelected;
+  final ValueChanged<String> onSelected;
+
+  const _CategoryChip({
+    required this.category,
+    required this.isSelected,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: category,
+      child: GestureDetector(
+        onTap: () => onSelected(category),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          height: 40,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color:
+                isSelected ? AppColors.primary : AppColors.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            category,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              height: 1.0,
+              color:
+                  isSelected ? AppColors.onPrimary : AppColors.onSurfaceVariant,
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }

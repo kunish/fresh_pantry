@@ -31,6 +31,11 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
   }
 
   void _close() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final term = _controller.text.trim();
+    if (term.isNotEmpty) {
+      ref.read(searchHistoryProvider.notifier).add(term);
+    }
     _controller.clear();
     ref.read(searchProvider.notifier).state = '';
     ref.read(searchActiveProvider.notifier).state = false;
@@ -79,8 +84,15 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
                   child: TextField(
                     controller: _controller,
                     autofocus: true,
+                    textInputAction: TextInputAction.search,
                     onChanged: (value) {
                       ref.read(searchProvider.notifier).state = value;
+                    },
+                    onSubmitted: (value) {
+                      if (value.trim().isNotEmpty) {
+                        ref.read(searchHistoryProvider.notifier).add(value);
+                      }
+                      FocusManager.instance.primaryFocus?.unfocus();
                     },
                     decoration: InputDecoration(
                       hintText: '搜索食材...',
@@ -131,12 +143,102 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
                       ),
                     ),
                   ),
+                ] else ...[
+                  _buildSearchHistory(),
                 ],
               ],
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSearchHistory() {
+    final history = ref.watch(searchHistoryProvider);
+    if (history.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 8, 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '最近搜索',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      ref.read(searchHistoryProvider.notifier).clear();
+                    },
+                    child: Text(
+                      '清除',
+                      style: GoogleFonts.manrope(
+                        fontSize: 12,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ...history.map(
+              (term) => ListTile(
+                dense: true,
+                leading: const Icon(
+                  Icons.history,
+                  size: 18,
+                  color: AppColors.outline,
+                ),
+                title: Text(
+                  term,
+                  style: GoogleFonts.manrope(
+                    fontSize: 14,
+                    color: AppColors.onSurface,
+                  ),
+                ),
+                trailing: GestureDetector(
+                  onTap: () {
+                    ref.read(searchHistoryProvider.notifier).remove(term);
+                  },
+                  child: const Icon(
+                    Icons.close,
+                    size: 16,
+                    color: AppColors.outline,
+                  ),
+                ),
+                onTap: () {
+                  _controller.text = term;
+                  ref.read(searchProvider.notifier).state = term;
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -218,7 +320,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: AppColors.primaryContainer,
+              color: AppColors.primaryFixed,
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
@@ -226,7 +328,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
               style: GoogleFonts.manrope(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: AppColors.onPrimaryContainer,
+                color: AppColors.primary,
               ),
             ),
           ),
@@ -264,19 +366,20 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
           color: AppColors.onSurfaceVariant,
         ),
       ),
-      trailing: item.expiryLabel != null
-          ? Text(
-              item.expiryLabel!,
-              style: GoogleFonts.manrope(
-                fontSize: 11,
-                color: statusColor,
-                fontWeight: FontWeight.w600,
-              ),
-            )
-          : null,
+      trailing:
+          item.expiryLabel != null
+              ? Text(
+                item.expiryLabel!,
+                style: GoogleFonts.manrope(
+                  fontSize: 11,
+                  color: statusColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              )
+              : null,
       onTap: () {
         // Navigate to inventory tab and close search
-        ref.read(navigationProvider.notifier).state = 1;
+        ref.navigateToTab(1);
         _close();
       },
     );
@@ -295,9 +398,8 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
         style: GoogleFonts.manrope(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: item.isChecked
-              ? AppColors.onSurfaceVariant
-              : AppColors.onSurface,
+          color:
+              item.isChecked ? AppColors.onSurfaceVariant : AppColors.onSurface,
           decoration: item.isChecked ? TextDecoration.lineThrough : null,
         ),
       ),
@@ -310,7 +412,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
       ),
       onTap: () {
         // Navigate to shopping list tab and close search
-        ref.read(navigationProvider.notifier).state = 3;
+        ref.navigateToTab(3);
         _close();
       },
     );

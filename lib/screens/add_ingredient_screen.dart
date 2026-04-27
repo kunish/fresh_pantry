@@ -1,18 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../models/ingredient.dart';
 import '../models/storage_area.dart';
+import '../data/food_categories.dart';
 import '../data/food_knowledge.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/navigation_provider.dart';
+import '../utils/expiry_calculator.dart';
+import '../widgets/shared/expiry_range_picker.dart';
 import '../widgets/shared/freshness_meter.dart';
 import '../services/open_food_facts_service.dart';
-import 'barcode_scanner_screen.dart';
 
 class AddIngredientScreen extends ConsumerStatefulWidget {
-  const AddIngredientScreen({super.key});
+  const AddIngredientScreen({
+    super.key,
+    this.initialIngredient,
+    this.inventoryIndex,
+  }) : assert(initialIngredient == null || inventoryIndex != null);
+
+  final Ingredient? initialIngredient;
+  final int? inventoryIndex;
 
   @override
   ConsumerState<AddIngredientScreen> createState() =>
@@ -23,33 +33,124 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _quantityController;
 
-  String _selectedCategory = '乳制品与蛋类';
+  String _selectedCategory = FoodCategories.dairyAndEggs;
   IconType _selectedStorage = IconType.fridge;
   String _selectedUnit = '个';
   int? _selectedShelfDays;
+  DateTime? _selectedShelfStartDate;
   DateTime? _selectedExpiryDate;
   int? _suggestedShelfDays;
   bool _autoFilled = false;
+  bool _categoryManuallySelected = false;
+  bool _storageManuallySelected = false;
+  bool _shelfLifeManuallySelected = false;
+  bool _usesCustomDateRange = false;
   String _resolvedImageUrl = '';
 
-  static const _categories = ['乳制品与蛋类', '新鲜蔬果', '食品柜常备', '肉类与海鲜', '香料与草本'];
+  static const _categories = FoodCategories.values;
 
-  static const _storageLabels = {
-    IconType.fridge: '冰箱',
-    IconType.pantry: '食品柜',
-    IconType.freezer: '冷冻室',
-  };
+  static const _storageLabels = {IconType.fridge: '冰箱', IconType.pantry: '食品柜'};
   static const _storageIcons = {
     IconType.fridge: Icons.kitchen,
     IconType.pantry: Icons.shelves,
-    IconType.freezer: Icons.ac_unit,
   };
+
+  bool get _isEditing => widget.initialIngredient != null;
+
+  List<String> get _categoryOptions => [
+    if (!_categories.contains(_selectedCategory)) _selectedCategory,
+    ..._categories,
+  ];
+
+  List<String> get _unitOptions => [
+    if (!FoodKnowledge.units.contains(_selectedUnit)) _selectedUnit,
+    ...FoodKnowledge.units,
+  ];
+
+  static DateTime? _rangeStartFor({
+    required DateTime? expiryDate,
+    required int? shelfDays,
+  }) {
+    if (expiryDate == null || shelfDays == null || shelfDays <= 0) return null;
+    final expiry = DateUtils.dateOnly(expiryDate);
+    return expiry.subtract(Duration(days: shelfDays));
+  }
+
+  static String _formatDate(DateTime date) {
+    return '${date.year}-'
+        '${date.month.toString().padLeft(2, '0')}-'
+        '${date.day.toString().padLeft(2, '0')}';
+  }
+
+  DateTimeRange _initialExpiryRange(DateTime today) {
+    final selectedEnd = DateUtils.dateOnly(
+      _selectedExpiryDate ?? today.add(Duration(days: _selectedShelfDays ?? 7)),
+    );
+    final selectedStart = DateUtils.dateOnly(
+      _selectedShelfStartDate ??
+          _rangeStartFor(
+            expiryDate: selectedEnd,
+            shelfDays:
+                _selectedShelfDays ??
+                calendarDaysBetween(today, selectedEnd).abs(),
+          ) ??
+          today,
+    );
+
+    if (selectedStart.isAfter(selectedEnd)) {
+      return DateTimeRange(start: selectedEnd, end: selectedEnd);
+    }
+    return DateTimeRange(start: selectedStart, end: selectedEnd);
+  }
+
+  String get _selectedExpirySummary {
+    final expiryDate = _selectedExpiryDate;
+    if (expiryDate == null) return '';
+
+    final startDate = _selectedShelfStartDate;
+    if (_usesCustomDateRange && startDate != null) {
+      return '${_formatDate(startDate)} 至 ${_formatDate(expiryDate)}';
+    }
+    return '到期日 ${_formatDate(expiryDate)}';
+  }
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController();
-    _quantityController = TextEditingController();
+    final initialIngredient = widget.initialIngredient;
+    _nameController = TextEditingController(text: initialIngredient?.name);
+    _quantityController = TextEditingController(
+      text: initialIngredient?.quantity,
+    );
+    if (initialIngredient != null) {
+      _selectedCategory =
+          initialIngredient.category?.isNotEmpty == true
+              ? FoodCategories.dropdownValue(initialIngredient.category)
+              : _selectedCategory;
+      _selectedStorage = initialIngredient.storage;
+      _selectedUnit =
+          initialIngredient.unit.isNotEmpty
+              ? initialIngredient.unit
+              : _selectedUnit;
+      _selectedExpiryDate = initialIngredient.expiryDate;
+      _selectedShelfDays =
+          initialIngredient.shelfLifeDays ??
+          (initialIngredient.expiryDate == null
+              ? null
+              : daysUntilExpiry(initialIngredient.expiryDate!));
+      _selectedShelfStartDate = _rangeStartFor(
+        expiryDate: _selectedExpiryDate,
+        shelfDays: _selectedShelfDays,
+      );
+      _suggestedShelfDays = initialIngredient.shelfLifeDays;
+      _usesCustomDateRange =
+          _selectedShelfDays != null &&
+          !FoodKnowledge.shelfLifePresets.contains(_selectedShelfDays);
+      _resolvedImageUrl = initialIngredient.imageUrl;
+      _categoryManuallySelected = true;
+      _storageManuallySelected = true;
+      _shelfLifeManuallySelected = true;
+    }
     _nameController.addListener(_onNameChanged);
   }
 
@@ -64,23 +165,30 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
   // ─── Smart defaults ────────────────────────────────────────────────
   Future<void> _lookupImage(String name) async {
     if (name.length < 2) return;
-    final result = await OpenFoodFactsService.searchByName(name);
-    if (result?.imageUrl != null && mounted) {
-      setState(() => _resolvedImageUrl = result!.imageUrl!);
+    try {
+      final result = await OpenFoodFactsService.searchByName(name);
+      if (result?.imageUrl != null && mounted) {
+        setState(() => _resolvedImageUrl = result!.imageUrl!);
+      }
+    } catch (_) {
+      // Network failure is non-critical; image stays empty
     }
   }
 
   void _onNameChanged() {
     final name = _nameController.text.trim();
     final defaults = FoodKnowledge.lookup(name);
-    if (defaults != null && !_autoFilled) {
+    if (defaults != null) {
       setState(() {
-        _selectedCategory = defaults.category;
-        _selectedStorage = defaults.storage;
+        if (!_categoryManuallySelected) {
+          _selectedCategory = FoodCategories.dropdownValue(defaults.category);
+        }
+        if (!_storageManuallySelected) {
+          _selectedStorage = defaults.storage;
+        }
         _suggestedShelfDays = defaults.shelfLifeDays;
-        // Auto-select the shelf life if user hasn't chosen one yet
-        if (_selectedShelfDays == null && _selectedExpiryDate == null) {
-          _applyShelfDays(defaults.shelfLifeDays);
+        if (!_shelfLifeManuallySelected) {
+          _setShelfDays(defaults.shelfLifeDays);
         }
         _autoFilled = true;
       });
@@ -94,26 +202,51 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
   }
 
   void _applyShelfDays(int days) {
-    final date = DateTime.now().add(Duration(days: days));
     setState(() {
-      _selectedShelfDays = days;
-      _selectedExpiryDate = date;
+      _shelfLifeManuallySelected = true;
+      _usesCustomDateRange = false;
+      _setShelfDays(days);
     });
   }
 
+  void _setShelfDays(int days) {
+    final today = DateUtils.dateOnly(DateTime.now());
+    _selectedShelfDays = days;
+    _selectedShelfStartDate = today;
+    _selectedExpiryDate = today.add(Duration(days: days));
+    _usesCustomDateRange = false;
+  }
+
+  int? get _freshnessShelfLifeDays {
+    if (_selectedShelfDays != null && _selectedShelfDays! > 0) {
+      return _selectedShelfDays;
+    }
+
+    final defaultShelfLifeDays =
+        _suggestedShelfDays ??
+        FoodKnowledge.lookup(_nameController.text.trim())?.shelfLifeDays;
+    if (defaultShelfLifeDays != null && defaultShelfLifeDays > 0) {
+      return defaultShelfLifeDays;
+    }
+    return _selectedShelfDays;
+  }
+
   double get _computedFreshness {
-    if (_selectedExpiryDate == null) return 0.85;
-    final now = DateTime.now();
-    final total =
-        _selectedShelfDays ?? _selectedExpiryDate!.difference(now).inDays.abs();
-    if (total <= 0) return 0.0;
-    final remaining = _selectedExpiryDate!.difference(now).inDays;
-    return (remaining / total).clamp(0.0, 1.0);
+    if (_selectedExpiryDate == null) {
+      return widget.initialIngredient?.freshnessPercent ?? 0.85;
+    }
+    final days = daysUntilExpiry(_selectedExpiryDate!);
+    return expiryFreshness(
+      expiryDate: _selectedExpiryDate!,
+      totalShelfLifeDays: _freshnessShelfLifeDays ?? days.abs(),
+    );
   }
 
   String get _expiryLabel {
-    if (_selectedExpiryDate == null) return '新鲜';
-    final days = _selectedExpiryDate!.difference(DateTime.now()).inDays;
+    if (_selectedExpiryDate == null) {
+      return widget.initialIngredient?.expiryLabel ?? '新鲜';
+    }
+    final days = daysUntilExpiry(_selectedExpiryDate!);
     if (days < 0) return '已过期${-days}天';
     if (days == 0) return '今天过期';
     if (days == 1) return '明天过期';
@@ -124,63 +257,29 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     _nameController.clear();
     _quantityController.clear();
     setState(() {
-      _selectedCategory = '乳制品与蛋类';
+      _selectedCategory = FoodCategories.dairyAndEggs;
       _selectedStorage = IconType.fridge;
       _selectedUnit = '个';
       _selectedShelfDays = null;
+      _selectedShelfStartDate = null;
       _selectedExpiryDate = null;
       _suggestedShelfDays = null;
       _autoFilled = false;
+      _categoryManuallySelected = false;
+      _storageManuallySelected = false;
+      _shelfLifeManuallySelected = false;
+      _usesCustomDateRange = false;
       _resolvedImageUrl = '';
     });
   }
 
-  Future<void> _scanBarcode() async {
-    final result = await Navigator.of(context).push<BarcodeResult>(
-      MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
-    );
-
-    if (result == null || !mounted) return;
-
-    if (result.category != null) {
-      _nameController.text = result.productName;
-      if (result.imageUrl != null) {
-        _resolvedImageUrl = result.imageUrl!;
-      }
-      setState(() => _selectedCategory = result.category!);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('已识别：${result.productName}'),
-          backgroundColor: AppColors.primary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
-    } else {
-      _nameController.text = result.productName;
-      if (result.imageUrl != null) {
-        _resolvedImageUrl = result.imageUrl!;
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('未找到商品信息，已填入条码号'),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
-    }
-  }
-
   void _save({bool navigateToInventory = false}) {
     final name = _nameController.text.trim();
-    if (name.isEmpty) return;
+    final missingFields = [if (name.isEmpty) '食材名称'];
+    if (missingFields.isNotEmpty) {
+      _showMissingFields(missingFields);
+      return;
+    }
 
     final quantity = _quantityController.text.trim();
     final freshness = _computedFreshness;
@@ -191,16 +290,26 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       unit: _selectedUnit,
       imageUrl: _resolvedImageUrl,
       freshnessPercent: freshness,
-      state: freshness > 0.5
-          ? FreshnessState.fresh
-          : freshness > 0.2
-          ? FreshnessState.expiringSoon
-          : FreshnessState.expired,
+      state: freshnessStateForExpiry(
+        freshness: freshness,
+        expiryDate: _selectedExpiryDate,
+      ),
       category: _selectedCategory,
       storage: _selectedStorage,
       expiryDate: _selectedExpiryDate,
       expiryLabel: _expiryLabel,
+      shelfLifeDays:
+          _selectedExpiryDate == null ? null : _freshnessShelfLifeDays,
+      barcode: widget.initialIngredient?.barcode,
     );
+
+    if (_isEditing) {
+      ref
+          .read(inventoryProvider.notifier)
+          .update(widget.inventoryIndex!, ingredient);
+      Navigator.of(context).pop(name);
+      return;
+    }
 
     ref.read(inventoryProvider.notifier).add(ingredient);
     final addedIndex = ref.read(inventoryProvider).length - 1;
@@ -211,6 +320,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('已添加「$name」'),
+        persist: false,
         backgroundColor: AppColors.primary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -225,139 +335,153 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     );
 
     if (navigateToInventory) {
-      ref.read(navigationProvider.notifier).state = 1;
+      ref.navigateToTab(1);
     }
+  }
+
+  void _showMissingFields(List<String> fields) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('保存前请补充：${fields.join('、')}'),
+        persist: false,
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final frequentItems = ref.watch(frequentItemsProvider);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 120),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Text(
-            '策划您的食材库',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primary,
-              letterSpacing: -0.3,
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      behavior: HitTestBehavior.translucent,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 120),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Text(
+              _isEditing ? '编辑食材' : '策划您的食材库',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+                letterSpacing: -0.3,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '添加新食材到您的收藏。',
-            style: GoogleFonts.manrope(
-              color: AppColors.onSurfaceVariant,
-              height: 1.5,
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // ── Frequent items ──
-          if (frequentItems.isNotEmpty) ...[
-            _buildLabel('常购食材'),
-            const SizedBox(height: 10),
-            _buildFrequentChips(frequentItems),
-            const SizedBox(height: 28),
-          ],
-
-          // Barcode Scanner
-          _buildBarcodeScanner(),
-
-          const SizedBox(height: 28),
-
-          // Ingredient Name
-          _buildLabel('食材名称'),
-          const SizedBox(height: 8),
-          _buildFilledInput(
-            controller: _nameController,
-            hintText: '例如：牛奶、鸡蛋、番茄...',
-            fontSize: 18,
-          ),
-          if (_autoFilled) ...[
             const SizedBox(height: 8),
+            Text(
+              _isEditing ? '更新库存中的食材信息。' : '添加新食材到您的收藏。',
+              style: GoogleFonts.manrope(
+                color: AppColors.onSurfaceVariant,
+                height: 1.5,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // ── Frequent items ──
+            if (!_isEditing && frequentItems.isNotEmpty) ...[
+              _buildLabel('常购食材'),
+              const SizedBox(height: 10),
+              _buildFrequentChips(frequentItems),
+              const SizedBox(height: 28),
+            ],
+
+            // Ingredient Name
+            _buildLabel('食材名称'),
+            const SizedBox(height: 8),
+            _buildFilledInput(
+              controller: _nameController,
+              hintText: '例如：牛奶、鸡蛋、番茄...',
+              fontSize: 18,
+            ),
+            if (_autoFilled) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.auto_awesome, size: 14, color: AppColors.primary),
+                  const SizedBox(width: 4),
+                  Text(
+                    '已智能填充分类、存储位置和保质期',
+                    style: GoogleFonts.manrope(
+                      fontSize: 12,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            const SizedBox(height: 24),
+
+            // Category + Storage (side by side)
             Row(
               children: [
-                Icon(Icons.auto_awesome, size: 14, color: AppColors.primary),
-                const SizedBox(width: 4),
-                Text(
-                  '已智能填充分类、存储位置和保质期',
-                  style: GoogleFonts.manrope(
-                    fontSize: 12,
-                    color: AppColors.primary,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLabel('分类'),
+                      const SizedBox(height: 8),
+                      _buildCategoryDropdown(),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLabel('存储位置'),
+                      const SizedBox(height: 8),
+                      _buildStorageSelector(),
+                    ],
                   ),
                 ),
               ],
             ),
+
+            const SizedBox(height: 24),
+
+            // Quantity + Unit (side by side)
+            _buildLabel('数量'),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: _buildFilledInput(
+                    controller: _quantityController,
+                    hintText: '1',
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(flex: 1, child: _buildUnitDropdown()),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // Expiration Section
+            _buildExpirationSection(),
+
+            const SizedBox(height: 32),
+
+            // Save Buttons
+            _buildSaveButton(),
+            const SizedBox(height: 12),
+            _buildDiscardButton(),
           ],
-
-          const SizedBox(height: 24),
-
-          // Category + Storage (side by side)
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildLabel('分类'),
-                    const SizedBox(height: 8),
-                    _buildCategoryDropdown(),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildLabel('存储位置'),
-                    const SizedBox(height: 8),
-                    _buildStorageSelector(),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-
-          // Quantity + Unit (side by side)
-          _buildLabel('数量'),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: _buildFilledInput(
-                  controller: _quantityController,
-                  hintText: '1',
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(flex: 1, child: _buildUnitDropdown()),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-
-          // Expiration Section
-          _buildExpirationSection(),
-
-          const SizedBox(height: 32),
-
-          // Save Buttons
-          _buildSaveButton(),
-          const SizedBox(height: 12),
-          _buildDiscardButton(),
-        ],
+        ),
       ),
     );
   }
@@ -368,100 +492,57 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: items.map((item) {
-        return GestureDetector(
-          onTap: () {
-            _nameController.text = item.name;
-            setState(() {
-              _selectedCategory = item.category;
-              _selectedStorage = item.storage;
-              _selectedUnit = item.unit;
-              if (item.shelfLifeDays != null) {
-                _applyShelfDays(item.shelfLifeDays!);
-              }
-              _autoFilled = true;
-            });
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.primaryContainer,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  _storageIcons[item.storage],
-                  size: 14,
-                  color: AppColors.onPrimaryContainer,
+      children:
+          items.map((item) {
+            return GestureDetector(
+              onTap: () {
+                _nameController.text = item.name;
+                setState(() {
+                  _selectedCategory = FoodCategories.dropdownValue(
+                    item.category,
+                  );
+                  _selectedStorage = item.storage;
+                  _selectedUnit = item.unit;
+                  if (item.shelfLifeDays != null) {
+                    _setShelfDays(item.shelfLifeDays!);
+                  }
+                  _autoFilled = true;
+                  _categoryManuallySelected = false;
+                  _storageManuallySelected = false;
+                  _shelfLifeManuallySelected = false;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  item.name,
-                  style: GoogleFonts.manrope(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.onPrimaryContainer,
-                  ),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryFixed,
+                  borderRadius: BorderRadius.circular(999),
                 ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildBarcodeScanner() {
-    return GestureDetector(
-      onTap: _scanBarcode,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.primaryContainer,
-                borderRadius: BorderRadius.circular(999),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _storageIcons[item.storage],
+                      size: 14,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      item.name,
+                      style: GoogleFonts.manrope(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: const Icon(
-                Icons.qr_code_scanner,
-                color: AppColors.onPrimaryContainer,
-                size: 22,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '扫描条码',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
-                ),
-                Text(
-                  '快速识别商品信息',
-                  style: GoogleFonts.manrope(
-                    fontSize: 11,
-                    color: AppColors.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+            );
+          }).toList(),
     );
   }
 
@@ -482,10 +563,15 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
           ),
           style: GoogleFonts.manrope(fontSize: 14, color: AppColors.onSurface),
           dropdownColor: AppColors.surfaceContainerLowest,
-          items: _categories
-              .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-              .toList(),
-          onChanged: (v) => setState(() => _selectedCategory = v!),
+          items:
+              _categoryOptions
+                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                  .toList(),
+          onChanged:
+              (v) => setState(() {
+                _selectedCategory = v!;
+                _categoryManuallySelected = true;
+              }),
         ),
       ),
     );
@@ -508,25 +594,30 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
           ),
           style: GoogleFonts.manrope(fontSize: 14, color: AppColors.onSurface),
           dropdownColor: AppColors.surfaceContainerLowest,
-          items: IconType.values
-              .map(
-                (t) => DropdownMenuItem(
-                  value: t,
-                  child: Row(
-                    children: [
-                      Icon(
-                        _storageIcons[t],
-                        size: 16,
-                        color: AppColors.onSurfaceVariant,
+          items:
+              IconType.values
+                  .map(
+                    (t) => DropdownMenuItem(
+                      value: t,
+                      child: Row(
+                        children: [
+                          Icon(
+                            _storageIcons[t],
+                            size: 16,
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(_storageLabels[t]!),
+                        ],
                       ),
-                      const SizedBox(width: 6),
-                      Text(_storageLabels[t]!),
-                    ],
-                  ),
-                ),
-              )
-              .toList(),
-          onChanged: (v) => setState(() => _selectedStorage = v!),
+                    ),
+                  )
+                  .toList(),
+          onChanged:
+              (v) => setState(() {
+                _selectedStorage = v!;
+                _storageManuallySelected = true;
+              }),
         ),
       ),
     );
@@ -549,9 +640,10 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
           ),
           style: GoogleFonts.manrope(fontSize: 14, color: AppColors.onSurface),
           dropdownColor: AppColors.surfaceContainerLowest,
-          items: FoodKnowledge.units
-              .map((u) => DropdownMenuItem(value: u, child: Text(u)))
-              .toList(),
+          items:
+              _unitOptions
+                  .map((u) => DropdownMenuItem(value: u, child: Text(u)))
+                  .toList(),
           onChanged: (v) => setState(() => _selectedUnit = v!),
         ),
       ),
@@ -579,11 +671,12 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: _computedFreshness > 0.5
-                        ? AppColors.primaryContainer
-                        : _computedFreshness > 0.2
-                        ? AppColors.secondaryContainer
-                        : AppColors.errorContainer,
+                    color:
+                        _computedFreshness > 0.5
+                            ? AppColors.primaryFixed
+                            : _computedFreshness > 0.2
+                            ? AppColors.secondaryContainer
+                            : AppColors.errorContainer,
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
@@ -591,11 +684,12 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                     style: GoogleFonts.manrope(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color: _computedFreshness > 0.5
-                          ? AppColors.onPrimaryContainer
-                          : _computedFreshness > 0.2
-                          ? AppColors.onSecondaryContainer
-                          : AppColors.onErrorContainer,
+                      color:
+                          _computedFreshness > 0.5
+                              ? AppColors.primary
+                              : _computedFreshness > 0.2
+                              ? AppColors.onSecondaryContainer
+                              : AppColors.onErrorContainer,
                     ),
                   ),
                 ),
@@ -628,22 +722,27 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                 children: [
                   const Icon(Icons.event, size: 18, color: AppColors.primary),
                   const SizedBox(width: 8),
-                  Text(
-                    '${_selectedExpiryDate!.year}-'
-                    '${_selectedExpiryDate!.month.toString().padLeft(2, '0')}-'
-                    '${_selectedExpiryDate!.day.toString().padLeft(2, '0')}',
-                    style: GoogleFonts.manrope(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.onSurface,
+                  Expanded(
+                    child: Text(
+                      _selectedExpirySummary,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.manrope(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.onSurface,
+                      ),
                     ),
                   ),
-                  const Spacer(),
                   GestureDetector(
-                    onTap: () => setState(() {
-                      _selectedShelfDays = null;
-                      _selectedExpiryDate = null;
-                    }),
+                    onTap:
+                        () => setState(() {
+                          _selectedShelfDays = null;
+                          _selectedShelfStartDate = null;
+                          _selectedExpiryDate = null;
+                          _shelfLifeManuallySelected = true;
+                          _usesCustomDateRange = false;
+                        }),
                     child: const Icon(
                       Icons.close,
                       size: 18,
@@ -662,7 +761,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
   }
 
   Widget _buildShelfDayChip(int days) {
-    final isSelected = _selectedShelfDays == days;
+    final isSelected = !_usesCustomDateRange && _selectedShelfDays == days;
     final isSuggested =
         _suggestedShelfDays != null &&
         FoodKnowledge.shelfLifePresets.contains(_suggestedShelfDays) &&
@@ -673,16 +772,16 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary
-              : AppColors.surfaceContainerLowest,
+          color:
+              isSelected ? AppColors.primary : AppColors.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(999),
-          border: isSuggested && !isSelected
-              ? Border.all(color: AppColors.primary, width: 1.5)
-              : null,
+          border:
+              isSuggested && !isSelected
+                  ? Border.all(color: AppColors.primary, width: 1.5)
+                  : null,
         ),
         child: Text(
-          '$days天',
+          '$days天后',
           style: GoogleFonts.manrope(
             fontSize: 13,
             fontWeight: FontWeight.w700,
@@ -694,33 +793,36 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
   }
 
   Widget _buildCustomDateChip() {
-    final isCustom =
-        _selectedExpiryDate != null &&
-        !FoodKnowledge.shelfLifePresets.contains(_selectedShelfDays);
+    final isCustom = _usesCustomDateRange;
 
     return GestureDetector(
       onTap: () async {
-        final picked = await showDatePicker(
+        final today = DateUtils.dateOnly(DateTime.now());
+        final picked = await showExpiryRangePicker(
           context: context,
-          initialDate:
-              _selectedExpiryDate ??
-              DateTime.now().add(const Duration(days: 7)),
-          firstDate: DateTime.now(),
-          lastDate: DateTime.now().add(const Duration(days: 1825)),
+          initialDateRange: _initialExpiryRange(today),
+          firstDate: today.subtract(const Duration(days: 1825)),
+          lastDate: today.add(const Duration(days: 1825)),
+          currentDate: today,
         );
         if (picked != null) {
+          final start = DateUtils.dateOnly(picked.start);
+          final end = DateUtils.dateOnly(picked.end);
+          final shelfDays = calendarDaysBetween(start, end);
           setState(() {
-            _selectedExpiryDate = picked;
-            _selectedShelfDays = picked.difference(DateTime.now()).inDays;
+            _selectedShelfStartDate = start;
+            _selectedExpiryDate = end;
+            _selectedShelfDays = shelfDays <= 0 ? 1 : shelfDays;
+            _shelfLifeManuallySelected = true;
+            _usesCustomDateRange = true;
           });
         }
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isCustom
-              ? AppColors.primary
-              : AppColors.surfaceContainerLowest,
+          color:
+              isCustom ? AppColors.primary : AppColors.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(999),
         ),
         child: Row(
@@ -766,10 +868,13 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.add_circle, color: AppColors.onPrimary),
+            Icon(
+              _isEditing ? Icons.check_circle : Icons.add_circle,
+              color: AppColors.onPrimary,
+            ),
             const SizedBox(width: 8),
             Text(
-              '保存',
+              _isEditing ? '保存修改' : '保存',
               style: GoogleFonts.plusJakartaSans(
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
@@ -782,14 +887,68 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     );
   }
 
+  void _confirmDiscard() {
+    if (_nameController.text.isEmpty && _quantityController.text.isEmpty) {
+      _discardChanges();
+      return;
+    }
+    showDialog(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            backgroundColor: AppColors.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Text(
+              '丢弃更改',
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+            ),
+            content: Text(
+              '确定要丢弃当前填写的食材信息吗？',
+              style: GoogleFonts.manrope(color: AppColors.onSurfaceVariant),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(
+                  '取消',
+                  style: GoogleFonts.manrope(color: AppColors.onSurfaceVariant),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  _discardChanges();
+                },
+                child: Text(
+                  '丢弃',
+                  style: GoogleFonts.manrope(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _discardChanges() {
+    _resetForm();
+  }
+
   Widget _buildDiscardButton() {
     return SizedBox(
       width: double.infinity,
       height: 48,
       child: TextButton(
-        onPressed: _resetForm,
+        onPressed:
+            _isEditing
+                ? () => Navigator.of(context).maybePop()
+                : _confirmDiscard,
         child: Text(
-          '丢弃',
+          _isEditing ? '取消' : '丢弃',
           style: GoogleFonts.plusJakartaSans(
             fontWeight: FontWeight.w600,
             color: AppColors.onSurfaceVariant,
@@ -822,30 +981,61 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     double fontSize = 16,
     TextInputType? keyboardType,
   }) {
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.outline, width: 2)),
-      ),
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        style: GoogleFonts.manrope(
-          fontSize: fontSize,
-          fontWeight: FontWeight.w500,
-          color: AppColors.onSurface,
-        ),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: TextStyle(
-            color: AppColors.onSurfaceVariant.withValues(alpha: 0.4),
-          ),
-          filled: false,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 14,
-          ),
-        ),
+    return Focus(
+      skipTraversal: true,
+      onFocusChange: (_) => setState(() {}),
+      child: Builder(
+        builder: (context) {
+          final hasFocus = Focus.of(context).hasFocus;
+
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            curve: Curves.easeOut,
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: hasFocus ? AppColors.primary : AppColors.outline,
+                  width: 2,
+                ),
+              ),
+            ),
+            child: TextField(
+              controller: controller,
+              keyboardType: keyboardType,
+              inputFormatters:
+                  keyboardType ==
+                          const TextInputType.numberWithOptions(decimal: true)
+                      ? [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d*\.?\d*'),
+                        ),
+                      ]
+                      : null,
+              style: GoogleFonts.manrope(
+                fontSize: fontSize,
+                fontWeight: FontWeight.w500,
+                color: AppColors.onSurface,
+              ),
+              decoration: InputDecoration(
+                hintText: hintText,
+                hintStyle: TextStyle(
+                  color: AppColors.onSurfaceVariant.withValues(alpha: 0.4),
+                ),
+                filled: false,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

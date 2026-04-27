@@ -1,16 +1,19 @@
+import 'dart:async';
 import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-/// Result returned from barcode lookup.
-class BarcodeResult {
+import '../data/food_categories.dart';
+
+/// Result returned from Open Food Facts name search.
+class FoodSearchResult {
   final String productName;
   final String? category;
-  final String barcode;
   final String? imageUrl;
 
-  const BarcodeResult({
+  const FoodSearchResult({
     required this.productName,
-    required this.barcode,
     this.category,
     this.imageUrl,
   });
@@ -18,158 +21,136 @@ class BarcodeResult {
 
 /// Service for querying product info from Open Food Facts API.
 class OpenFoodFactsService {
-  static const _baseUrl = 'https://world.openfoodfacts.org/api/v2/product';
+  static const _searchUrl = 'https://world.openfoodfacts.org/cgi/search.pl';
   static const _timeout = Duration(seconds: 8);
+  static const _retryCount = 1;
+  static const _retryDelay = Duration(milliseconds: 500);
+  static const _maxSearchResults = 1;
+  static const _headers = <String, String>{
+    'User-Agent': 'FreshPantry/1.0 (Flutter)',
+  };
+
+  static final http.Client _client = http.Client();
 
   /// Category keyword mapping: OFF categories_tags substring → app category.
   static const _categoryMapping = <String, String>{
-    // 乳制品与蛋类
-    'dairy': '乳制品与蛋类',
-    'milk': '乳制品与蛋类',
-    'cheese': '乳制品与蛋类',
-    'yogurt': '乳制品与蛋类',
-    'butter': '乳制品与蛋类',
-    'cream': '乳制品与蛋类',
-    'egg': '乳制品与蛋类',
-    'lait': '乳制品与蛋类',
-    'fromage': '乳制品与蛋类',
-    // 新鲜蔬果
-    'fruit': '新鲜蔬果',
-    'vegetable': '新鲜蔬果',
-    'legume': '新鲜蔬果',
-    'salad': '新鲜蔬果',
-    'produce': '新鲜蔬果',
-    'fresh': '新鲜蔬果',
-    // 肉类与海鲜
-    'meat': '肉类与海鲜',
-    'beef': '肉类与海鲜',
-    'pork': '肉类与海鲜',
-    'chicken': '肉类与海鲜',
-    'poultry': '肉类与海鲜',
-    'fish': '肉类与海鲜',
-    'seafood': '肉类与海鲜',
-    'shrimp': '肉类与海鲜',
-    'viande': '肉类与海鲜',
-    'poisson': '肉类与海鲜',
-    // 香料与草本
-    'spice': '香料与草本',
-    'herb': '香料与草本',
-    'seasoning': '香料与草本',
-    'pepper': '香料与草本',
-    'salt': '香料与草本',
-    'condiment': '食品柜常备',
-    'sauce': '食品柜常备',
-    'épice': '香料与草本',
-    // 食品柜常备 (pantry staples — broad catch)
-    'cereal': '食品柜常备',
-    'pasta': '食品柜常备',
-    'rice': '食品柜常备',
-    'bread': '食品柜常备',
-    'flour': '食品柜常备',
-    'oil': '食品柜常备',
-    'sugar': '食品柜常备',
-    'snack': '食品柜常备',
-    'beverage': '食品柜常备',
-    'drink': '食品柜常备',
-    'canned': '食品柜常备',
-    'conserve': '食品柜常备',
-    'biscuit': '食品柜常备',
-    'chocolate': '食品柜常备',
-    'coffee': '食品柜常备',
-    'tea': '食品柜常备',
-    'juice': '食品柜常备',
-    'water': '食品柜常备',
-    'noodle': '食品柜常备',
-    'grain': '食品柜常备',
+    // 乳品蛋类
+    'dairy': '乳品蛋类',
+    'milk': '乳品蛋类',
+    'cheese': '乳品蛋类',
+    'yogurt': '乳品蛋类',
+    'butter': '乳品蛋类',
+    'cream': '乳品蛋类',
+    'egg': '乳品蛋类',
+    'lait': '乳品蛋类',
+    'fromage': '乳品蛋类',
+    // 果蔬生鲜
+    'fruit': '果蔬生鲜',
+    'vegetable': '果蔬生鲜',
+    'legume': '果蔬生鲜',
+    'salad': '果蔬生鲜',
+    'produce': '果蔬生鲜',
+    'fresh': '果蔬生鲜',
+    // 肉类海鲜
+    'meat': '肉类海鲜',
+    'beef': '肉类海鲜',
+    'pork': '肉类海鲜',
+    'chicken': '肉类海鲜',
+    'poultry': '肉类海鲜',
+    'fish': '肉类海鲜',
+    'seafood': '肉类海鲜',
+    'shrimp': '肉类海鲜',
+    'viande': '肉类海鲜',
+    'poisson': '肉类海鲜',
+    // 香料草本
+    'spice': '香料草本',
+    'herb': '香料草本',
+    'seasoning': '香料草本',
+    'pepper': '香料草本',
+    'salt': '香料草本',
+    'condiment': FoodCategories.herbsAndSpices,
+    'sauce': FoodCategories.herbsAndSpices,
+    'épice': '香料草本',
+    // Broad shelf-stable catchall.
+    'cereal': FoodCategories.other,
+    'pasta': FoodCategories.other,
+    'rice': FoodCategories.other,
+    'bread': FoodCategories.other,
+    'flour': FoodCategories.other,
+    'oil': FoodCategories.other,
+    'sugar': FoodCategories.other,
+    'snack': FoodCategories.other,
+    'beverage': FoodCategories.other,
+    'drink': FoodCategories.other,
+    'canned': FoodCategories.other,
+    'conserve': FoodCategories.other,
+    'biscuit': FoodCategories.other,
+    'chocolate': FoodCategories.other,
+    'coffee': FoodCategories.other,
+    'tea': FoodCategories.other,
+    'juice': FoodCategories.other,
+    'water': FoodCategories.other,
+    'noodle': FoodCategories.other,
+    'grain': FoodCategories.other,
   };
 
-  /// Look up a barcode. Returns a [BarcodeResult] on success, `null` if not
-  /// found or on network / parse error.
-  static Future<BarcodeResult?> lookup(String barcode) async {
-    try {
-      final uri = Uri.parse('$_baseUrl/$barcode.json');
-      final response = await http.get(uri).timeout(_timeout);
-
-      if (response.statusCode != 200) return null;
-
-      final json = jsonDecode(response.body) as Map<String, dynamic>;
-
-      if (json['status'] != 1) return null;
-
-      final product = json['product'] as Map<String, dynamic>?;
-      if (product == null) return null;
-
-      // Try product_name first, then product_name_en, then generic_name.
-      final name = _firstNonEmpty([
-        product['product_name'] as String?,
-        product['product_name_en'] as String?,
-        product['generic_name'] as String?,
-      ]);
-
-      if (name == null) return null;
-
-      // Resolve category from categories_tags list.
-      final categoriesTags = product['categories_tags'] as List<dynamic>?;
-      final category = _resolveCategory(categoriesTags);
-
-      final imageUrl = product['image_front_url'] as String? ??
-          product['image_url'] as String?;
-
-      return BarcodeResult(
-        productName: name,
-        barcode: barcode,
-        category: category,
-        imageUrl: imageUrl,
-      );
-    } catch (_) {
-      return null;
-    }
+  /// Releases the underlying HTTP client.
+  ///
+  /// Call this when the service is no longer needed (e.g., app shutdown).
+  /// After calling [dispose], all subsequent requests will throw.
+  static void dispose() {
+    _client.close();
   }
 
-  /// Search for a product by name. Returns the best match as a [BarcodeResult]
+  /// Search for a product by name. Returns the best match as a [FoodSearchResult]
   /// or `null` if nothing relevant is found.
-  static Future<BarcodeResult?> searchByName(String name) async {
+  static Future<FoodSearchResult?> searchByName(String name) async {
     try {
       final uri = Uri.parse(
-        'https://world.openfoodfacts.org/cgi/search.pl'
+        '$_searchUrl'
         '?search_terms=${Uri.encodeComponent(name)}'
-        '&search_simple=1&action=process&json=1&page_size=1'
-        '&fields=product_name,categories_tags,image_front_small_url,code',
+        '&search_simple=1&action=process&json=1&page_size=$_maxSearchResults'
+        '&fields=product_name,categories_tags,image_front_small_url',
       );
-      final response = await http.get(uri).timeout(_timeout);
+      final response = await _fetch(uri);
 
       if (response.statusCode != 200) return null;
 
-      final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final products = json['products'] as List<dynamic>?;
+      final json = _asMap(jsonDecode(response.body));
+      if (json == null) return null;
+
+      final products = _asList(json['products']);
       if (products == null || products.isEmpty) return null;
 
-      final product = products.first as Map<String, dynamic>;
-      final productName = product['product_name'] as String?;
+      final first = products.first;
+      final product = _asMap(first);
+      if (product == null) return null;
+
+      final productName = _asString(product['product_name']);
       if (productName == null || productName.trim().isEmpty) return null;
 
-      final categoriesTags = product['categories_tags'] as List<dynamic>?;
+      final categoriesTags = _asList(product['categories_tags']);
       final category = _resolveCategory(categoriesTags);
-      final imageUrl = product['image_front_small_url'] as String?;
-      final code = product['code'] as String? ?? '';
+      final imageUrl = _asString(product['image_front_small_url']);
 
-      return BarcodeResult(
+      return FoodSearchResult(
         productName: productName.trim(),
-        barcode: code,
         category: category,
         imageUrl: imageUrl,
       );
-    } catch (_) {
+    } on TimeoutException catch (e, stack) {
+      debugPrint('OpenFoodFacts searchByName timeout: $e\n$stack');
+      return null;
+    } on http.ClientException catch (e, stack) {
+      debugPrint('OpenFoodFacts searchByName HTTP error: $e\n$stack');
+      return null;
+    } on FormatException catch (e, stack) {
+      debugPrint('OpenFoodFacts searchByName format error: $e\n$stack');
+      return null;
+    } catch (e, stack) {
+      debugPrint('OpenFoodFacts searchByName unexpected error: $e\n$stack');
       return null;
     }
-  }
-
-  /// Return the first non-null, non-empty string from [candidates].
-  static String? _firstNonEmpty(List<String?> candidates) {
-    for (final s in candidates) {
-      if (s != null && s.trim().isNotEmpty) return s.trim();
-    }
-    return null;
   }
 
   /// Match OFF categories_tags against keyword map. Returns the first matched
@@ -185,6 +166,42 @@ class OpenFoodFactsService {
         }
       }
     }
+    return null;
+  }
+
+  /// Perform an HTTP GET with retry logic.
+  static Future<http.Response> _fetch(Uri uri) async {
+    for (var attempt = 0; attempt <= _retryCount; attempt++) {
+      try {
+        final response = await _client
+            .get(uri, headers: _headers)
+            .timeout(_timeout);
+        return response;
+      } on TimeoutException {
+        if (attempt == _retryCount) rethrow;
+      } on http.ClientException {
+        if (attempt == _retryCount) rethrow;
+      }
+      await Future<void>.delayed(_retryDelay);
+    }
+    throw StateError('Unreachable');
+  }
+
+  /// Safely cast [value] to [Map<String, dynamic>].
+  static Map<String, dynamic>? _asMap(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    return null;
+  }
+
+  /// Safely cast [value] to [List<dynamic>].
+  static List<dynamic>? _asList(dynamic value) {
+    if (value is List<dynamic>) return value;
+    return null;
+  }
+
+  /// Safely cast [value] to [String].
+  static String? _asString(dynamic value) {
+    if (value is String) return value;
     return null;
   }
 }

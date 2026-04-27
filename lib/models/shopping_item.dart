@@ -46,11 +46,11 @@ class ShoppingItem {
 
   factory ShoppingItem.fromJson(Map<String, dynamic> json) {
     return ShoppingItem(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      detail: json['detail'] as String,
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      detail: json['detail'] as String? ?? '',
       imageUrl: json['imageUrl'] as String?,
-      category: json['category'] as String,
+      category: json['category'] as String? ?? '其他',
       isChecked: json['isChecked'] as bool? ?? false,
     );
   }
