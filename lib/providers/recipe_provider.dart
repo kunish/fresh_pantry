@@ -37,7 +37,7 @@ final recipesProvider = FutureProvider<List<Recipe>>((ref) async {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error fetching recipes for "$term": $e');
+        debugPrint('Error fetching recipes for "$term": $e');
       }
     }
   }

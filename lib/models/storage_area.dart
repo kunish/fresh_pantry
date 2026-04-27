@@ -21,6 +21,16 @@ class StorageArea {
     required this.capacityPercent,
   });
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is StorageArea &&
+          runtimeType == other.runtimeType &&
+          name == other.name;
+
+  @override
+  int get hashCode => name.hashCode;
+
   StorageArea copyWith({
     String? name,
     IconType? icon,

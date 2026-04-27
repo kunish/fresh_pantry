@@ -95,6 +95,49 @@ void main() {
     },
   );
 
+  testWidgets('swipe delete removes the selected duplicate-name item', (
+    tester,
+  ) async {
+    final firstItem = _ingredient(
+      name: '番茄',
+      category: FoodCategories.freshProduce,
+    ).copyWith(quantity: '1');
+    final secondItem = _ingredient(
+      name: '番茄',
+      category: FoodCategories.freshProduce,
+    ).copyWith(quantity: '2');
+    SharedPreferences.setMockInitialValues({
+      'inventory_items': jsonEncode([firstItem.toJson(), secondItem.toJson()]),
+    });
+    final prefs = await SharedPreferences.getInstance();
+    late ProviderContainer container;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        child: Builder(
+          builder: (context) {
+            container = ProviderScope.containerOf(context);
+            return const MaterialApp(home: Scaffold(body: InventoryScreen()));
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.drag(
+      find.byKey(const ValueKey('inv_swipe_番茄_1')),
+      const Offset(-240, 0),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('inventory_swipe_delete_番茄_1')));
+    await tester.pumpAndSettle();
+
+    final items = container.read(inventoryProvider);
+    expect(items, hasLength(1));
+    expect(items.single.quantity, '1');
+  });
+
   testWidgets('swiping an inventory item reveals delete without removing it', (
     tester,
   ) async {

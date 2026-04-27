@@ -15,6 +15,16 @@ class ShoppingItem {
     this.isChecked = false,
   });
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ShoppingItem &&
+          runtimeType == other.runtimeType &&
+          id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
+
   ShoppingItem copyWith({
     String? id,
     String? name,

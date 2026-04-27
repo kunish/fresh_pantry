@@ -33,6 +33,42 @@ class Ingredient {
     this.shelfLifeDays,
   });
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Ingredient &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          quantity == other.quantity &&
+          unit == other.unit &&
+          imageUrl == other.imageUrl &&
+          freshnessPercent == other.freshnessPercent &&
+          state == other.state &&
+          expiryLabel == other.expiryLabel &&
+          category == other.category &&
+          barcode == other.barcode &&
+          storage == other.storage &&
+          expiryDate == other.expiryDate &&
+          addedAt == other.addedAt &&
+          shelfLifeDays == other.shelfLifeDays;
+
+  @override
+  int get hashCode => Object.hash(
+    name,
+    quantity,
+    unit,
+    imageUrl,
+    freshnessPercent,
+    state,
+    expiryLabel,
+    category,
+    barcode,
+    storage,
+    expiryDate,
+    addedAt,
+    shelfLifeDays,
+  );
+
   Ingredient copyWith({
     String? name,
     String? quantity,

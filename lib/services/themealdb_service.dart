@@ -21,16 +21,6 @@ class TheMealDbService {
     'User-Agent': 'FreshPantry/1.0 (Flutter)',
   };
 
-  static final http.Client _client = http.Client();
-
-  /// Releases the underlying HTTP client.
-  ///
-  /// Call this when the service is no longer needed (e.g., app shutdown).
-  /// After calling [dispose], all subsequent requests will throw.
-  static void dispose() {
-    _client.close();
-  }
-
   /// Search recipes by name. Returns up to [_maxSearchResults] results.
   static Future<List<Recipe>> searchByName(String query) async {
     try {
@@ -231,19 +221,24 @@ class TheMealDbService {
 
   /// Perform an HTTP GET with retry logic.
   static Future<http.Response> _fetch(Uri uri) async {
-    for (var attempt = 0; attempt <= _retryCount; attempt++) {
-      try {
-        final response =
-            await _client.get(uri, headers: _headers).timeout(_timeout);
-        return response;
-      } on TimeoutException {
-        if (attempt == _retryCount) rethrow;
-      } on http.ClientException {
-        if (attempt == _retryCount) rethrow;
+    final client = http.Client();
+    try {
+      for (var attempt = 0; attempt <= _retryCount; attempt++) {
+        try {
+          final response =
+              await client.get(uri, headers: _headers).timeout(_timeout);
+          return response;
+        } on TimeoutException {
+          if (attempt == _retryCount) rethrow;
+        } on http.ClientException {
+          if (attempt == _retryCount) rethrow;
+        }
+        await Future<void>.delayed(_retryDelay);
       }
-      await Future<void>.delayed(_retryDelay);
+      throw StateError('Unreachable');
+    } finally {
+      client.close();
     }
-    throw StateError('Unreachable');
   }
 
   /// Safely cast [value] to [Map<String, dynamic>].

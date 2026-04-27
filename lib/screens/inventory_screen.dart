@@ -25,7 +25,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   }
 
   int _indexOfInventoryItem(Ingredient item) {
-    return ref.read(inventoryProvider).indexOf(item);
+    return inventoryIndexOf(ref.read(inventoryProvider), item);
   }
 
   Future<void> _editItem(Ingredient item) async {

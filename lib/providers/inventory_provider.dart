@@ -21,6 +21,14 @@ bool isNotFreshIngredient(Ingredient item) {
       item.state == FreshnessState.expired;
 }
 
+int inventoryIndexOf(List<Ingredient> items, Ingredient item) {
+  final identityIndex = items.indexWhere(
+    (candidate) => identical(candidate, item),
+  );
+  if (identityIndex != -1) return identityIndex;
+  return items.indexOf(item);
+}
+
 Ingredient _normalizeIngredientCategory(Ingredient item) {
   final category = FoodCategories.normalize(item.category);
   if (category == item.category) return item;
@@ -181,7 +189,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>> {
         history.addAll((json.decode(historyJson) as Map<String, dynamic>));
       } catch (e) {
         if (kDebugMode) {
-          print('Error decoding add history: $e');
+          debugPrint('Error decoding add history: $e');
         }
       }
     }

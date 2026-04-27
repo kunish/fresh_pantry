@@ -209,9 +209,10 @@ class DashboardScreen extends ConsumerWidget {
                                 ? AppColors.onSecondaryContainer
                                 : AppColors.onSurfaceVariant,
                         onConsume: () {
-                          final idx = ref
-                              .read(inventoryProvider)
-                              .indexOf(e.value);
+                          final idx = inventoryIndexOf(
+                            ref.read(inventoryProvider),
+                            e.value,
+                          );
                           if (idx >= 0) {
                             ref.read(inventoryProvider.notifier).remove(idx);
                           }

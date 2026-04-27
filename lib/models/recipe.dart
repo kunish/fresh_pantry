@@ -4,6 +4,17 @@ class RecipeIngredient {
 
   const RecipeIngredient({required this.name, required this.amount});
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RecipeIngredient &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          amount == other.amount;
+
+  @override
+  int get hashCode => Object.hash(name, amount);
+
   RecipeIngredient copyWith({String? name, String? amount}) {
     return RecipeIngredient(
       name: name ?? this.name,
@@ -47,6 +58,16 @@ class Recipe {
     this.tags = const [],
     this.imageUrl,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Recipe &&
+          runtimeType == other.runtimeType &&
+          id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 
   Recipe copyWith({
     String? id,
@@ -137,6 +158,16 @@ class ScoredRecipe {
     required this.matchedCount,
     required this.expiringMatchedCount,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ScoredRecipe &&
+          runtimeType == other.runtimeType &&
+          recipe == other.recipe;
+
+  @override
+  int get hashCode => recipe.hashCode;
 
   ScoredRecipe copyWith({
     Recipe? recipe,
