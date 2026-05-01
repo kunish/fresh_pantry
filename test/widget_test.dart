@@ -10,9 +10,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:fresh_pantry/app.dart';
 import 'package:fresh_pantry/data/food_categories.dart';
+import 'package:fresh_pantry/models/food_details.dart';
 import 'package:fresh_pantry/models/ingredient.dart';
 import 'package:fresh_pantry/models/shopping_item.dart';
 import 'package:fresh_pantry/models/storage_area.dart';
+import 'package:fresh_pantry/providers/food_details_provider.dart';
 import 'package:fresh_pantry/providers/inventory_provider.dart';
 import 'package:fresh_pantry/providers/navigation_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
@@ -580,6 +582,9 @@ void main() {
       ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
+          foodDetailsClientProvider.overrideWithValue(
+            const _FakeFoodDetailsClient(null),
+          ),
           selectedCategoryProvider.overrideWith(
             (ref) => inventoryFilterNotFresh,
           ),
@@ -598,12 +603,163 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, '搜索食材...'), '牛奶');
     await tester.pumpAndSettle();
-    await tester.tap(find.text('牛奶').last);
+    await tester.tap(find.widgetWithText(ListTile, '牛奶').first);
     await tester.pumpAndSettle();
 
     expect(container.read(navigationProvider), 1);
     expect(container.read(selectedCategoryProvider), inventoryFilterAll);
     expect(find.text('牛奶'), findsOneWidget);
+  });
+
+  testWidgets('top search shows online food details when local lists miss', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      'inventory_items': '[]',
+      'shopping_items': '[]',
+      'add_history': '{}',
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final details = FoodDetails(
+      displayName: '有机全脂牛奶',
+      description: 'Open Food Facts 返回的牛奶详情',
+      imageUrl:
+          'data:image/png;base64,'
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/'
+          'x8AAwMCAO+/p9sAAAAASUVORK5CYII=',
+      category: FoodCategories.dairyAndEggs,
+      storage: IconType.fridge,
+      shelfLifeDays: 7,
+      source: 'Open Food Facts',
+      fetchedAt: DateTime.utc(2026, 5, 1),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          foodDetailsClientProvider.overrideWithValue(
+            _FakeFoodDetailsClient(details),
+          ),
+        ],
+        child: const FreshPantryApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('搜索'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, '搜索食材...'), '牛奶');
+    await tester.pumpAndSettle();
+
+    expect(find.text('食材百科'), findsOneWidget);
+    expect(find.text('有机全脂牛奶'), findsOneWidget);
+    expect(find.textContaining('Open Food Facts 返回的牛奶详情'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) => widget is Image && widget.image is MemoryImage,
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('有机全脂牛奶'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('食材详情'), findsOneWidget);
+    expect(find.text('分类：${FoodCategories.dairyAndEggs}'), findsOneWidget);
+    expect(find.text('来源：Open Food Facts'), findsOneWidget);
+  });
+
+  testWidgets('top search summarizes generic online food details usefully', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      'inventory_items': '[]',
+      'shopping_items': '[]',
+      'add_history': '{}',
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final details = FoodDetails(
+      displayName: '牛奶',
+      description: 'Open Food Facts 记录的乳品蛋类食品。',
+      imageUrl: null,
+      category: FoodCategories.dairyAndEggs,
+      storage: IconType.fridge,
+      shelfLifeDays: 7,
+      source: 'Open Food Facts',
+      fetchedAt: DateTime.utc(2026, 5, 1),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          foodDetailsClientProvider.overrideWithValue(
+            _FakeFoodDetailsClient(details),
+          ),
+        ],
+        child: const FreshPantryApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('搜索'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, '搜索食材...'), '牛奶');
+    await tester.pumpAndSettle();
+
+    expect(find.text('食材百科'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, '牛奶'), findsOneWidget);
+    expect(find.text('乳品蛋类 · 冰箱保存 · 约 7 天'), findsOneWidget);
+    expect(find.textContaining('Open Food Facts 记录'), findsNothing);
+    expect(find.textContaining('Open Food Facts'), findsNothing);
+  });
+
+  testWidgets('top search shows online food details alongside local matches', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      'inventory_items': jsonEncode([
+        _ingredient(
+          '牛奶',
+        ).copyWith(category: FoodCategories.dairyAndEggs).toJson(),
+      ]),
+      'shopping_items': '[]',
+      'add_history': '{}',
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final details = FoodDetails(
+      displayName: '有机全脂牛奶',
+      description: 'Open Food Facts 返回的牛奶详情',
+      imageUrl: null,
+      category: FoodCategories.dairyAndEggs,
+      storage: IconType.fridge,
+      shelfLifeDays: 7,
+      source: 'Open Food Facts',
+      fetchedAt: DateTime.utc(2026, 5, 1),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          foodDetailsClientProvider.overrideWithValue(
+            _FakeFoodDetailsClient(details),
+          ),
+        ],
+        child: const FreshPantryApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('搜索'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, '搜索食材...'), '牛奶');
+    await tester.pumpAndSettle();
+
+    expect(find.text('库存食材'), findsOneWidget);
+    expect(find.text('食材百科'), findsOneWidget);
+    expect(find.text('有机全脂牛奶'), findsOneWidget);
   });
 
   testWidgets('search shopping result expands the matched category', (
@@ -628,6 +784,9 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           navigationProvider.overrideWith((ref) => 3),
+          foodDetailsClientProvider.overrideWithValue(
+            const _FakeFoodDetailsClient(null),
+          ),
         ],
         child: const FreshPantryApp(),
       ),
@@ -642,11 +801,20 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, '搜索食材...'), '番茄');
     await tester.pumpAndSettle();
-    await tester.tap(find.text('番茄').last);
+    await tester.tap(find.widgetWithText(ListTile, '番茄').first);
     await tester.pumpAndSettle();
 
     expect(find.text('番茄'), findsOneWidget);
   });
+}
+
+class _FakeFoodDetailsClient implements FoodDetailsClient {
+  const _FakeFoodDetailsClient(this.details);
+
+  final FoodDetails? details;
+
+  @override
+  Future<FoodDetails?> lookup(Ingredient ingredient) async => details;
 }
 
 String _formatChineseDate(DateTime date) {

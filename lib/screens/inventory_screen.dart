@@ -6,7 +6,7 @@ import '../models/shopping_item.dart';
 import '../theme/app_theme.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/shopping_provider.dart';
-import '../screens/add_ingredient_screen.dart';
+import '../screens/ingredient_detail_screen.dart';
 import '../widgets/inventory/ingredient_card.dart';
 import '../widgets/common/category_chips.dart';
 import '../widgets/common/swipe_reveal_delete_action.dart';
@@ -56,30 +56,32 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     );
   }
 
-  Future<void> _editItem(Ingredient item) async {
-    final index = _indexOfInventoryItem(item);
-    if (index == -1) return;
-
-    final updatedName = await Navigator.of(context).push<String>(
+  Future<void> _openItemDetail(Ingredient item) async {
+    final result = await Navigator.of(context).push<IngredientDetailResult>(
       MaterialPageRoute(
-        builder:
-            (_) => Scaffold(
-              backgroundColor: AppColors.surface,
-              body: SafeArea(
-                child: AddIngredientScreen(
-                  initialIngredient: item,
-                  inventoryIndex: index,
-                ),
-              ),
-            ),
+        builder: (_) => IngredientDetailScreen(ingredient: item),
       ),
     );
-    if (!mounted || updatedName == null) return;
+    if (!mounted || result == null) return;
 
+    switch (result.type) {
+      case IngredientDetailResultType.updated:
+        final name = result.name;
+        if (name != null) _showUpdatedSnackBar(name);
+      case IngredientDetailResultType.deleted:
+        final deletedItem = result.item;
+        final index = result.index;
+        if (deletedItem != null && index != null) {
+          _showDeletedSnackBar(deletedItem, index);
+        }
+    }
+  }
+
+  void _showUpdatedSnackBar(String name) {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('「$updatedName」已更新'),
+        content: Text('「$name」已更新'),
         persist: false,
         backgroundColor: AppColors.primary,
         behavior: SnackBarBehavior.floating,
@@ -88,122 +90,15 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     );
   }
 
-  void _showItemActions(Ingredient item) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder:
-          (ctx) => SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: AppColors.outline,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    item.name,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildActionTile(
-                    icon: Icons.shopping_cart_outlined,
-                    label: '加入购物清单',
-                    color: AppColors.primary,
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _addToShoppingList(item);
-                    },
-                  ),
-                  _buildActionTile(
-                    icon: Icons.edit_outlined,
-                    label: '编辑',
-                    color: AppColors.onSurface,
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _editItem(item);
-                    },
-                  ),
-                  _buildActionTile(
-                    icon: Icons.delete_outline,
-                    label: '删除',
-                    color: AppColors.error,
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _confirmDelete(item);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-    );
-  }
-
-  void _confirmDelete(Ingredient item) {
-    showDialog(
-      context: context,
-      builder:
-          (ctx) => AlertDialog(
-            backgroundColor: AppColors.surface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: Text(
-              '删除食材',
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
-            ),
-            content: Text(
-              '确定要删除「${item.name}」吗？此操作不可撤销。',
-              style: GoogleFonts.manrope(color: AppColors.onSurfaceVariant),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(
-                  '取消',
-                  style: GoogleFonts.manrope(color: AppColors.onSurfaceVariant),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  _deleteItem(item);
-                },
-                child: Text(
-                  '删除',
-                  style: GoogleFonts.manrope(
-                    color: AppColors.error,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-    );
-  }
-
   void _deleteItem(Ingredient item) {
     final index = _indexOfInventoryItem(item);
     if (index == -1) return;
 
     ref.read(inventoryProvider.notifier).remove(index);
+    _showDeletedSnackBar(item, index);
+  }
+
+  void _showDeletedSnackBar(Ingredient item, int index) {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -220,23 +115,6 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
           },
         ),
       ),
-    );
-  }
-
-  Widget _buildActionTile({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: color),
-      title: Text(
-        label,
-        style: GoogleFonts.manrope(fontWeight: FontWeight.w600, color: color),
-      ),
-      onTap: onTap,
-      contentPadding: EdgeInsets.zero,
     );
   }
 
@@ -326,7 +204,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                             onDelete: () => _deleteItem(item),
                             child: IngredientCard(
                               ingredient: item,
-                              onTap: () => _showItemActions(item),
+                              onTap: () => _openItemDetail(item),
                               onBuyAgain: () => _addToShoppingList(item),
                             ),
                           );

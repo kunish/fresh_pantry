@@ -607,6 +607,61 @@ void main() {
       );
     });
   });
+
+  group('recipesProvider cache', () {
+    test('uses cached TheMealDB recipes without calling the client', () async {
+      final cachedRecipe = _recipe('mealdb_cached', '缓存番茄菜谱', ['tomato']);
+      SharedPreferences.setMockInitialValues({
+        'inventory_items': json.encode([_ingredient('番茄').toJson()]),
+        recipeDetailsCacheStorageKey: json.encode({
+          recipeSearchCacheKeyFor('tomato'): [cachedRecipe.toJson()],
+        }),
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final client = _FakeMealDbClient(
+        onSearch: (_) => throw StateError('network should not be called'),
+      );
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          mealDbClientProvider.overrideWithValue(client),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final recipes = await container.read(recipesProvider.future);
+
+      expect(recipes.map((recipe) => recipe.id), contains('mealdb_cached'));
+      expect(client.calls, 0);
+    });
+
+    test('saves TheMealDB recipes after a cache miss', () async {
+      final fetchedRecipe = _recipe('mealdb_fetched', '联网番茄菜谱', ['tomato']);
+      SharedPreferences.setMockInitialValues({
+        'inventory_items': json.encode([_ingredient('番茄').toJson()]),
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final client = _FakeMealDbClient(onSearch: (_) async => [fetchedRecipe]);
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          mealDbClientProvider.overrideWithValue(client),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final recipes = await container.read(recipesProvider.future);
+
+      expect(recipes.map((recipe) => recipe.id), contains('mealdb_fetched'));
+      expect(client.calls, 1);
+
+      final saved = json.decode(prefs.getString(recipeDetailsCacheStorageKey)!);
+      expect(
+        saved[recipeSearchCacheKeyFor('tomato')].single['id'],
+        'mealdb_fetched',
+      );
+    });
+  });
 }
 
 Future<ProviderContainer> _containerWithInventory(
@@ -664,6 +719,19 @@ Recipe _recipe(String id, String name, List<String> ingredients) {
             .toList(),
     steps: const [],
   );
+}
+
+class _FakeMealDbClient implements MealDbClient {
+  _FakeMealDbClient({required this.onSearch});
+
+  final Future<List<Recipe>> Function(String term) onSearch;
+  int calls = 0;
+
+  @override
+  Future<List<Recipe>> searchByName(String term) {
+    calls++;
+    return onSearch(term);
+  }
 }
 
 ShoppingItem _shoppingItem(String id, String name) {

@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/recipe.dart';
 import '../models/ingredient.dart';
 import '../data/mock_data.dart';
@@ -7,6 +10,73 @@ import '../data/food_knowledge.dart';
 import '../services/themealdb_service.dart';
 import 'custom_recipe_provider.dart';
 import 'inventory_provider.dart';
+import 'storage_service_provider.dart';
+
+const recipeDetailsCacheStorageKey = 'recipe_details_cache';
+
+abstract class MealDbClient {
+  Future<List<Recipe>> searchByName(String term);
+}
+
+class TheMealDbClient implements MealDbClient {
+  const TheMealDbClient();
+
+  @override
+  Future<List<Recipe>> searchByName(String term) {
+    return TheMealDbService.searchByName(term);
+  }
+}
+
+final mealDbClientProvider = Provider<MealDbClient>(
+  (ref) => const TheMealDbClient(),
+);
+
+final recipeSearchRepositoryProvider = Provider<RecipeSearchRepository>((ref) {
+  return RecipeSearchRepository(
+    prefs: ref.read(sharedPreferencesProvider),
+    client: ref.watch(mealDbClientProvider),
+  );
+});
+
+String recipeSearchCacheKeyFor(String term) {
+  return 'name:${term.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ')}';
+}
+
+class RecipeSearchRepository {
+  RecipeSearchRepository({required this.prefs, required this.client});
+
+  final SharedPreferences prefs;
+  final MealDbClient client;
+
+  Future<List<Recipe>> searchByName(String term) async {
+    final cache = _readCache();
+    final key = recipeSearchCacheKeyFor(term);
+    final cachedValue = cache[key];
+    if (cachedValue is List) {
+      return cachedValue
+          .whereType<Map<String, dynamic>>()
+          .map(Recipe.fromJson)
+          .toList();
+    }
+
+    final recipes = await client.searchByName(term);
+    cache[key] = recipes.map((recipe) => recipe.toJson()).toList();
+    await prefs.setString(recipeDetailsCacheStorageKey, jsonEncode(cache));
+    return recipes;
+  }
+
+  Map<String, dynamic> _readCache() {
+    final raw = prefs.getString(recipeDetailsCacheStorageKey);
+    if (raw == null || raw.isEmpty) return <String, dynamic>{};
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) return Map<String, dynamic>.from(decoded);
+    } catch (_) {
+      return <String, dynamic>{};
+    }
+    return <String, dynamic>{};
+  }
+}
 
 Set<String> _inventoryNameSet(Iterable<Ingredient> inventory) {
   return inventory
@@ -41,6 +111,7 @@ int _matchedIngredientCountForNames(Set<String> inventoryNames, Recipe recipe) {
 /// All available recipes — mock recipes + TheMealDB results
 final recipesProvider = FutureProvider<List<Recipe>>((ref) async {
   final inventory = ref.watch(inventoryProvider);
+  final recipeSearchRepository = ref.watch(recipeSearchRepositoryProvider);
 
   // Always start with mock Chinese recipes
   final allRecipes = List<Recipe>.from(MockData.recipes);
@@ -59,7 +130,7 @@ final recipesProvider = FutureProvider<List<Recipe>>((ref) async {
 
   for (final term in englishTerms) {
     try {
-      final results = await TheMealDbService.searchByName(term);
+      final results = await recipeSearchRepository.searchByName(term);
       for (final recipe in results) {
         if (seenIds.add(recipe.id)) {
           allRecipes.add(recipe);

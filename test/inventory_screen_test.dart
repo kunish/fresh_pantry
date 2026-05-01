@@ -7,8 +7,11 @@ import 'package:fresh_pantry/data/food_categories.dart';
 import 'package:fresh_pantry/models/ingredient.dart';
 import 'package:fresh_pantry/models/shopping_item.dart';
 import 'package:fresh_pantry/models/storage_area.dart';
+import 'package:fresh_pantry/models/food_details.dart';
+import 'package:fresh_pantry/providers/food_details_provider.dart';
 import 'package:fresh_pantry/providers/inventory_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
+import 'package:fresh_pantry/screens/ingredient_detail_screen.dart';
 import 'package:fresh_pantry/screens/inventory_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -138,6 +141,138 @@ void main() {
     expect(items, hasLength(1));
     expect(items.single.quantity, '1');
   });
+
+  testWidgets('tapping an inventory card opens food details', (tester) async {
+    final targetItem = _ingredient(
+      name: '番茄',
+      category: FoodCategories.freshProduce,
+    );
+    SharedPreferences.setMockInitialValues({
+      'inventory_items': jsonEncode([targetItem.toJson()]),
+    });
+    final prefs = await SharedPreferences.getInstance();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          foodDetailsClientProvider.overrideWithValue(
+            _FakeFoodDetailsClient(
+              FoodDetails(
+                displayName: '番茄',
+                description: '多汁的果蔬生鲜食材',
+                imageUrl: '',
+                category: FoodCategories.freshProduce,
+                storage: IconType.fridge,
+                shelfLifeDays: 7,
+                source: '本地食材知识库',
+                fetchedAt: DateTime.utc(2026, 5, 1),
+              ),
+            ),
+          ),
+        ],
+        child: const MaterialApp(home: Scaffold(body: InventoryScreen())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('番茄'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('食材详情'), findsOneWidget);
+    expect(find.text('多汁的果蔬生鲜食材'), findsOneWidget);
+    expect(find.text('来源：本地食材知识库'), findsOneWidget);
+    expect(find.text('建议存放：冰箱'), findsOneWidget);
+    expect(find.text('保质期建议：7天'), findsOneWidget);
+  });
+
+  testWidgets(
+    'ingredient detail action labels stay on one line on large phones',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(430, 932));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final targetItem = _ingredient(
+        name: '牛奶',
+        category: FoodCategories.dairyAndEggs,
+      ).copyWith(quantity: '240', unit: 'ml');
+      SharedPreferences.setMockInitialValues({
+        'inventory_items': jsonEncode([targetItem.toJson()]),
+      });
+      final prefs = await SharedPreferences.getInstance();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            foodDetailsClientProvider.overrideWithValue(
+              _FakeFoodDetailsClient(
+                FoodDetails(
+                  displayName: '牛奶',
+                  description: '240 ml',
+                  imageUrl: '',
+                  category: FoodCategories.dairyAndEggs,
+                  storage: IconType.fridge,
+                  shelfLifeDays: 7,
+                  source: 'Open Food Facts',
+                  fetchedAt: DateTime.utc(2026, 5, 1),
+                ),
+              ),
+            ),
+          ],
+          child: MaterialApp(
+            home: IngredientDetailScreen(ingredient: targetItem),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.getSize(find.text('编辑')).height, lessThanOrEqualTo(24));
+      expect(tester.getSize(find.text('删除')).height, lessThanOrEqualTo(24));
+    },
+  );
+
+  testWidgets(
+    'ingredient detail hides inventory-only actions for online result',
+    (tester) async {
+      final onlineItem = _ingredient(
+        name: '牛奶',
+        category: FoodCategories.dairyAndEggs,
+      );
+      SharedPreferences.setMockInitialValues({'inventory_items': '[]'});
+      final prefs = await SharedPreferences.getInstance();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            foodDetailsClientProvider.overrideWithValue(
+              _FakeFoodDetailsClient(
+                FoodDetails(
+                  displayName: '牛奶',
+                  description: '乳品蛋类食材',
+                  imageUrl: null,
+                  category: FoodCategories.dairyAndEggs,
+                  storage: IconType.fridge,
+                  shelfLifeDays: 7,
+                  source: 'Open Food Facts',
+                  fetchedAt: DateTime.utc(2026, 5, 1),
+                ),
+              ),
+            ),
+          ],
+          child: MaterialApp(
+            home: IngredientDetailScreen(ingredient: onlineItem),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('加入购物清单'), findsOneWidget);
+      expect(find.text('编辑'), findsNothing);
+      expect(find.text('删除'), findsNothing);
+    },
+  );
 
   testWidgets('swiping an inventory item reveals delete without removing it', (
     tester,
@@ -368,4 +503,13 @@ Ingredient _ingredient({required String name, required String category}) {
     storage: IconType.fridge,
     expiryLabel: '新鲜',
   );
+}
+
+class _FakeFoodDetailsClient implements FoodDetailsClient {
+  _FakeFoodDetailsClient(this.details);
+
+  final FoodDetails details;
+
+  @override
+  Future<FoodDetails?> lookup(Ingredient ingredient) async => details;
 }

@@ -3,11 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_theme.dart';
+import '../../models/food_details.dart';
 import '../../models/ingredient.dart';
 import '../../models/shopping_item.dart';
+import '../../models/storage_area.dart';
 import '../../providers/inventory_provider.dart';
 import '../../providers/navigation_provider.dart';
 import '../../providers/search_provider.dart';
+import '../../screens/ingredient_detail_screen.dart';
+import '../shared/category_icon.dart';
+import '../shared/recipe_image.dart';
 
 class SearchOverlay extends ConsumerStatefulWidget {
   const SearchOverlay({super.key});
@@ -50,6 +55,8 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
     final keyword = ref.watch(searchProvider).trim();
     final inventoryResults = ref.watch(filteredInventoryProvider);
     final shoppingResults = ref.watch(filteredShoppingProvider);
+    final foodDetailsResult =
+        keyword.isNotEmpty ? ref.watch(searchFoodDetailsProvider) : null;
     final hasQuery = keyword.isNotEmpty;
 
     return Stack(
@@ -143,6 +150,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
                           child: _buildResultsList(
                             inventoryResults,
                             shoppingResults,
+                            foodDetailsResult,
                           ),
                         ),
                       ),
@@ -254,11 +262,21 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
   Widget _buildResultsList(
     List<Ingredient> inventory,
     List<ShoppingItem> shopping,
+    AsyncValue<FoodDetails?>? foodDetailsResult,
   ) {
     final hasInventory = inventory.isNotEmpty;
     final hasShopping = shopping.isNotEmpty;
+    final foodDetails = foodDetailsResult?.maybeWhen(
+      data: (details) => details,
+      orElse: () => null,
+    );
+    final hasFoodDetails = foodDetails != null;
+    final isLoadingFoodDetails = foodDetailsResult?.isLoading ?? false;
 
-    if (!hasInventory && !hasShopping) {
+    if (!hasInventory &&
+        !hasShopping &&
+        !hasFoodDetails &&
+        !isLoadingFoodDetails) {
       return Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
@@ -304,6 +322,26 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
           ...shopping.take(5).map(_buildShoppingTile),
           if (shopping.length > 5)
             _buildShowMoreHint(shopping.length - 5, '购物清单'),
+        ],
+
+        if ((hasInventory || hasShopping) &&
+            (hasFoodDetails || isLoadingFoodDetails))
+          const Divider(height: 1, indent: 16, endIndent: 16),
+
+        if (isLoadingFoodDetails) ...[
+          _buildSectionHeader('食材百科', Icons.info_outline, 1),
+          const ListTile(
+            dense: true,
+            leading: SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            title: Text('正在查询联网食材信息...'),
+          ),
+        ] else if (hasFoodDetails) ...[
+          _buildSectionHeader('食材百科', Icons.info_outline, 1),
+          _buildFoodDetailsTile(foodDetails),
         ],
       ],
     );
@@ -427,6 +465,115 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
         ref.navigateToTab(3);
         _close();
       },
+    );
+  }
+
+  Widget _buildFoodDetailsTile(FoodDetails details) {
+    return ListTile(
+      dense: true,
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: RecipeImage(
+            imageSource: details.imageUrl,
+            fit: BoxFit.cover,
+            semanticLabel: details.displayName,
+            fallback: CategoryIconAvatar(
+              category: details.category,
+              size: 44,
+              iconSize: 20,
+              borderRadius: 10,
+            ),
+          ),
+        ),
+      ),
+      title: Text(
+        details.displayName,
+        style: GoogleFonts.manrope(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.onSurface,
+        ),
+      ),
+      subtitle: Text(
+        _foodDetailsSummary(details),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.manrope(
+          fontSize: 12,
+          color: AppColors.onSurfaceVariant,
+        ),
+      ),
+      onTap: () => _openFoodDetails(details),
+    );
+  }
+
+  String _foodDetailsSummary(FoodDetails details) {
+    final parts = <String>[];
+    final description = details.description.trim();
+    if (_isUsefulFoodDetailsDescription(description)) {
+      parts.add(description);
+    }
+
+    final category = details.category.trim();
+    if (category.isNotEmpty) {
+      parts.add(category);
+    }
+
+    parts.add('${_storageLabel(details.storage)}保存');
+
+    final shelfLifeDays = details.shelfLifeDays;
+    if (shelfLifeDays != null && shelfLifeDays > 0) {
+      parts.add('约 $shelfLifeDays 天');
+    }
+
+    return parts.isEmpty ? '查看食材详情' : parts.join(' · ');
+  }
+
+  bool _isUsefulFoodDetailsDescription(String description) {
+    if (description.isEmpty) return false;
+    if (description.startsWith('Open Food Facts 记录的') &&
+        description.endsWith('食品。')) {
+      return false;
+    }
+    if (description.startsWith('建议存放在')) return false;
+    if (description.startsWith('暂无联网详情')) return false;
+    return true;
+  }
+
+  String _storageLabel(IconType type) {
+    return switch (type) {
+      IconType.fridge => '冰箱',
+      IconType.pantry => '食品柜',
+    };
+  }
+
+  void _openFoodDetails(FoodDetails details) {
+    final navigator = Navigator.of(context);
+    final ingredient = _ingredientForDetails(details);
+    _close();
+    navigator.push(
+      MaterialPageRoute(
+        builder: (_) => IngredientDetailScreen(ingredient: ingredient),
+      ),
+    );
+  }
+
+  Ingredient _ingredientForDetails(FoodDetails details) {
+    final keyword = _controller.text.trim();
+    final name = keyword.isNotEmpty ? keyword : details.displayName;
+    return Ingredient(
+      name: name,
+      quantity: '1',
+      unit: '份',
+      imageUrl: details.imageUrl ?? '',
+      freshnessPercent: 1,
+      state: FreshnessState.fresh,
+      category: details.category,
+      storage: details.storage,
+      shelfLifeDays: details.shelfLifeDays,
     );
   }
 

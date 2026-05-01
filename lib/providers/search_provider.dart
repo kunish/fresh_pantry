@@ -2,8 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'inventory_provider.dart';
 import 'shopping_provider.dart';
+import 'food_details_provider.dart';
+import '../data/food_categories.dart';
+import '../data/food_knowledge.dart';
+import '../models/food_details.dart';
 import '../models/ingredient.dart';
 import '../models/shopping_item.dart';
+import '../models/storage_area.dart';
 
 /// Current search keyword
 final searchProvider = StateProvider<String>((ref) => '');
@@ -32,6 +37,29 @@ final filteredShoppingProvider = Provider<List<ShoppingItem>>((ref) {
     return item.name.toLowerCase().contains(keyword) ||
         item.category.toLowerCase().contains(keyword);
   }).toList();
+});
+
+/// Online food details for the current search keyword.
+final searchFoodDetailsProvider = FutureProvider<FoodDetails?>((ref) async {
+  final keyword = ref.watch(searchProvider).trim();
+  if (keyword.length < 2) return null;
+
+  final defaults = FoodKnowledge.lookup(keyword);
+  final ingredient = Ingredient(
+    name: keyword,
+    quantity: '1',
+    unit: '份',
+    imageUrl: '',
+    freshnessPercent: 1,
+    state: FreshnessState.fresh,
+    category:
+        defaults?.category ??
+        FoodKnowledge.categoryFor(keyword, fallback: FoodCategories.other),
+    storage: defaults?.storage ?? IconType.fridge,
+    shelfLifeDays: defaults?.shelfLifeDays,
+  );
+
+  return ref.watch(foodDetailsRepositoryProvider).detailsFor(ingredient);
 });
 
 /// Search history — stores recent search terms (max 10)
