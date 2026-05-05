@@ -14,6 +14,7 @@ import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/screens/custom_recipe_form_screen.dart';
 import 'package:fresh_pantry/screens/dashboard_screen.dart';
 import 'package:fresh_pantry/screens/my_recipes_screen.dart';
+import 'package:fresh_pantry/screens/recipe_detail_screen.dart';
 import 'package:fresh_pantry/widgets/recipe_card.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -155,6 +156,24 @@ void main() {
     expect(find.text('所需食材'), findsOneWidget);
     expect(find.text('烹饪步骤'), findsOneWidget);
     expect(find.text('难度 1/5'), findsOneWidget);
+  });
+
+  testWidgets('recipe detail marks ingredient rows using normalized names', (
+    tester,
+  ) async {
+    final prefs = await _prefs({
+      'inventory_items': json.encode([_ingredient('Chicken').toJson()]),
+    });
+    final recipe = _recipe('r1').copyWith(
+      ingredients: const [RecipeIngredient(name: 'chicken', amount: '1份')],
+    );
+
+    await tester.pumpWidget(_app(prefs, RecipeDetailScreen(recipe: recipe)));
+    await tester.pumpAndSettle();
+
+    expect(find.text('1/1 食材已备'), findsOneWidget);
+    expect(find.text('库存中'), findsOneWidget);
+    expect(find.text('一键补齐食材'), findsNothing);
   });
 
   testWidgets(

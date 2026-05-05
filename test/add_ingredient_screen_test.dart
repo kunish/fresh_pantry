@@ -89,6 +89,52 @@ void main() {
 
     expect(container.read(inventoryProvider), isEmpty);
   });
+
+  testWidgets(
+    'edit save updates the provided inventory index for equal items',
+    (tester) async {
+      final duplicateItem = _ingredient('重复食材');
+      SharedPreferences.setMockInitialValues({
+        'inventory_items': jsonEncode([
+          duplicateItem.toJson(),
+          duplicateItem.toJson(),
+        ]),
+        'shopping_items': '[]',
+        'add_history': '{}',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      late ProviderContainer container;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+          child: Builder(
+            builder: (context) {
+              container = ProviderScope.containerOf(context);
+              return MaterialApp(
+                theme: AppTheme.lightTheme,
+                home: Scaffold(
+                  body: AddIngredientScreen(
+                    initialIngredient: duplicateItem,
+                    inventoryIndex: 1,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.widgetWithText(TextField, '重复食材'), '第二份食材');
+      await tester.ensureVisible(find.text('保存修改'));
+      await tester.tap(find.text('保存修改'));
+      await tester.pumpAndSettle();
+
+      final items = container.read(inventoryProvider);
+      expect(items.map((item) => item.name), ['重复食材', '第二份食材']);
+    },
+  );
 }
 
 Ingredient _ingredient(String name) {

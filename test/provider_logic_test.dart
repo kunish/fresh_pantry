@@ -422,6 +422,24 @@ void main() {
         ]);
       },
     );
+
+    test('assigns distinct ids when persisted items reuse an id', () async {
+      SharedPreferences.setMockInitialValues({
+        'shopping_items': json.encode([
+          _shoppingItem('si_same', '牛奶').toJson(),
+          _shoppingItem('si_same', '鸡蛋').toJson(),
+        ]),
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
+
+      final items = container.read(shoppingProvider);
+      expect(items.map((item) => item.name), ['牛奶', '鸡蛋']);
+      expect(items.map((item) => item.id).toSet(), hasLength(2));
+    });
   });
 
   group('ShoppingNotifier.add', () {
@@ -446,6 +464,38 @@ void main() {
       final savedItems = json.decode(prefs.getString('shopping_items')!);
       expect(savedItems, hasLength(1));
     });
+
+    test(
+      'keeps different items independent when added with the same id',
+      () async {
+        SharedPreferences.setMockInitialValues({'shopping_items': '[]'});
+        final prefs = await SharedPreferences.getInstance();
+        final container = ProviderContainer(
+          overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        );
+        addTearDown(container.dispose);
+
+        await container
+            .read(shoppingProvider.notifier)
+            .add(_shoppingItem('si_same', '牛奶'));
+        await container
+            .read(shoppingProvider.notifier)
+            .add(_shoppingItem('si_same', '鸡蛋'));
+
+        final items = container.read(shoppingProvider);
+        expect(items.map((item) => item.name), ['牛奶', '鸡蛋']);
+        expect(items.map((item) => item.id).toSet(), hasLength(2));
+
+        await container
+            .read(shoppingProvider.notifier)
+            .toggleCheck(items.first.id);
+
+        expect(container.read(shoppingProvider).map((item) => item.isChecked), [
+          true,
+          false,
+        ]);
+      },
+    );
   });
 
   group('ShoppingNotifier.addFromSuggestion', () {

@@ -22,16 +22,38 @@ String _shoppingItemNameKey(String name) => name.trim().toLowerCase();
 
 List<ShoppingItem> _deduplicateShoppingItems(Iterable<ShoppingItem> items) {
   final seenNames = <String>{};
+  final seenIds = <String>{};
   final deduplicated = <ShoppingItem>[];
 
   for (final item in items) {
     final nameKey = _shoppingItemNameKey(item.name);
     if (nameKey.isEmpty || seenNames.contains(nameKey)) continue;
     seenNames.add(nameKey);
-    deduplicated.add(item);
+    deduplicated.add(_withUniqueShoppingItemId(item, seenIds));
   }
 
   return deduplicated;
+}
+
+ShoppingItem _withUniqueShoppingItemId(
+  ShoppingItem item,
+  Set<String> existingIds,
+) {
+  final trimmedId = item.id.trim();
+  final baseId =
+      trimmedId.isEmpty
+          ? 'si_${DateTime.now().microsecondsSinceEpoch}'
+          : trimmedId;
+  var candidateId = baseId;
+  var suffix = 2;
+
+  while (existingIds.contains(candidateId)) {
+    candidateId = '${baseId}_$suffix';
+    suffix += 1;
+  }
+
+  existingIds.add(candidateId);
+  return candidateId == item.id ? item : item.copyWith(id: candidateId);
 }
 
 /// Shopping list state with local persistence
@@ -75,7 +97,10 @@ class ShoppingNotifier extends Notifier<List<ShoppingItem>> {
   }
 
   Future<bool> add(ShoppingItem item) async {
-    final normalizedItem = _normalizeShoppingItemCategory(item);
+    final normalizedItem = _withUniqueShoppingItemId(
+      _normalizeShoppingItemCategory(item),
+      state.map((item) => item.id).toSet(),
+    );
     final nameKey = _shoppingItemNameKey(normalizedItem.name);
     if (nameKey.isEmpty ||
         state.any((item) => _shoppingItemNameKey(item.name) == nameKey)) {

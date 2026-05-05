@@ -90,13 +90,10 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     List<Ingredient> inventory,
     Recipe recipe,
   ) {
-    final inventoryNames = inventory.map((i) => i.name.toLowerCase()).toSet();
+    final inventoryNames =
+        inventory.map((i) => _normalizedIngredientName(i.name)).toSet();
     return recipe.ingredients.where((ing) {
-      final ingredientName = ing.name.toLowerCase();
-      return !inventoryNames.any(
-        (name) =>
-            name.contains(ingredientName) || ingredientName.contains(name),
-      );
+      return !_ingredientNameMatchesInventory(ing.name, inventoryNames);
     }).toList();
   }
 
@@ -409,7 +406,8 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     List<Ingredient> inventory,
     Recipe recipe,
   ) {
-    final inventoryNames = inventory.map((i) => i.name).toSet();
+    final inventoryNames =
+        inventory.map((i) => _normalizedIngredientName(i.name)).toSet();
     return [
       for (final (index, ingredient) in recipe.ingredients.indexed)
         _buildIngredientRow(index, ingredient, inventoryNames),
@@ -421,9 +419,9 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     RecipeIngredient ingredient,
     Set<String> inventoryNames,
   ) {
-    final available = inventoryNames.any(
-      (name) =>
-          name.contains(ingredient.name) || ingredient.name.contains(name),
+    final available = _ingredientNameMatchesInventory(
+      ingredient.name,
+      inventoryNames,
     );
     return Padding(
       key: ValueKey('ingredient_$index'),
@@ -461,6 +459,24 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         ],
       ),
     );
+  }
+
+  bool _ingredientNameMatchesInventory(
+    String ingredientName,
+    Set<String> inventoryNames,
+  ) {
+    final normalizedIngredientName = _normalizedIngredientName(ingredientName);
+    if (normalizedIngredientName.isEmpty) return false;
+
+    return inventoryNames.any(
+      (name) =>
+          name.contains(normalizedIngredientName) ||
+          normalizedIngredientName.contains(name),
+    );
+  }
+
+  String _normalizedIngredientName(String name) {
+    return name.trim().toLowerCase();
   }
 
   Widget _buildChip(IconData icon, String label) {

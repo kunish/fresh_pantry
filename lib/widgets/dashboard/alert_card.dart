@@ -114,49 +114,113 @@ class AlertCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 14),
-            Row(
-              children: [
-                if (onConsume != null)
-                  _ActionButton(
-                    icon: Icons.check_circle_outline,
-                    label: '已消耗',
-                    color: AppColors.primary,
-                    onTap: onConsume!,
-                  ),
-                if (onAddToCart != null) ...[
-                  const SizedBox(width: 8),
-                  _ActionButton(
-                    icon: Icons.add_shopping_cart,
-                    label: '加入清单',
-                    color: AppColors.secondary,
-                    onTap: onAddToCart!,
-                  ),
-                ],
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 6,
-                  ),
-                  constraints: const BoxConstraints(minWidth: 70),
-                  decoration: BoxDecoration(
-                    color: badgeBg,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    badge.toUpperCase(),
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.manrope(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                      color: badgeText,
-                    ),
-                  ),
-                ),
-              ],
+            _AlertActions(
+              badge: badge,
+              badgeBg: badgeBg,
+              badgeText: badgeText,
+              onConsume: onConsume,
+              onAddToCart: onAddToCart,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AlertActions extends StatelessWidget {
+  final String badge;
+  final Color badgeBg;
+  final Color badgeText;
+  final VoidCallback? onConsume;
+  final VoidCallback? onAddToCart;
+
+  const _AlertActions({
+    required this.badge,
+    required this.badgeBg,
+    required this.badgeText,
+    required this.onConsume,
+    required this.onAddToCart,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final buttons = [
+      if (onConsume != null)
+        _ActionButton(
+          icon: Icons.check_circle_outline,
+          label: '已消耗',
+          color: AppColors.primary,
+          onTap: onConsume!,
+        ),
+      if (onAddToCart != null)
+        _ActionButton(
+          icon: Icons.add_shopping_cart,
+          label: '加入清单',
+          color: AppColors.secondary,
+          onTap: onAddToCart!,
+        ),
+    ];
+    final badgeWidget = _StatusBadge(
+      badge: badge,
+      badgeBg: badgeBg,
+      badgeText: badgeText,
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 300) {
+          return Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [...buttons, badgeWidget],
+          );
+        }
+
+        return Row(
+          children: [
+            for (final (index, button) in buttons.indexed) ...[
+              if (index > 0) const SizedBox(width: 8),
+              button,
+            ],
+            const Spacer(),
+            badgeWidget,
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String badge;
+  final Color badgeBg;
+  final Color badgeText;
+
+  const _StatusBadge({
+    required this.badge,
+    required this.badgeBg,
+    required this.badgeText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      constraints: const BoxConstraints(minWidth: 70),
+      decoration: BoxDecoration(
+        color: badgeBg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        badge.toUpperCase(),
+        textAlign: TextAlign.center,
+        style: GoogleFonts.manrope(
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1.2,
+          color: badgeText,
         ),
       ),
     );

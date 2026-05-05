@@ -407,6 +407,39 @@ void main() {
     },
   );
 
+  testWidgets('alert cards keep actions visible on narrow dashboard widths', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 240,
+              child: AlertCard(
+                icon: Icons.kitchen,
+                iconColor: Colors.green,
+                name: '牛奶',
+                subtitle: '已过期2天',
+                storageTag: '冰箱',
+                badge: '已过期2天',
+                badgeBg: Colors.orange,
+                badgeText: Colors.black,
+                onConsume: () {},
+                onAddToCart: () {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('已消耗'), findsOneWidget);
+    expect(find.text('加入清单'), findsOneWidget);
+    expect(find.text('已过期2天'), findsWidgets);
+  });
+
   testWidgets('dashboard total overview resets inventory filter to all', (
     tester,
   ) async {

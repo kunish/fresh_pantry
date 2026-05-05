@@ -317,10 +317,19 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     );
 
     if (_isEditing) {
-      final index = inventoryIndexOf(
-        ref.read(inventoryProvider),
-        widget.initialIngredient!,
+      final inventory = ref.read(inventoryProvider);
+      final identityIndex = inventory.indexWhere(
+        (candidate) => identical(candidate, widget.initialIngredient),
       );
+      final providedIndex = widget.inventoryIndex;
+      final index =
+          identityIndex != -1
+              ? identityIndex
+              : providedIndex != null &&
+                  providedIndex >= 0 &&
+                  providedIndex < inventory.length
+              ? providedIndex
+              : inventoryIndexOf(inventory, widget.initialIngredient!);
       if (index == -1) {
         Navigator.of(context).maybePop();
         return;
