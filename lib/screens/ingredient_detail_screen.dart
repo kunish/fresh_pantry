@@ -12,6 +12,7 @@ import '../utils/app_dialog.dart';
 import '../utils/app_snackbar.dart';
 import '../utils/storage_labels.dart';
 import '../widgets/shared/category_icon.dart';
+import '../widgets/shared/pill_chip.dart';
 import '../widgets/shared/recipe_image.dart';
 import 'add_ingredient_screen.dart';
 
@@ -199,11 +200,31 @@ class _IngredientDetailScreenState
           spacing: 10,
           runSpacing: 10,
           children: [
-            _InfoChip(label: '分类：${details.category}'),
-            _InfoChip(label: '建议存放：${storageLabelFor(details.storage)}'),
+            PillChip(
+              label: '分类：${details.category}',
+              backgroundColor: AppColors.surfaceContainerHigh,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+            PillChip(
+              label: '建议存放：${storageLabelFor(details.storage)}',
+              backgroundColor: AppColors.surfaceContainerHigh,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
             if (details.shelfLifeDays != null)
-              _InfoChip(label: '保质期建议：${details.shelfLifeDays}天'),
-            _InfoChip(label: '来源：${details.source}'),
+              PillChip(
+                label: '保质期建议：${details.shelfLifeDays}天',
+                backgroundColor: AppColors.surfaceContainerHigh,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            PillChip(
+              label: '来源：${details.source}',
+              backgroundColor: AppColors.surfaceContainerHigh,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
           ],
         ),
       ],
@@ -314,27 +335,3 @@ class _ActionLabel extends StatelessWidget {
   }
 }
 
-class _InfoChip extends StatelessWidget {
-  const _InfoChip({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.manrope(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: AppColors.onSurfaceVariant,
-        ),
-      ),
-    );
-  }
-}

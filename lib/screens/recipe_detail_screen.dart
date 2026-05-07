@@ -11,6 +11,7 @@ import '../providers/recipe_provider.dart';
 import '../providers/shopping_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_snackbar.dart';
+import '../widgets/shared/pill_chip.dart';
 import '../widgets/shared/recipe_image.dart';
 
 class RecipeDetailScreen extends ConsumerStatefulWidget {
@@ -167,17 +168,32 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                   spacing: 10,
                   runSpacing: 10,
                   children: [
-                    _buildChip(
-                      Icons.timer_outlined,
-                      '${widget.recipe.cookingMinutes}分钟',
+                    PillChip(
+                      icon: Icons.timer_outlined,
+                      label: '${widget.recipe.cookingMinutes}分钟',
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      iconForegroundColor: AppColors.primary,
                     ),
-                    _buildChip(
-                      Icons.local_fire_department_outlined,
-                      widget.recipe.difficultyLabel,
+                    PillChip(
+                      icon: Icons.local_fire_department_outlined,
+                      label: widget.recipe.difficultyLabel,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      iconForegroundColor: AppColors.primary,
                     ),
-                    _buildChip(
-                      Icons.checklist,
-                      '$matched/${widget.recipe.ingredients.length} 食材已备',
+                    PillChip(
+                      icon: Icons.checklist,
+                      label: '$matched/${widget.recipe.ingredients.length} 食材已备',
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      iconForegroundColor: AppColors.primary,
                     ),
                   ],
                 ),
@@ -473,28 +489,4 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     return name.trim().toLowerCase();
   }
 
-  Widget _buildChip(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: AppColors.primary),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: GoogleFonts.manrope(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

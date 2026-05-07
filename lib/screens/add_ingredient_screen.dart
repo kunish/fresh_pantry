@@ -16,6 +16,7 @@ import '../utils/expiry_calculator.dart';
 import '../utils/storage_labels.dart';
 import '../widgets/shared/expiry_range_picker.dart';
 import '../widgets/shared/freshness_meter.dart';
+import '../widgets/shared/pill_chip.dart';
 import '../services/open_food_facts_service.dart';
 
 class AddIngredientScreen extends ConsumerStatefulWidget {
@@ -781,35 +782,26 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
         FoodKnowledge.shelfLifePresets.contains(_suggestedShelfDays) &&
         _suggestedShelfDays == days;
 
-    return GestureDetector(
+    return PillChip(
+      label: '$days天后',
       onTap: () => _applyShelfDays(days),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color:
-              isSelected ? AppColors.primary : AppColors.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(999),
-          border:
-              isSuggested && !isSelected
-                  ? Border.all(color: AppColors.primary, width: 1.5)
-                  : null,
-        ),
-        child: Text(
-          '$days天后',
-          style: GoogleFonts.manrope(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: isSelected ? AppColors.onPrimary : AppColors.onSurface,
-          ),
-        ),
-      ),
+      selected: isSelected,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      fontWeight: FontWeight.w700,
+      backgroundColor: AppColors.surfaceContainerLowest,
+      foregroundColor: AppColors.onSurface,
+      borderColor: isSuggested && !isSelected ? AppColors.primary : null,
     );
   }
 
   Widget _buildCustomDateChip() {
     final isCustom = _usesCustomDateRange;
 
-    return GestureDetector(
+    return PillChip(
+      label: '自定义',
+      icon: Icons.calendar_today,
+      iconSize: 14,
+      iconLabelGap: 4,
       onTap: () async {
         final today = DateUtils.dateOnly(DateTime.now());
         final picked = await showExpiryRangePicker(
@@ -832,33 +824,11 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
           });
         }
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color:
-              isCustom ? AppColors.primary : AppColors.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.calendar_today,
-              size: 14,
-              color: isCustom ? AppColors.onPrimary : AppColors.onSurface,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '自定义',
-              style: GoogleFonts.manrope(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: isCustom ? AppColors.onPrimary : AppColors.onSurface,
-              ),
-            ),
-          ],
-        ),
-      ),
+      selected: isCustom,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      fontWeight: FontWeight.w700,
+      backgroundColor: AppColors.surfaceContainerLowest,
+      foregroundColor: AppColors.onSurface,
     );
   }
 
