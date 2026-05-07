@@ -9,6 +9,7 @@ import '../data/food_knowledge.dart';
 import '../models/food_details.dart';
 import '../models/storage_area.dart';
 import '../utils/json_cast.dart';
+import '_http.dart';
 
 /// Result returned from Open Food Facts name search.
 class FoodSearchResult {
@@ -284,26 +285,15 @@ class OpenFoodFactsService {
   }
 
   /// Perform an HTTP GET with retry logic.
-  static Future<http.Response> _fetch(Uri uri, {http.Client? client}) async {
-    final httpClient = client ?? http.Client();
-    try {
-      for (var attempt = 0; attempt <= _retryCount; attempt++) {
-        try {
-          final response = await httpClient
-              .get(uri, headers: _headers)
-              .timeout(_timeout);
-          return response;
-        } on TimeoutException {
-          if (attempt == _retryCount) rethrow;
-        } on http.ClientException {
-          if (attempt == _retryCount) rethrow;
-        }
-        await Future<void>.delayed(_retryDelay);
-      }
-      throw StateError('Unreachable');
-    } finally {
-      if (client == null) httpClient.close();
-    }
+  static Future<http.Response> _fetch(Uri uri, {http.Client? client}) {
+    return fetchWithRetry(
+      uri,
+      client: client,
+      timeout: _timeout,
+      retryDelay: _retryDelay,
+      retryCount: _retryCount,
+      headers: _headers,
+    );
   }
 
   static Map<String, dynamic>? _bestProduct(

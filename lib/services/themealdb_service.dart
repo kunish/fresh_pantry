@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/recipe.dart';
 import '../utils/json_cast.dart';
+import '_http.dart';
 
 /// Service for fetching recipes from TheMealDB open API.
 class TheMealDbService {
@@ -119,26 +120,13 @@ class TheMealDbService {
   }
 
   /// Perform an HTTP GET with retry logic.
-  static Future<http.Response> _fetch(Uri uri) async {
-    final client = http.Client();
-    try {
-      for (var attempt = 0; attempt <= _retryCount; attempt++) {
-        try {
-          final response = await client
-              .get(uri, headers: _headers)
-              .timeout(_timeout);
-          return response;
-        } on TimeoutException {
-          if (attempt == _retryCount) rethrow;
-        } on http.ClientException {
-          if (attempt == _retryCount) rethrow;
-        }
-        await Future<void>.delayed(_retryDelay);
-      }
-      throw StateError('Unreachable');
-    } finally {
-      client.close();
-    }
+  static Future<http.Response> _fetch(Uri uri) {
+    return fetchWithRetry(
+      uri,
+      timeout: _timeout,
+      retryDelay: _retryDelay,
+      retryCount: _retryCount,
+      headers: _headers,
+    );
   }
-
 }
