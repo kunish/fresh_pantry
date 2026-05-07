@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
+import '../models/frequent_item.dart';
 import '../models/ingredient.dart';
 import '../models/storage_area.dart';
 import '../data/food_categories.dart';

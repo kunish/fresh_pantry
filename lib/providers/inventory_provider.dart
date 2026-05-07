@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/frequent_item.dart';
 import '../models/ingredient.dart';
 import '../models/storage_area.dart';
 import '../data/food_categories.dart';
@@ -300,25 +301,6 @@ final filteredByCategoryProvider = Provider<List<Ingredient>>((ref) {
   final items = ref.watch(inventoryProvider);
   return inventoryItemsForCategory(items, category);
 });
-
-/// A frequently added item with remembered defaults.
-class FrequentItem {
-  final String name;
-  final String category;
-  final IconType storage;
-  final String unit;
-  final int? shelfLifeDays;
-  final int count;
-
-  const FrequentItem({
-    required this.name,
-    required this.category,
-    required this.storage,
-    required this.unit,
-    this.shelfLifeDays,
-    required this.count,
-  });
-}
 
 /// Top frequent items derived from add history.
 final frequentItemsProvider = Provider<List<FrequentItem>>((ref) {
