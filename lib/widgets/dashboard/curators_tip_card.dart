@@ -18,7 +18,7 @@ class CuratorsTipCard extends StatelessWidget {
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../theme/app_radius.dart';
+
 class QuickActionCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -32,7 +34,7 @@ class QuickActionCard extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: backgroundColor,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(AppRadius.xxl),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

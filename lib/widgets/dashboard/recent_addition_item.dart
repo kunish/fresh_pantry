@@ -16,7 +16,7 @@ class RecentAdditionItem extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         child: Row(
           children: [
@@ -51,7 +51,7 @@ class RecentAdditionItem extends StatelessWidget {
                 SizedBox(
                   width: 96,
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
                     child: LinearProgressIndicator(
                       value: item.freshnessPercent,
                       minHeight: 6,

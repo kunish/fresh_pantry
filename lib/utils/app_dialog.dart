@@ -20,7 +20,9 @@ Future<bool> showAppConfirmDialog(
     context: context,
     builder: (ctx) => AlertDialog(
       backgroundColor: AppColors.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+      ),
       title: Text(
         title,
         style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),

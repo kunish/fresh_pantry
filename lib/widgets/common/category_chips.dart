@@ -130,7 +130,7 @@ class _CategoryChip extends StatelessWidget {
           decoration: BoxDecoration(
             color:
                 isSelected ? AppColors.primary : AppColors.surfaceContainerHigh,
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
           ),
           child: Text(
             category,

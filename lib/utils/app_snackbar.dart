@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_radius.dart';
+
 /// 统一项目内的 SnackBar 调用。处理 `clearSnackBars`、浮动样式、12 圆角等共享配置。
 ///
 /// `actionLabel` 与 `onAction` 必须同时提供或同时省略。`actionTextColor` 仅在
@@ -30,7 +32,9 @@ ScaffoldFeatureController<SnackBar, SnackBarClosedReason> showAppSnackBar(
       persist: persist,
       backgroundColor: backgroundColor,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
       duration: duration,
       action: (actionLabel != null && onAction != null)
           ? SnackBarAction(

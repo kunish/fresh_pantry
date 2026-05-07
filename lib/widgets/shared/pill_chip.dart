@@ -16,7 +16,10 @@ class PillChip extends StatelessWidget {
     this.icon,
     this.selected = false,
     this.onTap,
-    this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    this.padding = const EdgeInsets.symmetric(
+      horizontal: AppSpacing.md,
+      vertical: AppSpacing.sm,
+    ),
     this.iconSize = 16,
     this.iconForegroundColor,
     this.iconLabelGap = 6,
@@ -65,7 +68,7 @@ class PillChip extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: defaultBg,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
         border: borderColor != null
             ? Border.all(color: borderColor!, width: 1.5)
             : null,

@@ -47,7 +47,7 @@ class IngredientCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Column(
         children: [
@@ -115,7 +115,7 @@ class IngredientCard extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: _badgeBg,
-                              borderRadius: BorderRadius.circular(999),
+                              borderRadius: BorderRadius.circular(AppRadius.pill),
                             ),
                             child: Text(
                               ingredient.expiryLabel!.toUpperCase(),
@@ -134,7 +134,7 @@ class IngredientCard extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.surfaceContainerHigh,
-                            borderRadius: BorderRadius.circular(999),
+                            borderRadius: BorderRadius.circular(AppRadius.pill),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -179,7 +179,7 @@ class IngredientCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
                   color: AppColors.secondaryContainer,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,

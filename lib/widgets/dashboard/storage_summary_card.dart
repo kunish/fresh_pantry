@@ -16,7 +16,7 @@ class StorageSummaryCard extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,7 +31,7 @@ class StorageSummaryCard extends StatelessWidget {
                     height: 40,
                     decoration: BoxDecoration(
                       color: AppColors.surfaceContainerLowest,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: Icon(_icon, color: AppColors.primary, size: 22),
                   ),
@@ -57,7 +57,7 @@ class StorageSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           ClipRRect(
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
             child: LinearProgressIndicator(
               value: area.capacityPercent,
               minHeight: 8,

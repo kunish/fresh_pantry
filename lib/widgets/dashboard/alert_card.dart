@@ -37,7 +37,7 @@ class AlertCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
           color: AppColors.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           boxShadow: [
             BoxShadow(
               color: AppColors.onSurface.withValues(alpha: 0.03),
@@ -55,7 +55,7 @@ class AlertCard extends StatelessWidget {
                   height: 56,
                   decoration: BoxDecoration(
                     color: iconColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
                   ),
                   child: Icon(icon, color: iconColor, size: 26),
                 ),
@@ -211,7 +211,7 @@ class _StatusBadge extends StatelessWidget {
       constraints: const BoxConstraints(minWidth: 70),
       decoration: BoxDecoration(
         color: badgeBg,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
       child: Text(
         badge.toUpperCase(),
@@ -251,7 +251,7 @@ class _ActionButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             color: AppColors.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
