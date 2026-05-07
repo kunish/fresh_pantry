@@ -8,6 +8,7 @@ import '../providers/food_details_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/shopping_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/app_dialog.dart';
 import '../utils/app_snackbar.dart';
 import '../utils/storage_labels.dart';
 import '../widgets/shared/category_icon.dart';
@@ -99,44 +100,14 @@ class _IngredientDetailScreenState
     final index = _indexOf(item);
     if (index == -1) return;
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder:
-          (ctx) => AlertDialog(
-            backgroundColor: AppColors.surface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: Text(
-              '删除食材',
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
-            ),
-            content: Text(
-              '确定要删除「${item.name}」吗？此操作不可撤销。',
-              style: GoogleFonts.manrope(color: AppColors.onSurfaceVariant),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(
-                  '取消',
-                  style: GoogleFonts.manrope(color: AppColors.onSurfaceVariant),
-                ),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: Text(
-                  '删除',
-                  style: GoogleFonts.manrope(
-                    color: AppColors.error,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      title: '删除食材',
+      content: '确定要删除「${item.name}」吗？此操作不可撤销。',
+      confirmLabel: '删除',
+      isDestructive: true,
     );
-    if (!mounted || confirmed != true) return;
+    if (!mounted || !confirmed) return;
 
     ref.read(inventoryProvider.notifier).remove(index);
     Navigator.of(context).pop(IngredientDetailResult.deleted(item, index));

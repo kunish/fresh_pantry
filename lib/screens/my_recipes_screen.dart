@@ -5,6 +5,7 @@ import '../models/recipe.dart';
 import '../providers/custom_recipe_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/recipe_provider.dart';
+import '../utils/app_dialog.dart';
 import '../utils/app_snackbar.dart';
 import '../widgets/recipe_card.dart';
 import 'custom_recipe_form_screen.dart';
@@ -169,27 +170,14 @@ class _CustomRecipeDetailRoute extends ConsumerWidget {
   }
 }
 
-Future<bool> _confirmDeleteRecipe(BuildContext context, Recipe recipe) async {
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder:
-        (context) => AlertDialog(
-          title: const Text('删除食谱'),
-          content: Text('确定要删除“${recipe.name}”吗？此操作无法撤销。'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('删除'),
-            ),
-          ],
-        ),
+Future<bool> _confirmDeleteRecipe(BuildContext context, Recipe recipe) {
+  return showAppConfirmDialog(
+    context,
+    title: '删除食谱',
+    content: '确定要删除“${recipe.name}”吗？此操作无法撤销。',
+    confirmLabel: '删除',
+    isDestructive: true,
   );
-
-  return confirmed ?? false;
 }
 
 void _showDeleteFailure(BuildContext context) {

@@ -10,6 +10,7 @@ import '../data/food_categories.dart';
 import '../data/food_knowledge.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/navigation_provider.dart';
+import '../utils/app_dialog.dart';
 import '../utils/app_snackbar.dart';
 import '../utils/expiry_calculator.dart';
 import '../utils/storage_labels.dart';
@@ -900,51 +901,20 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     );
   }
 
-  void _confirmDiscard() {
+  Future<void> _confirmDiscard() async {
     if (_nameController.text.isEmpty && _quantityController.text.isEmpty) {
       _discardChanges();
       return;
     }
-    showDialog(
-      context: context,
-      builder:
-          (ctx) => AlertDialog(
-            backgroundColor: AppColors.surface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: Text(
-              '丢弃更改',
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
-            ),
-            content: Text(
-              '确定要丢弃当前填写的食材信息吗？',
-              style: GoogleFonts.manrope(color: AppColors.onSurfaceVariant),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(
-                  '取消',
-                  style: GoogleFonts.manrope(color: AppColors.onSurfaceVariant),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  _discardChanges();
-                },
-                child: Text(
-                  '丢弃',
-                  style: GoogleFonts.manrope(
-                    color: AppColors.error,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      title: '丢弃更改',
+      content: '确定要丢弃当前填写的食材信息吗？',
+      confirmLabel: '丢弃',
+      isDestructive: true,
     );
+    if (!mounted || !confirmed) return;
+    _discardChanges();
   }
 
   void _discardChanges() {

@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/shopping_provider.dart';
+import '../utils/app_dialog.dart';
 import '../utils/app_snackbar.dart';
 import 'recipe_detail_screen.dart';
 import '../widgets/common/swipe_reveal_delete_action.dart';
@@ -205,56 +206,23 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
     );
   }
 
-  void _confirmClearChecked(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder:
-          (ctx) => AlertDialog(
-            backgroundColor: AppColors.surface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: Text(
-              '清理已购项目',
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
-            ),
-            content: Text(
-              '确定要移除所有已勾选的购物项吗？',
-              style: GoogleFonts.manrope(color: AppColors.onSurfaceVariant),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(
-                  '取消',
-                  style: GoogleFonts.manrope(color: AppColors.onSurfaceVariant),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  final items = ref.read(shoppingProvider);
-                  final checkedItems =
-                      items.where((item) => item.isChecked).toList();
-                  for (final item in checkedItems) {
-                    ref.read(shoppingProvider.notifier).remove(item.id);
-                  }
-                  showAppSnackBar(
-                    context,
-                    '已清理 ${checkedItems.length} 个已购项目',
-                    backgroundColor: AppColors.primary,
-                  );
-                },
-                child: Text(
-                  '清理',
-                  style: GoogleFonts.manrope(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
+  Future<void> _confirmClearChecked(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showAppConfirmDialog(
+      context,
+      title: '清理已购项目',
+      content: '确定要移除所有已勾选的购物项吗？',
+      confirmLabel: '清理',
+    );
+    if (!confirmed || !context.mounted) return;
+    final items = ref.read(shoppingProvider);
+    final checkedItems = items.where((item) => item.isChecked).toList();
+    for (final item in checkedItems) {
+      ref.read(shoppingProvider.notifier).remove(item.id);
+    }
+    showAppSnackBar(
+      context,
+      '已清理 ${checkedItems.length} 个已购项目',
+      backgroundColor: AppColors.primary,
     );
   }
 
