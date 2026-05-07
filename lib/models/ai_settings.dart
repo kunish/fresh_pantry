@@ -48,11 +48,12 @@ class AiSettings {
 
   @override
   bool operator ==(Object other) =>
-      other is AiSettings &&
-      other.baseUrl == baseUrl &&
-      other.apiKey == apiKey &&
-      other.model == model &&
-      other.timeout == timeout;
+      identical(this, other) ||
+      (other is AiSettings &&
+          other.baseUrl == baseUrl &&
+          other.apiKey == apiKey &&
+          other.model == model &&
+          other.timeout == timeout);
 
   @override
   int get hashCode => Object.hash(baseUrl, apiKey, model, timeout);
