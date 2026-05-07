@@ -9,6 +9,7 @@ import '../models/food_details.dart';
 import '../models/ingredient.dart';
 import '../models/storage_area.dart';
 import '../services/open_food_facts_service.dart';
+import '../utils/storage_labels.dart';
 import 'storage_service_provider.dart';
 
 const foodDetailsCacheStorageKey = 'food_details_cache';
@@ -147,7 +148,7 @@ FoodDetails fallbackFoodDetailsFor(Ingredient ingredient, {DateTime? now}) {
 }
 
 String _fallbackDescription(IconType storage, int? shelfLifeDays) {
-  final storageLabel = _storageLabel(storage);
+  final storageLabel = storageLabelFor(storage);
   if (shelfLifeDays != null && shelfLifeDays > 0) {
     return '建议存放在$storageLabel，约 $shelfLifeDays 天内食用。';
   }
@@ -163,13 +164,6 @@ String? _fallbackImageUrl(Ingredient ingredient) {
 
   final slug = englishName.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
   return 'https://www.themealdb.com/images/ingredients/$slug.png';
-}
-
-String _storageLabel(IconType type) {
-  return switch (type) {
-    IconType.fridge => '冰箱',
-    IconType.pantry => '食品柜',
-  };
 }
 
 String _normalizeCacheName(String name) {

@@ -6,11 +6,11 @@ import '../../theme/app_theme.dart';
 import '../../models/food_details.dart';
 import '../../models/ingredient.dart';
 import '../../models/shopping_item.dart';
-import '../../models/storage_area.dart';
 import '../../providers/inventory_provider.dart';
 import '../../providers/navigation_provider.dart';
 import '../../providers/search_provider.dart';
 import '../../screens/ingredient_detail_screen.dart';
+import '../../utils/storage_labels.dart';
 import '../shared/category_icon.dart';
 import '../shared/recipe_image.dart';
 
@@ -522,7 +522,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
       parts.add(category);
     }
 
-    parts.add('${_storageLabel(details.storage)}保存');
+    parts.add('${storageLabelFor(details.storage)}保存');
 
     final shelfLifeDays = details.shelfLifeDays;
     if (shelfLifeDays != null && shelfLifeDays > 0) {
@@ -541,13 +541,6 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
     if (description.startsWith('建议存放在')) return false;
     if (description.startsWith('暂无联网详情')) return false;
     return true;
-  }
-
-  String _storageLabel(IconType type) {
-    return switch (type) {
-      IconType.fridge => '冰箱',
-      IconType.pantry => '食品柜',
-    };
   }
 
   void _openFoodDetails(FoodDetails details) {

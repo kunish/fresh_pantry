@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/ingredient.dart';
-import '../../models/storage_area.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/storage_labels.dart';
 import '../shared/category_icon.dart';
 import '../shared/freshness_meter.dart';
 
@@ -38,16 +38,6 @@ class IngredientCard extends StatelessWidget {
         return AppColors.onErrorContainer;
     }
   }
-
-  static IconData _storageIcon(IconType type) => switch (type) {
-    IconType.fridge => Icons.kitchen,
-    IconType.pantry => Icons.shelves,
-  };
-
-  static String _storageLabel(IconType type) => switch (type) {
-    IconType.fridge => '冰箱',
-    IconType.pantry => '食品柜',
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -150,13 +140,13 @@ class IngredientCard extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                _storageIcon(ingredient.storage),
+                                storageIconFor(ingredient.storage),
                                 size: 12,
                                 color: AppColors.onSurfaceVariant,
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                _storageLabel(ingredient.storage),
+                                storageLabelFor(ingredient.storage),
                                 style: const TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,

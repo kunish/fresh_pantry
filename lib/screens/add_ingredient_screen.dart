@@ -10,6 +10,7 @@ import '../data/food_knowledge.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../utils/expiry_calculator.dart';
+import '../utils/storage_labels.dart';
 import '../widgets/shared/expiry_range_picker.dart';
 import '../widgets/shared/freshness_meter.dart';
 import '../services/open_food_facts_service.dart';
@@ -49,11 +50,6 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
 
   static const _categories = FoodCategories.values;
 
-  static const _storageLabels = {IconType.fridge: '冰箱', IconType.pantry: '食品柜'};
-  static const _storageIcons = {
-    IconType.fridge: Icons.kitchen,
-    IconType.pantry: Icons.shelves,
-  };
   static const _decimalKeyboardType = TextInputType.numberWithOptions(
     decimal: true,
   );
@@ -552,7 +548,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    _storageIcons[item.storage],
+                    storageIconFor(item.storage),
                     size: 14,
                     color: AppColors.primary,
                   ),
@@ -628,12 +624,12 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                 child: Row(
                   children: [
                     Icon(
-                      _storageIcons[type],
+                      storageIconFor(type),
                       size: 16,
                       color: AppColors.onSurfaceVariant,
                     ),
                     const SizedBox(width: 6),
-                    Text(_storageLabels[type]!),
+                    Text(storageLabelFor(type)),
                   ],
                 ),
               ),

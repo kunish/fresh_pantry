@@ -4,12 +4,12 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../models/ingredient.dart';
 import '../models/shopping_item.dart';
-import '../models/storage_area.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/shopping_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/recipe_provider.dart';
 import '../utils/dashboard_greeting.dart';
+import '../utils/storage_labels.dart';
 import '../widgets/dashboard/stat_card.dart';
 import '../widgets/dashboard/alert_card.dart';
 import '../widgets/dashboard/quick_action_card.dart';
@@ -196,7 +196,7 @@ class DashboardScreen extends ConsumerWidget {
                                 : AppColors.primary,
                         name: item.name,
                         subtitle: item.expiryLabel ?? '即将过期',
-                        storageTag: _storageLabel(item.storage),
+                        storageTag: storageLabelFor(item.storage),
                         badge: item.expiryLabel ?? '即将过期',
                         badgeBg:
                             item.state == FreshnessState.expired
@@ -351,13 +351,6 @@ class DashboardScreen extends ConsumerWidget {
 
   IconData _iconForCategory(String? category) {
     return categoryIconFor(category);
-  }
-
-  String _storageLabel(IconType storage) {
-    return switch (storage) {
-      IconType.fridge => '冰箱',
-      IconType.pantry => '食品柜',
-    };
   }
 
   Future<void> _addToShoppingList(

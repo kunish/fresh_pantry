@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../models/storage_area.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/storage_labels.dart';
 
 class StorageSummaryCard extends StatelessWidget {
   final StorageArea area;
 
   const StorageSummaryCard({super.key, required this.area});
 
-  IconData get _icon => switch (area.icon) {
-    IconType.fridge => Icons.kitchen,
-    IconType.pantry => Icons.shelves,
-  };
+  IconData get _icon => storageIconFor(area.icon);
 
   @override
   Widget build(BuildContext context) {

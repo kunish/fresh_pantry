@@ -5,11 +5,11 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/food_details.dart';
 import '../models/ingredient.dart';
 import '../models/shopping_item.dart';
-import '../models/storage_area.dart';
 import '../providers/food_details_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/shopping_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/storage_labels.dart';
 import '../widgets/shared/category_icon.dart';
 import '../widgets/shared/recipe_image.dart';
 import 'add_ingredient_screen.dart';
@@ -245,7 +245,7 @@ class _IngredientDetailScreenState
           runSpacing: 10,
           children: [
             _InfoChip(label: '分类：${details.category}'),
-            _InfoChip(label: '建议存放：${_storageLabel(details.storage)}'),
+            _InfoChip(label: '建议存放：${storageLabelFor(details.storage)}'),
             if (details.shelfLifeDays != null)
               _InfoChip(label: '保质期建议：${details.shelfLifeDays}天'),
             _InfoChip(label: '来源：${details.source}'),
@@ -255,12 +255,6 @@ class _IngredientDetailScreenState
     );
   }
 
-  String _storageLabel(IconType type) {
-    return switch (type) {
-      IconType.fridge => '冰箱',
-      IconType.pantry => '食品柜',
-    };
-  }
 }
 
 class _ActionBar extends StatelessWidget {
