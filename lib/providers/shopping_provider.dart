@@ -63,22 +63,7 @@ class ShoppingNotifier extends Notifier<List<ShoppingItem>>
   @override
   List<ShoppingItem> build() {
     _prefs = ref.read(sharedPreferencesProvider);
-    return _load();
-  }
-
-  List<ShoppingItem> _load() {
-    final jsonString = _prefs.getString(_kShoppingKey);
-    if (jsonString == null) {
-      return kDebugMode ? List.from(MockData.shoppingItems) : [];
-    }
-    try {
-      final items = decodeJsonObjectList(
-        jsonString,
-      ).map(ShoppingItem.fromJson).map(_normalizeShoppingItemCategory);
-      return _deduplicateShoppingItems(items);
-    } catch (_) {
-      return kDebugMode ? List.from(MockData.shoppingItems) : [];
-    }
+    return ref.read(shoppingSeedProvider);
   }
 
   Future<void> _save(List<ShoppingItem> items) async {
