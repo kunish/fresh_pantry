@@ -70,9 +70,9 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                           children: [
                             Text(
                               '购物清单',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w800,
+                              style: Theme.of(
+                                context,
+                              ).textTheme.displayLarge?.copyWith(
                                 letterSpacing: -0.5,
                                 color: AppColors.onSurface,
                               ),

@@ -114,9 +114,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                   children: [
                     Text(
                       '食材库存',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
+                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
                         letterSpacing: -0.5,
                         color: AppColors.onSurface,
                       ),

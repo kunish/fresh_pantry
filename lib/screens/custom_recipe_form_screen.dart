@@ -109,8 +109,7 @@ class _CustomRecipeFormScreenState
                   children: [
                     Text(
                       '基础信息',
-                      style: GoogleFonts.manrope(
-                        fontSize: 18,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: AppColors.onSurface,
                       ),
@@ -148,8 +147,7 @@ class _CustomRecipeFormScreenState
                     const SizedBox(height: 24),
                     Text(
                       '食材',
-                      style: GoogleFonts.manrope(
-                        fontSize: 18,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: AppColors.onSurface,
                       ),
@@ -191,8 +189,7 @@ class _CustomRecipeFormScreenState
                     const SizedBox(height: 24),
                     Text(
                       '步骤',
-                      style: GoogleFonts.manrope(
-                        fontSize: 18,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: AppColors.onSurface,
                       ),
@@ -540,15 +537,19 @@ class _CoverImageHero extends StatelessWidget {
               fit: BoxFit.cover,
               fallback: const _CoverImageFallback(),
             ),
-            const DecoratedBox(
+            DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0x00000000),
-                    Color(0x22000000),
-                    Color(0xBB000000),
+                    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0),
+                    Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.13),
+                    Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.73),
                   ],
                 ),
               ),
