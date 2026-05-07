@@ -125,21 +125,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
   @override
   List<Ingredient> build() {
     _prefs = ref.read(sharedPreferencesProvider);
-    return _load();
-  }
-
-  List<Ingredient> _load() {
-    final jsonString = _prefs.getString(_kInventoryKey);
-    if (jsonString == null) {
-      return kDebugMode ? List.from(MockData.inventoryItems) : [];
-    }
-    try {
-      return decodeJsonObjectList(
-        jsonString,
-      ).map(Ingredient.fromJson).map(_normalizeInventoryIngredient).toList();
-    } catch (_) {
-      return kDebugMode ? List.from(MockData.inventoryItems) : [];
-    }
+    return ref.read(inventorySeedProvider);
   }
 
   Future<void> _save(List<Ingredient> items) async {
