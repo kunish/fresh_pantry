@@ -10,6 +10,7 @@ import '../providers/inventory_provider.dart';
 import '../providers/recipe_provider.dart';
 import '../providers/shopping_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/app_snackbar.dart';
 import '../widgets/shared/recipe_image.dart';
 
 class RecipeDetailScreen extends ConsumerStatefulWidget {
@@ -71,18 +72,11 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
 
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          addedCount == 0 ? '缺失食材已在购物清单中' : '已将 $addedCount 个食材加入购物清单',
-        ),
-        persist: false,
-        backgroundColor:
-            addedCount == 0 ? AppColors.tertiary : AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    showAppSnackBar(
+      context,
+      addedCount == 0 ? '缺失食材已在购物清单中' : '已将 $addedCount 个食材加入购物清单',
+      backgroundColor:
+          addedCount == 0 ? AppColors.tertiary : AppColors.primary,
     );
   }
 

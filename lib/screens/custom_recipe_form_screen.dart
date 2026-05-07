@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import '../models/recipe.dart';
 import '../providers/custom_recipe_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/app_snackbar.dart';
 import '../widgets/shared/recipe_image.dart';
 
 typedef CoverImagePicker = Future<String?> Function(ImageSource source);
@@ -504,9 +505,7 @@ class _CustomRecipeFormScreenState
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message), persist: false));
+    showAppSnackBar(context, message);
   }
 
   void _showMissingFields(List<String> fields) {

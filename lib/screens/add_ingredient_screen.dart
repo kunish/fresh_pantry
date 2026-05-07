@@ -10,6 +10,7 @@ import '../data/food_categories.dart';
 import '../data/food_knowledge.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/navigation_provider.dart';
+import '../utils/app_snackbar.dart';
 import '../utils/expiry_calculator.dart';
 import '../utils/storage_labels.dart';
 import '../widgets/shared/expiry_range_picker.dart';
@@ -341,28 +342,21 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
 
     _resetForm();
 
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('已添加「$name」'),
-        persist: false,
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        action: SnackBarAction(
-          label: '撤销',
-          textColor: AppColors.onPrimary,
-          onPressed: () {
-            final index = inventoryIndexOf(
-              ref.read(inventoryProvider),
-              addedItem,
-            );
-            if (index != -1) {
-              ref.read(inventoryProvider.notifier).remove(index);
-            }
-          },
-        ),
-      ),
+    showAppSnackBar(
+      context,
+      '已添加「$name」',
+      backgroundColor: AppColors.primary,
+      actionLabel: '撤销',
+      actionTextColor: AppColors.onPrimary,
+      onAction: () {
+        final index = inventoryIndexOf(
+          ref.read(inventoryProvider),
+          addedItem,
+        );
+        if (index != -1) {
+          ref.read(inventoryProvider.notifier).remove(index);
+        }
+      },
     );
 
     if (navigateToInventory) {
@@ -371,15 +365,10 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
   }
 
   void _showMissingFields(List<String> fields) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('保存前请补充：${fields.join('、')}'),
-        persist: false,
-        backgroundColor: AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    showAppSnackBar(
+      context,
+      '保存前请补充：${fields.join('、')}',
+      backgroundColor: AppColors.error,
     );
   }
 

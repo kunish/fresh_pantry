@@ -5,6 +5,7 @@ import '../models/recipe.dart';
 import '../providers/custom_recipe_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/recipe_provider.dart';
+import '../utils/app_snackbar.dart';
 import '../widgets/recipe_card.dart';
 import 'custom_recipe_form_screen.dart';
 import 'recipe_detail_screen.dart';
@@ -192,7 +193,5 @@ Future<bool> _confirmDeleteRecipe(BuildContext context, Recipe recipe) async {
 }
 
 void _showDeleteFailure(BuildContext context) {
-  ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(const SnackBar(content: Text('删除失败，请重试'), persist: false));
+  showAppSnackBar(context, '删除失败，请重试');
 }

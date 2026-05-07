@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/shopping_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/app_snackbar.dart';
 
 class QuickAddField extends ConsumerStatefulWidget {
   const QuickAddField({super.key});
@@ -33,15 +34,10 @@ class _QuickAddFieldState extends ConsumerState<QuickAddField> {
   }
 
   void _showAddResult(String name, bool added) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(added ? '已添加「$name」' : '「$name」已在购物清单中'),
-        persist: false,
-        backgroundColor: added ? AppColors.primary : AppColors.tertiary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    showAppSnackBar(
+      context,
+      added ? '已添加「$name」' : '「$name」已在购物清单中',
+      backgroundColor: added ? AppColors.primary : AppColors.tertiary,
     );
   }
 

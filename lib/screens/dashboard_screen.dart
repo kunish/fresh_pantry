@@ -7,6 +7,7 @@ import '../providers/inventory_provider.dart';
 import '../providers/shopping_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/recipe_provider.dart';
+import '../utils/app_snackbar.dart';
 import '../utils/dashboard_greeting.dart';
 import '../utils/storage_labels.dart';
 import '../widgets/dashboard/stat_card.dart';
@@ -361,17 +362,10 @@ class DashboardScreen extends ConsumerWidget {
         .read(shoppingProvider.notifier)
         .addFromIngredient(item);
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          added ? '已将「${item.name}」加入购物清单' : '「${item.name}」已在购物清单中',
-        ),
-        persist: false,
-        backgroundColor: added ? AppColors.primary : AppColors.tertiary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    showAppSnackBar(
+      context,
+      added ? '已将「${item.name}」加入购物清单' : '「${item.name}」已在购物清单中',
+      backgroundColor: added ? AppColors.primary : AppColors.tertiary,
     );
   }
 

@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/shopping_provider.dart';
+import '../utils/app_snackbar.dart';
 import 'recipe_detail_screen.dart';
 import '../widgets/common/swipe_reveal_delete_action.dart';
 import '../widgets/shared/category_icon.dart';
@@ -238,17 +239,10 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                   for (final item in checkedItems) {
                     ref.read(shoppingProvider.notifier).remove(item.id);
                   }
-                  ScaffoldMessenger.of(context).clearSnackBars();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('已清理 ${checkedItems.length} 个已购项目'),
-                      persist: false,
-                      backgroundColor: AppColors.primary,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
+                  showAppSnackBar(
+                    context,
+                    '已清理 ${checkedItems.length} 个已购项目',
+                    backgroundColor: AppColors.primary,
                   );
                 },
                 child: Text(
@@ -270,22 +264,15 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
     ShoppingItem item,
   ) {
     ref.read(shoppingProvider.notifier).remove(item.id);
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('「${item.name}」已删除'),
-        persist: false,
-        backgroundColor: AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        action: SnackBarAction(
-          label: '撤销',
-          textColor: AppColors.onError,
-          onPressed: () {
-            ref.read(shoppingProvider.notifier).add(item);
-          },
-        ),
-      ),
+    showAppSnackBar(
+      context,
+      '「${item.name}」已删除',
+      backgroundColor: AppColors.error,
+      actionLabel: '撤销',
+      actionTextColor: AppColors.onError,
+      onAction: () {
+        ref.read(shoppingProvider.notifier).add(item);
+      },
     );
   }
 
@@ -399,62 +386,44 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
 
     // When checking off (not unchecking), offer to add to inventory
     if (!wasChecked) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('「${item.name}」已购买'),
-          persist: false,
-          backgroundColor: AppColors.primary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          action: SnackBarAction(
-            label: '加入库存',
-            textColor: AppColors.onPrimary,
-            onPressed: () {
-              final defaults = FoodKnowledge.lookup(item.name);
-              final now = DateTime.now();
-              final expiryDate =
-                  defaults != null
-                      ? now.add(Duration(days: defaults.shelfLifeDays))
-                      : null;
-              final freshness = expiryDate != null ? 1.0 : 0.85;
+      showAppSnackBar(
+        context,
+        '「${item.name}」已购买',
+        backgroundColor: AppColors.primary,
+        actionLabel: '加入库存',
+        actionTextColor: AppColors.onPrimary,
+        onAction: () {
+          final defaults = FoodKnowledge.lookup(item.name);
+          final now = DateTime.now();
+          final expiryDate = defaults != null
+              ? now.add(Duration(days: defaults.shelfLifeDays))
+              : null;
+          final freshness = expiryDate != null ? 1.0 : 0.85;
 
-              final ingredient = Ingredient(
-                name: item.name,
-                quantity: '1',
-                unit: '份',
-                imageUrl: item.imageUrl ?? '',
-                freshnessPercent: freshness,
-                state: FreshnessState.fresh,
-                category: FoodKnowledge.categoryFor(item.name),
-                storage: defaults?.storage ?? IconType.fridge,
-                expiryDate: expiryDate,
-                shelfLifeDays: defaults?.shelfLifeDays,
-                expiryLabel:
-                    expiryDate != null
-                        ? '${defaults!.shelfLifeDays}天后过期'
-                        : '新鲜',
-              );
+          final ingredient = Ingredient(
+            name: item.name,
+            quantity: '1',
+            unit: '份',
+            imageUrl: item.imageUrl ?? '',
+            freshnessPercent: freshness,
+            state: FreshnessState.fresh,
+            category: FoodKnowledge.categoryFor(item.name),
+            storage: defaults?.storage ?? IconType.fridge,
+            expiryDate: expiryDate,
+            shelfLifeDays: defaults?.shelfLifeDays,
+            expiryLabel: expiryDate != null
+                ? '${defaults!.shelfLifeDays}天后过期'
+                : '新鲜',
+          );
 
-              ref.read(inventoryProvider.notifier).add(ingredient);
+          ref.read(inventoryProvider.notifier).add(ingredient);
 
-              ScaffoldMessenger.of(context).clearSnackBars();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('已添加「${item.name}」到库存'),
-                  persist: false,
-                  backgroundColor: AppColors.primary,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
+          showAppSnackBar(
+            context,
+            '已添加「${item.name}」到库存',
+            backgroundColor: AppColors.primary,
+          );
+        },
       );
     }
   }

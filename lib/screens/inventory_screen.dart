@@ -9,6 +9,7 @@ import '../screens/ingredient_detail_screen.dart';
 import '../widgets/inventory/ingredient_card.dart';
 import '../widgets/common/category_chips.dart';
 import '../widgets/common/swipe_reveal_delete_action.dart';
+import '../utils/app_snackbar.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});
@@ -32,17 +33,10 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         .read(shoppingProvider.notifier)
         .addFromIngredient(item);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          added ? '已将「${item.name}」加入购物清单' : '「${item.name}」已在购物清单中',
-        ),
-        persist: false,
-        backgroundColor: added ? AppColors.primary : AppColors.tertiary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    showAppSnackBar(
+      context,
+      added ? '已将「${item.name}」加入购物清单' : '「${item.name}」已在购物清单中',
+      backgroundColor: added ? AppColors.primary : AppColors.tertiary,
     );
   }
 
@@ -68,15 +62,10 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   }
 
   void _showUpdatedSnackBar(String name) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('「$name」已更新'),
-        persist: false,
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    showAppSnackBar(
+      context,
+      '「$name」已更新',
+      backgroundColor: AppColors.primary,
     );
   }
 
@@ -89,22 +78,15 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   }
 
   void _showDeletedSnackBar(Ingredient item, int index) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('「${item.name}」已删除'),
-        persist: false,
-        backgroundColor: AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        action: SnackBarAction(
-          label: '撤销',
-          textColor: AppColors.onError,
-          onPressed: () {
-            ref.read(inventoryProvider.notifier).insertAt(index, item);
-          },
-        ),
-      ),
+    showAppSnackBar(
+      context,
+      '「${item.name}」已删除',
+      backgroundColor: AppColors.error,
+      actionLabel: '撤销',
+      actionTextColor: AppColors.onError,
+      onAction: () {
+        ref.read(inventoryProvider.notifier).insertAt(index, item);
+      },
     );
   }
 
