@@ -193,7 +193,7 @@
 
 ## Decisions Log
 
-(空)
+- 2026-05-07 LOW batch: 全部批准(43/43 auto-approved LOW,18 high + 6 medium + 19 low severity,涵盖 28 个文件)。另有 60 条 LOW 标记为 `blocked-by-high`,等 HIGH 决策后根据所在文件 HIGH 项的处置(approved/deferred/rejected)解锁或挪走。
 
 ## Final Verification
 
