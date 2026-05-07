@@ -16,7 +16,7 @@
 | lib/data/food_knowledge.dart:1 | medium | missing-test | FoodKnowledge.englishName / lookup 未单独测试。 | 新增 lookup() 命中/未命中 + englishName 单测。 | LOW | test | auto-approved | pending |
 | lib/models/food_details.dart:1 | low | missing-test | FoodDetails.fromJson cacheVersion 字段处理未单测。 | 加 fromJson(cacheVersion=3) round-trip 测试。 | LOW | test | auto-approved | pending |
 | lib/models/ingredient.dart:1 | low | missing-test | Ingredient.fromJson 容错(unknown storage 字符串、缺字段)未直接测试。 | 加 fromJson({'storage':'freezer'}) → fridge,缺字段使用默认。 | LOW | test | auto-approved | pending |
-| lib/models/recipe.dart:147 | high | dead-code | `ScoredRecipe` 类(63 行,含 ==/hashCode/copyWith/toJson/fromJson)在 lib/ 下零引用,只有一处 model_equality_test 自测。 | 删除 `ScoredRecipe` 类及其测试。 | LOW | quality | auto-approved | pending |
+| lib/models/recipe.dart:147 | high | dead-code | `ScoredRecipe` 类(63 行,含 ==/hashCode/copyWith/toJson/fromJson)在 lib/ 下零引用,只有一处 model_equality_test 自测。 | 删除 `ScoredRecipe` 类及其测试。 | LOW | quality | auto-approved | done |
 | lib/models/recipe.dart:1 | low | missing-test | Recipe.fromJson + ScoredRecipe.copyWith 部分字段未测。 | 补测 fromJson 缺字段 + copyWith 全字段。 | LOW | test | auto-approved | pending |
 | lib/models/shopping_item.dart:1 | low | missing-test | ShoppingItem.fromJson 缺字段 / id 缺失行为未测。 | 新增 fromJson edge 单测。 | LOW | test | auto-approved | pending |
 | lib/providers/custom_recipe_provider.dart:16 | medium | sync-io-in-build | CustomRecipeNotifier.build() 同步 jsonDecode 整个 recipe 列表。 | 改为 AsyncNotifier 或 main() 预热。 | HIGH | perf | approved | pending |
@@ -57,9 +57,9 @@
 | lib/screens/add_ingredient_screen.dart:678 | medium | long-function | `_buildExpirationSection()` 方法体约 110 行,内含两层三元颜色判断重复 2 次。 [blocked by HIGH item in same file] | 提取 `_freshnessBadgeColors(double)` 返回 (bg,text);并把方法拆为 header/chips/selectedDate 三段子 widget。 | LOW | quality | auto-approved | pending |
 | lib/screens/add_ingredient_screen.dart:1011 | medium | allocation-in-build | _buildFilledInput 每次 build 内嵌 Focus+Builder+AnimatedContainer+TextField,新建 BoxDecoration / Border / TextStyle。 [blocked by HIGH item in same file] | 抽成独立 StatelessWidget,InputDecoration / TextStyle 提为 static const。 | LOW | perf | auto-approved | pending |
 | lib/screens/add_ingredient_screen.dart:597 | low | allocation-in-build | DropdownButton items 列表每次 build 重建 List<DropdownMenuItem>。 [blocked by HIGH item in same file] | 缓存或 const 化。 | LOW | perf | auto-approved | pending |
-| lib/screens/batch_entry_screen.dart:30 | high | dead-code | `BatchEntryScreen` 整文件 432 行,grep 全 lib/test 仅自身命中,无任何 import/路由引用。 | 删除 lib/screens/batch_entry_screen.dart 整文件。 | LOW | quality | auto-approved | pending |
-| lib/screens/batch_entry_screen.dart:30 | high | missing-test | 432 行批量录入屏幕完全无 widget 测试。 | 新增 batch_entry_screen_test.dart 覆盖 add+remove+confirmClearAll+save flow。 | LOW | test | auto-approved | pending |
-| lib/screens/batch_entry_screen.dart:123 | high | missing-loading | _saveAll 异步循环但无 loading/error;按钮可重复点击。 | 加 _isSaving + 错误 catch + try/finally。 | LOW | ux | auto-approved | pending |
+| lib/screens/batch_entry_screen.dart:30 | high | dead-code | `BatchEntryScreen` 整文件 432 行,grep 全 lib/test 仅自身命中,无任何 import/路由引用。 | 删除 lib/screens/batch_entry_screen.dart 整文件。 | LOW | quality | auto-approved | done |
+| lib/screens/batch_entry_screen.dart:30 | high | missing-test | (obsolete: file deleted in Batch 1) 432 行批量录入屏幕完全无 widget 测试。 | 新增 batch_entry_screen_test.dart 覆盖 add+remove+confirmClearAll+save flow。 | LOW | test | auto-approved | skipped |
+| lib/screens/batch_entry_screen.dart:123 | high | missing-loading | (obsolete: file deleted in Batch 1) _saveAll 异步循环但无 loading/error;按钮可重复点击。 | 加 _isSaving + 错误 catch + try/finally。 | LOW | ux | auto-approved | skipped |
 | lib/screens/custom_recipe_form_screen.dart:111 | high | theme-inconsistency | 多处节标题用 GoogleFonts.manrope(18,w700) 而非 textTheme。 [blocked by HIGH item in same file] | 统一为 textTheme.titleLarge。 | LOW | ux | auto-approved | pending |
 | lib/screens/custom_recipe_form_screen.dart:236 | high | missing-error | 保存失败仅 SnackBar"保存失败,请重试",无重试按钮。 | 统一错误恢复路径并提供 retry CTA。 | HIGH | ux | approved | pending |
 | lib/screens/custom_recipe_form_screen.dart:550 | high | theme-inconsistency | _CoverImageHero 渐变纯黑硬编码,未走 colorScheme。 [blocked by HIGH item in same file] | 抽 const 或用 AppColors 衍生。 | LOW | ux | auto-approved | pending |
@@ -108,16 +108,16 @@
 | lib/screens/shopping_list_screen.dart:71 | high | theme-inconsistency | fontSize:32 重复 displayLarge。 [blocked by HIGH item in same file] | 改用 textTheme.displayLarge。 | LOW | ux | auto-approved | pending |
 | lib/screens/shopping_list_screen.dart:88 | high | a11y | "清理已购"GestureDetector + Container 无 Semantics 与 tooltip。 [blocked by HIGH item in same file] | 包 Semantics(button:true,label:'清理已购')。 | LOW | ux | auto-approved | pending |
 | lib/screens/shopping_list_screen.dart:174 | high | list-builder | `SliverChildListDelegate([for (final entry in groupedItems.entries) _buildCategorySection])` 同步实例化所有分类。 [blocked by HIGH item in same file] | 改 SliverChildBuilderDelegate。 | LOW | perf | auto-approved | pending |
-| lib/screens/shopping_list_screen.dart:184 | high | dead-code/ui-duplication | [quality] "卡博纳拉意面" hard-coded SmartPlannerCard 直接传 MockData.recipes.first,与购物清单内容无关。 ; [ux] SmartPlannerCard 标题硬编码"卡博纳拉意面",非动态推荐。 | [quality] 删除 SmartPlannerCard 调用,或改为依据 recommendedRecipesProvider 动态生成。 ; [ux] 由 provider 提供推荐或在无推荐时隐藏。 | HIGH | quality,ux | approved | pending |
+| lib/screens/shopping_list_screen.dart:184 | high | dead-code/ui-duplication | [quality] "卡博纳拉意面" hard-coded SmartPlannerCard 直接传 MockData.recipes.first,与购物清单内容无关。 ; [ux] SmartPlannerCard 标题硬编码"卡博纳拉意面",非动态推荐。 (Batch 1: dropped the dead `recipeName` arg per #5; UX dynamic-recommendation work remains pending in a later batch.) | [quality] 删除 SmartPlannerCard 调用,或改为依据 recommendedRecipesProvider 动态生成。 ; [ux] 由 provider 提供推荐或在无推荐时隐藏。 | HIGH | quality,ux | approved | done |
 | lib/screens/shopping_list_screen.dart:417 | high | ui-duplication | "加入库存"逻辑与 inventory_screen 形成镜像;Ingredient 构造重复。 | 抽 IngredientFactory 或 service 方法。 | HIGH | ux | approved | pending |
 | lib/screens/shopping_list_screen.dart:375 | medium | list-builder | `for (final item in items)` 在每个分类内展开全部 ShoppingItemTile。 [blocked by HIGH item in same file] | 每分类内部也改为 ListView/SliverList.builder。 | LOW | perf | auto-approved | pending |
 | lib/screens/shopping_list_screen.dart:397 | medium | long-function | `_onItemChecked` 方法 65 行,内含 SnackBar action 闭包再构造 Ingredient + 第二个嵌套 SnackBar,嵌套 4 层。 [blocked by HIGH item in same file] | 把 SnackBar action 内部的 inventory-add 逻辑提取为 `_addItemToInventory(name, imageUrl)` 方法。 | LOW | quality | auto-approved | pending |
-| lib/services/open_food_facts_service.dart:13 | high | dead-code | `FoodSearchResult.category` 字段在唯一调用方(add_ingredient_screen.dart:175)只读 `imageUrl`,grep 全项目 `result.category`/`?.category` 零命中。 | 删除 `FoodSearchResult.category` 字段及其在 searchByName 中的赋值/解析。 | HIGH | quality | approved | pending |
+| lib/services/open_food_facts_service.dart:13 | high | dead-code | `FoodSearchResult.category` 字段在唯一调用方(add_ingredient_screen.dart:175)只读 `imageUrl`,grep 全项目 `result.category`/`?.category` 零命中。 | 删除 `FoodSearchResult.category` 字段及其在 searchByName 中的赋值/解析。 | HIGH | quality | approved | done |
 | lib/services/themealdb_service.dart:25 | high | missing-test | 整个 TheMealDB service 无单测。 [blocked by HIGH item in same file] | 新增 themealdb_service_test.dart with FakeHttpClient,覆盖 200/timeout/HTTP error/empty/malformed。 | LOW | test | auto-approved | pending |
-| lib/services/themealdb_service.dart:61 | high | dead-code | `searchByIngredient`/`random`/`lookupById`(对外)三个 public static 方法在 lib/test 全无外部调用。 | 删除 `searchByIngredient`、`random`,并将 `lookupById` 改为私有(仅供 searchByIngredient 内部使用,删除前者后也可删它)。 | HIGH | quality | approved | pending |
+| lib/services/themealdb_service.dart:61 | high | dead-code | `searchByIngredient`/`random`/`lookupById`(对外)三个 public static 方法在 lib/test 全无外部调用。 | 删除 `searchByIngredient`、`random`,并将 `lookupById` 改为私有(仅供 searchByIngredient 内部使用,删除前者后也可删它)。 | HIGH | quality | approved | done |
 | lib/services/themealdb_service.dart:232 | medium | duplication | `_fetch` HTTP 重试方法在 themealdb_service.dart:232 和 open_food_facts_service.dart:291 实现几乎一致;catch 块在两个 service 共出现 7 次。 | 提取 `Future<http.Response> fetchWithRetry(Uri, ...)` 到 lib/services/_http.dart。 | HIGH | quality | approved | pending |
 | lib/services/themealdb_service.dart:255 | medium | duplication | `_asMap`/`_asList`/`_asString` 三个 JSON 安全转型助手在 themealdb_service.dart 与 open_food_facts_service.dart 完全相同。 | 提取到 lib/utils/json_object_list.dart 或新增 lib/utils/json_cast.dart。 | HIGH | quality | approved | pending |
-| lib/theme/app_colors.dart:10 | medium | dead-code | `primaryFixedDim`、`secondaryFixedDim`、`tertiaryFixed` 三个常量 grep 整个 lib 零引用(只在 app_colors.dart 自身定义)。 | 在 app_colors.dart 中删除这 3 行常量。 | LOW | quality | auto-approved | pending |
+| lib/theme/app_colors.dart:10 | medium | dead-code | `primaryFixedDim`、`secondaryFixedDim`、`tertiaryFixed` 三个常量 grep 整个 lib 零引用(只在 app_colors.dart 自身定义)。 | 在 app_colors.dart 中删除这 3 行常量。 | LOW | quality | auto-approved | done |
 | lib/theme/app_theme.dart:58 | high | theme-inconsistency | 缺少集中的 spacing/radius/elevation token,所有 screen 自由使用魔术数字。 | 新增 AppSpacing/AppRadius 常量类。 | HIGH | ux | approved | pending |
 | lib/utils/dashboard_greeting.dart:27 | medium | missing-edge-case | dashboardSubtitleFor 当前断言"今日和明日不同",placeholders 长度 5 时可能巧合相同。 | 改为按可控 dayNumber 推算预期文本断言。 | HIGH | test | approved | pending |
 | lib/utils/expiry_calculator.dart:13 | high | missing-edge-case | expiryFreshness 当 totalShelfLifeDays==0 / 负值返回 0.0 路径未测。 | 加边界测试: totalShelfLifeDays=0 / -1 / 极大(36500)。 | LOW | test | auto-approved | pending |
@@ -135,9 +135,9 @@
 | lib/widgets/common/search_overlay.dart:299 | medium | list-builder | `ListView(shrinkWrap:true, children:[..., ...inventory.take(5).map])` shrinkWrap forces full layout。 [blocked by HIGH item in same file] | ListView.builder + itemExtent。 | LOW | perf | auto-approved | pending |
 | lib/widgets/common/search_overlay.dart:23 | low | rebuild | _SearchOverlayState inactive 时 return SizedBox.shrink,但仍订阅;overlay 一直挂 widget tree。 | 把 SearchOverlay 的 mount/visit 由父级 if(active) 控制。 | HIGH | perf | approved | pending |
 | lib/widgets/common/search_overlay.dart:224 | low | list-builder | `...history.map((term)=>ListTile(...))` 展开搜索历史(最多 10 条)。 [blocked by HIGH item in same file] | 保持但加 const Icon 等优化。 | LOW | perf | auto-approved | pending |
-| lib/widgets/common/status_badge.dart:5 | high | dead-code | 公共 widget `StatusBadge` 全项目零引用(alert_card.dart 用的是同名私有 `_StatusBadge`)。 | 删除 lib/widgets/common/status_badge.dart 整文件。 | LOW | quality | auto-approved | pending |
-| lib/widgets/common/status_badge.dart:36 | high | theme-inconsistency | TextStyle 写死 fontSize:11/w600,与项目其他 badge 不统一。 | 抽出 AppTypography.badgeLabel 或用 labelSmall。 | LOW | ux | auto-approved | pending |
-| lib/widgets/common/status_badge.dart:1 | low | missing-test | status_badge 无单测。 | 加颜色 / label 渲染单测。 | LOW | test | auto-approved | pending |
+| lib/widgets/common/status_badge.dart:5 | high | dead-code | 公共 widget `StatusBadge` 全项目零引用(alert_card.dart 用的是同名私有 `_StatusBadge`)。 | 删除 lib/widgets/common/status_badge.dart 整文件。 | LOW | quality | auto-approved | done |
+| lib/widgets/common/status_badge.dart:36 | high | theme-inconsistency | (obsolete: file deleted in Batch 1) TextStyle 写死 fontSize:11/w600,与项目其他 badge 不统一。 | 抽出 AppTypography.badgeLabel 或用 labelSmall。 | LOW | ux | auto-approved | skipped |
+| lib/widgets/common/status_badge.dart:1 | low | missing-test | (obsolete: file deleted in Batch 1) status_badge 无单测。 | 加颜色 / label 渲染单测。 | LOW | test | auto-approved | skipped |
 | lib/widgets/common/swipe_reveal_delete_action.dart:1 | medium | missing-test | 140 行 swipe reveal 自定义组件无独立测试。 | 加 swipe_reveal_delete_action_test.dart。 | LOW | test | auto-approved | pending |
 | lib/widgets/common/top_app_bar.dart:21 | high | a11y | Image.asset 缺 semanticLabel。 | 加 semanticLabel:'食材管家应用图标' 或 ExcludeSemantics。 | LOW | ux | auto-approved | pending |
 | lib/widgets/common/top_app_bar.dart:1 | low | missing-test | top_app_bar 无单测。 | 加渲染 + 搜索按钮 onTap。 | LOW | test | auto-approved | pending |
@@ -162,7 +162,7 @@
 | lib/widgets/shared/recipe_image.dart:1 | low | missing-test | recipe_image 占位 / 错误状态未测。 | 加 null url placeholder + base64 / network 渲染。 | LOW | test | auto-approved | pending |
 | lib/widgets/shared/recipe_image.dart:64 | low | allocation-in-build | Image.network 无 cacheWidth/Height,导致全分辨率解码。 | 给固定尺寸场景传 cacheWidth=width.toInt()。 | LOW | perf | auto-approved | pending |
 | lib/widgets/shopping/quick_add_field.dart:69 | high | a11y | suffixIcon IconButton 无 tooltip。 | 加 tooltip:'添加到购物清单'。 | LOW | ux | auto-approved | pending |
-| lib/widgets/shopping/smart_planner_card.dart:7 | high | dead-code | `recipeName` 字段标记 `required` 但 build() 内零读取,仅在 shopping_list_screen.dart:186 传 '卡博纳拉意面' 这个硬编码占位。 | 删除 `recipeName` 字段及构造参数。 | HIGH | quality | approved | pending |
+| lib/widgets/shopping/smart_planner_card.dart:7 | high | dead-code | `recipeName` 字段标记 `required` 但 build() 内零读取,仅在 shopping_list_screen.dart:186 传 '卡博纳拉意面' 这个硬编码占位。 | 删除 `recipeName` 字段及构造参数。 | HIGH | quality | approved | done |
 | lib/widgets/shopping/smart_planner_card.dart:1 | low | missing-test | smart_planner_card 无独立 widget 测试。 [blocked by HIGH item in same file] | 新增渲染 + onTap 测试。 | LOW | test | auto-approved | pending |
 | test/category_chips_test.dart:6 | low | missing-test | 仅 1 测试,onSelected 回调 / 选中样式未测。 | 加 tap 触发 onSelected + selected chip 颜色断言。 | LOW | test | auto-approved | pending |
 | test/custom_recipe_flow_test.dart:574 | low | weak-assertion | "ignores repeated save taps while saving" 仅断言保存 1 条,未验证 button 真的被禁用。 | 增加对 ElevatedButton.onPressed==null 的状态断言。 | HIGH | test | approved | pending |
@@ -204,6 +204,7 @@
   - **G. 主题 token 体系**(2 项):新增 AppSpacing/AppRadius;dashboard "紧急关注" 用 errorContainer
   - **H. 杂项**(3 项):MealDbClient/TheMealDbService 合并;FrequentItem 移到 lib/models/;normalizeCacheKey 提取
 - 2026-05-07 Unblock LOW: 因所有 HIGH 都被批准,60 条 `blocked-by-high` 全部解锁为 `auto-approved`(LOW 总计变为 103 条)。
+- 2026-05-07 Batch 1 (dead-code 清理) 完成: 8 项 dead-code findings 实施完毕。3 个相关 follow-up findings(已删文件的 missing-test/missing-loading/theme-inconsistency)随之标记为 `skipped`(obsolete)。所有删除前都 grep 复核为零调用。`flutter analyze` 0 issues,`flutter test` 147/147 通过(基线 148,删除 ScoredRecipe 测试 -1)。
 
 ## Final Verification
 
