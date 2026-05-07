@@ -11,6 +11,7 @@ import '../data/food_knowledge.dart';
 import '../data/mock_data.dart';
 import '../utils/expiry_calculator.dart';
 import '../utils/json_object_list.dart';
+import '_persistence_queue.dart';
 import 'storage_service_provider.dart';
 
 const _kInventoryKey = 'inventory_items';
@@ -117,9 +118,9 @@ Ingredient _normalizeInventoryIngredient(Ingredient item) {
 }
 
 /// Inventory state (CRUD) with local persistence
-class InventoryNotifier extends Notifier<List<Ingredient>> {
+class InventoryNotifier extends Notifier<List<Ingredient>>
+    with PersistenceQueue {
   late final SharedPreferences _prefs;
-  Future<void> _pendingPersistence = Future.value();
 
   @override
   List<Ingredient> build() {
@@ -149,12 +150,6 @@ class InventoryNotifier extends Notifier<List<Ingredient>> {
     }
   }
 
-  Future<void> _queuePersistence(Future<void> Function() persist) {
-    final next = _pendingPersistence.then((_) => persist());
-    _pendingPersistence = next.catchError((_) {});
-    return next;
-  }
-
   Future<void> add(Ingredient item) async {
     final normalizedItem = _normalizeIngredientCategory(item);
     final stampedItem =
@@ -164,7 +159,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>> {
     final itemToAdd = _refreshIngredientFreshness(stampedItem);
     final updated = [...state, itemToAdd];
     state = updated;
-    return _queuePersistence(() async {
+    return queuePersistence(() async {
       await _save(updated);
       await _recordAddHistory(itemToAdd);
       ref.read(_addHistoryVersionProvider.notifier).state++;
@@ -175,7 +170,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>> {
     if (index < 0 || index >= state.length) return;
     final updated = [...state]..removeAt(index);
     state = updated;
-    return _queuePersistence(() => _save(updated));
+    return queuePersistence(() => _save(updated));
   }
 
   Future<void> insertAt(int index, Ingredient item) async {
@@ -183,7 +178,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>> {
     final clampedIndex = index.clamp(0, updated.length).toInt();
     updated.insert(clampedIndex, _normalizeInventoryIngredient(item));
     state = updated;
-    return _queuePersistence(() => _save(updated));
+    return queuePersistence(() => _save(updated));
   }
 
   Future<void> update(int index, Ingredient item) async {
@@ -196,7 +191,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>> {
             : normalizedItem;
     updated[index] = _refreshIngredientFreshness(stampedItem);
     state = updated;
-    return _queuePersistence(() => _save(updated));
+    return queuePersistence(() => _save(updated));
   }
 
   List<Ingredient> getByCategory(String category) {

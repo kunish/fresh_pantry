@@ -2,15 +2,16 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fresh_pantry/models/recipe.dart';
+import 'package:fresh_pantry/providers/_persistence_queue.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/utils/json_object_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const customRecipesStorageKey = 'custom_recipes';
 
-class CustomRecipeNotifier extends Notifier<List<Recipe>> {
+class CustomRecipeNotifier extends Notifier<List<Recipe>>
+    with PersistenceQueue {
   late SharedPreferences _prefs;
-  Future<void> _pendingPersistence = Future.value();
 
   @override
   List<Recipe> build() {
@@ -45,7 +46,7 @@ class CustomRecipeNotifier extends Notifier<List<Recipe>> {
   }
 
   Future<void> _mutate(List<Recipe> Function(List<Recipe>) nextState) {
-    final mutation = _pendingPersistence.then((_) async {
+    return queuePersistence(() async {
       final current = state;
       final next = nextState(current);
       if (identical(next, current)) {
@@ -55,8 +56,6 @@ class CustomRecipeNotifier extends Notifier<List<Recipe>> {
       await _save(next);
       state = next;
     });
-    _pendingPersistence = mutation.catchError((_) {});
-    return mutation;
   }
 
   Future<void> add(Recipe recipe) async {

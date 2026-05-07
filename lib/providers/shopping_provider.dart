@@ -8,6 +8,7 @@ import '../data/food_categories.dart';
 import '../data/food_knowledge.dart';
 import '../data/mock_data.dart';
 import '../utils/json_object_list.dart';
+import '_persistence_queue.dart';
 import 'storage_service_provider.dart';
 
 const _kShoppingKey = 'shopping_items';
@@ -55,9 +56,9 @@ ShoppingItem _withUniqueShoppingItemId(
 }
 
 /// Shopping list state with local persistence
-class ShoppingNotifier extends Notifier<List<ShoppingItem>> {
+class ShoppingNotifier extends Notifier<List<ShoppingItem>>
+    with PersistenceQueue {
   late final SharedPreferences _prefs;
-  Future<void> _pendingPersistence = Future.value();
 
   @override
   List<ShoppingItem> build() {
@@ -88,12 +89,6 @@ class ShoppingNotifier extends Notifier<List<ShoppingItem>> {
     }
   }
 
-  Future<void> _queueSave(List<ShoppingItem> items) {
-    final next = _pendingPersistence.then((_) => _save(items));
-    _pendingPersistence = next.catchError((_) {});
-    return next;
-  }
-
   Future<bool> add(ShoppingItem item) async {
     final normalizedItem = _withUniqueShoppingItemId(
       _normalizeShoppingItemCategory(item),
@@ -107,7 +102,7 @@ class ShoppingNotifier extends Notifier<List<ShoppingItem>> {
 
     final updated = [...state, normalizedItem];
     state = updated;
-    await _queueSave(updated);
+    await queuePersistence(() => _save(updated));
     return true;
   }
 
@@ -118,7 +113,7 @@ class ShoppingNotifier extends Notifier<List<ShoppingItem>> {
     }
 
     state = updated;
-    await _queueSave(updated);
+    await queuePersistence(() => _save(updated));
   }
 
   Future<void> toggleCheck(String id) async {
@@ -136,7 +131,7 @@ class ShoppingNotifier extends Notifier<List<ShoppingItem>> {
     }
 
     state = updated;
-    await _queueSave(updated);
+    await queuePersistence(() => _save(updated));
   }
 
   /// Build a ShoppingItem from the given inventory item and add it.
