@@ -12,7 +12,6 @@ class TheMealDbService {
   static const _retryCount = 1;
   static const _retryDelay = Duration(milliseconds: 500);
   static const _maxSearchResults = 10;
-  static const _maxIngredientResults = 5;
   static const _maxIngredients = 20;
   static const _easyIngredientThreshold = 5;
   static const _mediumIngredientThreshold = 10;
@@ -54,116 +53,6 @@ class TheMealDbService {
     } catch (e, stack) {
       debugPrint('TheMealDB searchByName unexpected error: $e\n$stack');
       return [];
-    }
-  }
-
-  /// Search recipes that use a specific ingredient.
-  static Future<List<Recipe>> searchByIngredient(String ingredient) async {
-    try {
-      final uri = Uri.parse(
-        '$_baseUrl/filter.php?i=${Uri.encodeComponent(ingredient)}',
-      );
-      final response = await _fetch(uri);
-
-      if (response.statusCode != 200) return [];
-
-      final json = _asMap(jsonDecode(response.body));
-      if (json == null) return [];
-
-      final meals = _asList(json['meals']);
-      if (meals == null) return [];
-
-      // filter.php returns minimal data; fetch full details for top [_maxIngredientResults]
-      final ids =
-          meals
-              .take(_maxIngredientResults)
-              .whereType<Map<String, dynamic>>()
-              .map((m) => m['idMeal']?.toString())
-              .whereType<String>()
-              .toList();
-
-      final recipes = <Recipe>[];
-      for (final id in ids) {
-        final recipe = await lookupById(id);
-        if (recipe != null) recipes.add(recipe);
-      }
-      return recipes;
-    } on TimeoutException catch (e, stack) {
-      debugPrint('TheMealDB searchByIngredient timeout: $e\n$stack');
-      return [];
-    } on http.ClientException catch (e, stack) {
-      debugPrint('TheMealDB searchByIngredient HTTP error: $e\n$stack');
-      return [];
-    } on FormatException catch (e, stack) {
-      debugPrint('TheMealDB searchByIngredient format error: $e\n$stack');
-      return [];
-    } catch (e, stack) {
-      debugPrint('TheMealDB searchByIngredient unexpected error: $e\n$stack');
-      return [];
-    }
-  }
-
-  /// Lookup a single recipe by TheMealDB ID.
-  static Future<Recipe?> lookupById(String id) async {
-    try {
-      final uri = Uri.parse('$_baseUrl/lookup.php?i=$id');
-      final response = await _fetch(uri);
-
-      if (response.statusCode != 200) return null;
-
-      final json = _asMap(jsonDecode(response.body));
-      if (json == null) return null;
-
-      final meals = _asList(json['meals']);
-      if (meals == null || meals.isEmpty) return null;
-
-      final first = meals.first;
-      if (first is! Map<String, dynamic>) return null;
-      return _mealToRecipe(first);
-    } on TimeoutException catch (e, stack) {
-      debugPrint('TheMealDB lookupById timeout: $e\n$stack');
-      return null;
-    } on http.ClientException catch (e, stack) {
-      debugPrint('TheMealDB lookupById HTTP error: $e\n$stack');
-      return null;
-    } on FormatException catch (e, stack) {
-      debugPrint('TheMealDB lookupById format error: $e\n$stack');
-      return null;
-    } catch (e, stack) {
-      debugPrint('TheMealDB lookupById unexpected error: $e\n$stack');
-      return null;
-    }
-  }
-
-  /// Fetch a random recipe.
-  static Future<Recipe?> random() async {
-    try {
-      final uri = Uri.parse('$_baseUrl/random.php');
-      final response = await _fetch(uri);
-
-      if (response.statusCode != 200) return null;
-
-      final json = _asMap(jsonDecode(response.body));
-      if (json == null) return null;
-
-      final meals = _asList(json['meals']);
-      if (meals == null || meals.isEmpty) return null;
-
-      final first = meals.first;
-      if (first is! Map<String, dynamic>) return null;
-      return _mealToRecipe(first);
-    } on TimeoutException catch (e, stack) {
-      debugPrint('TheMealDB random timeout: $e\n$stack');
-      return null;
-    } on http.ClientException catch (e, stack) {
-      debugPrint('TheMealDB random HTTP error: $e\n$stack');
-      return null;
-    } on FormatException catch (e, stack) {
-      debugPrint('TheMealDB random format error: $e\n$stack');
-      return null;
-    } catch (e, stack) {
-      debugPrint('TheMealDB random unexpected error: $e\n$stack');
-      return null;
     }
   }
 
