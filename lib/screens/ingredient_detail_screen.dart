@@ -59,10 +59,6 @@ class IngredientDetailScreen extends ConsumerStatefulWidget {
 
 class _IngredientDetailScreenState
     extends ConsumerState<IngredientDetailScreen> {
-  int _indexOf(Ingredient item) {
-    return inventoryIndexOf(ref.read(inventoryProvider), item);
-  }
-
   Future<void> _addToShoppingList(Ingredient item) async {
     final added = await ref
         .read(shoppingProvider.notifier)
@@ -76,7 +72,7 @@ class _IngredientDetailScreenState
   }
 
   Future<void> _editItem(Ingredient item) async {
-    final index = _indexOf(item);
+    final index = inventoryIndexOf(ref.read(inventoryProvider), item);
     if (index == -1) return;
 
     final updatedName = await Navigator.of(context).push<String>(
@@ -98,7 +94,7 @@ class _IngredientDetailScreenState
   }
 
   Future<void> _confirmDelete(Ingredient item) async {
-    final index = _indexOf(item);
+    final index = inventoryIndexOf(ref.read(inventoryProvider), item);
     if (index == -1) return;
 
     final confirmed = await showAppConfirmDialog(

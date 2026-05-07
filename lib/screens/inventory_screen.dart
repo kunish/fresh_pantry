@@ -24,10 +24,6 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     await Future.delayed(const Duration(milliseconds: 800));
   }
 
-  int _indexOfInventoryItem(Ingredient item) {
-    return inventoryIndexOf(ref.read(inventoryProvider), item);
-  }
-
   Future<void> _addToShoppingList(Ingredient item) async {
     final added = await ref
         .read(shoppingProvider.notifier)
@@ -70,7 +66,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   }
 
   void _deleteItem(Ingredient item) {
-    final index = _indexOfInventoryItem(item);
+    final index = inventoryIndexOf(ref.read(inventoryProvider), item);
     if (index == -1) return;
 
     ref.read(inventoryProvider.notifier).remove(index);
