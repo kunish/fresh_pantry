@@ -16,23 +16,7 @@ class CustomRecipeNotifier extends Notifier<List<Recipe>>
   @override
   List<Recipe> build() {
     _prefs = ref.read(sharedPreferencesProvider);
-    return _load();
-  }
-
-  List<Recipe> _load() {
-    final saved = _prefs.getString(customRecipesStorageKey);
-    if (saved == null) {
-      return const [];
-    }
-
-    try {
-      return decodeJsonObjectList(saved)
-          .map(Recipe.fromJson)
-          .where((recipe) => recipe.id.isNotEmpty && recipe.name.isNotEmpty)
-          .toList();
-    } on Object {
-      return const [];
-    }
+    return ref.read(customRecipeSeedProvider);
   }
 
   Future<void> _save(List<Recipe> recipes) async {
