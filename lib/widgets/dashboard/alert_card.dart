@@ -66,11 +66,11 @@ class AlertCard extends StatelessWidget {
                     children: [
                       Text(
                         name,
-                        style: GoogleFonts.manrope(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.onSurface,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.onSurface,
+                            ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -97,12 +97,13 @@ class AlertCard extends StatelessWidget {
                               ),
                               child: Text(
                                 storageTag!.toUpperCase(),
-                                style: GoogleFonts.manrope(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.8,
-                                  color: AppColors.onSurfaceVariant,
-                                ),
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.8,
+                                      color: AppColors.onSurfaceVariant,
+                                    ),
                               ),
                             ),
                           ],

@@ -41,7 +41,7 @@ class CuratorsTipCard extends StatelessWidget {
           const SizedBox(height: 20),
           Text(
             bottomLabel.toUpperCase(),
-            style: GoogleFonts.manrope(
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
               fontSize: 10,
               fontWeight: FontWeight.w700,
               letterSpacing: 2,

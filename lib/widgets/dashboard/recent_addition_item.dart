@@ -28,12 +28,15 @@ class RecentAdditionItem extends StatelessWidget {
                 children: [
                   Text(
                     item.name,
-                    style: const TextStyle(fontWeight: FontWeight.w700),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   Text(
                     _addedAtLabel(item.addedAt),
-                    style: const TextStyle(
-                      fontSize: 14,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(
                       color: AppColors.onSurfaceVariant,
                     ),
                   ),
@@ -45,7 +48,9 @@ class RecentAdditionItem extends StatelessWidget {
               children: [
                 Text(
                   '${item.quantity} ${item.unit}'.trim(),
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 SizedBox(

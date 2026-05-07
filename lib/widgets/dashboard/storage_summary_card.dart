@@ -38,9 +38,8 @@ class StorageSummaryCard extends StatelessWidget {
                   const SizedBox(width: 12),
                   Text(
                     area.name,
-                    style: const TextStyle(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
-                      fontSize: 17,
                     ),
                   ),
                 ],

@@ -96,9 +96,7 @@ class DashboardScreen extends ConsumerWidget {
             // ── Greeting ──
             Text(
               dashboardGreetingFor(now),
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 30,
-                fontWeight: FontWeight.w800,
+              style: Theme.of(context).textTheme.displayMedium?.copyWith(
                 letterSpacing: -0.5,
                 color: AppColors.onSurface,
               ),
@@ -155,10 +153,8 @@ class DashboardScreen extends ConsumerWidget {
               width: double.infinity,
               padding: const EdgeInsets.only(top: 20, bottom: 8),
               decoration: BoxDecoration(
-                color: AppColors.urgentAttentionBackground.withValues(
-                  alpha: 0.5,
-                ),
-                borderRadius: BorderRadius.circular(24),
+                color: Theme.of(context).colorScheme.errorContainer,
+                borderRadius: BorderRadius.circular(AppRadius.xxl),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -174,10 +170,7 @@ class DashboardScreen extends ConsumerWidget {
                         const SizedBox(width: 8),
                         Text(
                           '紧急关注',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
                       ],
                     ),
@@ -292,8 +285,7 @@ class DashboardScreen extends ConsumerWidget {
             // ── Storage Summary ──
             Text(
               '存储概况',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 22,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.3,
               ),
