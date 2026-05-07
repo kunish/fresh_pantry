@@ -8,6 +8,7 @@ import '../data/food_categories.dart';
 import '../data/food_knowledge.dart';
 import '../models/food_details.dart';
 import '../models/storage_area.dart';
+import '../utils/json_cast.dart';
 
 /// Result returned from Open Food Facts name search.
 class FoodSearchResult {
@@ -114,20 +115,20 @@ class OpenFoodFactsService {
 
       if (response.statusCode != 200) return null;
 
-      final json = _asMap(jsonDecode(response.body));
+      final json = asJsonMap(jsonDecode(response.body));
       if (json == null) return null;
 
-      final products = _asList(json['products']);
+      final products = asJsonList(json['products']);
       if (products == null || products.isEmpty) return null;
 
       final first = products.first;
-      final product = _asMap(first);
+      final product = asJsonMap(first);
       if (product == null) return null;
 
-      final productName = _asString(product['product_name']);
+      final productName = asJsonString(product['product_name']);
       if (productName == null || productName.trim().isEmpty) return null;
 
-      final imageUrl = _asString(product['image_front_small_url']);
+      final imageUrl = asJsonString(product['image_front_small_url']);
 
       return FoodSearchResult(
         productName: productName.trim(),
@@ -205,8 +206,8 @@ class OpenFoodFactsService {
     final response = await _fetch(uri, client: client);
     if (response.statusCode != 200) return null;
 
-    final json = _asMap(jsonDecode(response.body));
-    final product = json == null ? null : _asMap(json['product']);
+    final json = asJsonMap(jsonDecode(response.body));
+    final product = json == null ? null : asJsonMap(json['product']);
     if (product == null) return null;
 
     return _productToFoodDetails(
@@ -232,7 +233,7 @@ class OpenFoodFactsService {
     );
     final legacyResponse = await _fetch(legacyUri, client: client);
     if (legacyResponse.statusCode == 200) {
-      final json = _asMap(jsonDecode(legacyResponse.body));
+      final json = asJsonMap(jsonDecode(legacyResponse.body));
       final product =
           json == null ? null : _bestProduct(json['products'], fallbackName);
       if (product != null) {
@@ -253,7 +254,7 @@ class OpenFoodFactsService {
     final response = await _fetch(searchALiciousUri, client: client);
     if (response.statusCode != 200) return null;
 
-    final json = _asMap(jsonDecode(response.body));
+    final json = asJsonMap(jsonDecode(response.body));
     final product =
         json == null ? null : _bestProduct(json['hits'], fallbackName);
     if (product == null) return null;
@@ -309,13 +310,13 @@ class OpenFoodFactsService {
     dynamic productsValue,
     String fallbackName,
   ) {
-    final products = _asList(productsValue);
+    final products = asJsonList(productsValue);
     if (products == null || products.isEmpty) return null;
 
     Map<String, dynamic>? best;
     var bestScore = double.negativeInfinity;
     for (final value in products) {
-      final product = _asMap(value);
+      final product = asJsonMap(value);
       if (product == null) continue;
 
       final score = _productQualityScore(product, fallbackName);
@@ -347,7 +348,7 @@ class OpenFoodFactsService {
       }
     }
 
-    final productName = _asString(product['product_name']);
+    final productName = asJsonString(product['product_name']);
     if (productName != null && productName.trim().isNotEmpty) {
       final normalizedName = productName.trim().toLowerCase();
       score += 10;
@@ -365,7 +366,7 @@ class OpenFoodFactsService {
       }
     }
 
-    final genericName = _asString(product['generic_name']);
+    final genericName = asJsonString(product['generic_name']);
     if (genericName != null && genericName.trim().isNotEmpty) {
       score += 3;
     }
@@ -386,7 +387,7 @@ class OpenFoodFactsService {
     );
     if (displayName == null || displayName.trim().isEmpty) return null;
 
-    final categoriesTags = _asList(product['categories_tags']);
+    final categoriesTags = asJsonList(product['categories_tags']);
     final category =
         _resolveCategory(categoriesTags) ??
         FoodKnowledge.categoryFor(fallbackName);
@@ -428,7 +429,7 @@ class OpenFoodFactsService {
 
   static String? _firstNonEmpty(List<dynamic> values) {
     for (final value in values) {
-      final text = _asString(value)?.trim();
+      final text = asJsonString(value)?.trim();
       if (text != null && text.isNotEmpty) return text;
     }
     return null;
@@ -462,21 +463,4 @@ class OpenFoodFactsService {
     return terms;
   }
 
-  /// Safely cast [value] to [Map<String, dynamic>].
-  static Map<String, dynamic>? _asMap(dynamic value) {
-    if (value is Map<String, dynamic>) return value;
-    return null;
-  }
-
-  /// Safely cast [value] to [List<dynamic>].
-  static List<dynamic>? _asList(dynamic value) {
-    if (value is List<dynamic>) return value;
-    return null;
-  }
-
-  /// Safely cast [value] to [String].
-  static String? _asString(dynamic value) {
-    if (value is String) return value;
-    return null;
-  }
 }

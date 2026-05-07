@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/recipe.dart';
+import '../utils/json_cast.dart';
 
 /// Service for fetching recipes from TheMealDB open API.
 class TheMealDbService {
@@ -30,10 +31,10 @@ class TheMealDbService {
 
       if (response.statusCode != 200) return [];
 
-      final json = _asMap(jsonDecode(response.body));
+      final json = asJsonMap(jsonDecode(response.body));
       if (json == null) return [];
 
-      final meals = _asList(json['meals']);
+      final meals = asJsonList(json['meals']);
       if (meals == null) return [];
 
       return meals
@@ -59,16 +60,16 @@ class TheMealDbService {
   /// Convert TheMealDB meal JSON to our Recipe model.
   static Recipe _mealToRecipe(Map<String, dynamic> meal) {
     final id = meal['idMeal']?.toString() ?? '';
-    final name = _asString(meal['strMeal']) ?? '';
-    final category = _asString(meal['strCategory']) ?? '';
-    final imageUrl = _asString(meal['strMealThumb']);
-    final instructions = _asString(meal['strInstructions']) ?? '';
+    final name = asJsonString(meal['strMeal']) ?? '';
+    final category = asJsonString(meal['strCategory']) ?? '';
+    final imageUrl = asJsonString(meal['strMealThumb']);
+    final instructions = asJsonString(meal['strInstructions']) ?? '';
 
     // Extract ingredients (TheMealDB uses strIngredient1..20 + strMeasure1..20)
     final ingredients = <RecipeIngredient>[];
     for (var i = 1; i <= _maxIngredients; i++) {
-      final ing = _asString(meal['strIngredient$i']);
-      final measure = _asString(meal['strMeasure$i']);
+      final ing = asJsonString(meal['strIngredient$i']);
+      final measure = asJsonString(meal['strMeasure$i']);
       if (ing != null && ing.trim().isNotEmpty) {
         ingredients.add(
           RecipeIngredient(name: ing.trim(), amount: measure?.trim() ?? ''),
@@ -85,7 +86,7 @@ class TheMealDbService {
             .toList();
 
     // Extract tags
-    final tagsStr = _asString(meal['strTags']);
+    final tagsStr = asJsonString(meal['strTags']);
     final tags =
         tagsStr != null
             ? tagsStr
@@ -140,21 +141,4 @@ class TheMealDbService {
     }
   }
 
-  /// Safely cast [value] to [Map<String, dynamic>].
-  static Map<String, dynamic>? _asMap(dynamic value) {
-    if (value is Map<String, dynamic>) return value;
-    return null;
-  }
-
-  /// Safely cast [value] to [List<dynamic>].
-  static List<dynamic>? _asList(dynamic value) {
-    if (value is List<dynamic>) return value;
-    return null;
-  }
-
-  /// Safely cast [value] to [String].
-  static String? _asString(dynamic value) {
-    if (value is String) return value;
-    return null;
-  }
 }
