@@ -158,6 +158,31 @@ final shoppingProvider = NotifierProvider<ShoppingNotifier, List<ShoppingItem>>(
   ShoppingNotifier.new,
 );
 
+/// 启动时预 hydrated 的 shopping 种子,由 main.dart 预解码后通过 override 注入。
+///
+/// Fallback: 未被 override 时回退到 prefs 同步解码,保持升级前行为。
+final shoppingSeedProvider = Provider<List<ShoppingItem>>((ref) {
+  final prefs = ref.read(sharedPreferencesProvider);
+  return loadShoppingFromPrefs(prefs);
+});
+
+/// 把存储中的 shopping JSON 解码为 `List<ShoppingItem>`(同步)。
+/// 仅供 main.dart hydrate 与 [shoppingSeedProvider] fallback 使用。
+List<ShoppingItem> loadShoppingFromPrefs(SharedPreferences prefs) {
+  final jsonString = prefs.getString(_kShoppingKey);
+  if (jsonString == null) {
+    return kDebugMode ? List.from(MockData.shoppingItems) : [];
+  }
+  try {
+    final items = decodeJsonObjectList(
+      jsonString,
+    ).map(ShoppingItem.fromJson).map(_normalizeShoppingItemCategory);
+    return _deduplicateShoppingItems(items);
+  } catch (_) {
+    return kDebugMode ? List.from(MockData.shoppingItems) : [];
+  }
+}
+
 /// Shopping items grouped by category
 final groupedShoppingProvider = Provider<Map<String, List<ShoppingItem>>>((
   ref,

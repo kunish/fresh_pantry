@@ -236,6 +236,32 @@ final inventoryProvider = NotifierProvider<InventoryNotifier, List<Ingredient>>(
   InventoryNotifier.new,
 );
 
+/// 启动时预 hydrated 的 inventory 种子，由 main.dart 预解码后通过 override 注入。
+/// Notifier.build 直接同步读取，从而把 prefs 解码移出首帧关键路径。
+///
+/// Fallback: 当未被 override 时(例如旧测试代码路径)，回退到原本的 prefs 同步解码逻辑，
+/// 保持与升级前的 InventoryNotifier.build 行为一致。
+final inventorySeedProvider = Provider<List<Ingredient>>((ref) {
+  final prefs = ref.read(sharedPreferencesProvider);
+  return loadInventoryFromPrefs(prefs);
+});
+
+/// 把存储中的 inventory JSON 解码为 `List<Ingredient>`(同步)。
+/// 仅供 main.dart hydrate 与 [inventorySeedProvider] fallback 使用,公共 API 不依赖。
+List<Ingredient> loadInventoryFromPrefs(SharedPreferences prefs) {
+  final jsonString = prefs.getString(_kInventoryKey);
+  if (jsonString == null) {
+    return kDebugMode ? List.from(MockData.inventoryItems) : [];
+  }
+  try {
+    return decodeJsonObjectList(
+      jsonString,
+    ).map(Ingredient.fromJson).map(_normalizeInventoryIngredient).toList();
+  } catch (_) {
+    return kDebugMode ? List.from(MockData.inventoryItems) : [];
+  }
+}
+
 final _addHistoryVersionProvider = StateProvider<int>((ref) => 0);
 
 /// Items expiring soon (state == expiringSoon or expired)

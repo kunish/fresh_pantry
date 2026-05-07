@@ -103,3 +103,29 @@ final customRecipesProvider =
     NotifierProvider<CustomRecipeNotifier, List<Recipe>>(
       CustomRecipeNotifier.new,
     );
+
+/// 启动时预 hydrated 的 custom recipes 种子,由 main.dart 预解码后通过 override 注入。
+///
+/// Fallback: 未被 override 时回退到 prefs 同步解码,保持升级前行为。
+final customRecipeSeedProvider = Provider<List<Recipe>>((ref) {
+  final prefs = ref.read(sharedPreferencesProvider);
+  return loadCustomRecipesFromPrefs(prefs);
+});
+
+/// 把存储中的 custom recipes JSON 解码为 `List<Recipe>`(同步)。
+/// 仅供 main.dart hydrate 与 [customRecipeSeedProvider] fallback 使用。
+List<Recipe> loadCustomRecipesFromPrefs(SharedPreferences prefs) {
+  final saved = prefs.getString(customRecipesStorageKey);
+  if (saved == null) {
+    return const [];
+  }
+
+  try {
+    return decodeJsonObjectList(saved)
+        .map(Recipe.fromJson)
+        .where((recipe) => recipe.id.isNotEmpty && recipe.name.isNotEmpty)
+        .toList();
+  } on Object {
+    return const [];
+  }
+}
