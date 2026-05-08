@@ -13,6 +13,7 @@ import 'package:fresh_pantry/providers/inventory_provider.dart';
 import 'package:fresh_pantry/providers/recipe_provider.dart';
 import 'package:fresh_pantry/providers/shopping_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
+import 'package:fresh_pantry/utils/expiry_calculator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

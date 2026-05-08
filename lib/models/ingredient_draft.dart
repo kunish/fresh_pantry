@@ -1,4 +1,3 @@
-import '../providers/inventory_provider.dart' show expiryLabelFor;
 import '../utils/expiry_calculator.dart';
 import 'draft_field.dart';
 import 'ingredient.dart';

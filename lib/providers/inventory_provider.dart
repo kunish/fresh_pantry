@@ -59,14 +59,6 @@ Ingredient _normalizeIngredientCategory(Ingredient item) {
   return item.copyWith(category: category);
 }
 
-String expiryLabelFor(DateTime expiryDate, {DateTime? now}) {
-  final days = daysUntilExpiry(expiryDate, now: now);
-  if (days < 0) return '已过期${-days}天';
-  if (days == 0) return '今天过期';
-  if (days == 1) return '明天过期';
-  return '$days天后过期';
-}
-
 int? _shelfLifeDaysFor(Ingredient item) {
   final expiryDate = item.expiryDate;
   if (expiryDate == null) return null;
