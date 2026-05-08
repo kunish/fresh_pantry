@@ -1,15 +1,22 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import '../theme/app_theme.dart';
 import '../models/frequent_item.dart';
 import '../models/ingredient.dart';
+import '../models/ingredient_draft.dart';
 import '../models/storage_area.dart';
 import '../data/food_categories.dart';
 import '../data/food_knowledge.dart';
+import '../providers/ai_draft_provider.dart';
+import '../providers/ai_settings_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/navigation_provider.dart';
+import '../services/ai_client.dart';
+import '../services/ai_ingredient_parser.dart';
 import '../utils/app_dialog.dart';
 import '../utils/app_snackbar.dart';
 import '../utils/expiry_calculator.dart';
@@ -18,16 +25,26 @@ import '../widgets/shared/expiry_range_picker.dart';
 import '../widgets/shared/freshness_meter.dart';
 import '../widgets/shared/pill_chip.dart';
 import '../services/open_food_facts_service.dart';
+import 'ai_settings_screen.dart';
+import 'ingredient_draft_review_screen.dart';
 
 class AddIngredientScreen extends ConsumerStatefulWidget {
   const AddIngredientScreen({
     super.key,
     this.initialIngredient,
     this.inventoryIndex,
-  }) : assert(initialIngredient == null || inventoryIndex != null);
+    this.prefillOnly = false,
+    this.textParserOverride,
+    this.imageParserOverride,
+    this.imagePicker,
+  }) : assert(prefillOnly || initialIngredient == null || inventoryIndex != null);
 
   final Ingredient? initialIngredient;
   final int? inventoryIndex;
+  final bool prefillOnly;
+  final Future<List<IngredientDraft>> Function(String text)? textParserOverride;
+  final Future<List<IngredientDraft>> Function(Uint8List bytes)? imageParserOverride;
+  final Future<Uint8List?> Function(ImageSource source)? imagePicker;
 
   @override
   ConsumerState<AddIngredientScreen> createState() =>
@@ -61,7 +78,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
   ];
 
-  bool get _isEditing => widget.initialIngredient != null;
+  bool get _isEditing => widget.initialIngredient != null && !widget.prefillOnly;
 
   List<String> get _categoryOptions => [
     if (!_categories.contains(_selectedCategory)) _selectedCategory,
@@ -406,6 +423,12 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
             ),
 
             const SizedBox(height: 24),
+
+            // ── Quick entry ──
+            if (!_isEditing) ...[
+              _buildQuickEntryRow(),
+              const SizedBox(height: 24),
+            ],
 
             // ── Frequent items ──
             if (!_isEditing && frequentItems.isNotEmpty) ...[
@@ -909,6 +932,157 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
         ),
       ),
     );
+  }
+
+  // ─── Quick entry ────────────────────────────────────────────────────
+
+  Widget _buildQuickEntryRow() => Row(
+        children: [
+          Expanded(child: _quickButton(
+            key: const Key('quick_camera'),
+            icon: Icons.camera_alt_outlined,
+            label: '拍照识别',
+            onTap: _runCamera,
+          )),
+          const SizedBox(width: 8),
+          Expanded(child: _quickButton(
+            key: const Key('quick_text'),
+            icon: Icons.edit_note,
+            label: '粘贴清单',
+            onTap: _runTextDialog,
+          )),
+          const SizedBox(width: 8),
+          Expanded(child: _quickButton(
+            key: const Key('quick_manual'),
+            icon: Icons.edit,
+            label: '手填',
+            onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
+          )),
+        ],
+      );
+
+  Widget _quickButton({
+    required Key key,
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) =>
+      InkWell(
+        key: key,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.primaryFixed,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: AppColors.primary),
+              const SizedBox(height: 6),
+              Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+            ],
+          ),
+        ),
+      );
+
+  Future<void> _runTextDialog() async {
+    final controller = TextEditingController();
+    final text = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('粘贴食材清单'),
+        content: TextField(
+          key: const Key('quick_text_input'),
+          controller: controller,
+          maxLines: 6,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: '例：番茄 3 个 鸡蛋 6 颗 面条 1 把',
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+          FilledButton(
+            key: const Key('quick_text_parse'),
+            onPressed: () => Navigator.pop(ctx, controller.text),
+            child: const Text('解析'),
+          ),
+        ],
+      ),
+    );
+    if (text == null || text.trim().isEmpty) return;
+    await _runIngredientFlow(
+      runner: () => (widget.textParserOverride ??
+          (t) => AiIngredientParser.fromText(
+                t,
+                chatFn: (msgs) => AiClient.chat(
+                  settings: ref.read(aiSettingsProvider),
+                  messages: msgs,
+                  responseFormat: const {'type': 'json_object'},
+                ),
+              ))(text.trim()),
+    );
+  }
+
+  Future<void> _runCamera() async {
+    final picker = widget.imagePicker ?? _defaultImagePicker;
+    final bytes = await picker(ImageSource.camera);
+    if (bytes == null) return;
+    await _runIngredientFlow(
+      runner: () => (widget.imageParserOverride ??
+          (b) => AiIngredientParser.fromImage(
+                b,
+                chatFn: (msgs) => AiClient.chat(
+                  settings: ref.read(aiSettingsProvider),
+                  messages: msgs,
+                ),
+              ))(bytes),
+    );
+  }
+
+  Future<Uint8List?> _defaultImagePicker(ImageSource source) async {
+    final image = await ImagePicker().pickImage(source: source, maxWidth: 1600, imageQuality: 82);
+    return image == null ? null : await image.readAsBytes();
+  }
+
+  Future<void> _runIngredientFlow({required Future<List<IngredientDraft>> Function() runner}) async {
+    try {
+      final drafts = await runner();
+      if (!mounted) return;
+      if (drafts.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('未识别到食材')),
+        );
+        return;
+      }
+      if (drafts.length == 1) {
+        final ingredient = drafts.first.toIngredient();
+        await Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => AddIngredientScreen(
+            initialIngredient: ingredient,
+            prefillOnly: true,
+          )),
+        );
+        return;
+      }
+      ref.read(aiDraftProvider.notifier).updateIngredientDrafts(drafts);
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => IngredientDraftReviewScreen(regenerate: () => runner().then(
+            (next) => ref.read(aiDraftProvider.notifier).updateIngredientDrafts(next),
+          )),
+        ),
+      );
+    } on AiNotConfiguredException {
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const AiSettingsScreen()),
+      );
+    } on AiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    }
   }
 
   // ─── Shared helpers ─────────────────────────────────────────────────
