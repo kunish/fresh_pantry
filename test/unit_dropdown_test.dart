@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fresh_pantry/widgets/recipe_form/unit_dropdown.dart';
 
 void main() {
-  Widget _harness({String value = '', ValueChanged<String>? onChanged}) {
+  Widget harness({String value = '', ValueChanged<String>? onChanged}) {
     return MaterialApp(
       home: Scaffold(
         body: UnitDropdown(value: value, onChanged: onChanged ?? (_) {}),
@@ -12,17 +12,17 @@ void main() {
   }
 
   testWidgets('shows current value with caret', (tester) async {
-    await tester.pumpWidget(_harness(value: 'g'));
+    await tester.pumpWidget(harness(value: 'g'));
     expect(find.textContaining('g'), findsOneWidget);
   });
 
   testWidgets('shows placeholder when value is empty', (tester) async {
-    await tester.pumpWidget(_harness(value: ''));
+    await tester.pumpWidget(harness(value: ''));
     expect(find.textContaining('单位'), findsOneWidget);
   });
 
   testWidgets('tapping opens bottom sheet with preset units', (tester) async {
-    await tester.pumpWidget(_harness());
+    await tester.pumpWidget(harness());
     await tester.tap(find.byType(UnitDropdown));
     await tester.pumpAndSettle();
 
@@ -35,7 +35,7 @@ void main() {
   testWidgets('selecting a unit closes sheet and emits onChanged',
       (tester) async {
     final emitted = <String>[];
-    await tester.pumpWidget(_harness(onChanged: emitted.add));
+    await tester.pumpWidget(harness(onChanged: emitted.add));
     await tester.tap(find.byType(UnitDropdown));
     await tester.pumpAndSettle();
 

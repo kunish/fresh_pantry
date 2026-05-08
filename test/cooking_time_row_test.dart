@@ -3,12 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fresh_pantry/widgets/recipe_form/cooking_time_row.dart';
 
 void main() {
-  Widget _harness({required CookingTimeRow row}) {
+  Widget harness({required CookingTimeRow row}) {
     return MaterialApp(home: Scaffold(body: row));
   }
 
   testWidgets('renders 6 chips with last labeled "120+"', (tester) async {
-    await tester.pumpWidget(_harness(
+    await tester.pumpWidget(harness(
       row: CookingTimeRow(
         controller: TextEditingController(),
         onChanged: (_) {},
@@ -24,7 +24,7 @@ void main() {
       (tester) async {
     final controller = TextEditingController();
     final emitted = <int?>[];
-    await tester.pumpWidget(_harness(
+    await tester.pumpWidget(harness(
       row: CookingTimeRow(controller: controller, onChanged: emitted.add),
     ));
 
@@ -36,7 +36,7 @@ void main() {
 
   testWidgets('tapping "120+" chip writes 120', (tester) async {
     final controller = TextEditingController();
-    await tester.pumpWidget(_harness(
+    await tester.pumpWidget(harness(
       row: CookingTimeRow(controller: controller, onChanged: (_) {}),
     ));
     await tester.tap(find.text('120+'));
@@ -47,7 +47,7 @@ void main() {
   testWidgets('typing custom number does not crash and updates controller',
       (tester) async {
     final controller = TextEditingController();
-    await tester.pumpWidget(_harness(
+    await tester.pumpWidget(harness(
       row: CookingTimeRow(controller: controller, onChanged: (_) {}),
     ));
     await tester.enterText(find.byType(TextField), '25');
@@ -57,7 +57,7 @@ void main() {
   testWidgets('initial controller value populates the TextField (edit mode)',
       (tester) async {
     final controller = TextEditingController(text: '25');
-    await tester.pumpWidget(_harness(
+    await tester.pumpWidget(harness(
       row: CookingTimeRow(controller: controller, onChanged: (_) {}),
     ));
     // The TextField (an EditableText) should show '25' even though 25 is not a

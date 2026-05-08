@@ -65,12 +65,12 @@ class _CookingTimeRowState extends State<CookingTimeRow> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: RecipePresets.cookingMinutes.length,
-            separatorBuilder: (_, __) =>
+            separatorBuilder: (_, _) =>
                 const SizedBox(width: AppSpacing.sm),
             itemBuilder: (context, index) {
               final minutes = RecipePresets.cookingMinutes[index];
               final isLast = index == RecipePresets.cookingMinutes.length - 1;
-              final label = isLast ? '${minutes}+' : '$minutes';
+              final label = isLast ? '$minutes+' : '$minutes';
               return PillChip(
                 label: label,
                 selected: current == minutes,
