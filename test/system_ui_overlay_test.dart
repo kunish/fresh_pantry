@@ -25,19 +25,29 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final regions = tester.widgetList<AnnotatedRegion<SystemUiOverlayStyle>>(
-      find.byWidgetPredicate(
-        (widget) => widget is AnnotatedRegion<SystemUiOverlayStyle>,
-      ),
+    // Find the AnnotatedRegion that wraps FreshPantryApp's MaterialApp.
+    // Locating it through the FreshPantryApp ancestor avoids depending on
+    // the (non-deterministic) order of nested AnnotatedRegions used by the
+    // framework internally.
+    final appShellRegion = tester.widget<AnnotatedRegion<SystemUiOverlayStyle>>(
+      find
+          .descendant(
+            of: find.byType(FreshPantryApp),
+            matching: find.byWidgetPredicate(
+              (widget) =>
+                  widget is AnnotatedRegion<SystemUiOverlayStyle> &&
+                  widget.value.systemNavigationBarColor == AppColors.surface,
+            ),
+          )
+          .first,
     );
 
-    expect(regions, isNotEmpty);
-    expect(regions.first.value.statusBarIconBrightness, Brightness.dark);
-    expect(regions.first.value.statusBarBrightness, Brightness.light);
+    expect(appShellRegion.value.statusBarIconBrightness, Brightness.dark);
+    expect(appShellRegion.value.statusBarBrightness, Brightness.light);
     expect(
-      regions.first.value.systemNavigationBarIconBrightness,
+      appShellRegion.value.systemNavigationBarIconBrightness,
       Brightness.dark,
     );
-    expect(regions.first.value.systemNavigationBarColor, AppColors.surface);
+    expect(appShellRegion.value.systemNavigationBarColor, AppColors.surface);
   });
 }
