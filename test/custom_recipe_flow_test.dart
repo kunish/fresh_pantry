@@ -145,6 +145,7 @@ void main() {
   testWidgets('saved custom recipe opens detail screen', (tester) async {
     final prefs = await _prefs({
       customRecipesStorageKey: json.encode([_recipe('r1').toJson()]),
+      'inventory_items': json.encode([_ingredient('番茄').toJson()]),
     });
 
     await tester.pumpWidget(_app(prefs, const MyRecipesScreen()));
