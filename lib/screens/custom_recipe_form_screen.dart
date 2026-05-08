@@ -533,13 +533,33 @@ class _CustomRecipeFormScreenState
     required int? difficulty,
     required List<String> steps,
   }) {
-    final missingFields = <String>[
+    return [
+      ..._validateBasic(
+        name: name,
+        category: category,
+        cookingMinutes: cookingMinutes,
+        difficulty: difficulty,
+      ),
+      ..._validateIngredients(),
+      if (steps.isEmpty) '至少一个步骤',
+    ];
+  }
+
+  List<String> _validateBasic({
+    required String name,
+    required String category,
+    required int? cookingMinutes,
+    required int? difficulty,
+  }) {
+    return <String>[
       if (name.isEmpty) '食谱名称',
       if (category.isEmpty) '分类',
       if (cookingMinutes == null || cookingMinutes <= 0) '有效烹饪时间',
       if (difficulty == null || difficulty < 1 || difficulty > 5) '1-5 的难度',
     ];
+  }
 
+  List<String> _validateIngredients() {
     var hasAnyIngredientText = false;
     var hasCompleteIngredient = false;
     var missingIngredientName = false;
@@ -559,20 +579,11 @@ class _CustomRecipeFormScreenState
       }
     }
 
-    if (!hasCompleteIngredient && !hasAnyIngredientText) {
-      missingFields.add('至少一种食材');
-    }
-    if (missingIngredientName) {
-      missingFields.add('食材名称');
-    }
-    if (missingIngredientAmount) {
-      missingFields.add('食材用量');
-    }
-    if (steps.isEmpty) {
-      missingFields.add('至少一个步骤');
-    }
-
-    return missingFields;
+    return <String>[
+      if (!hasCompleteIngredient && !hasAnyIngredientText) '至少一种食材',
+      if (missingIngredientName) '食材名称',
+      if (missingIngredientAmount) '食材用量',
+    ];
   }
 
   List<RecipeIngredient> _completeIngredients() {

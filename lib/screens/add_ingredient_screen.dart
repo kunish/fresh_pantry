@@ -311,10 +311,35 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       return;
     }
 
+    final ingredient = _buildIngredientFromForm(name);
+
+    if (_isEditing) {
+      final index = _resolveEditIndex();
+      if (index == -1) {
+        Navigator.of(context).maybePop();
+        return;
+      }
+      ref.read(inventoryProvider.notifier).update(index, ingredient);
+      Navigator.of(context).pop(name);
+      return;
+    }
+
+    ref.read(inventoryProvider.notifier).add(ingredient);
+    final addedItem = ref.read(inventoryProvider).last;
+
+    _resetForm();
+
+    _showAddedSnackBar(name, addedItem);
+
+    if (navigateToInventory) {
+      ref.navigateToTab(1);
+    }
+  }
+
+  Ingredient _buildIngredientFromForm(String name) {
     final quantity = _quantityController.text.trim();
     final freshness = _computedFreshness;
-
-    final ingredient = Ingredient(
+    return Ingredient(
       name: name,
       quantity: quantity.isEmpty ? '1' : quantity,
       unit: _selectedUnit,
@@ -332,35 +357,24 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
           _selectedExpiryDate == null ? null : _freshnessShelfLifeDays,
       barcode: widget.initialIngredient?.barcode,
     );
+  }
 
-    if (_isEditing) {
-      final inventory = ref.read(inventoryProvider);
-      final identityIndex = inventory.indexWhere(
-        (candidate) => identical(candidate, widget.initialIngredient),
-      );
-      final providedIndex = widget.inventoryIndex;
-      final index =
-          identityIndex != -1
-              ? identityIndex
-              : providedIndex != null &&
-                  providedIndex >= 0 &&
-                  providedIndex < inventory.length
-              ? providedIndex
-              : inventoryIndexOf(inventory, widget.initialIngredient!);
-      if (index == -1) {
-        Navigator.of(context).maybePop();
-        return;
-      }
-      ref.read(inventoryProvider.notifier).update(index, ingredient);
-      Navigator.of(context).pop(name);
-      return;
+  int _resolveEditIndex() {
+    final inventory = ref.read(inventoryProvider);
+    final identityIndex = inventory.indexWhere(
+      (candidate) => identical(candidate, widget.initialIngredient),
+    );
+    if (identityIndex != -1) return identityIndex;
+    final providedIndex = widget.inventoryIndex;
+    if (providedIndex != null &&
+        providedIndex >= 0 &&
+        providedIndex < inventory.length) {
+      return providedIndex;
     }
+    return inventoryIndexOf(inventory, widget.initialIngredient!);
+  }
 
-    ref.read(inventoryProvider.notifier).add(ingredient);
-    final addedItem = ref.read(inventoryProvider).last;
-
-    _resetForm();
-
+  void _showAddedSnackBar(String name, Ingredient addedItem) {
     showAppSnackBar(
       context,
       '已添加「$name」',
@@ -377,10 +391,6 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
         }
       },
     );
-
-    if (navigateToInventory) {
-      ref.navigateToTab(1);
-    }
   }
 
   void _showMissingFields(List<String> fields) {
@@ -686,9 +696,23 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     );
   }
 
+  ({Color bg, Color text}) _freshnessBadgeColors(double freshness) {
+    if (freshness > 0.5) {
+      return (bg: AppColors.primaryFixed, text: AppColors.primary);
+    }
+    if (freshness > 0.2) {
+      return (
+        bg: AppColors.secondaryContainer,
+        text: AppColors.onSecondaryContainer,
+      );
+    }
+    return (bg: AppColors.errorContainer, text: AppColors.onErrorContainer);
+  }
+
   Widget _buildExpirationSection() {
     final computedFreshness = _computedFreshness;
     final expiryLabel = _expiryLabel;
+    final badgeColors = _freshnessBadgeColors(computedFreshness);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -710,12 +734,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color:
-                        computedFreshness > 0.5
-                            ? AppColors.primaryFixed
-                            : computedFreshness > 0.2
-                            ? AppColors.secondaryContainer
-                            : AppColors.errorContainer,
+                    color: badgeColors.bg,
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
@@ -723,12 +742,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                     style: GoogleFonts.manrope(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color:
-                          computedFreshness > 0.5
-                              ? AppColors.primary
-                              : computedFreshness > 0.2
-                              ? AppColors.onSecondaryContainer
-                              : AppColors.onErrorContainer,
+                      color: badgeColors.text,
                     ),
                   ),
                 ),

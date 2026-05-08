@@ -364,39 +364,41 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
         backgroundColor: AppColors.primary,
         actionLabel: '加入库存',
         actionTextColor: AppColors.onPrimary,
-        onAction: () {
-          final defaults = FoodKnowledge.lookup(item.name);
-          final now = DateTime.now();
-          final expiryDate = defaults != null
-              ? now.add(Duration(days: defaults.shelfLifeDays))
-              : null;
-          final freshness = expiryDate != null ? 1.0 : 0.85;
-
-          final ingredient = Ingredient(
-            name: item.name,
-            quantity: '1',
-            unit: '份',
-            imageUrl: item.imageUrl ?? '',
-            freshnessPercent: freshness,
-            state: FreshnessState.fresh,
-            category: FoodKnowledge.categoryFor(item.name),
-            storage: defaults?.storage ?? IconType.fridge,
-            expiryDate: expiryDate,
-            shelfLifeDays: defaults?.shelfLifeDays,
-            expiryLabel: expiryDate != null
-                ? '${defaults!.shelfLifeDays}天后过期'
-                : '新鲜',
-          );
-
-          ref.read(inventoryProvider.notifier).add(ingredient);
-
-          showAppSnackBar(
-            context,
-            '已添加「${item.name}」到库存',
-            backgroundColor: AppColors.primary,
-          );
-        },
+        onAction: () => _addItemToInventory(item.name, item.imageUrl),
       );
     }
+  }
+
+  void _addItemToInventory(String name, String? imageUrl) {
+    final defaults = FoodKnowledge.lookup(name);
+    final now = DateTime.now();
+    final expiryDate = defaults != null
+        ? now.add(Duration(days: defaults.shelfLifeDays))
+        : null;
+    final freshness = expiryDate != null ? 1.0 : 0.85;
+
+    final ingredient = Ingredient(
+      name: name,
+      quantity: '1',
+      unit: '份',
+      imageUrl: imageUrl ?? '',
+      freshnessPercent: freshness,
+      state: FreshnessState.fresh,
+      category: FoodKnowledge.categoryFor(name),
+      storage: defaults?.storage ?? IconType.fridge,
+      expiryDate: expiryDate,
+      shelfLifeDays: defaults?.shelfLifeDays,
+      expiryLabel: expiryDate != null
+          ? '${defaults!.shelfLifeDays}天后过期'
+          : '新鲜',
+    );
+
+    ref.read(inventoryProvider.notifier).add(ingredient);
+
+    showAppSnackBar(
+      context,
+      '已添加「$name」到库存',
+      backgroundColor: AppColors.primary,
+    );
   }
 }
