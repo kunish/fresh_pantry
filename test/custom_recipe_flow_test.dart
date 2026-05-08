@@ -18,6 +18,7 @@ import 'package:fresh_pantry/screens/dashboard_screen.dart';
 import 'package:fresh_pantry/screens/my_recipes_screen.dart';
 import 'package:fresh_pantry/screens/recipe_detail_screen.dart';
 import 'package:fresh_pantry/widgets/recipe_card.dart';
+import 'package:fresh_pantry/widgets/recipe_form/cooking_time_row.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -342,7 +343,13 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.widgetWithText(TextField, '食谱名称 *'), '葱油拌面');
-    await tester.enterText(find.widgetWithText(TextField, '烹饪时间（分钟）*'), '12');
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(CookingTimeRow),
+        matching: find.byType(TextField),
+      ),
+      '12',
+    );
     await tester.enterText(find.widgetWithText(TextField, '食材名称').first, '面条');
     await tester.enterText(find.widgetWithText(TextField, '用量').first, '1份');
     await tester.enterText(
@@ -392,17 +399,24 @@ void main() {
     await tester.pumpWidget(_app(prefs, const CustomRecipeFormScreen()));
     await tester.pumpAndSettle();
 
-    final textFields = tester
+    // Only check labeled fields (those with a labelText) — unlabeled internal
+    // fields like the CookingTimeRow input are excluded.
+    final labeledTextFields = tester
         .widgetList<TextField>(find.byType(TextField))
-        .where((tf) => tf.key != const Key('recipe_url_input'))
+        .where(
+          (tf) =>
+              tf.key != const Key('recipe_url_input') &&
+              tf.decoration?.labelText != null,
+        )
         .toList();
 
-    expect(textFields, isNotEmpty);
-    for (final textField in textFields) {
-      expect(textField.decoration?.hintText, isNull);
+    expect(labeledTextFields, isNotEmpty);
+    for (final textField in labeledTextFields) {
       expect(
         textField.decoration?.floatingLabelBehavior,
         FloatingLabelBehavior.always,
+        reason:
+            'TextField with label "${textField.decoration?.labelText}" should use FloatingLabelBehavior.always',
       );
     }
   });
@@ -434,7 +448,13 @@ void main() {
     await tester.tap(find.widgetWithText(OutlinedButton, '上传图片'));
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, '食谱名称 *'), '葱油拌面');
-    await tester.enterText(find.widgetWithText(TextField, '烹饪时间（分钟）*'), '12');
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(CookingTimeRow),
+        matching: find.byType(TextField),
+      ),
+      '12',
+    );
     await tester.enterText(find.widgetWithText(TextField, '食材名称').first, '面条');
     await tester.enterText(find.widgetWithText(TextField, '用量').first, '1份');
     await tester.enterText(
@@ -538,7 +558,13 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.widgetWithText(TextField, '食谱名称 *'), '葱油拌面');
-    await tester.enterText(find.widgetWithText(TextField, '烹饪时间（分钟）*'), '12');
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(CookingTimeRow),
+        matching: find.byType(TextField),
+      ),
+      '12',
+    );
     await tester.enterText(find.widgetWithText(TextField, '食材名称').first, '面条');
     await tester.enterText(find.widgetWithText(TextField, '用量').first, '1份');
     await tester.enterText(
@@ -589,7 +615,13 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.widgetWithText(TextField, '食谱名称 *'), '葱油拌面');
-    await tester.enterText(find.widgetWithText(TextField, '烹饪时间（分钟）*'), '12');
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(CookingTimeRow),
+        matching: find.byType(TextField),
+      ),
+      '12',
+    );
     await tester.enterText(find.widgetWithText(TextField, '食材名称').first, '面条');
     await tester.enterText(find.widgetWithText(TextField, '用量').first, '1份');
     await tester.enterText(

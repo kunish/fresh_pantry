@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -16,6 +15,10 @@ import '../services/ai_recipe_parser.dart';
 import '../services/share_intent_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_snackbar.dart';
+import '../widgets/recipe_form/cooking_time_row.dart';
+import '../widgets/recipe_form/difficulty_stars.dart';
+import '../widgets/recipe_form/recipe_category_chips.dart';
+import '../widgets/recipe_form/recipe_form_card.dart';
 import '../widgets/shared/recipe_image.dart';
 import 'ai_settings_screen.dart';
 import 'recipe_draft_review_screen.dart';
@@ -72,7 +75,7 @@ class _CustomRecipeFormScreenState
       text: recipe == null ? '' : recipe.cookingMinutes.toString(),
     );
     _difficultyController = TextEditingController(
-      text: recipe?.difficulty.toString() ?? '1',
+      text: recipe?.difficulty.toString() ?? '3',
     );
     _descriptionController = TextEditingController(
       text: recipe?.description ?? '',
@@ -134,47 +137,79 @@ class _CustomRecipeFormScreenState
                 onClear: _coverImageSource == null ? null : _clearCoverImage,
               ),
               Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  0,
+                ),
+                child: RecipeFormCard(
+                  icon: Icons.restaurant_menu,
+                  title: '基础信息',
+                  iconBackgroundColor: AppColors.primaryFixed,
+                  iconForegroundColor: AppColors.primary,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _nameController,
+                        decoration: _fieldDecoration('食谱名称 *', hint: '例如：西红柿炒蛋'),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        '分类 *',
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      RecipeCategoryChips(
+                        selected: _categoryController.text,
+                        onChanged: (value) => setState(() {
+                          _categoryController.text = value;
+                        }),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        '烹饪时间 *',
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      CookingTimeRow(
+                        controller: _cookingMinutesController,
+                        onChanged: (_) {},
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        '难度 *',
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      DifficultyStars(
+                        value: int.tryParse(_difficultyController.text) ?? 3,
+                        onChanged: (value) => setState(() {
+                          _difficultyController.text = value.toString();
+                        }),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      TextField(
+                        controller: _descriptionController,
+                        decoration: _fieldDecoration('简介', hint: '简单描述这道菜的特色…'),
+                        maxLines: 3,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '基础信息',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    TextField(
-                      controller: _nameController,
-                      decoration: _fieldDecoration('食谱名称 *'),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    TextField(
-                      controller: _categoryController,
-                      decoration: _fieldDecoration('分类 *'),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    TextField(
-                      controller: _cookingMinutesController,
-                      decoration: _fieldDecoration('烹饪时间（分钟）*'),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    TextField(
-                      controller: _difficultyController,
-                      decoration: _fieldDecoration('难度 1-5 *'),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    TextField(
-                      controller: _descriptionController,
-                      decoration: _fieldDecoration('简介'),
-                      maxLines: 2,
-                    ),
                     const SizedBox(height: AppSpacing.xxl),
                     Text(
                       '食材',
@@ -270,9 +305,10 @@ class _CustomRecipeFormScreenState
     );
   }
 
-  InputDecoration _fieldDecoration(String labelText) {
+  InputDecoration _fieldDecoration(String labelText, {String? hint}) {
     return InputDecoration(
       labelText: labelText,
+      hintText: hint,
       floatingLabelBehavior: FloatingLabelBehavior.always,
     );
   }
