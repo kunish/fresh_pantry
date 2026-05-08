@@ -61,6 +61,20 @@ class _CustomRecipeFormScreenState
   String? _coverImageSource;
   bool _isSaving = false;
 
+  String? _nameError;
+  String? _categoryError;
+  String? _cookingMinutesError;
+  String? _difficultyError;
+  String? _ingredientsError;
+  String? _stepsError;
+
+  final _nameFieldKey = GlobalKey();
+  final _categoryFieldKey = GlobalKey();
+  final _cookingMinutesFieldKey = GlobalKey();
+  final _difficultyFieldKey = GlobalKey();
+  final _ingredientsFieldKey = GlobalKey();
+  final _stepsFieldKey = GlobalKey();
+
   bool get _isEditing => widget.recipe != null;
 
   @override
@@ -170,8 +184,16 @@ class _CustomRecipeFormScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       TextField(
+                        key: _nameFieldKey,
                         controller: _nameController,
-                        decoration: _fieldDecoration('食谱名称 *', hint: '例如：西红柿炒蛋'),
+                        decoration: _fieldDecoration(
+                          '食谱名称 *',
+                          hint: '例如：西红柿炒蛋',
+                          errorText: _nameError,
+                        ),
+                        onChanged: (_) {
+                          if (_nameError != null) setState(() => _nameError = null);
+                        },
                       ),
                       const SizedBox(height: AppSpacing.md),
                       Text(
@@ -181,11 +203,30 @@ class _CustomRecipeFormScreenState
                             ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      RecipeCategoryChips(
-                        selected: _categoryController.text,
-                        onChanged: (value) => setState(() {
-                          _categoryController.text = value;
-                        }),
+                      Container(
+                        key: _categoryFieldKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            RecipeCategoryChips(
+                              selected: _categoryController.text,
+                              onChanged: (value) => setState(() {
+                                _categoryController.text = value;
+                                _categoryError = null;
+                              }),
+                            ),
+                            if (_categoryError != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: AppSpacing.xs),
+                                child: Text(
+                                  _categoryError!,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: AppColors.error,
+                                      ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.md),
                       Text(
@@ -195,9 +236,17 @@ class _CustomRecipeFormScreenState
                             ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      CookingTimeRow(
-                        controller: _cookingMinutesController,
-                        onChanged: (_) {},
+                      Container(
+                        key: _cookingMinutesFieldKey,
+                        child: CookingTimeRow(
+                          controller: _cookingMinutesController,
+                          onChanged: (_) {
+                            if (_cookingMinutesError != null) {
+                              setState(() => _cookingMinutesError = null);
+                            }
+                          },
+                          errorText: _cookingMinutesError,
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.md),
                       Text(
@@ -207,11 +256,30 @@ class _CustomRecipeFormScreenState
                             ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      DifficultyStars(
-                        value: int.tryParse(_difficultyController.text) ?? 3,
-                        onChanged: (value) => setState(() {
-                          _difficultyController.text = value.toString();
-                        }),
+                      Container(
+                        key: _difficultyFieldKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            DifficultyStars(
+                              value: int.tryParse(_difficultyController.text) ?? 3,
+                              onChanged: (value) => setState(() {
+                                _difficultyController.text = value.toString();
+                                _difficultyError = null;
+                              }),
+                            ),
+                            if (_difficultyError != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: AppSpacing.xs),
+                                child: Text(
+                                  _difficultyError!,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: AppColors.error,
+                                      ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.md),
                       TextField(
@@ -231,6 +299,7 @@ class _CustomRecipeFormScreenState
                   0,
                 ),
                 child: RecipeFormCard(
+                  key: _ingredientsFieldKey,
                   icon: Icons.restaurant,
                   title: '食材',
                   iconBackgroundColor: AppColors.secondaryFixed,
@@ -238,6 +307,16 @@ class _CustomRecipeFormScreenState
                   countLabel: '${_ingredientControllers.length} 项',
                   child: Column(
                     children: [
+                      if (_ingredientsError != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: Text(
+                            _ingredientsError!,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.error,
+                                ),
+                          ),
+                        ),
                       ReorderableListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -272,6 +351,9 @@ class _CustomRecipeFormScreenState
                                   child: TextField(
                                     controller: ing.nameController,
                                     decoration: _compactDecoration('食材名称'),
+                                    onChanged: (_) {
+                                      if (_ingredientsError != null) setState(() => _ingredientsError = null);
+                                    },
                                   ),
                                 ),
                                 const SizedBox(width: AppSpacing.sm),
@@ -285,13 +367,18 @@ class _CustomRecipeFormScreenState
                                         const TextInputType.numberWithOptions(
                                       decimal: true,
                                     ),
+                                    onChanged: (_) {
+                                      if (_ingredientsError != null) setState(() => _ingredientsError = null);
+                                    },
                                   ),
                                 ),
                                 const SizedBox(width: AppSpacing.sm),
                                 UnitDropdown(
                                   value: ing.unit,
-                                  onChanged: (value) =>
-                                      setState(() => ing.unit = value),
+                                  onChanged: (value) => setState(() {
+                                    ing.unit = value;
+                                    _ingredientsError = null;
+                                  }),
                                 ),
                                 if (i > 0)
                                   IconButton(
@@ -327,6 +414,7 @@ class _CustomRecipeFormScreenState
                   0,
                 ),
                 child: RecipeFormCard(
+                  key: _stepsFieldKey,
                   icon: Icons.format_list_numbered,
                   title: '步骤',
                   iconBackgroundColor: AppColors.secondaryFixed,
@@ -334,6 +422,16 @@ class _CustomRecipeFormScreenState
                   countLabel: '${_stepEntries.length} 步',
                   child: Column(
                     children: [
+                      if (_stepsError != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: Text(
+                            _stepsError!,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.error,
+                                ),
+                          ),
+                        ),
                       ReorderableListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -376,6 +474,9 @@ class _CustomRecipeFormScreenState
                                     controller: entry.controller,
                                     decoration: _compactDecoration('输入下一步…'),
                                     maxLines: null,
+                                    onChanged: (_) {
+                                      if (_stepsError != null) setState(() => _stepsError = null);
+                                    },
                                   ),
                                 ),
                                 const SizedBox(width: AppSpacing.sm),
@@ -463,10 +564,15 @@ class _CustomRecipeFormScreenState
     );
   }
 
-  InputDecoration _fieldDecoration(String labelText, {String? hint}) {
+  InputDecoration _fieldDecoration(
+    String labelText, {
+    String? hint,
+    String? errorText,
+  }) {
     return InputDecoration(
       labelText: labelText,
       hintText: hint,
+      errorText: errorText,
       floatingLabelBehavior: FloatingLabelBehavior.always,
     );
   }
@@ -569,7 +675,23 @@ class _CustomRecipeFormScreenState
       steps: steps,
     );
     if (missingFields.isNotEmpty) {
-      _showMissingFields(missingFields);
+      setState(() {
+        _nameError =
+            missingFields.contains('食谱名称') ? '请填入食谱名称' : null;
+        _categoryError = missingFields.contains('分类') ? '请选择分类' : null;
+        _cookingMinutesError =
+            missingFields.contains('有效烹饪时间') ? '请输入大于 0 的分钟数' : null;
+        _difficultyError =
+            missingFields.contains('1-5 的难度') ? '请选择 1-5 颗星' : null;
+        final ingredientErrors = missingFields
+            .where((m) => ['至少一种食材', '食材名称', '食材用量'].contains(m))
+            .toList();
+        _ingredientsError =
+            ingredientErrors.isEmpty ? null : ingredientErrors.join('、');
+        _stepsError =
+            missingFields.contains('至少一个步骤') ? '至少添加一个步骤' : null;
+      });
+      await _scrollToFirstError();
       return;
     }
 
@@ -628,24 +750,28 @@ class _CustomRecipeFormScreenState
   void _addIngredient() {
     setState(() {
       _ingredientControllers.add(_IngredientControllers.empty());
+      _ingredientsError = null;
     });
   }
 
   void _removeIngredient(int index) {
     setState(() {
       _ingredientControllers.removeAt(index).dispose();
+      _ingredientsError = null;
     });
   }
 
   void _addStep() {
     setState(() {
       _stepEntries.add(_StepEntry());
+      _stepsError = null;
     });
   }
 
   void _removeStep(int index) {
     setState(() {
       _stepEntries.removeAt(index).dispose();
+      _stepsError = null;
     });
   }
 
@@ -818,8 +944,25 @@ class _CustomRecipeFormScreenState
     showAppSnackBar(context, message);
   }
 
-  void _showMissingFields(List<String> fields) {
-    _showError('保存前请补充：${fields.join('、')}');
+  Future<void> _scrollToFirstError() async {
+    final candidates = <(String?, GlobalKey)>[
+      (_nameError, _nameFieldKey),
+      (_categoryError, _categoryFieldKey),
+      (_cookingMinutesError, _cookingMinutesFieldKey),
+      (_difficultyError, _difficultyFieldKey),
+      (_ingredientsError, _ingredientsFieldKey),
+      (_stepsError, _stepsFieldKey),
+    ];
+    for (final (error, key) in candidates) {
+      if (error != null && key.currentContext != null) {
+        await Scrollable.ensureVisible(
+          key.currentContext!,
+          duration: const Duration(milliseconds: 240),
+          alignment: 0.1,
+        );
+        return;
+      }
+    }
   }
 }
 

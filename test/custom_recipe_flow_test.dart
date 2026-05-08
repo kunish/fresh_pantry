@@ -332,7 +332,10 @@ void main() {
       await tester.tap(find.text('保存食谱'));
       await tester.pumpAndSettle();
 
-      expect(find.text('保存前请补充：食谱名称、有效烹饪时间、至少一种食材、至少一个步骤'), findsOneWidget);
+      expect(find.text('请填入食谱名称'), findsOneWidget);
+      expect(find.text('请输入大于 0 的分钟数'), findsOneWidget);
+      expect(find.text('至少一种食材'), findsOneWidget);
+      expect(find.text('至少添加一个步骤'), findsOneWidget);
     },
   );
 
