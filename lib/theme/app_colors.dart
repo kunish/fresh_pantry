@@ -52,4 +52,21 @@ class AppColors {
   static const inverseSurface = Color(0xFF31302F);
   static const inverseOnSurface = Color(0xFFF3F0ED);
   static const inversePrimary = Color(0xFF95D4B3);
+
+  // AI / draft-state accents — alias to brand greens so AI visuals stay in
+  // the primary color family.
+  static const aiAccent = primary;
+  static const aiAccentMuted = outline;
+  static const aiGradientStart = primary;
+  static const aiGradientEnd = primaryContainer;
+
+  // Overlays for dark hero containers (e.g. cover images): scrim background
+  // and translucent borders for buttons sitting on top of imagery.
+  static const onImageScrim = Color(0x33000000);
+  static const onImageBorderStrong = Color(0xB3FFFFFF);
+  static const onImageBorderSoft = Color(0x99FFFFFF);
+
+  // Modal barrier and ultra-subtle shadow.
+  static const modalBarrier = Color(0x47000000);
+  static const subtleShadow = Color(0x0F000000);
 }

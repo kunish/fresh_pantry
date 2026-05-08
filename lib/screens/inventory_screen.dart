@@ -104,7 +104,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.lg, AppSpacing.xxl, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -115,14 +115,14 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                         color: AppColors.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       '管理您精心策划的新鲜食材收藏。',
                       style: GoogleFonts.manrope(
                         color: AppColors.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppSpacing.xl),
                   ],
                 ),
               ),
@@ -138,10 +138,10 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 },
               ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxl)),
             // Ingredient list
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
               sliver:
                   filteredItems.isEmpty
                       ? SliverToBoxAdapter(
@@ -159,7 +159,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                       )
                       : SliverList.separated(
                         itemCount: filteredItems.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 16),
+                        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.lg),
                         itemBuilder: (context, index) {
                           final item = filteredItems[index];
                           return SwipeRevealDeleteAction(

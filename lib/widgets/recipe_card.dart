@@ -37,7 +37,7 @@ class RecipeCard extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
             color: AppColors.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
           clipBehavior: Clip.antiAlias,
           child: Row(
@@ -64,35 +64,35 @@ class RecipeCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: AppSpacing.lg),
               // Info
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         recipe.name,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 15,
+                          fontSize: AppFontSize.md,
                           fontWeight: FontWeight.w700,
                           color: AppColors.onSurface,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
                         subtitle ?? recipe.description,
                         style: GoogleFonts.manrope(
-                          fontSize: 12,
+                          fontSize: AppFontSize.sm,
                           color: AppColors.onSurfaceVariant,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
                       Wrap(
                         spacing: 12,
                         runSpacing: 4,
@@ -147,11 +147,11 @@ class RecipeCard extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: 14, color: iconColor ?? AppColors.onSurfaceVariant),
-        const SizedBox(width: 4),
+        const SizedBox(width: AppSpacing.xs),
         Text(
           label,
           style: GoogleFonts.manrope(
-            fontSize: 11,
+            fontSize: AppFontSize.xs,
             fontWeight: fontWeight,
             color: textColor ?? AppColors.onSurfaceVariant,
           ),

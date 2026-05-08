@@ -44,15 +44,15 @@ class _QuickAddFieldState extends ConsumerState<QuickAddField> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: TextField(
           controller: _controller,
@@ -72,7 +72,7 @@ class _QuickAddFieldState extends ConsumerState<QuickAddField> {
             ),
             filled: false,
             border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
           ),
           onSubmitted: (value) {
             _submit(value);

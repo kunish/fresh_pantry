@@ -11,6 +11,23 @@ Future<String?> _defaultClipboardRead() async {
   return data?.text;
 }
 
+/// Hosts we recognize as recipe sources. Subdomains (e.g. `www.lanfanapp.com`,
+/// `m.xiachufang.com`) are accepted; lookalike domains like
+/// `evil-lanfanapp.com` are rejected.
+const Set<String> kSupportedRecipeHosts = {
+  'lanfanapp.com',
+  'xiachufang.com',
+};
+
+bool _isSupportedRecipeHost(String? host) {
+  if (host == null || host.isEmpty) return false;
+  final lower = host.toLowerCase();
+  for (final h in kSupportedRecipeHosts) {
+    if (lower == h || lower.endsWith('.$h')) return true;
+  }
+  return false;
+}
+
 class ClipboardUrlDetector {
   ClipboardUrlDetector({
     this.ignoreCooldown = const Duration(minutes: 30),
@@ -26,13 +43,12 @@ class ClipboardUrlDetector {
   String? _ignoredUrl;
   DateTime? _ignoredAt;
 
-  /// Returns the first http(s) URL in the clipboard, or null when missing /
-  /// suppressed by the cooldown window.
+  /// Returns the first supported recipe URL in the clipboard, or null when
+  /// missing, unsupported, or suppressed by the cooldown window.
   Future<String?> peek() async {
     final text = await _read();
     if (text == null || text.isEmpty) return null;
-    final match = RegExp(r'https?://[^\s)\]"]+').firstMatch(text);
-    final url = match?.group(0);
+    final url = extractUrl(text);
     if (url == null) return null;
     if (_ignoredUrl == url && _ignoredAt != null) {
       final elapsed = _clock().difference(_ignoredAt!);
@@ -73,10 +89,16 @@ class InMemoryShareSource implements SystemShareSource {
   void close() => _ctrl.close();
 }
 
-/// Extracts the first http(s) URL from arbitrary text.
+/// Extracts the first http(s) URL from arbitrary text whose host matches
+/// [kSupportedRecipeHosts]. Returns null when no URL is found or the URL is
+/// not from a recognized recipe source.
 String? extractUrl(String text) {
   final m = RegExp(r'https?://[^\s)\]"]+').firstMatch(text);
-  return m?.group(0);
+  final url = m?.group(0);
+  if (url == null) return null;
+  final uri = Uri.tryParse(url);
+  if (uri == null || !_isSupportedRecipeHost(uri.host)) return null;
+  return url;
 }
 
 class ReceiveSharingIntentSource implements SystemShareSource {

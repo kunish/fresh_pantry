@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'app_colors.dart';
 import 'app_typography.dart';
 
@@ -6,6 +7,21 @@ export 'app_colors.dart';
 export 'app_radius.dart';
 export 'app_spacing.dart';
 export 'app_typography.dart';
+
+/// 全局系统 overlay：浅色 surface 上的深色状态栏 / 导航栏图标。
+///
+/// 必须同时挂在最外层 `AnnotatedRegion` 与 [AppBarTheme.systemOverlayStyle]——
+/// 否则任何页面的 AppBar 都会用自身的 systemOverlayStyle 覆盖外层 AnnotatedRegion，
+/// 导致状态栏图标 brightness 不可控（白字白底 / 黑字黑底）。
+const kAppSystemOverlayStyle = SystemUiOverlayStyle(
+  statusBarColor: Colors.transparent,
+  statusBarBrightness: Brightness.light,
+  statusBarIconBrightness: Brightness.dark,
+  systemNavigationBarColor: AppColors.surface,
+  systemNavigationBarDividerColor: Colors.transparent,
+  systemNavigationBarIconBrightness: Brightness.dark,
+  systemStatusBarContrastEnforced: false,
+);
 
 class AppTheme {
   static ThemeData get lightTheme {
@@ -53,6 +69,7 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
+        systemOverlayStyle: kAppSystemOverlayStyle,
       ),
       // Shape System: "No-Line" Rule
       cardTheme: CardThemeData(

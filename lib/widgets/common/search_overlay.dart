@@ -72,7 +72,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
         // Search panel
         SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.md),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -80,7 +80,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
                 Container(
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
                     boxShadow: [
                       BoxShadow(
                         color: Theme.of(
@@ -118,7 +118,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
                       filled: true,
                       fillColor: AppColors.surface,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                         borderSide: BorderSide.none,
                       ),
                     ),
@@ -127,7 +127,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
 
                 // Results
                 if (hasQuery) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   Flexible(
                     child: Container(
                       constraints: BoxConstraints(
@@ -135,7 +135,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                         boxShadow: [
                           BoxShadow(
                             color: Theme.of(
@@ -148,9 +148,9 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
                       ),
                       child: Material(
                         color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(AppRadius.lg),
                           child: _buildResultsList(
                             inventoryResults,
                             shoppingResults,
@@ -180,7 +180,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           boxShadow: [
             BoxShadow(
               color: Theme.of(
@@ -193,20 +193,20 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
         ),
         child: Material(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 8, 4),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.sm, AppSpacing.xs),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       '最近搜索',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
+                        fontSize: AppFontSize.sm,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 1,
                         color: AppColors.primary,
@@ -219,7 +219,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
                       child: Text(
                         '清除',
                         style: GoogleFonts.manrope(
-                          fontSize: 12,
+                          fontSize: AppFontSize.sm,
                           color: AppColors.onSurfaceVariant,
                         ),
                       ),
@@ -238,7 +238,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
                   title: Text(
                     term,
                     style: GoogleFonts.manrope(
-                      fontSize: 14,
+                      fontSize: AppFontSize.md,
                       color: AppColors.onSurface,
                     ),
                   ),
@@ -284,17 +284,17 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
         !hasFoodDetails &&
         !isLoadingFoodDetails) {
       return Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(AppSpacing.huge),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.search_off_rounded, size: 40, color: AppColors.outline),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Text(
               '未找到匹配的结果',
               style: GoogleFonts.manrope(
                 color: AppColors.onSurfaceVariant,
-                fontSize: 14,
+                fontSize: AppFontSize.md,
               ),
             ),
           ],
@@ -304,7 +304,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
 
     return ListView(
       shrinkWrap: true,
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       children: [
         // Inventory results
         if (hasInventory) ...[
@@ -355,31 +355,31 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
 
   Widget _buildSectionHeader(String title, IconData icon, int count) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xs),
       child: Row(
         children: [
           Icon(icon, size: 16, color: AppColors.primary),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Text(
             title,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
+              fontSize: AppFontSize.sm,
               fontWeight: FontWeight.w700,
               letterSpacing: 1,
               color: AppColors.primary,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
             decoration: BoxDecoration(
               color: AppColors.primaryFixed,
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: BorderRadius.circular(AppRadius.pill),
             ),
             child: Text(
               '$count',
               style: GoogleFonts.manrope(
-                fontSize: 11,
+                fontSize: AppFontSize.xs,
                 fontWeight: FontWeight.w700,
                 color: AppColors.primary,
               ),
@@ -407,7 +407,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
       title: Text(
         item.name,
         style: GoogleFonts.manrope(
-          fontSize: 14,
+          fontSize: AppFontSize.md,
           fontWeight: FontWeight.w600,
           color: AppColors.onSurface,
         ),
@@ -415,7 +415,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
       subtitle: Text(
         '${item.quantity} ${item.unit}${item.category != null ? ' · ${item.category}' : ''}',
         style: GoogleFonts.manrope(
-          fontSize: 12,
+          fontSize: AppFontSize.sm,
           color: AppColors.onSurfaceVariant,
         ),
       ),
@@ -424,7 +424,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
               ? Text(
                 item.expiryLabel!,
                 style: GoogleFonts.manrope(
-                  fontSize: 11,
+                  fontSize: AppFontSize.xs,
                   color: statusColor,
                   fontWeight: FontWeight.w600,
                 ),
@@ -450,7 +450,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
       title: Text(
         item.name,
         style: GoogleFonts.manrope(
-          fontSize: 14,
+          fontSize: AppFontSize.md,
           fontWeight: FontWeight.w600,
           color:
               item.isChecked ? AppColors.onSurfaceVariant : AppColors.onSurface,
@@ -460,7 +460,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
       subtitle: Text(
         '${item.detail} · ${item.category}',
         style: GoogleFonts.manrope(
-          fontSize: 12,
+          fontSize: AppFontSize.sm,
           color: AppColors.onSurfaceVariant,
         ),
       ),
@@ -478,7 +478,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
     return ListTile(
       dense: true,
       leading: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: SizedBox(
           width: 44,
           height: 44,
@@ -498,7 +498,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
       title: Text(
         details.displayName,
         style: GoogleFonts.manrope(
-          fontSize: 14,
+          fontSize: AppFontSize.md,
           fontWeight: FontWeight.w600,
           color: AppColors.onSurface,
         ),
@@ -508,7 +508,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: GoogleFonts.manrope(
-          fontSize: 12,
+          fontSize: AppFontSize.sm,
           color: AppColors.onSurfaceVariant,
         ),
       ),
@@ -578,11 +578,11 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
 
   Widget _buildShowMoreHint(int remaining, String section) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
       child: Text(
         '还有 $remaining 个$section结果...',
         style: GoogleFonts.manrope(
-          fontSize: 12,
+          fontSize: AppFontSize.sm,
           color: AppColors.outline,
           fontStyle: FontStyle.italic,
         ),

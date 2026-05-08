@@ -34,7 +34,7 @@ class AlertCard extends StatelessWidget {
       button: onConsume != null || onAddToCart != null,
       label: name,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
         decoration: BoxDecoration(
           color: AppColors.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -59,7 +59,7 @@ class AlertCard extends StatelessWidget {
                   ),
                   child: Icon(icon, color: iconColor, size: 26),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: AppSpacing.lg),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,22 +74,22 @@ class AlertCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       Row(
                         children: [
                           Text(
                             subtitle,
                             style: GoogleFonts.manrope(
-                              fontSize: 13,
+                              fontSize: AppFontSize.sm,
                               color: AppColors.onSurfaceVariant,
                             ),
                           ),
                           if (storageTag != null) ...[
-                            const SizedBox(width: 8),
+                            const SizedBox(width: AppSpacing.sm),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
+                                horizontal: AppSpacing.sm,
+                                vertical: AppSpacing.xs,
                               ),
                               decoration: const BoxDecoration(
                                 color: AppColors.surfaceContainer,
@@ -101,7 +101,7 @@ class AlertCard extends StatelessWidget {
                                 storageTag!.toUpperCase(),
                                 style: Theme.of(context).textTheme.labelSmall
                                     ?.copyWith(
-                                      fontSize: 9,
+                                      fontSize: AppFontSize.xs,
                                       fontWeight: FontWeight.w700,
                                       letterSpacing: 0.8,
                                       color: AppColors.onSurfaceVariant,
@@ -116,7 +116,7 @@ class AlertCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: AppSpacing.lg),
             _AlertActions(
               badge: badge,
               badgeBg: badgeBg,
@@ -184,7 +184,7 @@ class _AlertActions extends StatelessWidget {
         return Row(
           children: [
             for (final (index, button) in buttons.indexed) ...[
-              if (index > 0) const SizedBox(width: 8),
+              if (index > 0) const SizedBox(width: AppSpacing.sm),
               button,
             ],
             const Spacer(),
@@ -210,7 +210,7 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
       constraints: const BoxConstraints(minWidth: 70),
       decoration: BoxDecoration(
         color: badgeBg,
@@ -220,7 +220,7 @@ class _StatusBadge extends StatelessWidget {
         badge.toUpperCase(),
         textAlign: TextAlign.center,
         style: GoogleFonts.manrope(
-          fontSize: 11,
+          fontSize: AppFontSize.xs,
           fontWeight: FontWeight.w900,
           letterSpacing: 1.2,
           color: badgeText,
@@ -251,7 +251,7 @@ class _ActionButton extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
           decoration: BoxDecoration(
             color: AppColors.surfaceContainerLow,
             borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -261,11 +261,11 @@ class _ActionButton extends StatelessWidget {
             children: [
               Icon(icon, color: color, size: 18),
               if (label != null) ...[
-                const SizedBox(width: 6),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   label!,
                   style: GoogleFonts.manrope(
-                    fontSize: 12,
+                    fontSize: AppFontSize.sm,
                     fontWeight: FontWeight.w700,
                     color: color,
                   ),

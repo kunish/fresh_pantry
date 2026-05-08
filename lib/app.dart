@@ -23,19 +23,10 @@ String _localizedTitle(BuildContext context) {
 class FreshPantryApp extends StatelessWidget {
   const FreshPantryApp({super.key});
 
-  static const _systemUiOverlayStyle = SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarBrightness: Brightness.light,
-    statusBarIconBrightness: Brightness.dark,
-    systemNavigationBarColor: AppColors.surface,
-    systemNavigationBarDividerColor: Colors.transparent,
-    systemNavigationBarIconBrightness: Brightness.dark,
-  );
-
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: _systemUiOverlayStyle,
+      value: kAppSystemOverlayStyle,
       child: MaterialApp(
         onGenerateTitle: _localizedTitle,
         debugShowCheckedModeBanner: false,

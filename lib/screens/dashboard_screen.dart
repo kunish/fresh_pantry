@@ -52,7 +52,7 @@ class DashboardScreen extends ConsumerWidget {
                   semanticLabel: '添加新食材，手动录入食材',
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: QuickActionCard(
                   icon: Icons.shopping_basket,
@@ -69,7 +69,7 @@ class DashboardScreen extends ConsumerWidget {
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         _RecipeShortcutTile(
           onTap: () {
             Navigator.push(
@@ -89,7 +89,7 @@ class DashboardScreen extends ConsumerWidget {
       backgroundColor: AppColors.surface,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.lg, AppSpacing.xxl, AppSpacing.huge),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -101,15 +101,15 @@ class DashboardScreen extends ConsumerWidget {
                 color: AppColors.onSurface,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               dashboardSubtitleFor(now),
               style: GoogleFonts.manrope(
-                fontSize: 16,
+                fontSize: AppFontSize.lg,
                 color: AppColors.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.xl),
 
             // ── Stats ──
             Row(
@@ -126,7 +126,7 @@ class DashboardScreen extends ConsumerWidget {
                     },
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: AppSpacing.lg),
                 Expanded(
                   child: StatCard(
                     value: '${stats.expiringSoon}',
@@ -142,16 +142,16 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
 
             // ── Quick Actions ──
             quickActions,
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
 
             // ── Urgent Attention (wrapped container) ──
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.only(top: 20, bottom: 8),
+              padding: const EdgeInsets.only(top: AppSpacing.xl, bottom: 8),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.errorContainer,
                 borderRadius: BorderRadius.circular(AppRadius.xxl),
@@ -160,14 +160,14 @@ class DashboardScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                     child: Row(
                       children: [
                         const Icon(
                           Icons.priority_high,
                           color: AppColors.secondary,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppSpacing.sm),
                         Text(
                           '紧急关注',
                           style: Theme.of(context).textTheme.titleLarge,
@@ -175,7 +175,7 @@ class DashboardScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   for (final (index, item) in expiringItems.indexed)
                     Padding(
                       key: ValueKey('alert_$index'),
@@ -216,8 +216,8 @@ class DashboardScreen extends ConsumerWidget {
                   if (expiringItems.isEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 16,
+                        vertical: AppSpacing.sm,
+                        horizontal: AppSpacing.lg,
                       ),
                       child: Text(
                         '暂无需要紧急关注的食材',
@@ -226,9 +226,9 @@ class DashboardScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Semantics(
@@ -238,12 +238,12 @@ class DashboardScreen extends ConsumerWidget {
                           onTap: () => _showRecipeSheet(context, ref),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 14,
+                              horizontal: AppSpacing.xxl,
+                              vertical: AppSpacing.lg,
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.primary,
-                              borderRadius: BorderRadius.circular(999),
+                              borderRadius: BorderRadius.circular(AppRadius.pill),
                               boxShadow: [
                                 BoxShadow(
                                   color: AppColors.primary.withValues(
@@ -264,7 +264,7 @@ class DashboardScreen extends ConsumerWidget {
                                     color: AppColors.onPrimary,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: AppSpacing.sm),
                                 const Icon(
                                   Icons.arrow_forward,
                                   color: AppColors.onPrimary,
@@ -280,7 +280,7 @@ class DashboardScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
 
             // ── Storage Summary ──
             Text(
@@ -290,7 +290,7 @@ class DashboardScreen extends ConsumerWidget {
                 letterSpacing: -0.3,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppSpacing.xl),
             for (final (index, area) in storageAreas.indexed)
               Padding(
                 key: ValueKey('storage_$index'),
@@ -300,21 +300,21 @@ class DashboardScreen extends ConsumerWidget {
                   area: area,
                 ),
               ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
 
             // ── Recent Additions ──
             Text(
               '最近添加',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 22,
+                fontSize: AppFontSize.xl,
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.3,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             for (final (index, item) in recentItems.indexed)
               RecentAdditionItem(key: ValueKey('recent_$index'), item: item),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
 
             // ── Curator's Tip ──
             if (recommendedRecipes.isNotEmpty)
@@ -377,7 +377,7 @@ class DashboardScreen extends ConsumerWidget {
           expand: false,
           builder: (_, scrollController) {
             return Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.lg, AppSpacing.xxl, AppSpacing.xxl),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -388,28 +388,28 @@ class DashboardScreen extends ConsumerWidget {
                       height: 4,
                       decoration: BoxDecoration(
                         color: AppColors.outline,
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(AppRadius.xs),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
                   Text(
                     '食谱推荐',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 22,
+                      fontSize: AppFontSize.xl,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.3,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     '根据您的库存食材智能推荐',
                     style: GoogleFonts.manrope(
-                      fontSize: 14,
+                      fontSize: AppFontSize.md,
                       color: AppColors.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
                   Expanded(
                     child: ListView.builder(
                       controller: scrollController,
@@ -461,10 +461,10 @@ class _RecipeShortcutTile extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
           decoration: BoxDecoration(
             color: AppColors.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(AppRadius.xxl),
             border: Border.all(color: AppColors.outlineVariant),
           ),
           child: Row(
@@ -474,7 +474,7 @@ class _RecipeShortcutTile extends StatelessWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   color: AppColors.primaryFixed,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
                 child: const Icon(
                   Icons.menu_book_outlined,
@@ -482,7 +482,7 @@ class _RecipeShortcutTile extends StatelessWidget {
                   size: 24,
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -492,18 +492,18 @@ class _RecipeShortcutTile extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 18,
+                        fontSize: AppFontSize.lg,
                         fontWeight: FontWeight.w800,
                         color: AppColors.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       '添加和管理私房菜单',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.manrope(
-                        fontSize: 13,
+                        fontSize: AppFontSize.sm,
                         color: AppColors.onSurfaceVariant,
                       ),
                     ),

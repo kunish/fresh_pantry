@@ -13,7 +13,7 @@ class StorageSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.xxl),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppRadius.xxl),
@@ -35,7 +35,7 @@ class StorageSummaryCard extends StatelessWidget {
                     ),
                     child: Icon(_icon, color: AppColors.primary, size: 22),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.md),
                   Text(
                     area.name,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -47,14 +47,14 @@ class StorageSummaryCard extends StatelessWidget {
               Text(
                 '${area.itemCount} 件',
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: AppFontSize.md,
                   fontWeight: FontWeight.w500,
                   color: AppColors.onSurfaceVariant,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.xl),
           ClipRRect(
             borderRadius: BorderRadius.circular(AppRadius.pill),
             child: LinearProgressIndicator(
@@ -64,11 +64,11 @@ class StorageSummaryCard extends StatelessWidget {
               valueColor: const AlwaysStoppedAnimation(AppColors.primary),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             '${(area.capacityPercent * 100).toInt()}% 容量',
             style: const TextStyle(
-              fontSize: 11,
+              fontSize: AppFontSize.xs,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.5,
               color: AppColors.onSurfaceVariant,

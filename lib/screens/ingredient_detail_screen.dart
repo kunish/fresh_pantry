@@ -151,10 +151,10 @@ class _IngredientDetailScreenState
             : null;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.lg, AppSpacing.xxl, AppSpacing.huge),
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           child: Container(
             height: 220,
             width: double.infinity,
@@ -173,25 +173,25 @@ class _IngredientDetailScreenState
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.xxl),
         Text(
           details.displayName,
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 28,
+            fontSize: AppFontSize.xxxl,
             fontWeight: FontWeight.w800,
             color: AppColors.onSurface,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpacing.md),
         Text(
           details.description,
           style: GoogleFonts.manrope(
-            fontSize: 15,
+            fontSize: AppFontSize.md,
             height: 1.5,
             color: AppColors.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: AppSpacing.xl),
         Wrap(
           spacing: 10,
           runSpacing: 10,
@@ -199,26 +199,26 @@ class _IngredientDetailScreenState
             PillChip(
               label: '分类：${details.category}',
               backgroundColor: AppColors.surfaceContainerHigh,
-              fontSize: 12,
+              fontSize: AppFontSize.sm,
               fontWeight: FontWeight.w700,
             ),
             PillChip(
               label: '建议存放：${storageLabelFor(details.storage)}',
               backgroundColor: AppColors.surfaceContainerHigh,
-              fontSize: 12,
+              fontSize: AppFontSize.sm,
               fontWeight: FontWeight.w700,
             ),
             if (details.shelfLifeDays != null)
               PillChip(
                 label: '保质期建议：${details.shelfLifeDays}天',
                 backgroundColor: AppColors.surfaceContainerHigh,
-                fontSize: 12,
+                fontSize: AppFontSize.sm,
                 fontWeight: FontWeight.w700,
               ),
             PillChip(
               label: '来源：${details.source}',
               backgroundColor: AppColors.surfaceContainerHigh,
-              fontSize: 12,
+              fontSize: AppFontSize.sm,
               fontWeight: FontWeight.w700,
             ),
           ],
@@ -246,7 +246,7 @@ class _ActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.lg),
         decoration: const BoxDecoration(
           color: AppColors.surface,
           border: Border(top: BorderSide(color: AppColors.outlineVariant)),
@@ -271,12 +271,12 @@ class _ActionBar extends StatelessWidget {
                     icon: const Icon(Icons.edit_outlined),
                     label: const _ActionLabel('编辑'),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                       minimumSize: const Size(0, 48),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: TextButton.icon(
                     onPressed: onDelete,
@@ -284,7 +284,7 @@ class _ActionBar extends StatelessWidget {
                     label: const _ActionLabel('删除'),
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.error,
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                       minimumSize: const Size(0, 48),
                     ),
                   ),
@@ -297,7 +297,7 @@ class _ActionBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SizedBox(width: double.infinity, child: addButton),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   secondaryActions,
                 ],
               );
@@ -306,7 +306,7 @@ class _ActionBar extends StatelessWidget {
             return Row(
               children: [
                 Expanded(child: addButton),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 SizedBox(width: 184, child: secondaryActions),
               ],
             );

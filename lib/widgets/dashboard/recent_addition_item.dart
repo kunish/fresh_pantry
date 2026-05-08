@@ -13,7 +13,7 @@ class RecentAdditionItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
           color: AppColors.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -21,7 +21,7 @@ class RecentAdditionItem extends StatelessWidget {
         child: Row(
           children: [
             CategoryIconAvatar(category: item.category, size: 64, iconSize: 30),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,7 +52,7 @@ class RecentAdditionItem extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 SizedBox(
                   width: 96,
                   child: ClipRRect(

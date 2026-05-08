@@ -11,14 +11,14 @@ class TopAppBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.md),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 child: Image.asset(
                   'assets/icons/app_icon.png',
                   width: 40,
@@ -30,11 +30,11 @@ class TopAppBar extends ConsumerWidget {
                   },
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Text(
                 '食材管家',
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 20,
+                  fontSize: AppFontSize.xl,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.3,
                   color: AppColors.primary,

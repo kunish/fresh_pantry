@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/ai_settings.dart';
 import '../providers/ai_settings_provider.dart';
 import '../services/ai_client.dart';
+import '../theme/app_theme.dart';
 
 class ConnectionTestResult {
   const ConnectionTestResult.ok() : success = true, message = '连接成功';
@@ -99,34 +100,34 @@ class _AiSettingsScreenState extends ConsumerState<AiSettingsScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('AI 设置')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
           TextField(
             key: const Key('ai_base_url'),
             controller: _baseUrl,
             decoration: const InputDecoration(labelText: 'Base URL', hintText: 'https://api.openai.com/v1'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           TextField(
             key: const Key('ai_api_key'),
             controller: _apiKey,
             obscureText: true,
             decoration: const InputDecoration(labelText: 'API Key'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           TextField(
             key: const Key('ai_model'),
             controller: _model,
             decoration: const InputDecoration(labelText: 'Model', hintText: 'gpt-4o'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           TextField(
             key: const Key('ai_timeout'),
             controller: _timeout,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(labelText: 'Timeout (秒)'),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xxl),
           OutlinedButton(
             key: const Key('ai_test_connection'),
             onPressed: _testing ? null : _runTest,
@@ -137,24 +138,26 @@ class _AiSettingsScreenState extends ConsumerState<AiSettingsScreen> {
                 : const Text('测试连接'),
           ),
           if (_testResult != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               _testResult!.message,
               style: TextStyle(
-                color: _testResult!.success ? Colors.green : Colors.red,
+                color: _testResult!.success
+                    ? AppColors.primary
+                    : AppColors.error,
               ),
             ),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           FilledButton(
             key: const Key('ai_save'),
             onPressed: _save,
             child: const Text('保存'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           const Text(
             '明文存于本机 SharedPreferences。',
-            style: TextStyle(fontSize: 11, color: Colors.grey),
+            style: TextStyle(fontSize: AppFontSize.xs, color: AppColors.onSurfaceVariant),
           ),
         ],
       ),
