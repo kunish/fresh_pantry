@@ -13,6 +13,7 @@ import '../providers/ai_settings_provider.dart';
 import '../providers/custom_recipe_provider.dart';
 import '../services/ai_client.dart';
 import '../services/ai_recipe_parser.dart';
+import '../services/share_intent_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_snackbar.dart';
 import '../widgets/shared/recipe_image.dart';
@@ -48,6 +49,7 @@ class _CustomRecipeFormScreenState
   late final TextEditingController _descriptionController;
   late final List<_IngredientControllers> _ingredientControllers;
   late final List<TextEditingController> _stepControllers;
+  final _clipboardDetector = ClipboardUrlDetector();
   String? _coverImageSource;
   bool _isSaving = false;
 
@@ -81,6 +83,10 @@ class _CustomRecipeFormScreenState
                 .map((step) => TextEditingController(text: step))
                 .toList()
             : [TextEditingController()];
+
+    if (!_isEditing) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _maybeOfferClipboardUrl());
+    }
   }
 
   @override
@@ -264,6 +270,30 @@ class _CustomRecipeFormScreenState
       labelText: labelText,
       floatingLabelBehavior: FloatingLabelBehavior.always,
     );
+  }
+
+  Future<void> _maybeOfferClipboardUrl() async {
+    final url = await _clipboardDetector.peek();
+    if (url == null || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 8),
+        content: Text('检测到食谱链接: $url'),
+        action: SnackBarAction(
+          label: '导入',
+          onPressed: () {
+            _urlController.text = url;
+            _onParseUrl();
+          },
+        ),
+      ),
+    );
+    // If user dismisses without tapping, mark as ignored after a delay.
+    Future<void>.delayed(const Duration(seconds: 9), () {
+      if (mounted && _urlController.text != url) {
+        _clipboardDetector.markIgnored(url);
+      }
+    });
   }
 
   Future<void> _onParseUrl() async {
