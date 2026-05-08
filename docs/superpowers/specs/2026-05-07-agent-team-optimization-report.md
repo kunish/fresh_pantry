@@ -164,20 +164,20 @@
 | lib/widgets/shopping/quick_add_field.dart:69 | high | a11y | suffixIcon IconButton 无 tooltip。 | 加 tooltip:'添加到购物清单'。 | LOW | ux | auto-approved | pending |
 | lib/widgets/shopping/smart_planner_card.dart:7 | high | dead-code | `recipeName` 字段标记 `required` 但 build() 内零读取,仅在 shopping_list_screen.dart:186 传 '卡博纳拉意面' 这个硬编码占位。 | 删除 `recipeName` 字段及构造参数。 | HIGH | quality | approved | done |
 | lib/widgets/shopping/smart_planner_card.dart:1 | low | missing-test | smart_planner_card 无独立 widget 测试。 [blocked by HIGH item in same file] | 新增渲染 + onTap 测试。 | LOW | test | auto-approved | pending |
-| test/category_chips_test.dart:6 | low | missing-test | 仅 1 测试,onSelected 回调 / 选中样式未测。 | 加 tap 触发 onSelected + selected chip 颜色断言。 | LOW | test | auto-approved | pending |
-| test/custom_recipe_flow_test.dart:574 | low | weak-assertion | "ignores repeated save taps while saving" 仅断言保存 1 条,未验证 button 真的被禁用。 | 增加对 ElevatedButton.onPressed==null 的状态断言。 | HIGH | test | approved | pending |
-| test/dashboard_greeting_test.dart:16 | low | weak-assertion | subtitle 测试只断言 today!=tomorrow,未锁定 placeholder 内容。 | 用固定 dayNumber 推算预期。 | HIGH | test | approved | pending |
-| test/expiry_calculator_test.dart:25 | low | missing-edge-case | expiryFreshness 仅测同日 + 7 天,缺 0/负 totalShelfLifeDays / 已过期 clamp 行为。 | 补 totalShelfLifeDays=0 → 0.0 / 已过期 → 0.0 / 极大。 | LOW | test | auto-approved | pending |
-| test/ingredient_card_test.dart:9 | low | weak-assertion | 仅断言 imageUrl 不渲染 Image,缺 expiryLabel/freshness 状态视觉断言。 | 加 expiringSoon/expired 状态下 expiryLabel 与颜色断言。 | HIGH | test | approved | pending |
-| test/inventory_screen_test.dart:25 | low | weak-assertion | findsNothing/textContaining 易因 UI 调整漏检。 | 改为正向断言保留组件的 ValueKey。 | HIGH | test | approved | pending |
-| test/open_food_facts_service_test.dart:9 | low | missing-error-path | service 测试覆盖 200/empty/503 但未覆盖 timeout / network exception / malformed JSON。 | 加 _FakeHttpClient 抛 TimeoutException / FormatException 测 fallback null。 | LOW | test | auto-approved | pending |
-| test/provider_logic_test.dart:48 | low | anti-pattern | "updates watched frequent items immediately after add completes" 用 await Future.microtask hack。 | 改为对 _addHistoryVersionProvider listen 直接等待变化。 | HIGH | test | approved | pending |
-| test/provider_logic_test.dart:284 | low | weak-assertion | "concurrent duplicate adds without losing history count" 仅断言 count==2,未断言 inventory 长度 / 顺序。 | 加 expect(savedInventory, hasLength(2)) 与顺序断言。 | HIGH | test | approved | pending |
-| test/quick_add_field_test.dart:15 | low | weak-assertion | 只断言 hint 出现且不显示 suggestions。 | 加输入"番茄"+提交,断言 shoppingProvider 增加一条。 | HIGH | test | approved | pending |
-| test/system_ui_overlay_test.dart:16 | low | weak-assertion | 取 regions.first 但 regions 顺序非确定。 | 用 find.byKey 或具体 ancestor 定位。 | HIGH | test | approved | pending |
-| test/widget_test.dart:28 | medium | anti-pattern | 873 行单文件混杂 dashboard/expiry-picker/search/AppShell 多领域测试。 | 拆分为 dashboard_screen_test / expiry_range_picker_test / search_overlay_integration_test。 | HIGH | test | approved | pending |
-| test/widget_test.dart:28 | medium | weak-assertion | "App smoke test" 仅断言 `find.byType(FreshPantryApp)` 必然存在。 | 改为渲染后断言 dashboard 标题文字或 BottomNavigationBar。 | HIGH | test | approved | pending |
-| test/widget_test.dart:381 | low | weak-assertion | "uses the item expiry label as badge" 断言 find.text('48H') 是 findsNothing 这种否定测试。 | 在 AlertCard 范围内 ancestor + descendant 双向断言 badge 文本。 | HIGH | test | approved | pending |
+| test/category_chips_test.dart:6 | low | missing-test | 仅 1 测试,onSelected 回调 / 选中样式未测。 | 加 tap 触发 onSelected + selected chip 颜色断言。 | LOW | test | auto-approved | done |
+| test/custom_recipe_flow_test.dart:574 | low | weak-assertion | "ignores repeated save taps while saving" 仅断言保存 1 条,未验证 button 真的被禁用。 | 增加对 ElevatedButton.onPressed==null 的状态断言。 | HIGH | test | approved | done |
+| test/dashboard_greeting_test.dart:16 | low | weak-assertion | subtitle 测试只断言 today!=tomorrow,未锁定 placeholder 内容。 | 用固定 dayNumber 推算预期。 | HIGH | test | approved | done |
+| test/expiry_calculator_test.dart:25 | low | missing-edge-case | expiryFreshness 仅测同日 + 7 天,缺 0/负 totalShelfLifeDays / 已过期 clamp 行为。 | 补 totalShelfLifeDays=0 → 0.0 / 已过期 → 0.0 / 极大。 | LOW | test | auto-approved | done |
+| test/ingredient_card_test.dart:9 | low | weak-assertion | 仅断言 imageUrl 不渲染 Image,缺 expiryLabel/freshness 状态视觉断言。 | 加 expiringSoon/expired 状态下 expiryLabel 与颜色断言。 | HIGH | test | approved | done |
+| test/inventory_screen_test.dart:25 | low | weak-assertion | findsNothing/textContaining 易因 UI 调整漏检。 | 改为正向断言保留组件的 ValueKey。 | HIGH | test | approved | done |
+| test/open_food_facts_service_test.dart:9 | low | missing-error-path | service 测试覆盖 200/empty/503 但未覆盖 timeout / network exception / malformed JSON。 | 加 _FakeHttpClient 抛 TimeoutException / FormatException 测 fallback null。 | LOW | test | auto-approved | done |
+| test/provider_logic_test.dart:48 | low | anti-pattern | "updates watched frequent items immediately after add completes" 用 await Future.microtask hack。 | 改为对 _addHistoryVersionProvider listen 直接等待变化。 | HIGH | test | approved | done |
+| test/provider_logic_test.dart:284 | low | weak-assertion | "concurrent duplicate adds without losing history count" 仅断言 count==2,未断言 inventory 长度 / 顺序。 | 加 expect(savedInventory, hasLength(2)) 与顺序断言。 | HIGH | test | approved | done |
+| test/quick_add_field_test.dart:15 | low | weak-assertion | 只断言 hint 出现且不显示 suggestions。 | 加输入"番茄"+提交,断言 shoppingProvider 增加一条。 | HIGH | test | approved | done |
+| test/system_ui_overlay_test.dart:16 | low | weak-assertion | 取 regions.first 但 regions 顺序非确定。 | 用 find.byKey 或具体 ancestor 定位。 | HIGH | test | approved | done |
+| test/widget_test.dart:28 | medium | anti-pattern | 873 行单文件混杂 dashboard/expiry-picker/search/AppShell 多领域测试。 | 拆分为 dashboard_screen_test / expiry_range_picker_test / search_overlay_integration_test。 | HIGH | test | approved | done |
+| test/widget_test.dart:28 | medium | weak-assertion | "App smoke test" 仅断言 `find.byType(FreshPantryApp)` 必然存在。 | 改为渲染后断言 dashboard 标题文字或 BottomNavigationBar。 | HIGH | test | approved | done |
+| test/widget_test.dart:381 | low | weak-assertion | "uses the item expiry label as badge" 断言 find.text('48H') 是 findsNothing 这种否定测试。 | 在 AlertCard 范围内 ancestor + descendant 双向断言 badge 文本。 | HIGH | test | approved | done |
 
 (Source = quality / perf / test / ux,可逗号分隔表示多 agent 命中)
 (Decision = LOW: auto-approved / HIGH: pending / blocked-by-high(同文件存在 HIGH,需等其决策))
