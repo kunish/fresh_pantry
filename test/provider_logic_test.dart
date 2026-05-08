@@ -72,11 +72,9 @@ void main() {
           fireImmediately: true,
         );
 
-        final add = container
+        await container
             .read(inventoryProvider.notifier)
             .add(_ingredient('鸡蛋'));
-        await Future.microtask(() {});
-        await add;
 
         final frequentItems = container.read(frequentItemsProvider);
         expect(frequentItems.map((item) => item.name), contains('鸡蛋'));
@@ -305,6 +303,19 @@ void main() {
 
         final history = json.decode(prefs.getString('add_history')!);
         expect(history['牛奶']['count'], 2);
+
+        // Both items must end up persisted, in the order they were enqueued.
+        final inventoryState = container.read(inventoryProvider);
+        expect(inventoryState, hasLength(2));
+        expect(inventoryState.map((item) => item.name), ['牛奶', '牛奶']);
+
+        final savedInventory =
+            json.decode(prefs.getString('inventory_items')!) as List<dynamic>;
+        expect(savedInventory, hasLength(2));
+        expect(
+          savedInventory.map((row) => (row as Map)['name']).toList(),
+          ['牛奶', '牛奶'],
+        );
       },
     );
 
