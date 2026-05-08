@@ -7,18 +7,31 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../models/recipe.dart';
+import '../models/recipe_draft.dart';
+import '../providers/ai_draft_provider.dart';
+import '../providers/ai_settings_provider.dart';
 import '../providers/custom_recipe_provider.dart';
+import '../services/ai_client.dart';
+import '../services/ai_recipe_parser.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_snackbar.dart';
 import '../widgets/shared/recipe_image.dart';
+import 'ai_settings_screen.dart';
+import 'recipe_draft_review_screen.dart';
 
 typedef CoverImagePicker = Future<String?> Function(ImageSource source);
 
 class CustomRecipeFormScreen extends ConsumerStatefulWidget {
-  const CustomRecipeFormScreen({super.key, this.recipe, this.pickCoverImage});
+  const CustomRecipeFormScreen({
+    super.key,
+    this.recipe,
+    this.pickCoverImage,
+    this.urlParserOverride,
+  });
 
   final Recipe? recipe;
   final CoverImagePicker? pickCoverImage;
+  final Future<RecipeDraft> Function(String url)? urlParserOverride;
 
   @override
   ConsumerState<CustomRecipeFormScreen> createState() =>
@@ -27,6 +40,7 @@ class CustomRecipeFormScreen extends ConsumerStatefulWidget {
 
 class _CustomRecipeFormScreenState
     extends ConsumerState<CustomRecipeFormScreen> {
+  late final TextEditingController _urlController;
   late final TextEditingController _nameController;
   late final TextEditingController _categoryController;
   late final TextEditingController _cookingMinutesController;
@@ -44,6 +58,7 @@ class _CustomRecipeFormScreenState
     super.initState();
     final recipe = widget.recipe;
 
+    _urlController = TextEditingController();
     _nameController = TextEditingController(text: recipe?.name ?? '');
     _categoryController = TextEditingController(text: recipe?.category ?? '家常');
     _cookingMinutesController = TextEditingController(
@@ -70,6 +85,7 @@ class _CustomRecipeFormScreenState
 
   @override
   void dispose() {
+    _urlController.dispose();
     _nameController.dispose();
     _categoryController.dispose();
     _cookingMinutesController.dispose();
@@ -96,6 +112,10 @@ class _CustomRecipeFormScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _AiUrlBanner(
+                controller: _urlController,
+                onParse: _onParseUrl,
+              ),
               _CoverImageHero(
                 imageSource: _coverImageSource,
                 onUpload: () => _selectCoverImage(ImageSource.gallery),
@@ -243,6 +263,44 @@ class _CustomRecipeFormScreenState
     return InputDecoration(
       labelText: labelText,
       floatingLabelBehavior: FloatingLabelBehavior.always,
+    );
+  }
+
+  Future<void> _onParseUrl() async {
+    final url = _urlController.text.trim();
+    if (!url.startsWith('http')) {
+      _showError('请填入合法的 http(s) 链接');
+      return;
+    }
+    final notifier = ref.read(aiDraftProvider.notifier);
+    final parser = widget.urlParserOverride ??
+        (u) => AiRecipeParser.fromUrl(
+              u,
+              chatFn: (msgs) => AiClient.chat(
+                settings: ref.read(aiSettingsProvider),
+                messages: msgs,
+                responseFormat: const {'type': 'json_object'},
+              ),
+            );
+    await notifier.runRecipeFromUrl(url, parser: parser);
+    final state = ref.read(aiDraftProvider);
+    if (state.error is AiNotConfiguredException) {
+      if (!mounted) return;
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AiSettingsScreen()));
+      return;
+    }
+    if (state.error != null) {
+      _showError(state.error!.message);
+      return;
+    }
+    if (state.recipeDraft == null) return;
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => RecipeDraftReviewScreen(
+          regenerate: (sourceUrl) => notifier.runRecipeFromUrl(sourceUrl, parser: parser),
+        ),
+      ),
     );
   }
 
@@ -675,5 +733,47 @@ class _IngredientControllers {
   void dispose() {
     nameController.dispose();
     amountController.dispose();
+  }
+}
+
+class _AiUrlBanner extends StatelessWidget {
+  const _AiUrlBanner({required this.controller, required this.onParse});
+  final TextEditingController controller;
+  final VoidCallback onParse;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF0EA5E9)]),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('✨ 用 AI 一键导入',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          TextField(
+            key: const Key('recipe_url_input'),
+            controller: controller,
+            decoration: const InputDecoration(
+              hintText: '粘贴食谱链接 (懒饭 / 小红书…)',
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 8),
+          FilledButton(
+            key: const Key('recipe_url_parse'),
+            onPressed: onParse,
+            child: const Text('解析为草稿'),
+          ),
+        ],
+      ),
+    );
   }
 }

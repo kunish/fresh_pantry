@@ -386,7 +386,10 @@ void main() {
     await tester.pumpWidget(_app(prefs, const CustomRecipeFormScreen()));
     await tester.pumpAndSettle();
 
-    final textFields = tester.widgetList<TextField>(find.byType(TextField));
+    final textFields = tester
+        .widgetList<TextField>(find.byType(TextField))
+        .where((tf) => tf.key != const Key('recipe_url_input'))
+        .toList();
 
     expect(textFields, isNotEmpty);
     for (final textField in textFields) {
