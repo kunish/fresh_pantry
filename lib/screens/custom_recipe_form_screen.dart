@@ -19,6 +19,7 @@ import '../widgets/recipe_form/cooking_time_row.dart';
 import '../widgets/recipe_form/difficulty_stars.dart';
 import '../widgets/recipe_form/recipe_category_chips.dart';
 import '../widgets/recipe_form/recipe_form_card.dart';
+import '../widgets/recipe_form/unit_dropdown.dart';
 import '../widgets/shared/recipe_image.dart';
 import 'ai_settings_screen.dart';
 import 'recipe_draft_review_screen.dart';
@@ -206,52 +207,106 @@ class _CustomRecipeFormScreenState
                 ),
               ),
               Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  0,
+                ),
+                child: RecipeFormCard(
+                  icon: Icons.restaurant,
+                  title: '食材',
+                  iconBackgroundColor: AppColors.secondaryFixed,
+                  iconForegroundColor: AppColors.secondary,
+                  countLabel: '${_ingredientControllers.length} 项',
+                  child: Column(
+                    children: [
+                      ReorderableListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        buildDefaultDragHandles: false,
+                        itemCount: _ingredientControllers.length,
+                        onReorderItem: (oldIndex, newIndex) {
+                          setState(() {
+                            final item =
+                                _ingredientControllers.removeAt(oldIndex);
+                            _ingredientControllers.insert(newIndex, item);
+                          });
+                        },
+                        itemBuilder: (context, i) {
+                          final ing = _ingredientControllers[i];
+                          return Padding(
+                            key: ValueKey(ing.dragKey),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: AppSpacing.xs),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                ReorderableDragStartListener(
+                                  index: i,
+                                  child: const Icon(
+                                    Icons.drag_indicator,
+                                    color: AppColors.outlineVariant,
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  flex: 5,
+                                  child: TextField(
+                                    controller: ing.nameController,
+                                    decoration: _compactDecoration('食材名称'),
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  flex: 2,
+                                  child: TextField(
+                                    controller: ing.quantityController,
+                                    decoration: _compactDecoration('用量'),
+                                    textAlign: TextAlign.right,
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                UnitDropdown(
+                                  value: ing.unit,
+                                  onChanged: (value) =>
+                                      setState(() => ing.unit = value),
+                                ),
+                                if (i > 0)
+                                  IconButton(
+                                    onPressed: () => _removeIngredient(i),
+                                    icon: const Icon(
+                                        Icons.remove_circle_outline),
+                                    tooltip: '移除食材',
+                                    color: AppColors.error,
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      OutlinedButton.icon(
+                        onPressed: _addIngredient,
+                        icon: const Icon(Icons.add),
+                        label: const Text('添加食材'),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 44),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: AppSpacing.xxl),
-                    Text(
-                      '食材',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    for (var i = 0; i < _ingredientControllers.length; i++) ...[
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller:
-                                  _ingredientControllers[i].nameController,
-                              decoration: _fieldDecoration('食材名称'),
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: TextField(
-                              controller:
-                                  _ingredientControllers[i].amountController,
-                              decoration: _fieldDecoration('用量'),
-                            ),
-                          ),
-                          if (i > 0)
-                            IconButton(
-                              onPressed: () => _removeIngredient(i),
-                              icon: const Icon(Icons.remove_circle_outline),
-                              tooltip: '移除食材',
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                    ],
-                    OutlinedButton.icon(
-                      onPressed: _addIngredient,
-                      icon: const Icon(Icons.add),
-                      label: const Text('添加食材'),
-                    ),
                     const SizedBox(height: AppSpacing.xxl),
                     Text(
                       '步骤',
@@ -310,6 +365,17 @@ class _CustomRecipeFormScreenState
       labelText: labelText,
       hintText: hint,
       floatingLabelBehavior: FloatingLabelBehavior.always,
+    );
+  }
+
+  InputDecoration _compactDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.sm,
+      ),
     );
   }
 
@@ -607,15 +673,19 @@ class _CustomRecipeFormScreenState
     var missingIngredientAmount = false;
     for (final ingredient in _ingredientControllers) {
       final ingredientName = ingredient.nameController.text.trim();
-      final ingredientAmount = ingredient.amountController.text.trim();
-      if (ingredientName.isNotEmpty || ingredientAmount.isNotEmpty) {
+      final ingredientQty = ingredient.quantityController.text.trim();
+      // The unit field always has a pre-selected value (default 'g') and is
+      // not treated as user-entered text for "has any text" / "has amount"
+      // purposes — only a non-empty quantity counts.
+      final hasAmount = ingredientQty.isNotEmpty;
+      if (ingredientName.isNotEmpty || hasAmount) {
         hasAnyIngredientText = true;
       }
-      if (ingredientName.isNotEmpty && ingredientAmount.isNotEmpty) {
+      if (ingredientName.isNotEmpty && hasAmount) {
         hasCompleteIngredient = true;
-      } else if (ingredientName.isEmpty && ingredientAmount.isNotEmpty) {
+      } else if (ingredientName.isEmpty && hasAmount) {
         missingIngredientName = true;
-      } else if (ingredientName.isNotEmpty && ingredientAmount.isEmpty) {
+      } else if (ingredientName.isNotEmpty && !hasAmount) {
         missingIngredientAmount = true;
       }
     }
@@ -631,11 +701,11 @@ class _CustomRecipeFormScreenState
     return _ingredientControllers
         .map((ingredient) {
           final name = ingredient.nameController.text.trim();
-          final amount = ingredient.amountController.text.trim();
-          if (name.isEmpty || amount.isEmpty) {
-            return null;
-          }
-          return RecipeIngredient(name: name, amount: amount);
+          final quantity = ingredient.quantityController.text.trim();
+          final unit = ingredient.unit.trim();
+          if (name.isEmpty) return null;
+          if (quantity.isEmpty && unit.isEmpty) return null;
+          return RecipeIngredient(name: name, quantity: quantity, unit: unit);
         })
         .whereType<RecipeIngredient>()
         .toList();
@@ -796,27 +866,39 @@ class _CoverImageFallback extends StatelessWidget {
 }
 
 class _IngredientControllers {
-  _IngredientControllers({required String name, required String amount})
-    : nameController = TextEditingController(text: name),
-      amountController = TextEditingController(text: amount);
+  _IngredientControllers({
+    required String name,
+    required String quantity,
+    required this.unit,
+  })  : nameController = TextEditingController(text: name),
+        quantityController = TextEditingController(text: quantity),
+        dragKey = UniqueKey();
 
   factory _IngredientControllers.empty() {
-    return _IngredientControllers(name: '', amount: '');
+    return _IngredientControllers(name: '', quantity: '', unit: 'g');
   }
 
   factory _IngredientControllers.from(RecipeIngredient ingredient) {
+    // When the ingredient was created with legacy `amount` only (no
+    // quantity/unit), fall back to the composed amount as the quantity and
+    // leave unit empty so the user can pick one.
+    final hasNewShape =
+        ingredient.quantity.isNotEmpty || ingredient.unit.isNotEmpty;
     return _IngredientControllers(
       name: ingredient.name,
-      amount: ingredient.amount,
+      quantity: hasNewShape ? ingredient.quantity : ingredient.amount,
+      unit: hasNewShape ? ingredient.unit : '',
     );
   }
 
   final TextEditingController nameController;
-  final TextEditingController amountController;
+  final TextEditingController quantityController;
+  String unit;
+  final Key dragKey;
 
   void dispose() {
     nameController.dispose();
-    amountController.dispose();
+    quantityController.dispose();
   }
 }
 
