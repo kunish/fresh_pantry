@@ -5,6 +5,20 @@ import '../../utils/storage_labels.dart';
 import '../shared/category_icon.dart';
 import '../shared/freshness_meter.dart';
 
+({Color bg, Color text}) freshnessBadgeColors(FreshnessState state) {
+  switch (state) {
+    case FreshnessState.fresh:
+      return (bg: AppColors.primaryFixed, text: AppColors.primary);
+    case FreshnessState.expiringSoon:
+      return (
+        bg: AppColors.secondaryContainer,
+        text: AppColors.onSecondaryContainer,
+      );
+    case FreshnessState.expired:
+      return (bg: AppColors.errorContainer, text: AppColors.onErrorContainer);
+  }
+}
+
 class IngredientCard extends StatelessWidget {
   final Ingredient ingredient;
   final VoidCallback? onBuyAgain;
@@ -17,31 +31,10 @@ class IngredientCard extends StatelessWidget {
     this.onTap,
   });
 
-  Color get _badgeBg {
-    switch (ingredient.state) {
-      case FreshnessState.fresh:
-        return AppColors.primaryFixed;
-      case FreshnessState.expiringSoon:
-        return AppColors.secondaryContainer;
-      case FreshnessState.expired:
-        return AppColors.errorContainer;
-    }
-  }
-
-  Color get _badgeText {
-    switch (ingredient.state) {
-      case FreshnessState.fresh:
-        return AppColors.primary;
-      case FreshnessState.expiringSoon:
-        return AppColors.onSecondaryContainer;
-      case FreshnessState.expired:
-        return AppColors.onErrorContainer;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isExpired = ingredient.state == FreshnessState.expired;
+    final badgeColors = freshnessBadgeColors(ingredient.state);
 
     final cardContent = Container(
       padding: const EdgeInsets.all(16),
@@ -116,7 +109,7 @@ class IngredientCard extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: _badgeBg,
+                              color: badgeColors.bg,
                               borderRadius: BorderRadius.circular(AppRadius.pill),
                             ),
                             child: Text(
@@ -125,7 +118,7 @@ class IngredientCard extends StatelessWidget {
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.8,
-                                color: _badgeText,
+                                color: badgeColors.text,
                               ),
                             ),
                           ),
