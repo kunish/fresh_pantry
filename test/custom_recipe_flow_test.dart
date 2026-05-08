@@ -171,7 +171,7 @@ void main() {
       'inventory_items': json.encode([_ingredient('Chicken').toJson()]),
     });
     final recipe = _recipe('r1').copyWith(
-      ingredients: const [RecipeIngredient(name: 'chicken', amount: '1份')],
+      ingredients: [RecipeIngredient(name: 'chicken', amount: '1份')],
     );
 
     await tester.pumpWidget(_app(prefs, RecipeDetailScreen(recipe: recipe)));
@@ -655,7 +655,7 @@ Recipe _recipe(String id) {
     difficulty: 1,
     cookingMinutes: 15,
     description: '快手家常菜',
-    ingredients: const [RecipeIngredient(name: '番茄', amount: '2个')],
+    ingredients: [RecipeIngredient(name: '番茄', amount: '2个')],
     steps: const ['切番茄', '炒熟'],
   );
 }
@@ -668,7 +668,7 @@ Recipe _multiPartRecipe(String id) {
     difficulty: 2,
     cookingMinutes: 20,
     description: '保留多食材和多步骤',
-    ingredients: const [
+    ingredients: [
       RecipeIngredient(name: '番茄', amount: '2个'),
       RecipeIngredient(name: '鸡蛋', amount: '2个'),
     ],

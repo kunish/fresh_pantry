@@ -155,7 +155,7 @@ Recipe _recipe(String id) {
     difficulty: 1,
     cookingMinutes: 15,
     description: '快手家常菜',
-    ingredients: const [
+    ingredients: [
       RecipeIngredient(name: '番茄', amount: '2个'),
       RecipeIngredient(name: '鸡蛋', amount: '2个'),
     ],

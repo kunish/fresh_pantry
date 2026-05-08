@@ -153,7 +153,7 @@ class MockData {
 
   static const quickSuggestions = ['牛奶', '鸡蛋', '酸面包', '黄油'];
 
-  static const recipes = [
+  static final recipes = [
     Recipe(
       id: 'r1',
       name: '经典卡博纳拉意面',
