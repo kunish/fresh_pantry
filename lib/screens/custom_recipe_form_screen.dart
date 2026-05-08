@@ -15,6 +15,7 @@ import '../services/ai_recipe_parser.dart';
 import '../services/share_intent_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_snackbar.dart';
+import '../widgets/recipe_form/ai_collapsible_banner.dart';
 import '../widgets/recipe_form/cooking_time_row.dart';
 import '../widgets/recipe_form/difficulty_stars.dart';
 import '../widgets/recipe_form/recipe_category_chips.dart';
@@ -55,6 +56,7 @@ class _CustomRecipeFormScreenState
   late final TextEditingController _descriptionController;
   late final List<_IngredientControllers> _ingredientControllers;
   late final List<_StepEntry> _stepEntries;
+  final _aiBannerKey = GlobalKey<AiCollapsibleBannerState>();
   final _clipboardDetector = ClipboardUrlDetector();
   String? _coverImageSource;
   bool _isSaving = false;
@@ -124,10 +126,20 @@ class _CustomRecipeFormScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _AiUrlBanner(
-                controller: _urlController,
-                onParse: _onParseUrl,
-              ),
+              if (!_isEditing)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                    0,
+                  ),
+                  child: AiCollapsibleBanner(
+                    key: _aiBannerKey,
+                    urlController: _urlController,
+                    onParse: _onParseUrl,
+                  ),
+                ),
               _CoverImageHero(
                 imageSource: _coverImageSource,
                 onUpload: () => _selectCoverImage(ImageSource.gallery),
@@ -437,20 +449,21 @@ class _CustomRecipeFormScreenState
   Future<void> _maybeOfferClipboardUrl() async {
     final url = await _clipboardDetector.peek();
     if (url == null || !mounted) return;
+
+    _aiBannerKey.currentState?.expand();
+    _urlController.text = url;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 8),
-        content: Text('检测到食谱链接: $url'),
+        content: Text('检测到食谱链接：$url'),
         action: SnackBarAction(
-          label: '导入',
-          onPressed: () {
-            _urlController.text = url;
-            _onParseUrl();
-          },
+          label: '解析',
+          onPressed: _onParseUrl,
         ),
       ),
     );
-    // If user dismisses without tapping, mark as ignored after a delay.
+
     Future<void>.delayed(const Duration(seconds: 9), () {
       if (mounted && _urlController.text != url) {
         _clipboardDetector.markIgnored(url);
@@ -967,46 +980,3 @@ class _StepEntry {
   void dispose() => controller.dispose();
 }
 
-class _AiUrlBanner extends StatelessWidget {
-  const _AiUrlBanner({required this.controller, required this.onParse});
-  final TextEditingController controller;
-  final VoidCallback onParse;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 0),
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.aiGradientStart, AppColors.aiGradientEnd],
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('✨ 用 AI 一键导入',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-          const SizedBox(height: AppSpacing.sm),
-          TextField(
-            key: const Key('recipe_url_input'),
-            controller: controller,
-            decoration: const InputDecoration(
-              hintText: '粘贴食谱链接 (懒饭 / 下厨房…)',
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          FilledButton(
-            key: const Key('recipe_url_parse'),
-            onPressed: onParse,
-            child: const Text('解析为草稿'),
-          ),
-        ],
-      ),
-    );
-  }
-}
