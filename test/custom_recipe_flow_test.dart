@@ -373,7 +373,7 @@ void main() {
     await tester.pumpWidget(_app(prefs, const CustomRecipeFormScreen()));
     await tester.pumpAndSettle();
 
-    expect(find.text('封面图片'), findsOneWidget);
+    expect(find.text('添加封面（可选）'), findsOneWidget);
     expect(find.widgetWithText(TextField, '封面图片链接'), findsNothing);
     expect(find.widgetWithText(OutlinedButton, '上传图片'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, '拍照'), findsOneWidget);
@@ -387,7 +387,7 @@ void main() {
     await tester.pumpWidget(_app(prefs, const CustomRecipeFormScreen()));
     await tester.pumpAndSettle();
 
-    final coverTop = tester.getTopLeft(find.text('封面图片')).dy;
+    final coverTop = tester.getTopLeft(find.text('添加封面（可选）')).dy;
     final basicInfoTop = tester.getTopLeft(find.text('基础信息')).dy;
 
     expect(coverTop, lessThan(basicInfoTop));

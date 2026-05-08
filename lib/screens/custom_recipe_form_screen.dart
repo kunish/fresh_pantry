@@ -140,11 +140,19 @@ class _CustomRecipeFormScreenState
                     onParse: _onParseUrl,
                   ),
                 ),
-              _CoverImageHero(
-                imageSource: _coverImageSource,
-                onUpload: () => _selectCoverImage(ImageSource.gallery),
-                onCamera: () => _selectCoverImage(ImageSource.camera),
-                onClear: _coverImageSource == null ? null : _clearCoverImage,
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.md),
+                child: _coverImageSource == null
+                    ? _CoverImagePlaceholder(
+                        onUpload: () => _selectCoverImage(ImageSource.gallery),
+                        onCamera: () => _selectCoverImage(ImageSource.camera),
+                      )
+                    : _CoverImageHero(
+                        imageSource: _coverImageSource,
+                        onUpload: () => _selectCoverImage(ImageSource.gallery),
+                        onCamera: () => _selectCoverImage(ImageSource.camera),
+                        onClear: _clearCoverImage,
+                      ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -784,6 +792,64 @@ class _CustomRecipeFormScreenState
 
   void _showMissingFields(List<String> fields) {
     _showError('保存前请补充：${fields.join('、')}');
+  }
+}
+
+class _CoverImagePlaceholder extends StatelessWidget {
+  const _CoverImagePlaceholder({
+    required this.onUpload,
+    required this.onCamera,
+  });
+
+  final VoidCallback onUpload;
+  final VoidCallback onCamera;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLow,
+        border: Border.all(
+          color: AppColors.outlineVariant,
+          style: BorderStyle.solid,
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.add_photo_alternate_outlined,
+            size: 36,
+            color: AppColors.outline,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            '添加封面（可选）',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: AppSpacing.sm,
+            children: [
+              OutlinedButton.icon(
+                onPressed: onUpload,
+                icon: const Icon(Icons.upload_file_outlined, size: 18),
+                label: const Text('上传图片'),
+              ),
+              OutlinedButton.icon(
+                onPressed: onCamera,
+                icon: const Icon(Icons.photo_camera_outlined, size: 18),
+                label: const Text('拍照'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 
