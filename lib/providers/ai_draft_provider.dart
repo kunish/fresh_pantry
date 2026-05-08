@@ -75,6 +75,7 @@ class AiDraftNotifier extends Notifier<AiDraftState> {
   }
 
   Future<void> runRecipeFromUrl(String url, {required RecipeUrlParser parser}) async {
+    if (state.isRunning) return;
     state = AiDraftState(isRunning: true, recipeSourceUrl: url);
     try {
       final draft = await parser(url);
@@ -87,6 +88,7 @@ class AiDraftNotifier extends Notifier<AiDraftState> {
   }
 
   Future<void> runIngredientsFromText(String text, {required IngredientTextParser parser}) async {
+    if (state.isRunning) return;
     state = AiDraftState(isRunning: true, ingredientSourceText: text);
     try {
       final drafts = await parser(text);
@@ -99,6 +101,7 @@ class AiDraftNotifier extends Notifier<AiDraftState> {
   }
 
   Future<void> runIngredientsFromImage(Uint8List bytes, {required IngredientImageParser parser}) async {
+    if (state.isRunning) return;
     _lastImageBytes = bytes;
     state = const AiDraftState(isRunning: true);
     try {
