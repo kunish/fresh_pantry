@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/ingredient_draft.dart';
 import '../models/recipe_draft.dart';
 import '../services/ai_client.dart';
+import '../services/share_intent_service.dart';
 
 @immutable
 class AiDraftState {
@@ -121,3 +122,7 @@ class AiDraftNotifier extends Notifier<AiDraftState> {
 
 final aiDraftProvider =
     NotifierProvider<AiDraftNotifier, AiDraftState>(AiDraftNotifier.new);
+
+final systemShareSourceProvider = Provider<SystemShareSource>((_) {
+  throw UnimplementedError('Override in main with a real SystemShareSource.');
+});
