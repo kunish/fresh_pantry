@@ -81,7 +81,7 @@ class BottomNavBar extends ConsumerWidget {
                                 item.icon,
                                 color:
                                     index == currentIndex
-                                        ? Colors.white
+                                        ? AppColors.onPrimary
                                         : AppColors.outline,
                                 size: 24,
                               ),

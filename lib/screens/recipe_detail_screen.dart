@@ -130,9 +130,14 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
               background: RecipeImage(
                 imageSource: widget.recipe.imageUrl,
                 fit: BoxFit.cover,
+                semanticLabel: widget.recipe.name,
                 fallback: Container(
                   color: AppColors.surfaceContainerLow,
-                  child: const Icon(Icons.restaurant, size: 64),
+                  child: Semantics(
+                    label: widget.recipe.name,
+                    image: true,
+                    child: const Icon(Icons.restaurant, size: 64),
+                  ),
                 ),
               ),
             ),
@@ -201,57 +206,61 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
 
                 // Missing ingredients action
                 if (missing.isNotEmpty) ...[
-                  GestureDetector(
-                    onTap: () => _addMissingToCart(missing),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryContainer,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary,
-                              borderRadius: BorderRadius.circular(12),
+                  Semantics(
+                    button: true,
+                    label: '一键补齐食材',
+                    child: GestureDetector(
+                      onTap: () => _addMissingToCart(missing),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryContainer,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.add_shopping_cart,
+                                color: AppColors.onPrimary,
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.add_shopping_cart,
-                              color: AppColors.onPrimary,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '一键补齐食材',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.onPrimaryContainer,
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '一键补齐食材',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.onPrimaryContainer,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '将 ${missing.length} 个缺失食材加入购物清单',
-                                  style: GoogleFonts.manrope(
-                                    fontSize: 13,
-                                    color: AppColors.onPrimaryContainer
-                                        .withValues(alpha: 0.8),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '将 ${missing.length} 个缺失食材加入购物清单',
+                                    style: GoogleFonts.manrope(
+                                      fontSize: 13,
+                                      color: AppColors.onPrimaryContainer
+                                          .withValues(alpha: 0.8),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          Icon(
-                            Icons.arrow_forward,
-                            color: AppColors.onPrimaryContainer,
-                          ),
-                        ],
+                            Icon(
+                              Icons.arrow_forward,
+                              color: AppColors.onPrimaryContainer,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

@@ -24,6 +24,7 @@ class TopAppBar extends ConsumerWidget {
                   width: 40,
                   height: 40,
                   fit: BoxFit.cover,
+                  semanticLabel: '食材管家应用图标',
                   errorBuilder: (context, error, stackTrace) {
                     return const Icon(Icons.error, size: 40);
                   },

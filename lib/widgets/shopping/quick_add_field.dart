@@ -64,6 +64,7 @@ class _QuickAddFieldState extends ConsumerState<QuickAddField> {
             ),
             prefixIcon: const Icon(Icons.add_circle, color: AppColors.primary),
             suffixIcon: IconButton(
+              tooltip: '添加到购物清单',
               icon: const Icon(Icons.send, color: AppColors.primary, size: 20),
               onPressed: () {
                 _submit(_controller.text);

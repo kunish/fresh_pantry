@@ -856,39 +856,43 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
   }
 
   Widget _buildSaveButton() {
-    return GestureDetector(
-      onTap: () => _save(),
-      child: Container(
-        width: double.infinity,
-        height: 56,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.primary,
-              AppColors.primary.withValues(alpha: 0.8),
-            ],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              _isEditing ? Icons.check_circle : Icons.add_circle,
-              color: AppColors.onPrimary,
+    return Semantics(
+      button: true,
+      label: _isEditing ? '保存修改' : '保存',
+      child: GestureDetector(
+        onTap: () => _save(),
+        child: Container(
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primary,
+                AppColors.primary.withValues(alpha: 0.8),
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
             ),
-            const SizedBox(width: 8),
-            Text(
-              _isEditing ? '保存修改' : '保存',
-              style: GoogleFonts.plusJakartaSans(
-                fontWeight: FontWeight.w700,
-                fontSize: 18,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                _isEditing ? Icons.check_circle : Icons.add_circle,
                 color: AppColors.onPrimary,
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              Text(
+                _isEditing ? '保存修改' : '保存',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  color: AppColors.onPrimary,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
