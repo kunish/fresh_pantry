@@ -37,7 +37,7 @@ class IngredientCard extends StatelessWidget {
     final badgeColors = freshnessBadgeColors(ingredient.state);
 
     final cardContent = Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: const BoxDecoration(
         color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.all(Radius.circular(AppRadius.md)),
@@ -56,7 +56,7 @@ class IngredientCard extends StatelessWidget {
                   muted: isExpired,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppSpacing.lg),
               // Info
               Expanded(
                 child: Column(
@@ -71,7 +71,7 @@ class IngredientCard extends StatelessWidget {
                             style: Theme.of(
                               context,
                             ).textTheme.titleMedium?.copyWith(
-                              fontSize: 18,
+                              fontSize: AppFontSize.lg,
                               fontWeight: FontWeight.w700,
                               color: AppColors.onSurface.withValues(
                                 alpha: isExpired ? 0.6 : 1.0,
@@ -87,17 +87,17 @@ class IngredientCard extends StatelessWidget {
                           ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       '${ingredient.quantity} \u2022 ${ingredient.unit}',
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: AppFontSize.md,
                         color: AppColors.onSurfaceVariant.withValues(
                           alpha: isExpired ? 0.6 : 1.0,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     Wrap(
                       spacing: 8,
                       runSpacing: 6,
@@ -105,8 +105,8 @@ class IngredientCard extends StatelessWidget {
                         if (ingredient.expiryLabel != null)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 4,
+                              horizontal: AppSpacing.md,
+                              vertical: AppSpacing.xs,
                             ),
                             decoration: BoxDecoration(
                               color: badgeColors.bg,
@@ -115,7 +115,7 @@ class IngredientCard extends StatelessWidget {
                             child: Text(
                               ingredient.expiryLabel!.toUpperCase(),
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: AppFontSize.xs,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.8,
                                 color: badgeColors.text,
@@ -124,8 +124,8 @@ class IngredientCard extends StatelessWidget {
                           ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
+                            horizontal: AppSpacing.md,
+                            vertical: AppSpacing.xs,
                           ),
                           decoration: const BoxDecoration(
                             color: AppColors.surfaceContainerHigh,
@@ -141,11 +141,11 @@ class IngredientCard extends StatelessWidget {
                                 size: 12,
                                 color: AppColors.onSurfaceVariant,
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: AppSpacing.xs),
                               Text(
                                 storageLabelFor(ingredient.storage),
                                 style: const TextStyle(
-                                  fontSize: 10,
+                                  fontSize: AppFontSize.xs,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 0.8,
                                   color: AppColors.onSurfaceVariant,
@@ -161,19 +161,19 @@ class IngredientCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           FreshnessMeter(
             percent: ingredient.freshnessPercent,
             state: ingredient.state,
           ),
           if (onBuyAgain != null &&
               ingredient.state != FreshnessState.fresh) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             GestureDetector(
               onTap: onBuyAgain,
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                 decoration: const BoxDecoration(
                   color: AppColors.secondaryContainer,
                   borderRadius: BorderRadius.all(Radius.circular(AppRadius.md)),
@@ -186,11 +186,11 @@ class IngredientCard extends StatelessWidget {
                       size: 16,
                       color: AppColors.onSecondaryContainer,
                     ),
-                    SizedBox(width: 6),
+                    SizedBox(width: AppSpacing.sm),
                     Text(
                       '再买一次',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: AppFontSize.sm,
                         fontWeight: FontWeight.w700,
                         color: AppColors.onSecondaryContainer,
                       ),

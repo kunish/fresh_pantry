@@ -15,10 +15,10 @@ class SmartPlannerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(28),
+      padding: const EdgeInsets.all(AppSpacing.xxxl),
       decoration: BoxDecoration(
         color: AppColors.primaryContainer,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
       ),
       child: Stack(
         children: [
@@ -28,23 +28,23 @@ class SmartPlannerCard extends StatelessWidget {
               Text(
                 '智能规划',
                 style: GoogleFonts.manrope(
-                  fontSize: 10,
+                  fontSize: AppFontSize.xs,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 3,
                   color: AppColors.onPrimaryContainer.withValues(alpha: 0.7),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 title,
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 22,
+                  fontSize: AppFontSize.xl,
                   fontWeight: FontWeight.w700,
                   color: AppColors.onPrimaryContainer,
                   height: 1.3,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.xl),
               Semantics(
                 button: onViewRecipe != null,
                 label: '查看食谱',
@@ -53,12 +53,12 @@ class SmartPlannerCard extends StatelessWidget {
                   onTap: onViewRecipe,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
+                      horizontal: AppSpacing.xxl,
+                      vertical: AppSpacing.md,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(999),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -68,10 +68,10 @@ class SmartPlannerCard extends StatelessWidget {
                           style: GoogleFonts.manrope(
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary,
-                            fontSize: 14,
+                            fontSize: AppFontSize.md,
                           ),
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: AppSpacing.xs),
                         const Icon(
                           Icons.arrow_forward,
                           color: AppColors.primary,

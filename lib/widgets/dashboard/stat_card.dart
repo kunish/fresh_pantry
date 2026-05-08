@@ -21,7 +21,7 @@ class StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final card = Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.xxl),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppRadius.xxl),
@@ -38,16 +38,16 @@ class StatCard extends StatelessWidget {
           Text(
             value,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 30,
+              fontSize: AppFontSize.xxxl,
               fontWeight: FontWeight.w700,
               color: isWarning ? AppColors.secondary : AppColors.primary,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             label.toUpperCase(),
             style: GoogleFonts.manrope(
-              fontSize: 10,
+              fontSize: AppFontSize.xs,
               fontWeight: FontWeight.w700,
               letterSpacing: 2,
               color: AppColors.onSurfaceVariant,

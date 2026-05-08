@@ -5,6 +5,7 @@ import '../models/draft_field.dart';
 import '../models/recipe_draft.dart';
 import '../providers/ai_draft_provider.dart';
 import '../providers/custom_recipe_provider.dart';
+import '../theme/app_theme.dart';
 import '../widgets/shared/ai_draft_field.dart';
 
 class RecipeDraftReviewScreen extends ConsumerWidget {
@@ -24,11 +25,17 @@ class RecipeDraftReviewScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('审核 AI 草稿')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
           if (draft.sourceUrl != null) ...[
-            Text('来源: ${draft.sourceUrl}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
-            const SizedBox(height: 12),
+            Text(
+              '来源: ${draft.sourceUrl}',
+              style: const TextStyle(
+                fontSize: AppFontSize.xs,
+                color: AppColors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
           ],
           AiDraftFieldChip<String>(
             label: '名称',
@@ -36,7 +43,7 @@ class RecipeDraftReviewScreen extends ConsumerWidget {
             onChanged: (next) => _patch(ref, draft.copyWith(name: next)),
             editorBuilder: _stringEditor,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
               Expanded(
@@ -47,7 +54,7 @@ class RecipeDraftReviewScreen extends ConsumerWidget {
                   editorBuilder: _stringEditor,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: AiDraftFieldChip<int>(
                   label: '时长 (分钟)',
@@ -57,7 +64,7 @@ class RecipeDraftReviewScreen extends ConsumerWidget {
                   editorBuilder: _intEditor,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: AiDraftFieldChip<int>(
                   label: '难度',
@@ -69,7 +76,7 @@ class RecipeDraftReviewScreen extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           Text('食材 · ${draft.ingredients.length} 项', style: const TextStyle(fontWeight: FontWeight.w700)),
           for (final ing in draft.ingredients)
             ListTile(
@@ -77,14 +84,14 @@ class RecipeDraftReviewScreen extends ConsumerWidget {
               title: Text(ing.name.value),
               trailing: Text(ing.amount.value),
             ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Text('步骤 · ${draft.steps.length} 步', style: const TextStyle(fontWeight: FontWeight.w700)),
           for (var i = 0; i < draft.steps.length; i++)
             ListTile(dense: true, title: Text('${i + 1}. ${draft.steps[i].value}')),
         ],
       ),
       bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.all(12),
+        minimum: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
             if (regenerate != null && draft.sourceUrl != null)
@@ -95,7 +102,7 @@ class RecipeDraftReviewScreen extends ConsumerWidget {
                   child: const Text('重新生成'),
                 ),
               ),
-            if (regenerate != null) const SizedBox(width: 8),
+            if (regenerate != null) const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: OutlinedButton(
                 key: const Key('recipe_review_discard'),
@@ -106,7 +113,7 @@ class RecipeDraftReviewScreen extends ConsumerWidget {
                 child: const Text('丢弃'),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               flex: 2,
               child: FilledButton(
@@ -186,7 +193,7 @@ class _StringEditorState extends State<_StringEditor> {
       mainAxisSize: MainAxisSize.min,
       children: [
         TextField(controller: _controller, autofocus: true),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         FilledButton(
           onPressed: () => widget.onSave(_controller.text.trim()),
           child: const Text('保存'),
@@ -222,7 +229,7 @@ class _IntEditorState extends State<_IntEditor> {
       mainAxisSize: MainAxisSize.min,
       children: [
         TextField(controller: _controller, keyboardType: TextInputType.number, autofocus: true),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         FilledButton(
           onPressed: () => widget.onSave(int.tryParse(_controller.text.trim()) ?? widget.initial),
           child: const Text('保存'),

@@ -2,6 +2,7 @@
 class AppRadius {
   AppRadius._();
 
+  static const double xs = 4; // 细分隔 / 薄进度条 cap
   static const double sm = 8; // 小圆角(badge / chip 内嵌)
   static const double md = 12; // 默认 surface(SnackBar 等)
   static const double lg = 16; // 卡片

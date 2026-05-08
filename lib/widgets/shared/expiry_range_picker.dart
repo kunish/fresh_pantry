@@ -15,7 +15,7 @@ Future<DateTimeRange?> showExpiryRangePicker({
   return showDialog<DateTimeRange>(
     context: context,
     useSafeArea: false,
-    barrierColor: Colors.black.withValues(alpha: 0.28),
+    barrierColor: AppColors.modalBarrier,
     builder:
         (context) => Localizations.override(
           context: context,
@@ -133,7 +133,7 @@ class _ExpiryRangePickerDialogState extends State<ExpiryRangePickerDialog> {
               _buildTopBar(),
               _buildHeader(),
               _buildRangeTabs(),
-              const SizedBox(height: 18),
+              const SizedBox(height: AppSpacing.xl),
               Expanded(child: _buildDateWheel()),
             ],
           ),
@@ -144,7 +144,7 @@ class _ExpiryRangePickerDialogState extends State<ExpiryRangePickerDialog> {
 
   Widget _buildTopBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.xs),
       child: Row(
         children: [
           IconButton(
@@ -160,7 +160,7 @@ class _ExpiryRangePickerDialogState extends State<ExpiryRangePickerDialog> {
               '确定',
               style: GoogleFonts.manrope(
                 color: AppColors.primary,
-                fontSize: 16,
+                fontSize: AppFontSize.lg,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -172,7 +172,7 @@ class _ExpiryRangePickerDialogState extends State<ExpiryRangePickerDialog> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(28, 4, 28, 14),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.xxxl, AppSpacing.xs, AppSpacing.xxxl, AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -180,7 +180,7 @@ class _ExpiryRangePickerDialogState extends State<ExpiryRangePickerDialog> {
             '选择保质期范围',
             style: GoogleFonts.manrope(
               color: AppColors.onSurfaceVariant,
-              fontSize: 16,
+              fontSize: AppFontSize.lg,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -191,12 +191,12 @@ class _ExpiryRangePickerDialogState extends State<ExpiryRangePickerDialog> {
 
   Widget _buildRangeTabs() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
       child: Container(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.all(AppSpacing.xs),
         decoration: BoxDecoration(
           color: AppColors.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
         child: Row(
           children: [
@@ -237,16 +237,16 @@ class _ExpiryRangePickerDialogState extends State<ExpiryRangePickerDialog> {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 140),
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.sm),
         decoration: BoxDecoration(
           color:
               selected ? AppColors.surfaceContainerLowest : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           boxShadow:
               selected
                   ? [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
+                      color: AppColors.subtleShadow,
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -260,18 +260,18 @@ class _ExpiryRangePickerDialogState extends State<ExpiryRangePickerDialog> {
               style: GoogleFonts.manrope(
                 color:
                     selected ? AppColors.primary : AppColors.onSurfaceVariant,
-                fontSize: 13,
+                fontSize: AppFontSize.sm,
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               _formatDate(date),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.manrope(
                 color: AppColors.onSurface,
-                fontSize: 12,
+                fontSize: AppFontSize.sm,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -283,7 +283,7 @@ class _ExpiryRangePickerDialogState extends State<ExpiryRangePickerDialog> {
 
   Widget _buildDateWheel() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 0, 8, 24),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.sm, 0, AppSpacing.sm, AppSpacing.xxl),
       child: CupertinoTheme(
         data: CupertinoThemeData(
           brightness: Brightness.light,
@@ -292,7 +292,7 @@ class _ExpiryRangePickerDialogState extends State<ExpiryRangePickerDialog> {
           textTheme: CupertinoTextThemeData(
             dateTimePickerTextStyle: GoogleFonts.manrope(
               color: AppColors.onSurface,
-              fontSize: 24,
+              fontSize: AppFontSize.xxl,
               fontWeight: FontWeight.w700,
             ),
           ),

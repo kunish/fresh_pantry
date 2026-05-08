@@ -22,13 +22,13 @@ class ShoppingItemTile extends StatelessWidget {
             opacity: item.isChecked ? 0.6 : 1.0,
             duration: const Duration(milliseconds: 200),
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 color:
                     item.isChecked
                         ? AppColors.surfaceContainerLow.withValues(alpha: 0.5)
                         : AppColors.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: Row(
                 children: [
@@ -41,7 +41,7 @@ class ShoppingItemTile extends StatelessWidget {
                           item.isChecked
                               ? AppColors.primary
                               : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                       border:
                           item.isChecked
                               ? null
@@ -56,7 +56,7 @@ class ShoppingItemTile extends StatelessWidget {
                             )
                             : null,
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: AppSpacing.lg),
                   // Info
                   Expanded(
                     child: Text(

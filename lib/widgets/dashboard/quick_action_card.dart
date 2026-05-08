@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../theme/app_radius.dart';
+import '../../theme/app_theme.dart';
 
 class QuickActionCard extends StatelessWidget {
   final IconData icon;
@@ -31,7 +31,7 @@ class QuickActionCard extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(AppSpacing.xl),
           decoration: BoxDecoration(
             color: backgroundColor,
             borderRadius: BorderRadius.circular(AppRadius.xxl),
@@ -41,13 +41,13 @@ class QuickActionCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Icon(icon, color: contentColor, size: 32),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               Text(
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 18,
+                  fontSize: AppFontSize.lg,
                   fontWeight: FontWeight.w700,
                   color: contentColor,
                 ),
@@ -57,7 +57,7 @@ class QuickActionCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.manrope(
-                  fontSize: 13,
+                  fontSize: AppFontSize.sm,
                   color: contentColor.withValues(alpha: 0.8),
                 ),
               ),

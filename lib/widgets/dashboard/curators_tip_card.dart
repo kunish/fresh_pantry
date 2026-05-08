@@ -15,7 +15,7 @@ class CuratorsTipCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(28),
+      padding: const EdgeInsets.all(AppSpacing.xxxl),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppRadius.xxl),
@@ -26,11 +26,11 @@ class CuratorsTipCard extends StatelessWidget {
           Text(
             '管家小贴士',
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 20,
+              fontSize: AppFontSize.xl,
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Text(
             '"$tip"',
             style: GoogleFonts.manrope(
@@ -38,11 +38,11 @@ class CuratorsTipCard extends StatelessWidget {
               height: 1.6,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.xl),
           Text(
             bottomLabel.toUpperCase(),
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              fontSize: 10,
+              fontSize: AppFontSize.xs,
               fontWeight: FontWeight.w700,
               letterSpacing: 2,
               color: AppColors.primary,

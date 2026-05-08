@@ -41,7 +41,7 @@ class FreshnessMeter extends StatelessWidget {
     return Column(
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
           child: LinearProgressIndicator(
             value: percent,
             minHeight: 6,
@@ -50,14 +50,14 @@ class FreshnessMeter extends StatelessWidget {
           ),
         ),
         if (showLabel) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.sm),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 '新鲜度指标',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  fontSize: 10,
+                  fontSize: AppFontSize.xs,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.5,
                   color: AppColors.onSurfaceVariant,
@@ -66,7 +66,7 @@ class FreshnessMeter extends StatelessWidget {
               Text(
                 _label.toUpperCase(),
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  fontSize: 10,
+                  fontSize: AppFontSize.xs,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.5,
                   color: _barColor,
@@ -95,7 +95,7 @@ class GradientFreshnessMeter extends StatelessWidget {
             Text(
               '最佳新鲜',
               style: TextStyle(
-                fontSize: 10,
+                fontSize: AppFontSize.xs,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.5,
                 color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
@@ -104,7 +104,7 @@ class GradientFreshnessMeter extends StatelessWidget {
             Text(
               '即将到期',
               style: TextStyle(
-                fontSize: 10,
+                fontSize: AppFontSize.xs,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.5,
                 color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
@@ -112,9 +112,9 @@ class GradientFreshnessMeter extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         ClipRRect(
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
           child: SizedBox(
             height: 8,
             child: Stack(
@@ -122,7 +122,7 @@ class GradientFreshnessMeter extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     color: AppColors.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
                 ),
                 FractionallySizedBox(
@@ -136,7 +136,7 @@ class GradientFreshnessMeter extends StatelessWidget {
                           AppColors.secondaryContainer,
                         ],
                       ),
-                      borderRadius: BorderRadius.circular(999),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
                     ),
                   ),
                 ),

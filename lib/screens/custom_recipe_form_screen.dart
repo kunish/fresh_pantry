@@ -134,7 +134,7 @@ class _CustomRecipeFormScreenState
                 onClear: _coverImageSource == null ? null : _clearCoverImage,
               ),
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -145,37 +145,37 @@ class _CustomRecipeFormScreenState
                         color: AppColors.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     TextField(
                       controller: _nameController,
                       decoration: _fieldDecoration('食谱名称 *'),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     TextField(
                       controller: _categoryController,
                       decoration: _fieldDecoration('分类 *'),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     TextField(
                       controller: _cookingMinutesController,
                       decoration: _fieldDecoration('烹饪时间（分钟）*'),
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     TextField(
                       controller: _difficultyController,
                       decoration: _fieldDecoration('难度 1-5 *'),
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     TextField(
                       controller: _descriptionController,
                       decoration: _fieldDecoration('简介'),
                       maxLines: 2,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xxl),
                     Text(
                       '食材',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -183,7 +183,7 @@ class _CustomRecipeFormScreenState
                         color: AppColors.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     for (var i = 0; i < _ingredientControllers.length; i++) ...[
                       Row(
                         children: [
@@ -194,7 +194,7 @@ class _CustomRecipeFormScreenState
                               decoration: _fieldDecoration('食材名称'),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: TextField(
                               controller:
@@ -210,14 +210,14 @@ class _CustomRecipeFormScreenState
                             ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                     ],
                     OutlinedButton.icon(
                       onPressed: _addIngredient,
                       icon: const Icon(Icons.add),
                       label: const Text('添加食材'),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xxl),
                     Text(
                       '步骤',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -225,7 +225,7 @@ class _CustomRecipeFormScreenState
                         color: AppColors.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     for (var i = 0; i < _stepControllers.length; i++) ...[
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,7 +245,7 @@ class _CustomRecipeFormScreenState
                             ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.md),
                     ],
                     OutlinedButton.icon(
                       onPressed: _addStep,
@@ -261,7 +261,7 @@ class _CustomRecipeFormScreenState
         ),
       ),
       bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.all(16),
+        minimum: const EdgeInsets.all(AppSpacing.lg),
         child: FilledButton(
           onPressed: _isSaving ? null : _saveRecipe,
           child: const Text('保存食谱'),
@@ -670,11 +670,11 @@ class _CoverImageHero extends StatelessWidget {
                     '封面图片',
                     style: GoogleFonts.manrope(
                       color: Colors.white,
-                      fontSize: 20,
+                      fontSize: AppFontSize.xl,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: AppSpacing.md),
                   Wrap(
                     spacing: 10,
                     runSpacing: 8,
@@ -697,8 +697,10 @@ class _CoverImageHero extends StatelessWidget {
                           tooltip: '清除图片',
                           color: Colors.white,
                           style: IconButton.styleFrom(
-                            backgroundColor: const Color(0x33000000),
-                            side: const BorderSide(color: Color(0x99FFFFFF)),
+                            backgroundColor: AppColors.onImageScrim,
+                            side: const BorderSide(
+                              color: AppColors.onImageBorderSoft,
+                            ),
                           ),
                         ),
                     ],
@@ -731,10 +733,10 @@ class _HeroImageButton extends StatelessWidget {
       icon: Icon(icon, size: 18),
       label: Text(label),
       style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.white,
-        backgroundColor: const Color(0x33000000),
-        side: const BorderSide(color: Color(0xB3FFFFFF)),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        foregroundColor: AppColors.onPrimary,
+        backgroundColor: AppColors.onImageScrim,
+        side: const BorderSide(color: AppColors.onImageBorderStrong),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
         minimumSize: const Size(0, 40),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
@@ -790,29 +792,31 @@ class _AiUrlBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 0),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF0EA5E9)]),
-        borderRadius: BorderRadius.circular(14),
+        gradient: const LinearGradient(
+          colors: [AppColors.aiGradientStart, AppColors.aiGradientEnd],
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('✨ 用 AI 一键导入',
               style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           TextField(
             key: const Key('recipe_url_input'),
             controller: controller,
             decoration: const InputDecoration(
-              hintText: '粘贴食谱链接 (懒饭 / 小红书…)',
+              hintText: '粘贴食谱链接 (懒饭 / 下厨房…)',
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           FilledButton(
             key: const Key('recipe_url_parse'),
             onPressed: onParse,

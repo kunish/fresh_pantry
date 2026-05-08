@@ -102,11 +102,11 @@ class _SwipeRevealDeleteActionState extends State<SwipeRevealDeleteAction> {
                                 Icons.delete_outline,
                                 color: AppColors.onError,
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: AppSpacing.xs),
                               Text(
                                 '删除',
                                 style: GoogleFonts.manrope(
-                                  fontSize: 12,
+                                  fontSize: AppFontSize.sm,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.onError,
                                 ),

@@ -34,14 +34,14 @@ class CategoryChips extends StatelessWidget {
         height: 40,
         child: Row(
           children: [
-            const SizedBox(width: 24),
+            const SizedBox(width: AppSpacing.xxl),
             for (final category in fixedCategories) ...[
               _CategoryChip(
                 category: category,
                 isSelected: category == selectedCategory,
                 onSelected: onSelected,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
             ],
             if (scrollableCategories.isNotEmpty) ...[
               Expanded(
@@ -64,7 +64,7 @@ class CategoryChips extends StatelessWidget {
         categories: categories,
         selectedCategory: selectedCategory,
         onSelected: onSelected,
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
       ),
     );
   }
@@ -89,7 +89,7 @@ class _ScrollableCategoryChips extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       padding: padding,
       itemCount: categories.length,
-      separatorBuilder: (_, _) => const SizedBox(width: 8),
+      separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
       itemBuilder: (context, index) {
         final category = categories[index];
 
@@ -126,7 +126,7 @@ class _CategoryChip extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           height: 40,
           alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           decoration: BoxDecoration(
             color:
                 isSelected ? AppColors.primary : AppColors.surfaceContainerHigh,
@@ -135,7 +135,7 @@ class _CategoryChip extends StatelessWidget {
           child: Text(
             category,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              fontSize: 13,
+              fontSize: AppFontSize.sm,
               fontWeight: FontWeight.w600,
               height: 1.0,
               color: isSelected

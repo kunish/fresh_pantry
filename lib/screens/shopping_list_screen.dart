@@ -57,7 +57,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.lg, AppSpacing.xxl, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -77,7 +77,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                                 color: AppColors.onSurface,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: AppSpacing.xs),
                             Text(
                               '$uncheckedCount 件待购 · $checkedCount 件已购',
                               style: GoogleFonts.manrope(
@@ -94,12 +94,12 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                               onTap: () => _confirmClearChecked(context, ref),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 8,
+                                  horizontal: AppSpacing.lg,
+                                  vertical: AppSpacing.sm,
                                 ),
                                 decoration: BoxDecoration(
                                   color: AppColors.surfaceContainerHigh,
-                                  borderRadius: BorderRadius.circular(999),
+                                  borderRadius: BorderRadius.circular(AppRadius.pill),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -109,11 +109,11 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                                       size: 16,
                                       color: AppColors.onSurfaceVariant,
                                     ),
-                                    const SizedBox(width: 6),
+                                    const SizedBox(width: AppSpacing.sm),
                                     Text(
                                       '清理已购',
                                       style: GoogleFonts.manrope(
-                                        fontSize: 12,
+                                        fontSize: AppFontSize.sm,
                                         fontWeight: FontWeight.w700,
                                         color: AppColors.onSurfaceVariant,
                                       ),
@@ -125,11 +125,11 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                           ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppSpacing.xl),
 
                     // Quick Add Section
                     const QuickAddField(),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: AppSpacing.xxxl),
                   ],
                 ),
               ),
@@ -150,20 +150,20 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                             alpha: 0.3,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSpacing.lg),
                         Text(
                           '购物清单为空',
                           style: GoogleFonts.manrope(
-                            fontSize: 16,
+                            fontSize: AppFontSize.lg,
                             fontWeight: FontWeight.w600,
                             color: AppColors.onSurfaceVariant,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           '在上方输入框添加需要购买的食材',
                           style: GoogleFonts.manrope(
-                            fontSize: 13,
+                            fontSize: AppFontSize.sm,
                             color: AppColors.onSurfaceVariant.withValues(
                               alpha: 0.7,
                             ),
@@ -176,7 +176,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
               )
             else
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, 0, AppSpacing.xxl, AppSpacing.huge),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     for (final entry in groupedItems.entries)
@@ -276,7 +276,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                 });
               },
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                 child: Row(
                   children: [
                     AnimatedRotation(
@@ -289,19 +289,19 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                         color: AppColors.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: AppSpacing.sm),
                     CategoryIconAvatar(
                       category: title,
                       size: 32,
                       iconSize: 18,
                       borderRadius: 8,
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Text(
                         title,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 18,
+                          fontSize: AppFontSize.lg,
                           fontWeight: FontWeight.w700,
                           color: AppColors.onSurface,
                         ),
@@ -310,7 +310,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                     Text(
                       '${items.length} 件',
                       style: GoogleFonts.manrope(
-                        fontSize: 10,
+                        fontSize: AppFontSize.xs,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 2,
                         color: AppColors.onSurfaceVariant,
@@ -329,7 +329,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                     ? const SizedBox.shrink()
                     : Column(
                       children: [
-                        const SizedBox(height: 12),
+                        const SizedBox(height: AppSpacing.md),
                         for (final item in items)
                           SwipeRevealDeleteAction(
                             key: ValueKey('shop_swipe_${item.id}'),

@@ -127,46 +127,74 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                 ),
             ],
             flexibleSpace: FlexibleSpaceBar(
-              background: RecipeImage(
-                imageSource: widget.recipe.imageUrl,
-                fit: BoxFit.cover,
-                semanticLabel: widget.recipe.name,
-                fallback: Container(
-                  color: AppColors.surfaceContainerLow,
-                  child: Semantics(
-                    label: widget.recipe.name,
-                    image: true,
-                    child: const Icon(Icons.restaurant, size: 64),
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  RecipeImage(
+                    imageSource: widget.recipe.imageUrl,
+                    fit: BoxFit.cover,
+                    semanticLabel: widget.recipe.name,
+                    fallback: Container(
+                      color: AppColors.surfaceContainerLow,
+                      child: Semantics(
+                        label: widget.recipe.name,
+                        image: true,
+                        child: const Icon(Icons.restaurant, size: 64),
+                      ),
+                    ),
                   ),
-                ),
+                  // 顶部 scrim：保证深色 status bar 图标和 leading/actions
+                  // 在任何颜色的封面图（红烧肉、巧克力等深色食物）上都可读。
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: IgnorePointer(
+                      child: SizedBox(
+                        height:
+                            MediaQuery.of(context).padding.top + kToolbarHeight,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                AppColors.surface.withValues(alpha: 0.55),
+                                AppColors.surface.withValues(alpha: 0),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
 
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.xxl, AppSpacing.xxl, 40),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 // Title
                 Text(
                   widget.recipe.name,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 26,
+                    fontSize: AppFontSize.xxl,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.5,
                     color: AppColors.onSurface,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   widget.recipe.description,
                   style: GoogleFonts.manrope(
-                    fontSize: 15,
+                    fontSize: AppFontSize.md,
                     color: AppColors.onSurfaceVariant,
                     height: 1.5,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
 
                 // Meta chips
                 Wrap(
@@ -177,8 +205,8 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                       icon: Icons.timer_outlined,
                       label: '${widget.recipe.cookingMinutes}分钟',
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
                       ),
                       iconForegroundColor: AppColors.primary,
                     ),
@@ -186,8 +214,8 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                       icon: Icons.local_fire_department_outlined,
                       label: widget.recipe.difficultyLabel,
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
                       ),
                       iconForegroundColor: AppColors.primary,
                     ),
@@ -195,14 +223,14 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                       icon: Icons.checklist,
                       label: '$matched/${widget.recipe.ingredients.length} 食材已备',
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
                       ),
                       iconForegroundColor: AppColors.primary,
                     ),
                   ],
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppSpacing.huge),
 
                 // Missing ingredients action
                 if (missing.isNotEmpty) ...[
@@ -212,10 +240,10 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                     child: GestureDetector(
                       onTap: () => _addMissingToCart(missing),
                       child: Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(AppSpacing.lg),
                         decoration: BoxDecoration(
                           color: AppColors.primaryContainer,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(AppRadius.lg),
                         ),
                         child: Row(
                           children: [
@@ -224,14 +252,14 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                               height: 44,
                               decoration: BoxDecoration(
                                 color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(AppRadius.md),
                               ),
                               child: const Icon(
                                 Icons.add_shopping_cart,
                                 color: AppColors.onPrimary,
                               ),
                             ),
-                            const SizedBox(width: 14),
+                            const SizedBox(width: AppSpacing.lg),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,11 +271,11 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                                       color: AppColors.onPrimaryContainer,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: AppSpacing.xs),
                                   Text(
                                     '将 ${missing.length} 个缺失食材加入购物清单',
                                     style: GoogleFonts.manrope(
-                                      fontSize: 13,
+                                      fontSize: AppFontSize.sm,
                                       color: AppColors.onPrimaryContainer
                                           .withValues(alpha: 0.8),
                                     ),
@@ -264,7 +292,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: AppSpacing.huge),
                 ],
 
                 // Ingredients
@@ -274,24 +302,24 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                     Text(
                       '所需食材',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 20,
+                        fontSize: AppFontSize.xl,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     if (widget.recipe.ingredients.isNotEmpty)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.xs,
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.primaryFixed,
-                          borderRadius: BorderRadius.circular(999),
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
                         ),
                         child: Text(
                           '$matched/${widget.recipe.ingredients.length}',
                           style: GoogleFonts.manrope(
-                            fontSize: 11,
+                            fontSize: AppFontSize.xs,
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary,
                           ),
@@ -299,9 +327,9 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 ..._buildIngredientsList(inventory, widget.recipe),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppSpacing.huge),
 
                 // Steps with progress
                 Row(
@@ -310,27 +338,27 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                     Text(
                       '烹饪步骤',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 20,
+                        fontSize: AppFontSize.xl,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     if (widget.recipe.steps.isNotEmpty)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.xs,
                         ),
                         decoration: BoxDecoration(
                           color:
                               stepProgress >= 1.0
                                   ? AppColors.primaryFixed
                                   : AppColors.surfaceContainerHigh,
-                          borderRadius: BorderRadius.circular(999),
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
                         ),
                         child: Text(
                           '${_completedSteps.length}/${widget.recipe.steps.length}',
                           style: GoogleFonts.manrope(
-                            fontSize: 11,
+                            fontSize: AppFontSize.xs,
                             fontWeight: FontWeight.w700,
                             color:
                                 stepProgress >= 1.0
@@ -342,10 +370,10 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                   ],
                 ),
                 if (widget.recipe.steps.isNotEmpty) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   // Progress bar
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(AppRadius.xs),
                     child: LinearProgressIndicator(
                       value: stepProgress,
                       backgroundColor: AppColors.surfaceContainerHigh,
@@ -353,9 +381,9 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                       minHeight: 6,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.xl),
                 ] else
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                 for (final (index, step) in widget.recipe.steps.indexed)
                   _buildStepRow(index, step),
               ]),
@@ -381,7 +409,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
               height: 28,
               decoration: BoxDecoration(
                 color: isCompleted ? AppColors.primary : AppColors.primaryFixed,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               alignment: Alignment.center,
               child:
@@ -394,18 +422,18 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                       : Text(
                         '${index + 1}',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
+                          fontSize: AppFontSize.sm,
                           fontWeight: FontWeight.w700,
                           color: AppColors.primary,
                         ),
                       ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(
               child: Text(
                 step,
                 style: GoogleFonts.manrope(
-                  fontSize: 15,
+                  fontSize: AppFontSize.md,
                   color:
                       isCompleted
                           ? AppColors.onSurfaceVariant
@@ -452,12 +480,12 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             size: 20,
             color: available ? AppColors.primary : AppColors.onSurfaceVariant,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
               '${ingredient.name} (${ingredient.amount})',
               style: GoogleFonts.manrope(
-                fontSize: 15,
+                fontSize: AppFontSize.md,
                 color:
                     available
                         ? AppColors.onSurface
@@ -470,7 +498,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             Text(
               '库存中',
               style: GoogleFonts.manrope(
-                fontSize: 12,
+                fontSize: AppFontSize.sm,
                 color: AppColors.primary,
                 fontWeight: FontWeight.w600,
               ),

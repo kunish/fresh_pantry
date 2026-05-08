@@ -409,7 +409,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       behavior: HitTestBehavior.translucent,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 120),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.lg, AppSpacing.xxl, 120),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -417,13 +417,13 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
             Text(
               _isEditing ? '编辑食材' : '策划您的食材库',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 28,
+                fontSize: AppFontSize.xxxl,
                 fontWeight: FontWeight.w700,
                 color: AppColors.primary,
                 letterSpacing: -0.3,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               _isEditing ? '更新库存中的食材信息。' : '添加新食材到您的收藏。',
               style: GoogleFonts.manrope(
@@ -432,40 +432,40 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
 
             // ── Quick entry ──
             if (!_isEditing) ...[
               _buildQuickEntryRow(),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xxl),
             ],
 
             // ── Frequent items ──
             if (!_isEditing && frequentItems.isNotEmpty) ...[
               _buildLabel('常购食材'),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.md),
               _buildFrequentChips(frequentItems),
-              const SizedBox(height: 28),
+              const SizedBox(height: AppSpacing.xxxl),
             ],
 
             // Ingredient Name
             _buildLabel('食材名称'),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             _buildFilledInput(
               controller: _nameController,
               hintText: '例如：牛奶、鸡蛋、番茄...',
-              fontSize: 18,
+              fontSize: AppFontSize.lg,
             ),
             if (_autoFilled) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               Row(
                 children: [
                   Icon(Icons.auto_awesome, size: 14, color: AppColors.primary),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: AppSpacing.xs),
                   Text(
                     '已智能填充分类、存储位置和保质期',
                     style: GoogleFonts.manrope(
-                      fontSize: 12,
+                      fontSize: AppFontSize.sm,
                       color: AppColors.primary,
                     ),
                   ),
@@ -473,7 +473,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
               ),
             ],
 
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
 
             // Category + Storage (side by side)
             Row(
@@ -483,18 +483,18 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildLabel('分类'),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
                       _buildCategoryDropdown(),
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildLabel('存储位置'),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
                       _buildStorageSelector(),
                     ],
                   ),
@@ -502,11 +502,11 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
               ],
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
 
             // Quantity + Unit (side by side)
             _buildLabel('数量'),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
                 Expanded(
@@ -517,21 +517,21 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                     keyboardType: _decimalKeyboardType,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(flex: 1, child: _buildUnitDropdown()),
               ],
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
 
             // Expiration Section
             _buildExpirationSection(),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.huge),
 
             // Save Buttons
             _buildSaveButton(),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             _buildDiscardButton(),
           ],
         ),
@@ -564,10 +564,10 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
               });
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
               decoration: BoxDecoration(
                 color: AppColors.primaryFixed,
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -577,11 +577,11 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                     size: 14,
                     color: AppColors.primary,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: AppSpacing.sm),
                   Text(
                     item.name,
                     style: GoogleFonts.manrope(
-                      fontSize: 13,
+                      fontSize: AppFontSize.sm,
                       fontWeight: FontWeight.w600,
                       color: AppColors.primary,
                     ),
@@ -599,7 +599,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: AppColors.outline, width: 2)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedCategory,
@@ -609,7 +609,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
             color: AppColors.onSurfaceVariant,
             size: 20,
           ),
-          style: GoogleFonts.manrope(fontSize: 14, color: AppColors.onSurface),
+          style: GoogleFonts.manrope(fontSize: AppFontSize.md, color: AppColors.onSurface),
           dropdownColor: AppColors.surfaceContainerLowest,
           items: [
             for (final category in _categoryOptions)
@@ -630,7 +630,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: AppColors.outline, width: 2)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<IconType>(
           value: _selectedStorage,
@@ -640,7 +640,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
             color: AppColors.onSurfaceVariant,
             size: 20,
           ),
-          style: GoogleFonts.manrope(fontSize: 14, color: AppColors.onSurface),
+          style: GoogleFonts.manrope(fontSize: AppFontSize.md, color: AppColors.onSurface),
           dropdownColor: AppColors.surfaceContainerLowest,
           items: [
             for (final type in IconType.values)
@@ -653,7 +653,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                       size: 16,
                       color: AppColors.onSurfaceVariant,
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: AppSpacing.sm),
                     Text(storageLabelFor(type)),
                   ],
                 ),
@@ -674,7 +674,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: AppColors.outline, width: 2)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedUnit,
@@ -684,7 +684,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
             color: AppColors.onSurfaceVariant,
             size: 20,
           ),
-          style: GoogleFonts.manrope(fontSize: 14, color: AppColors.onSurface),
+          style: GoogleFonts.manrope(fontSize: AppFontSize.md, color: AppColors.onSurface),
           dropdownColor: AppColors.surfaceContainerLowest,
           items: [
             for (final unit in _unitOptions)
@@ -715,10 +715,10 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     final badgeColors = _freshnessBadgeColors(computedFreshness);
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -730,17 +730,17 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
               if (_selectedExpiryDate != null)
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
+                    horizontal: AppSpacing.md,
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
                     color: badgeColors.bg,
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
                   child: Text(
                     expiryLabel,
                     style: GoogleFonts.manrope(
-                      fontSize: 11,
+                      fontSize: AppFontSize.xs,
                       fontWeight: FontWeight.w700,
                       color: badgeColors.text,
                     ),
@@ -748,7 +748,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: AppSpacing.lg),
 
           // Quick-select chips
           Wrap(
@@ -762,25 +762,25 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
           ),
 
           if (_selectedExpiryDate != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             // Show selected date
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
               decoration: BoxDecoration(
                 color: AppColors.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.event, size: 18, color: AppColors.primary),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       _selectedExpirySummary,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.manrope(
-                        fontSize: 15,
+                        fontSize: AppFontSize.md,
                         fontWeight: FontWeight.w600,
                         color: AppColors.onSurface,
                       ),
@@ -804,7 +804,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             GradientFreshnessMeter(percent: computedFreshness),
           ],
         ],
@@ -823,7 +823,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       label: '$days天后',
       onTap: () => _applyShelfDays(days),
       selected: isSelected,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
       fontWeight: FontWeight.w700,
       backgroundColor: AppColors.surfaceContainerLowest,
       foregroundColor: AppColors.onSurface,
@@ -862,7 +862,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
         }
       },
       selected: isCustom,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
       fontWeight: FontWeight.w700,
       backgroundColor: AppColors.surfaceContainerLowest,
       foregroundColor: AppColors.onSurface,
@@ -887,7 +887,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
             ),
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -896,12 +896,12 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                 _isEditing ? Icons.check_circle : Icons.add_circle,
                 color: AppColors.onPrimary,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Text(
                 _isEditing ? '保存修改' : '保存',
                 style: GoogleFonts.plusJakartaSans(
                   fontWeight: FontWeight.w700,
-                  fontSize: 18,
+                  fontSize: AppFontSize.lg,
                   color: AppColors.onPrimary,
                 ),
               ),
@@ -962,14 +962,14 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
             label: '拍照识别',
             onTap: _runCamera,
           )),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(child: _quickButton(
             key: const Key('quick_text'),
             icon: Icons.edit_note,
             label: '粘贴清单',
             onTap: _runTextDialog,
           )),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(child: _quickButton(
             key: const Key('quick_manual'),
             icon: Icons.edit,
@@ -989,16 +989,16 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
         key: key,
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: AppColors.primaryFixed,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
           child: Column(
             children: [
               Icon(icon, color: AppColors.primary),
-              const SizedBox(height: 6),
-              Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+              const SizedBox(height: AppSpacing.sm),
+              Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: AppFontSize.sm)),
             ],
           ),
         ),
@@ -1111,7 +1111,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       child: Text(
         text.toUpperCase(),
         style: GoogleFonts.plusJakartaSans(
-          fontSize: 12,
+          fontSize: AppFontSize.sm,
           fontWeight: FontWeight.w600,
           letterSpacing: 2,
           color: AppColors.primary,
@@ -1169,8 +1169,8 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                 errorBorder: InputBorder.none,
                 focusedErrorBorder: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.lg,
                 ),
               ),
             ),

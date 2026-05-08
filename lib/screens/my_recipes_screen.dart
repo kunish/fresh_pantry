@@ -5,6 +5,7 @@ import '../models/recipe.dart';
 import '../providers/custom_recipe_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/recipe_provider.dart';
+import '../theme/app_theme.dart';
 import '../utils/app_dialog.dart';
 import '../utils/app_snackbar.dart';
 import '../widgets/recipe_card.dart';
@@ -24,7 +25,7 @@ class MyRecipesScreen extends ConsumerWidget {
           recipes.isEmpty
               ? const Center(child: Text('还没有自定义食谱'))
               : ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.lg),
                 itemCount: recipes.length,
                 itemBuilder: (context, index) {
                   return _MyRecipeCard(recipe: recipes[index]);

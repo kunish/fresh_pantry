@@ -5,6 +5,7 @@ import '../models/ingredient_draft.dart';
 import '../models/storage_area.dart';
 import '../providers/ai_draft_provider.dart';
 import '../providers/inventory_provider.dart';
+import '../theme/app_theme.dart';
 import '../utils/storage_labels.dart';
 
 class IngredientDraftReviewScreen extends ConsumerWidget {
@@ -24,23 +25,26 @@ class IngredientDraftReviewScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('审核识别结果')),
       body: ListView.separated(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppSpacing.md),
         itemCount: drafts.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 6),
+        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
         itemBuilder: (_, i) {
           final d = drafts[i];
-          final accent = d.selected ? const Color(0xFF0EA5E9) : Colors.grey;
+          final accent =
+              d.selected ? AppColors.aiAccent : AppColors.aiAccentMuted;
           return InkWell(
             key: Key('ingredient_row_${d.id}'),
             onTap: () => ref.read(aiDraftProvider.notifier).updateIngredientDrafts([
               for (final e in drafts) e.id == d.id ? (e..selected = !e.selected) : e,
             ]),
             child: Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: d.selected ? accent.withValues(alpha: 0.06) : Colors.grey.shade100,
+                color: d.selected
+                    ? accent.withValues(alpha: 0.06)
+                    : AppColors.surfaceContainerLow,
                 border: Border(left: BorderSide(color: accent, width: 3)),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Row(
                 children: [
@@ -48,19 +52,22 @@ class IngredientDraftReviewScreen extends ConsumerWidget {
                     d.selected ? Icons.check_box : Icons.check_box_outline_blank,
                     color: accent,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(d.name.value, style: const TextStyle(fontWeight: FontWeight.w700)),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           '${d.quantity.value} ${d.unit.value} · '
                           '${d.category.value ?? ''} · '
                           '${storageLabelFor(d.storage.value ?? IconType.fridge)} · '
                           '${d.shelfLifeDays.value ?? '-'} 天',
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style: const TextStyle(
+                            fontSize: AppFontSize.sm,
+                            color: AppColors.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
@@ -72,7 +79,7 @@ class IngredientDraftReviewScreen extends ConsumerWidget {
         },
       ),
       bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.all(12),
+        minimum: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
             if (regenerate != null)
@@ -83,7 +90,7 @@ class IngredientDraftReviewScreen extends ConsumerWidget {
                   child: const Text('重新识别'),
                 ),
               ),
-            if (regenerate != null) const SizedBox(width: 8),
+            if (regenerate != null) const SizedBox(width: AppSpacing.sm),
             Expanded(
               flex: 2,
               child: FilledButton(

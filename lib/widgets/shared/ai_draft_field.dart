@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/draft_field.dart';
+import '../../theme/app_theme.dart';
 
 typedef DraftEditorBuilder<T> = Widget Function(T initial, void Function(T) save);
 
@@ -23,31 +24,31 @@ class AiDraftFieldChip<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isAi = field.source == DraftSource.ai;
-    final accent = isAi ? const Color(0xFF0EA5E9) : const Color(0xFF64748B);
+    final accent = isAi ? AppColors.aiAccent : AppColors.aiAccentMuted;
     final display = formatter?.call(field.value) ?? '${field.value}';
 
     return InkWell(
       onTap: () => _openEditor(context),
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: accent.withValues(alpha: 0.06),
           border: Border(left: BorderSide(color: accent, width: 3)),
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Text(label, style: TextStyle(fontSize: 10, color: accent, fontWeight: FontWeight.w700)),
+                Text(label, style: TextStyle(fontSize: AppFontSize.xs, color: accent, fontWeight: FontWeight.w700)),
                 const Spacer(),
                 if (isAi)
-                  Text('AI 填', style: TextStyle(fontSize: 10, color: accent, fontWeight: FontWeight.w700)),
+                  Text('AI 填', style: TextStyle(fontSize: AppFontSize.xs, color: accent, fontWeight: FontWeight.w700)),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(display, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+            const SizedBox(height: AppSpacing.xs),
+            Text(display, style: const TextStyle(fontSize: AppFontSize.md, fontWeight: FontWeight.w600)),
           ],
         ),
       ),
@@ -59,7 +60,7 @@ class AiDraftFieldChip<T> extends StatelessWidget {
     await showModalBottomSheet<void>(
       context: context,
       builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: editorBuilder!(field.value, (next) {
           onChanged(field.editedTo(next));
           Navigator.of(ctx).pop();

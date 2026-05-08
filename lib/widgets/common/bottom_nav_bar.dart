@@ -49,7 +49,7 @@ class BottomNavBar extends ConsumerWidget {
           ),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -65,14 +65,14 @@ class BottomNavBar extends ConsumerWidget {
                           duration: const Duration(milliseconds: 200),
                           padding: EdgeInsets.symmetric(
                             horizontal: index == currentIndex ? 16 : 12,
-                            vertical: 6,
+                            vertical: AppSpacing.sm,
                           ),
                           decoration: BoxDecoration(
                             color:
                                 index == currentIndex
                                     ? AppColors.primaryContainer
                                     : Colors.transparent,
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(AppRadius.lg),
                           ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -85,11 +85,11 @@ class BottomNavBar extends ConsumerWidget {
                                         : AppColors.outline,
                                 size: 24,
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: AppSpacing.xs),
                               Text(
                                 item.label.toUpperCase(),
                                 style: GoogleFonts.manrope(
-                                  fontSize: 9,
+                                  fontSize: AppFontSize.xs,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 0.5,
                                   color:
