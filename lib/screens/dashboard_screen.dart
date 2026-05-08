@@ -182,7 +182,7 @@ class DashboardScreen extends ConsumerWidget {
                       padding: const EdgeInsets.only(bottom: 12),
                       child: AlertCard(
                         key: ValueKey('alert_card_$index'),
-                        icon: _iconForCategory(item.category),
+                        icon: categoryIconFor(item.category),
                         iconColor:
                             item.state == FreshnessState.expired
                                 ? AppColors.secondary
@@ -341,10 +341,6 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  IconData _iconForCategory(String? category) {
-    return categoryIconFor(category);
-  }
-
   Future<void> _addToShoppingList(
     BuildContext context,
     WidgetRef ref,
@@ -493,6 +489,8 @@ class _RecipeShortcutTile extends StatelessWidget {
                   children: [
                     Text(
                       '我的食谱',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
@@ -502,6 +500,8 @@ class _RecipeShortcutTile extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       '添加和管理私房菜单',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.manrope(
                         fontSize: 13,
                         color: AppColors.onSurfaceVariant,

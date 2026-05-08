@@ -44,6 +44,8 @@ class QuickActionCard extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -52,6 +54,8 @@ class QuickActionCard extends StatelessWidget {
               ),
               Text(
                 subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.manrope(
                   fontSize: 13,
                   color: contentColor.withValues(alpha: 0.8),

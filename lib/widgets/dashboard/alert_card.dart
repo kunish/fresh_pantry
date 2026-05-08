@@ -91,9 +91,11 @@ class AlertCard extends StatelessWidget {
                                 horizontal: 8,
                                 vertical: 2,
                               ),
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: AppColors.surfaceContainer,
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(4),
+                                ),
                               ),
                               child: Text(
                                 storageTag!.toUpperCase(),

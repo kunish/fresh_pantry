@@ -45,9 +45,9 @@ class IngredientCard extends StatelessWidget {
 
     final cardContent = Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderRadius: BorderRadius.all(Radius.circular(AppRadius.md)),
       ),
       child: Column(
         children: [
@@ -134,9 +134,11 @@ class IngredientCard extends StatelessWidget {
                             horizontal: 10,
                             vertical: 4,
                           ),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppColors.surfaceContainerHigh,
-                            borderRadius: BorderRadius.circular(AppRadius.pill),
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(AppRadius.pill),
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -179,9 +181,9 @@ class IngredientCard extends StatelessWidget {
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppColors.secondaryContainer,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  borderRadius: BorderRadius.all(Radius.circular(AppRadius.md)),
                 ),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
