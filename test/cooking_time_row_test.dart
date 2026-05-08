@@ -10,7 +10,7 @@ void main() {
   testWidgets('renders 6 chips with last labeled "120+"', (tester) async {
     await tester.pumpWidget(_harness(
       row: CookingTimeRow(
-        controller: TextEditingController(text: '30'),
+        controller: TextEditingController(),
         onChanged: (_) {},
       ),
     ));
@@ -52,5 +52,22 @@ void main() {
     ));
     await tester.enterText(find.byType(TextField), '25');
     expect(controller.text, '25');
+  });
+
+  testWidgets('initial controller value populates the TextField (edit mode)',
+      (tester) async {
+    final controller = TextEditingController(text: '25');
+    await tester.pumpWidget(_harness(
+      row: CookingTimeRow(controller: controller, onChanged: (_) {}),
+    ));
+    // The TextField (an EditableText) should show '25' even though 25 is not a
+    // preset chip value.
+    expect(
+      find.descendant(
+        of: find.byType(TextField),
+        matching: find.text('25'),
+      ),
+      findsOneWidget,
+    );
   });
 }

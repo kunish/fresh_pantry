@@ -21,46 +21,33 @@ class CookingTimeRow extends StatefulWidget {
 }
 
 class _CookingTimeRowState extends State<CookingTimeRow> {
-  // Internal controller for the TextField. We keep it in sync with the
-  // external controller but initialize it empty so that preset chips are the
-  // only Text widgets that show numeric labels during the initial render —
-  // this avoids `find.text` finding the same number in both a chip and the
-  // TextField when writing tests.
-  late final TextEditingController _fieldController;
-
   @override
   void initState() {
     super.initState();
-    _fieldController = TextEditingController();
-    widget.controller.addListener(_onExternalChanged);
+    widget.controller.addListener(_onControllerChanged);
   }
 
   @override
   void didUpdateWidget(CookingTimeRow oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_onExternalChanged);
-      widget.controller.addListener(_onExternalChanged);
+      oldWidget.controller.removeListener(_onControllerChanged);
+      widget.controller.addListener(_onControllerChanged);
     }
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_onExternalChanged);
-    _fieldController.dispose();
+    widget.controller.removeListener(_onControllerChanged);
     super.dispose();
   }
 
-  void _onExternalChanged() {
-    // Keep chip highlight in sync; do NOT push back into TextField to avoid
-    // cursor-position churn when the user is typing.
+  void _onControllerChanged() {
     setState(() {});
   }
 
   void _selectPreset(int minutes) {
-    final text = minutes.toString();
-    widget.controller.text = text;
-    _fieldController.text = text;
+    widget.controller.text = minutes.toString();
     widget.onChanged(minutes);
   }
 
@@ -107,7 +94,7 @@ class _CookingTimeRowState extends State<CookingTimeRow> {
             SizedBox(
               width: 72,
               child: TextField(
-                controller: _fieldController,
+                controller: widget.controller,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 textAlign: TextAlign.center,
@@ -119,10 +106,8 @@ class _CookingTimeRowState extends State<CookingTimeRow> {
                     vertical: AppSpacing.sm,
                   ),
                 ),
-                onChanged: (value) {
-                  widget.controller.text = value;
-                  widget.onChanged(int.tryParse(value.trim()));
-                },
+                onChanged: (value) =>
+                    widget.onChanged(int.tryParse(value.trim())),
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
