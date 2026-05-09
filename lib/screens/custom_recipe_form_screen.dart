@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -16,6 +15,12 @@ import '../services/ai_recipe_parser.dart';
 import '../services/share_intent_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_snackbar.dart';
+import '../widgets/recipe_form/ai_collapsible_banner.dart';
+import '../widgets/recipe_form/cooking_time_row.dart';
+import '../widgets/recipe_form/difficulty_stars.dart';
+import '../widgets/recipe_form/recipe_category_chips.dart';
+import '../widgets/recipe_form/recipe_form_card.dart';
+import '../widgets/recipe_form/unit_dropdown.dart';
 import '../widgets/shared/recipe_image.dart';
 import 'ai_settings_screen.dart';
 import 'recipe_draft_review_screen.dart';
@@ -50,10 +55,25 @@ class _CustomRecipeFormScreenState
   late final TextEditingController _difficultyController;
   late final TextEditingController _descriptionController;
   late final List<_IngredientControllers> _ingredientControllers;
-  late final List<TextEditingController> _stepControllers;
+  late final List<_StepEntry> _stepEntries;
+  final _aiBannerKey = GlobalKey<AiCollapsibleBannerState>();
   final _clipboardDetector = ClipboardUrlDetector();
   String? _coverImageSource;
   bool _isSaving = false;
+
+  String? _nameError;
+  String? _categoryError;
+  String? _cookingMinutesError;
+  String? _difficultyError;
+  String? _ingredientsError;
+  String? _stepsError;
+
+  final _nameFieldKey = GlobalKey();
+  final _categoryFieldKey = GlobalKey();
+  final _cookingMinutesFieldKey = GlobalKey();
+  final _difficultyFieldKey = GlobalKey();
+  final _ingredientsFieldKey = GlobalKey();
+  final _stepsFieldKey = GlobalKey();
 
   bool get _isEditing => widget.recipe != null;
 
@@ -72,7 +92,7 @@ class _CustomRecipeFormScreenState
       text: recipe == null ? '' : recipe.cookingMinutes.toString(),
     );
     _difficultyController = TextEditingController(
-      text: recipe?.difficulty.toString() ?? '1',
+      text: recipe?.difficulty.toString() ?? '3',
     );
     _descriptionController = TextEditingController(
       text: recipe?.description ?? '',
@@ -82,12 +102,9 @@ class _CustomRecipeFormScreenState
         recipe?.ingredients.isNotEmpty == true
             ? recipe!.ingredients.map(_IngredientControllers.from).toList()
             : [_IngredientControllers.empty()];
-    _stepControllers =
-        recipe?.steps.isNotEmpty == true
-            ? recipe!.steps
-                .map((step) => TextEditingController(text: step))
-                .toList()
-            : [TextEditingController()];
+    _stepEntries = recipe?.steps.isNotEmpty == true
+        ? recipe!.steps.map((step) => _StepEntry(text: step)).toList()
+        : [_StepEntry()];
 
     if (!_isEditing) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _maybeOfferClipboardUrl());
@@ -105,8 +122,8 @@ class _CustomRecipeFormScreenState
     for (final ingredient in _ingredientControllers) {
       ingredient.dispose();
     }
-    for (final stepController in _stepControllers) {
-      stepController.dispose();
+    for (final entry in _stepEntries) {
+      entry.dispose();
     }
     super.dispose();
   }
@@ -123,177 +140,474 @@ class _CustomRecipeFormScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _AiUrlBanner(
-                controller: _urlController,
-                onParse: _onParseUrl,
-              ),
-              _CoverImageHero(
-                imageSource: _coverImageSource,
-                onUpload: () => _selectCoverImage(ImageSource.gallery),
-                onCamera: () => _selectCoverImage(ImageSource.camera),
-                onClear: _coverImageSource == null ? null : _clearCoverImage,
+              if (!_isEditing)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                    0,
+                  ),
+                  child: AiCollapsibleBanner(
+                    key: _aiBannerKey,
+                    urlController: _urlController,
+                    onParse: _onParseUrl,
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.md),
+                child: _coverImageSource == null
+                    ? _CoverImagePlaceholder(
+                        onUpload: () => _selectCoverImage(ImageSource.gallery),
+                        onCamera: () => _selectCoverImage(ImageSource.camera),
+                      )
+                    : _CoverImageHero(
+                        imageSource: _coverImageSource,
+                        onUpload: () => _selectCoverImage(ImageSource.gallery),
+                        onCamera: () => _selectCoverImage(ImageSource.camera),
+                        onClear: _clearCoverImage,
+                      ),
               ),
               Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '基础信息',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    TextField(
-                      controller: _nameController,
-                      decoration: _fieldDecoration('食谱名称 *'),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    TextField(
-                      controller: _categoryController,
-                      decoration: _fieldDecoration('分类 *'),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    TextField(
-                      controller: _cookingMinutesController,
-                      decoration: _fieldDecoration('烹饪时间（分钟）*'),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    TextField(
-                      controller: _difficultyController,
-                      decoration: _fieldDecoration('难度 1-5 *'),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    TextField(
-                      controller: _descriptionController,
-                      decoration: _fieldDecoration('简介'),
-                      maxLines: 2,
-                    ),
-                    const SizedBox(height: AppSpacing.xxl),
-                    Text(
-                      '食材',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    for (var i = 0; i < _ingredientControllers.length; i++) ...[
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller:
-                                  _ingredientControllers[i].nameController,
-                              decoration: _fieldDecoration('食材名称'),
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: TextField(
-                              controller:
-                                  _ingredientControllers[i].amountController,
-                              decoration: _fieldDecoration('用量'),
-                            ),
-                          ),
-                          if (i > 0)
-                            IconButton(
-                              onPressed: () => _removeIngredient(i),
-                              icon: const Icon(Icons.remove_circle_outline),
-                              tooltip: '移除食材',
-                            ),
-                        ],
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  0,
+                ),
+                child: RecipeFormCard(
+                  icon: Icons.restaurant_menu,
+                  title: '基础信息',
+                  iconBackgroundColor: AppColors.primaryFixed,
+                  iconForegroundColor: AppColors.primary,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        key: _nameFieldKey,
+                        controller: _nameController,
+                        decoration: _fieldDecoration(
+                          '食谱名称 *',
+                          hint: '例如：西红柿炒蛋',
+                          errorText: _nameError,
+                        ),
+                        onChanged: (_) {
+                          if (_nameError != null) setState(() => _nameError = null);
+                        },
                       ),
                       const SizedBox(height: AppSpacing.md),
-                    ],
-                    OutlinedButton.icon(
-                      onPressed: _addIngredient,
-                      icon: const Icon(Icons.add),
-                      label: const Text('添加食材'),
-                    ),
-                    const SizedBox(height: AppSpacing.xxl),
-                    Text(
-                      '步骤',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.onSurface,
+                      Text(
+                        '分类 *',
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              color: AppColors.onSurfaceVariant,
+                            ),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    for (var i = 0; i < _stepControllers.length; i++) ...[
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _stepControllers[i],
-                              decoration: _fieldDecoration('步骤 ${i + 1}'),
-                              maxLines: 3,
+                      const SizedBox(height: AppSpacing.sm),
+                      Container(
+                        key: _categoryFieldKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            RecipeCategoryChips(
+                              selected: _categoryController.text,
+                              onChanged: (value) => setState(() {
+                                _categoryController.text = value;
+                                _categoryError = null;
+                              }),
                             ),
-                          ),
-                          if (i > 0)
-                            IconButton(
-                              onPressed: () => _removeStep(i),
-                              icon: const Icon(Icons.remove_circle_outline),
-                              tooltip: '移除步骤',
-                            ),
-                        ],
+                            if (_categoryError != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: AppSpacing.xs),
+                                child: Text(
+                                  _categoryError!,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: AppColors.error,
+                                      ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.md),
+                      Text(
+                        '烹饪时间 *',
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Container(
+                        key: _cookingMinutesFieldKey,
+                        child: CookingTimeRow(
+                          controller: _cookingMinutesController,
+                          onChanged: (_) {
+                            if (_cookingMinutesError != null) {
+                              setState(() => _cookingMinutesError = null);
+                            }
+                          },
+                          errorText: _cookingMinutesError,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        '难度 *',
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Container(
+                        key: _difficultyFieldKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            DifficultyStars(
+                              value: int.tryParse(_difficultyController.text) ?? 3,
+                              onChanged: (value) => setState(() {
+                                _difficultyController.text = value.toString();
+                                _difficultyError = null;
+                              }),
+                            ),
+                            if (_difficultyError != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: AppSpacing.xs),
+                                child: Text(
+                                  _difficultyError!,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: AppColors.error,
+                                      ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      TextField(
+                        controller: _descriptionController,
+                        decoration: _fieldDecoration('简介', hint: '简单描述这道菜的特色…'),
+                        maxLines: 3,
+                      ),
                     ],
-                    OutlinedButton.icon(
-                      onPressed: _addStep,
-                      icon: const Icon(Icons.add),
-                      label: const Text('添加步骤'),
-                    ),
-                    const SizedBox(height: 88),
-                  ],
+                  ),
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  0,
+                ),
+                child: RecipeFormCard(
+                  key: _ingredientsFieldKey,
+                  icon: Icons.restaurant,
+                  title: '食材',
+                  iconBackgroundColor: AppColors.secondaryFixed,
+                  iconForegroundColor: AppColors.secondary,
+                  countLabel: '${_ingredientControllers.length} 项',
+                  hasError: _ingredientsError != null,
+                  child: Column(
+                    children: [
+                      if (_ingredientsError != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: Text(
+                            _ingredientsError!,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.error,
+                                ),
+                          ),
+                        ),
+                      ReorderableListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        buildDefaultDragHandles: false,
+                        itemCount: _ingredientControllers.length,
+                        onReorderItem: (oldIndex, newIndex) {
+                          setState(() {
+                            final item =
+                                _ingredientControllers.removeAt(oldIndex);
+                            _ingredientControllers.insert(newIndex, item);
+                          });
+                        },
+                        itemBuilder: (context, i) {
+                          final ing = _ingredientControllers[i];
+                          return Padding(
+                            key: ValueKey(ing.dragKey),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: AppSpacing.xs),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                ReorderableDragStartListener(
+                                  index: i,
+                                  child: const Icon(
+                                    Icons.drag_indicator,
+                                    color: AppColors.outlineVariant,
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  flex: 5,
+                                  child: TextField(
+                                    controller: ing.nameController,
+                                    decoration: _compactDecoration('食材名称'),
+                                    onChanged: (_) {
+                                      if (_ingredientsError != null) setState(() => _ingredientsError = null);
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  flex: 2,
+                                  child: TextField(
+                                    controller: ing.quantityController,
+                                    decoration: _compactDecoration('用量'),
+                                    textAlign: TextAlign.right,
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                    onChanged: (_) {
+                                      if (_ingredientsError != null) setState(() => _ingredientsError = null);
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                UnitDropdown(
+                                  value: ing.unit,
+                                  onChanged: (value) => setState(() {
+                                    ing.unit = value;
+                                    _ingredientsError = null;
+                                  }),
+                                ),
+                                if (i > 0)
+                                  IconButton(
+                                    onPressed: () => _removeIngredient(i),
+                                    icon: const Icon(
+                                        Icons.remove_circle_outline),
+                                    tooltip: '移除食材',
+                                    color: AppColors.error,
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      OutlinedButton.icon(
+                        onPressed: _addIngredient,
+                        icon: const Icon(Icons.add),
+                        label: const Text('添加食材'),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 44),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  0,
+                ),
+                child: RecipeFormCard(
+                  key: _stepsFieldKey,
+                  icon: Icons.format_list_numbered,
+                  title: '步骤',
+                  iconBackgroundColor: AppColors.secondaryFixed,
+                  iconForegroundColor: AppColors.secondary,
+                  countLabel: '${_stepEntries.length} 步',
+                  hasError: _stepsError != null,
+                  child: Column(
+                    children: [
+                      if (_stepsError != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: Text(
+                            _stepsError!,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.error,
+                                ),
+                          ),
+                        ),
+                      ReorderableListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        buildDefaultDragHandles: false,
+                        itemCount: _stepEntries.length,
+                        onReorderItem: (oldIndex, newIndex) {
+                          setState(() {
+                            final item = _stepEntries.removeAt(oldIndex);
+                            _stepEntries.insert(newIndex, item);
+                          });
+                        },
+                        itemBuilder: (context, i) {
+                          final entry = _stepEntries[i];
+                          return Padding(
+                            key: ValueKey(entry.dragKey),
+                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 32,
+                                  height: 32,
+                                  margin: const EdgeInsets.only(top: 4),
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.primary,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    '${i + 1}',
+                                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                          color: AppColors.onPrimary,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.md),
+                                Expanded(
+                                  child: TextField(
+                                    controller: entry.controller,
+                                    decoration: _compactDecoration('输入下一步…'),
+                                    maxLines: null,
+                                    onChanged: (_) {
+                                      if (_stepsError != null) setState(() => _stepsError = null);
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    ReorderableDragStartListener(
+                                      index: i,
+                                      child: const Padding(
+                                        padding: EdgeInsets.all(AppSpacing.xs),
+                                        child: Icon(
+                                          Icons.drag_indicator,
+                                          color: AppColors.outlineVariant,
+                                        ),
+                                      ),
+                                    ),
+                                    if (i > 0)
+                                      IconButton(
+                                        onPressed: () => _removeStep(i),
+                                        icon: const Icon(Icons.remove_circle_outline),
+                                        tooltip: '移除步骤',
+                                        color: AppColors.error,
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      OutlinedButton.icon(
+                        onPressed: _addStep,
+                        icon: const Icon(Icons.add),
+                        label: const Text('添加步骤'),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 44),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 88),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.all(AppSpacing.lg),
-        child: FilledButton(
-          onPressed: _isSaving ? null : _saveRecipe,
-          child: const Text('保存食谱'),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          border: Border(
+            top: BorderSide(color: AppColors.outlineVariant),
+          ),
+        ),
+        child: SafeArea(
+          minimum: const EdgeInsets.all(AppSpacing.lg),
+          child: FilledButton(
+            onPressed: _isSaving ? null : _saveRecipe,
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(double.infinity, 48),
+            ),
+            child: _isSaving
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(AppColors.onPrimary),
+                        ),
+                      ),
+                      SizedBox(width: AppSpacing.sm),
+                      Text('保存中…'),
+                    ],
+                  )
+                : const Text('保存食谱'),
+          ),
         ),
       ),
     );
   }
 
-  InputDecoration _fieldDecoration(String labelText) {
+  InputDecoration _fieldDecoration(
+    String labelText, {
+    String? hint,
+    String? errorText,
+  }) {
     return InputDecoration(
       labelText: labelText,
+      hintText: hint,
+      errorText: errorText,
       floatingLabelBehavior: FloatingLabelBehavior.always,
+    );
+  }
+
+  InputDecoration _compactDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.sm,
+      ),
     );
   }
 
   Future<void> _maybeOfferClipboardUrl() async {
     final url = await _clipboardDetector.peek();
     if (url == null || !mounted) return;
+
+    _aiBannerKey.currentState?.expand();
+    _urlController.text = url;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 8),
-        content: Text('检测到食谱链接: $url'),
+        content: Text('检测到食谱链接：$url'),
         action: SnackBarAction(
-          label: '导入',
-          onPressed: () {
-            _urlController.text = url;
-            _onParseUrl();
-          },
+          label: '解析',
+          onPressed: _onParseUrl,
         ),
       ),
     );
-    // If user dismisses without tapping, mark as ignored after a delay.
+
     Future<void>.delayed(const Duration(seconds: 9), () {
       if (mounted && _urlController.text != url) {
         _clipboardDetector.markIgnored(url);
@@ -350,11 +664,10 @@ class _CustomRecipeFormScreenState
     final cookingMinutes = int.tryParse(_cookingMinutesController.text.trim());
     final difficulty = int.tryParse(_difficultyController.text.trim());
     final imageUrl = _normalizedCoverImageSource();
-    final steps =
-        _stepControllers
-            .map((controller) => controller.text.trim())
-            .where((step) => step.isNotEmpty)
-            .toList();
+    final steps = _stepEntries
+        .map((entry) => entry.controller.text.trim())
+        .where((step) => step.isNotEmpty)
+        .toList();
 
     final missingFields = _missingFields(
       name: name,
@@ -364,7 +677,23 @@ class _CustomRecipeFormScreenState
       steps: steps,
     );
     if (missingFields.isNotEmpty) {
-      _showMissingFields(missingFields);
+      setState(() {
+        _nameError =
+            missingFields.contains('食谱名称') ? '请填入食谱名称' : null;
+        _categoryError = missingFields.contains('分类') ? '请选择分类' : null;
+        _cookingMinutesError =
+            missingFields.contains('有效烹饪时间') ? '请输入大于 0 的分钟数' : null;
+        _difficultyError =
+            missingFields.contains('1-5 的难度') ? '请选择 1-5 颗星' : null;
+        final ingredientErrors = missingFields
+            .where((m) => ['至少一种食材', '食材名称', '食材用量'].contains(m))
+            .toList();
+        _ingredientsError =
+            ingredientErrors.isEmpty ? null : ingredientErrors.join('、');
+        _stepsError =
+            missingFields.contains('至少一个步骤') ? '至少添加一个步骤' : null;
+      });
+      await _scrollToFirstError();
       return;
     }
 
@@ -423,24 +752,28 @@ class _CustomRecipeFormScreenState
   void _addIngredient() {
     setState(() {
       _ingredientControllers.add(_IngredientControllers.empty());
+      _ingredientsError = null;
     });
   }
 
   void _removeIngredient(int index) {
     setState(() {
       _ingredientControllers.removeAt(index).dispose();
+      _ingredientsError = null;
     });
   }
 
   void _addStep() {
     setState(() {
-      _stepControllers.add(TextEditingController());
+      _stepEntries.add(_StepEntry());
+      _stepsError = null;
     });
   }
 
   void _removeStep(int index) {
     setState(() {
-      _stepControllers.removeAt(index).dispose();
+      _stepEntries.removeAt(index).dispose();
+      _stepsError = null;
     });
   }
 
@@ -571,15 +904,19 @@ class _CustomRecipeFormScreenState
     var missingIngredientAmount = false;
     for (final ingredient in _ingredientControllers) {
       final ingredientName = ingredient.nameController.text.trim();
-      final ingredientAmount = ingredient.amountController.text.trim();
-      if (ingredientName.isNotEmpty || ingredientAmount.isNotEmpty) {
+      final ingredientQty = ingredient.quantityController.text.trim();
+      // The unit field always has a pre-selected value (default 'g') and is
+      // not treated as user-entered text for "has any text" / "has amount"
+      // purposes — only a non-empty quantity counts.
+      final hasAmount = ingredientQty.isNotEmpty;
+      if (ingredientName.isNotEmpty || hasAmount) {
         hasAnyIngredientText = true;
       }
-      if (ingredientName.isNotEmpty && ingredientAmount.isNotEmpty) {
+      if (ingredientName.isNotEmpty && hasAmount) {
         hasCompleteIngredient = true;
-      } else if (ingredientName.isEmpty && ingredientAmount.isNotEmpty) {
+      } else if (ingredientName.isEmpty && hasAmount) {
         missingIngredientName = true;
-      } else if (ingredientName.isNotEmpty && ingredientAmount.isEmpty) {
+      } else if (ingredientName.isNotEmpty && !hasAmount) {
         missingIngredientAmount = true;
       }
     }
@@ -595,11 +932,11 @@ class _CustomRecipeFormScreenState
     return _ingredientControllers
         .map((ingredient) {
           final name = ingredient.nameController.text.trim();
-          final amount = ingredient.amountController.text.trim();
-          if (name.isEmpty || amount.isEmpty) {
-            return null;
-          }
-          return RecipeIngredient(name: name, amount: amount);
+          final quantity = ingredient.quantityController.text.trim();
+          final unit = ingredient.unit.trim();
+          if (name.isEmpty) return null;
+          if (quantity.isEmpty && unit.isEmpty) return null;
+          return RecipeIngredient(name: name, quantity: quantity, unit: unit);
         })
         .whereType<RecipeIngredient>()
         .toList();
@@ -609,8 +946,83 @@ class _CustomRecipeFormScreenState
     showAppSnackBar(context, message);
   }
 
-  void _showMissingFields(List<String> fields) {
-    _showError('保存前请补充：${fields.join('、')}');
+  Future<void> _scrollToFirstError() async {
+    final candidates = <(String?, GlobalKey)>[
+      (_nameError, _nameFieldKey),
+      (_categoryError, _categoryFieldKey),
+      (_cookingMinutesError, _cookingMinutesFieldKey),
+      (_difficultyError, _difficultyFieldKey),
+      (_ingredientsError, _ingredientsFieldKey),
+      (_stepsError, _stepsFieldKey),
+    ];
+    for (final (error, key) in candidates) {
+      if (error != null && key.currentContext != null) {
+        await Scrollable.ensureVisible(
+          key.currentContext!,
+          duration: const Duration(milliseconds: 240),
+          alignment: 0.1,
+        );
+        return;
+      }
+    }
+  }
+}
+
+class _CoverImagePlaceholder extends StatelessWidget {
+  const _CoverImagePlaceholder({
+    required this.onUpload,
+    required this.onCamera,
+  });
+
+  final VoidCallback onUpload;
+  final VoidCallback onCamera;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLow,
+        border: Border.all(
+          color: AppColors.outlineVariant,
+          style: BorderStyle.solid,
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.add_photo_alternate_outlined,
+            size: 36,
+            color: AppColors.outline,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            '添加封面（可选）',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: AppSpacing.sm,
+            children: [
+              OutlinedButton.icon(
+                onPressed: onUpload,
+                icon: const Icon(Icons.upload_file_outlined, size: 18),
+                label: const Text('上传图片'),
+              ),
+              OutlinedButton.icon(
+                onPressed: onCamera,
+                icon: const Icon(Icons.photo_camera_outlined, size: 18),
+                label: const Text('拍照'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -760,70 +1172,50 @@ class _CoverImageFallback extends StatelessWidget {
 }
 
 class _IngredientControllers {
-  _IngredientControllers({required String name, required String amount})
-    : nameController = TextEditingController(text: name),
-      amountController = TextEditingController(text: amount);
+  _IngredientControllers({
+    required String name,
+    required String quantity,
+    required this.unit,
+  })  : nameController = TextEditingController(text: name),
+        quantityController = TextEditingController(text: quantity),
+        dragKey = UniqueKey();
 
   factory _IngredientControllers.empty() {
-    return _IngredientControllers(name: '', amount: '');
+    return _IngredientControllers(name: '', quantity: '', unit: 'g');
   }
 
   factory _IngredientControllers.from(RecipeIngredient ingredient) {
+    // When the ingredient was created with legacy `amount` only (no
+    // quantity/unit), fall back to the composed amount as the quantity and
+    // leave unit empty so the user can pick one.
+    final hasNewShape =
+        ingredient.quantity.isNotEmpty || ingredient.unit.isNotEmpty;
     return _IngredientControllers(
       name: ingredient.name,
-      amount: ingredient.amount,
+      quantity: hasNewShape ? ingredient.quantity : ingredient.amount,
+      unit: hasNewShape ? ingredient.unit : '',
     );
   }
 
   final TextEditingController nameController;
-  final TextEditingController amountController;
+  final TextEditingController quantityController;
+  String unit;
+  final Key dragKey;
 
   void dispose() {
     nameController.dispose();
-    amountController.dispose();
+    quantityController.dispose();
   }
 }
 
-class _AiUrlBanner extends StatelessWidget {
-  const _AiUrlBanner({required this.controller, required this.onParse});
+class _StepEntry {
+  _StepEntry({String text = ''})
+      : controller = TextEditingController(text: text),
+        dragKey = UniqueKey();
+
   final TextEditingController controller;
-  final VoidCallback onParse;
+  final Key dragKey;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 0),
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.aiGradientStart, AppColors.aiGradientEnd],
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('✨ 用 AI 一键导入',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-          const SizedBox(height: AppSpacing.sm),
-          TextField(
-            key: const Key('recipe_url_input'),
-            controller: controller,
-            decoration: const InputDecoration(
-              hintText: '粘贴食谱链接 (懒饭 / 下厨房…)',
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          FilledButton(
-            key: const Key('recipe_url_parse'),
-            onPressed: onParse,
-            child: const Text('解析为草稿'),
-          ),
-        ],
-      ),
-    );
-  }
+  void dispose() => controller.dispose();
 }
+

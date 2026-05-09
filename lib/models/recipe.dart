@@ -1,8 +1,37 @@
 class RecipeIngredient {
   final String name;
+  final String quantity;
+  final String unit;
   final String amount;
 
-  const RecipeIngredient({required this.name, required this.amount});
+  RecipeIngredient({
+    required this.name,
+    this.quantity = '',
+    this.unit = '',
+    String? amount,
+  }) : amount = amount ?? _composeAmount(quantity, unit);
+
+  static String _composeAmount(String quantity, String unit) {
+    final q = quantity.trim();
+    final u = unit.trim();
+    if (q.isEmpty && u.isEmpty) return '';
+    if (q.isEmpty) return u;
+    if (u.isEmpty) return q;
+    return '$q$u';
+  }
+
+  static _LegacyAmountParts _parseLegacyAmount(String amount) {
+    final trimmed = amount.trim();
+    if (trimmed.isEmpty) return const _LegacyAmountParts('', '');
+    final match = RegExp(r'^(\d+(?:\.\d+)?)\s*(.*)$').firstMatch(trimmed);
+    if (match == null) {
+      return _LegacyAmountParts('', trimmed);
+    }
+    return _LegacyAmountParts(
+      match.group(1) ?? '',
+      (match.group(2) ?? '').trim(),
+    );
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -10,28 +39,64 @@ class RecipeIngredient {
       other is RecipeIngredient &&
           runtimeType == other.runtimeType &&
           name == other.name &&
+          quantity == other.quantity &&
+          unit == other.unit &&
           amount == other.amount;
 
   @override
-  int get hashCode => Object.hash(name, amount);
+  int get hashCode => Object.hash(name, quantity, unit, amount);
 
-  RecipeIngredient copyWith({String? name, String? amount}) {
+  RecipeIngredient copyWith({
+    String? name,
+    String? quantity,
+    String? unit,
+    String? amount,
+  }) {
+    final preservedAmount = amount ??
+        (quantity == null && unit == null ? this.amount : null);
     return RecipeIngredient(
       name: name ?? this.name,
-      amount: amount ?? this.amount,
+      quantity: quantity ?? this.quantity,
+      unit: unit ?? this.unit,
+      amount: preservedAmount,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {'name': name, 'amount': amount};
+    return {
+      'name': name,
+      'quantity': quantity,
+      'unit': unit,
+      'amount': amount,
+    };
   }
 
   factory RecipeIngredient.fromJson(Map<String, dynamic> json) {
+    final amount = json['amount'] as String? ?? '';
+    final hasNewShape =
+        json.containsKey('quantity') || json.containsKey('unit');
+    if (hasNewShape) {
+      return RecipeIngredient(
+        name: json['name'] as String? ?? '',
+        quantity: json['quantity'] as String? ?? '',
+        unit: json['unit'] as String? ?? '',
+        amount: amount,
+      );
+    }
+    final parts = _parseLegacyAmount(amount);
     return RecipeIngredient(
       name: json['name'] as String? ?? '',
-      amount: json['amount'] as String? ?? '',
+      quantity: parts.quantity,
+      unit: parts.unit,
+      amount: amount,
     );
   }
+}
+
+class _LegacyAmountParts {
+  const _LegacyAmountParts(this.quantity, this.unit);
+  final String quantity;
+  final String unit;
 }
 
 class Recipe {
