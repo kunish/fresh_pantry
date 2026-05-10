@@ -389,14 +389,71 @@ The base scale is exposed via `AppTypography.textTheme` (a `Material 3 TextTheme
 
 ## L5 Interaction Patterns
 
-> Filled in Task 9.
+### 5.1 SnackBar *(Placeholder)*
+
+**Status**: Placeholder.
+**To be filled in**: first phase that needs an ephemeral non-validation message (likely phase 3 inventory or phase 4 add).
+**Inputs to consider**: SnackBar must NOT be used for form validation (see L3.6); decide on: confirmation messages ("Saved"), undoable destructive actions ("Deleted — Undo"), background sync errors. Consult [`app_snackbar_test.dart`](../test/app_snackbar_test.dart) for any existing wrappers.
+
+### 5.2 Inline Validation
+
+See L3.6 — inline validation pattern is fully specified there. SnackBars must not be used for validation.
+
+### 5.3 Loading *(Placeholder)*
+
+**Status**: Placeholder.
+**To be filled in**: phase 4 (`add_ingredient` redesign), where AI parsing introduces the first non-trivial async operation.
+**Inputs to consider**: spinner placement (inline next to button, full-screen overlay, top-of-page bar?); recipe form's "save section" already has an inline spinner pattern — assess if it generalizes.
+
+### 5.4 Empty State *(Placeholder)*
+
+**Status**: Placeholder.
+**To be filled in**: first screen with empty-able content (likely phase 5 shopping list or phase 3 inventory).
+**Inputs to consider**: anatomy (icon + headline + body + CTA?); whether empty state is a separate widget or inline within the list.
+
+### 5.5 Confirmation Dialog *(Placeholder)*
+
+**Status**: Placeholder.
+**To be filled in**: first phase that needs destructive confirmations.
+**Inputs to consider**: existing `AlertDialog` usage in [`RecipeCategoryChips._promptCustomCategory`](../lib/widgets/recipe_form/recipe_category_chips.dart) for input prompts; whether to keep Material `AlertDialog` or build a project-themed dialog widget; standard button order (Cancel | Confirm vs Confirm | Cancel); destructive button styling (use `error` family — see L2.4).
+
+### 5.6 Bottom Sheet *(Placeholder)*
+
+**Status**: Placeholder (partially covered in L3.4 for selection).
+**To be filled in**: first phase that needs a non-selection bottom sheet (e.g. multi-step input flow).
+**Inputs to consider**: anatomy (drag handle, title, content, primary action button); modal vs persistent; ergonomic max height.
 
 ---
 
 ## Appendix A: Transient Inconsistencies
 
-> Filled in Task 9.
+The following inconsistencies between this document and the codebase exist as of phase 0 close. Each is scheduled for cleanup in phase 1 (shared widget library extraction). New code should follow this document, not the cited code.
+
+| ID | Inconsistency | File | Phase 1 fix |
+|---|---|---|---|
+| T1 | `PillChip` default `fontSize: 13` violates the L1.4 rule (sizes must come from the typography token ladder; closest is `labelLarge` = 14). | [`lib/widgets/shared/pill_chip.dart`](../lib/widgets/shared/pill_chip.dart) | Change default to use `labelLarge` size (14) or remove the parameter and source style from `Theme.of(context).textTheme.labelLarge`. |
+| T2 | `RecipeFormCard` self-implements its container with `Container` + `BoxDecoration` instead of using Material `Card` (so it bypasses `cardTheme` from L2.1). | [`lib/widgets/recipe_form/recipe_form_card.dart`](../lib/widgets/recipe_form/recipe_form_card.dart) | Refactor into a shared `SectionCard` widget that uses `Card` and inherits the theme. |
+| T3 | `RecipeFormCard` hardcodes its title weight as `FontWeight.w800` instead of using `AppTypography.sectionTitle`. | same file as T2 | Use `AppTypography.sectionTitle` directly. |
+
+**Additionally found during phase 0 audit**: two more chip implementations exist alongside `PillChip` and should be unified in phase 1:
+
+- `_CategoryChip` in [`lib/widgets/common/category_chips.dart`](../lib/widgets/common/category_chips.dart) (used for top-of-screen category switcher).
+- `AiDraftFieldChip` in [`lib/widgets/shared/ai_draft_field.dart`](../lib/widgets/shared/ai_draft_field.dart) (AI draft state badge).
+
+Phase 1 should consolidate all three into `PillChip` (extending its parameter set if needed).
+
+---
 
 ## Appendix B: Decision Log
 
-> Filled in Task 9.
+The following 7 decisions were made during phase 0 brainstorming (2026-05-09 to 2026-05-10) to reconcile two pre-existing inconsistent design systems: the Material theme in `app_theme.dart` and the de facto patterns in the recipe form widgets. Each decision favored the recipe form patterns (the project's most recent, post-redesign source of truth) over the older theme defaults.
+
+| # | Decision | Chose | Over | Rationale |
+|---|---|---|---|---|
+| 1 | Card radius | 16 (`AppRadius.lg`) | 24 (theme default) | Recipe form's denser layout reads better at 16; preserves consistency with form section grouping. |
+| 2 | Card background | `surfaceContainerLowest` (white) | `surfaceContainer` (theme default) | Recipe form pattern; provides micro-contrast against `surfaceBright` scaffold (`#FCF9F6` vs `#FFFFFF`). |
+| 3 | Card border | 1px `outlineVariant` (1.5px `error` when invalid) | none (theme default) | A flat white card on a near-white scaffold "disappears" without an outline; recipe form found this through usage. |
+| 4 | Chip implementation | `PillChip` (project's only chip) | Material `Chip` family | Recipe form has zero Material `Chip` usage; eliminating one codebase variant simplifies the model. The chipTheme persists only as fallback for any future Material `Chip(...)` regression. |
+| 5 | Chip default background | `surfaceContainerLow` | `surfaceContainerHigh` (theme default) | Matches `PillChip` default; fits the layered surface scale on cards. Documented contrast caveat (L2.2) for white-on-white case. |
+| 6 | Chip font size | 14 (`labelLarge`) | 13 (PillChip current default) | 13 is not on the typography ladder; 14 fits `labelLarge`. PillChip's `13` is recorded as transient inconsistency T1 for phase 1 fix. |
+| 7 | Section title weight | `AppTypography.sectionTitle` (titleMedium + w800) | `titleMedium` w600 (theme default) or hardcoded `w800` (recipe form) | Naming the override surfaces the pattern; future widgets get a single import to follow. |
