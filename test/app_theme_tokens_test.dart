@@ -72,4 +72,21 @@ void main() {
       expect(cardTheme.color, AppColors.surfaceContainerLowest);
     });
   });
+
+  group('AppTheme chipTheme', () {
+    testWidgets('uses surfaceContainerLow as default backgroundColor', (tester) async {
+      final chipTheme = AppTheme.lightTheme.chipTheme;
+      expect(chipTheme.backgroundColor, AppColors.surfaceContainerLow);
+    });
+
+    testWidgets('uses primary as selectedColor', (tester) async {
+      final chipTheme = AppTheme.lightTheme.chipTheme;
+      expect(chipTheme.selectedColor, AppColors.primary);
+    });
+
+    testWidgets('uses StadiumBorder shape', (tester) async {
+      final chipTheme = AppTheme.lightTheme.chipTheme;
+      expect(chipTheme.shape, isA<StadiumBorder>());
+    });
+  });
 }

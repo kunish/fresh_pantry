@@ -84,7 +84,7 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         shape: const StadiumBorder(),
-        backgroundColor: AppColors.surfaceContainerHigh,
+        backgroundColor: AppColors.surfaceContainerLow,
         selectedColor: AppColors.primary,
         labelStyle: AppTypography.textTheme.labelLarge,
         showCheckmark: false,
