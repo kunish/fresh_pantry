@@ -311,7 +311,7 @@ The base scale is exposed via `AppTypography.textTheme` (a `Material 3 TextTheme
 
 **Status**: Placeholder.
 **To be filled in**: phase 4 (`add_ingredient` redesign).
-**Inputs to consider when filling in**: `add_ingredient_screen` ingredient quantity entry; the `+/–` button pattern in shopping list quick-add (`quick_add_field.dart`); whether to allow direct typing alongside the steppers.
+**Inputs to consider**: `add_ingredient_screen` ingredient quantity entry; the `+/–` button pattern in shopping list quick-add (`quick_add_field.dart`); whether to allow direct typing alongside the steppers.
 
 ### 3.10 Icon Chip
 
@@ -330,7 +330,62 @@ The base scale is exposed via `AppTypography.textTheme` (a `Material 3 TextTheme
 
 ## L4 Page Patterns
 
-> Filled in Task 8.
+### 4.1 Scaffold + SafeArea
+
+**Use case**: every screen needs a consistent root.
+**Reference implementation**: [`AppShell.build`](../lib/app.dart) for top-level shell; pushed screens use plain `Scaffold`.
+
+**Convention**:
+- Top-level shell (`FreshPantryApp` → `AppShell`): wraps the body in `SafeArea`, hosts the `IndexedStack` of main 4 screens, sets `extendBody: true` so the `BottomNavBar` floats over content.
+- Pushed screens (recipe form, ingredient detail, etc.): use plain `Scaffold` without a screen-level `SafeArea`. The `AppBar` reserves the top status-bar padding via `MediaQuery`, and bottom action bars wrap their own `SafeArea` where needed (e.g. the save section in [`custom_recipe_form_screen.dart`](../lib/screens/custom_recipe_form_screen.dart)). A redundant outer `SafeArea` wrap is not needed and would cause double-padding.
+
+**Background**: always `AppColors.surface` via `scaffoldBackgroundColor` in the theme — do not override per-screen.
+
+### 4.2 AppBar
+
+**Use case**: top chrome on each screen.
+
+**Convention**:
+- **Main 4 screens** (Dashboard / Inventory / Add / Shopping): use the custom [`TopAppBar`](../lib/widgets/common/top_app_bar.dart) widget, which provides app title, search trigger, and AI settings entry. Do not use Material `AppBar` here.
+- **Pushed screens** (form, detail, draft review, settings): use Material `AppBar`. The theme makes it transparent + `scrolledUnderElevation: 0` (matching the scaffold background).
+- `kAppSystemOverlayStyle` (defined in `app_theme.dart`) is used at both `AnnotatedRegion` (root) and `AppBarTheme.systemOverlayStyle` — do not change per-screen.
+
+### 4.3 Bottom Navigation + IndexedStack
+
+**Use case**: navigate between the 4 main screens without losing scroll/state.
+**Reference implementation**: [`BottomNavBar`](../lib/widgets/common/bottom_nav_bar.dart) inside [`AppShell`](../lib/app.dart).
+
+**Convention**:
+- 4 destinations driven by `navigationProvider` (Riverpod state).
+- `IndexedStack` keeps each screen's `State` alive across tab switches (so user scroll position survives).
+- The center "+" affordance is a custom button inside `BottomNavBar`, not a Material FAB.
+- Pushed screens (via `Navigator.of(context).push`) appear over the entire `Scaffold` and hide the bottom nav by virtue of being a new route.
+
+### 4.4 Horizontal Padding *(Placeholder)*
+
+**Status**: Placeholder.
+**To be filled in**: phase 2 (dashboard redesign).
+**Inputs to consider**: current screens use a mix — dashboard and inventory use 24 (`AppSpacing.xxl`); recipe form uses 16 (`AppSpacing.lg`); other padding values (e.g. 20 / `AppSpacing.xl`) appear sporadically. Decide whether all main screens use 24, or whether dense list / form screens get 16.
+
+### 4.5 Vertical Section Spacing *(Placeholder)*
+
+**Status**: Placeholder.
+**To be filled in**: phase 2 (dashboard redesign).
+**Inputs to consider**: gap between sections (cards) on a screen; recipe form uses 12 (`AppSpacing.md`) between section cards via the top of each card's `EdgeInsets.fromLTRB`. Decide on a single canonical gap value (`md=12`, `lg=16`, or `xl=20`).
+
+### 4.6 Section Header *(Placeholder)*
+
+**Status**: Placeholder.
+**To be filled in**: phase 2 (dashboard redesign).
+**Inputs to consider**: existing screen uses a mix of bare titles, titles with trailing actions ("View All"), and titles with leading icons. Decide on canonical anatomy: title style (`titleLarge`?), optional trailing button, optional leading icon, what goes inside vs outside the section card.
+
+### 4.7 FAB / Center "+" Button *(Placeholder)*
+
+**Status**: Placeholder.
+**To be filled in**: phase 5 (shopping list redesign) or phase 3 (inventory redesign), whichever lands first.
+**Inputs to consider**: current center "+" lives inside `BottomNavBar`; some screens (inventory) have no FAB; some screens have action buttons inline; Material's standard FAB is not used. Decide whether to add a per-screen FAB pattern or keep the bottom nav center button as the only "create" affordance.
+
+---
 
 ## L5 Interaction Patterns
 
