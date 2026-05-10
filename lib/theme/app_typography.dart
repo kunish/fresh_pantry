@@ -76,4 +76,7 @@ class AppTypography {
       ),
     );
   }
+
+  static TextStyle get sectionTitle =>
+      textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w800);
 }
