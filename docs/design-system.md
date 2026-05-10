@@ -197,7 +197,136 @@ The base scale is exposed via `AppTypography.textTheme` (a `Material 3 TextTheme
 
 ## L3 Component Patterns
 
-> Filled in Task 7.
+### 3.1 Section Card
+
+**Use case**: visually group a labeled section of related controls (a form section, a settings group, etc.).
+**Reference implementation**: [`RecipeFormCard`](../lib/widgets/recipe_form/recipe_form_card.dart).
+
+**Anatomy**:
+- Outer container: matches L2.1 Card (16 radius, surfaceContainerLowest, 1px outlineVariant border).
+- Header row (top of card): 30×30 colored icon backplate (default `AppColors.primaryFixed` with `AppColors.primary` icon at 18px), then bold section title (`AppTypography.sectionTitle`), then optional pill-shaped count badge on the right.
+- Body: arbitrary child, 12px gap below header.
+
+**When to use**: form sections (recipe details / basic info / ingredients), settings groups.
+
+**When NOT to use**: list items (use a tighter row layout); full-screen surfaces (use Scaffold directly).
+
+### 3.2 Horizontal Multi-Select (Presets)
+
+**Use case**: pick one value from a small fixed set of frequently-used presets, where the set is short and order matters.
+**Reference implementation**: [`CookingTimeRow`](../lib/widgets/recipe_form/cooking_time_row.dart) using [`PillChip`](../lib/widgets/shared/pill_chip.dart).
+
+**Anatomy**:
+- Horizontal `ListView.separated` of `PillChip` (height 36, separator `AppSpacing.sm`).
+- Selected chip: `selectedBackgroundColor: AppColors.primary`, `selectedForegroundColor: AppColors.onPrimary`.
+- Optional fallback "custom value" `TextField` row below the chip strip.
+
+**When to use**: 3–8 fixed preset values where the user usually picks one of the presets but may type a custom value.
+
+**When NOT to use**: more than 8 presets (use Wrap — L3.3); presets that would line-wrap (also Wrap); presets where the user almost always types a custom value (use a regular field).
+
+### 3.3 Wrap Multi-Select (Categories)
+
+**Use case**: pick one value from an unbounded category set that may have user-added entries; chips must remain visible without horizontal clipping.
+**Reference implementation**: [`RecipeCategoryChips`](../lib/widgets/recipe_form/recipe_category_chips.dart) using [`PillChip`](../lib/widgets/shared/pill_chip.dart).
+
+**Anatomy**:
+- `Wrap` with `spacing: AppSpacing.sm`, `runSpacing: AppSpacing.sm`.
+- Trailing `+ 其他` chip opens an `AlertDialog` for custom entry.
+- If a previously-entered custom value is the current selection, it gets injected as a chip alongside the presets.
+
+**When to use**: categories or tags where the set may grow over time and ordering doesn't matter.
+
+**When NOT to use**: small fixed sets (use horizontal — L3.2); single-value fields (use a `TextField`).
+
+### 3.4 Bottom-Sheet Single-Select
+
+**Use case**: pick one value from a medium/large fixed set; surface is too wide for chips, but a `DropdownButton` would feel cramped on mobile.
+**Reference implementation**: [`UnitDropdown`](../lib/widgets/recipe_form/unit_dropdown.dart).
+
+**Anatomy**:
+- Trigger: a `PillChip` showing the current value, with a trailing chevron icon.
+- On tap: show a Material `showModalBottomSheet`, listing options as taps; selected option highlighted.
+
+**When to use**: 5+ fixed options (units, currencies); options have category groupings.
+
+**When NOT to use**: 2-3 binary toggles (use chip row — L3.2); free-form input (use `TextField`).
+
+### 3.5 Reorderable List
+
+**Use case**: a list of user-managed items (ingredients, steps) where order matters and users need to rearrange.
+**Reference implementation**: ingredients/steps sections in [`custom_recipe_form_screen.dart`](../lib/screens/custom_recipe_form_screen.dart).
+
+**Anatomy**:
+- `ReorderableListView` with `buildDefaultDragHandles: false`; each row gets an explicit `ReorderableDragStartListener` wrapping a drag handle icon.
+- Each item is a row with: drag handle (left), content (center, expanding), delete IconButton (right).
+- A trailing "+ Add" row outside the reorderable list itself.
+
+**When to use**: ordered lists 3+ items; cooking steps; anything where the user needs to reorder.
+
+**When NOT to use**: single-item edits (just a `TextField`); fixed-order lists.
+
+### 3.6 Inline Validation
+
+**Use case**: report validation errors on form inputs without modal interruption.
+**Reference implementation**: `errorText` on text fields throughout the recipe form; `RecipeFormCard.hasError` parameter.
+
+**Anatomy**:
+- **Field-level**: `TextField`'s native `decoration.errorText` (red 12px below the field).
+- **Section-level**: `RecipeFormCard.hasError = true` switches the card border from `1px outlineVariant` → `1.5px error`.
+- **No SnackBar for validation**: never use `ScaffoldMessenger.of(context).showSnackBar(...)` to report form validation. SnackBars are reserved for ephemeral non-validation feedback (see L5.1 placeholder).
+
+**When to use**: any user-correctable input error.
+
+**When NOT to use**: irrecoverable backend errors (use a dialog — L5.5 placeholder); confirmations (use a dialog).
+
+### 3.7 Collapsible Banner
+
+**Use case**: a contextual but non-blocking action (e.g. "Try AI import"), should be dismissable without losing access.
+**Reference implementation**: [`AiCollapsibleBanner`](../lib/widgets/recipe_form/ai_collapsible_banner.dart).
+
+**Anatomy**:
+- Default state: collapsed, 1-row tappable summary with leading icon.
+- Expanded: shows the actual call-to-action body (button or input row).
+- State toggled by tapping the summary row.
+
+**When to use**: AI-assist entry points; dismissable suggestions.
+
+**When NOT to use**: blocking primary actions (use a regular Card or button); permanent help text (use a small subtitle).
+
+### 3.8 Difficulty Rating
+
+**Use case**: pick a discrete level on a fixed scale (e.g. 1-5).
+**Reference implementation**: [`DifficultyStars`](../lib/widgets/recipe_form/difficulty_stars.dart).
+
+**Anatomy**:
+- A row of N tappable star icons; selected stars filled with `AppColors.primary`, unselected outlined with `AppColors.outline`.
+- Tapping a star sets the value to that index.
+
+**When to use**: any 1–5 discrete rating.
+
+**When NOT to use**: continuous values (use a Slider); >5 levels (use a `PillChip` row).
+
+### 3.9 Number Stepper *(Placeholder)*
+
+**Status**: Placeholder.
+**To be filled in**: phase 4 (`add_ingredient` redesign).
+**Inputs to consider when filling in**: `add_ingredient_screen` ingredient quantity entry; the `+/–` button pattern in shopping list quick-add (`quick_add_field.dart`); whether to allow direct typing alongside the steppers.
+
+### 3.10 Icon Chip
+
+**Use case**: a chip label that benefits from a leading icon (status, semantic flag).
+**Reference implementation**: [`PillChip`](../lib/widgets/shared/pill_chip.dart) constructed with the `icon` parameter.
+
+**Anatomy**:
+- Default `iconSize: 16`, `iconLabelGap: 6` (intentionally tighter than text-only for visual balance).
+- `iconForegroundColor` defaults to follow the label color; can be overridden for emphasis (e.g. error icon).
+
+**When to use**: AI draft markers; freshness state; category tags with iconography.
+
+**When NOT to use**: action buttons (use FilledButton.icon or IconButton); decorative only (use a Row with Icon + Text).
+
+---
 
 ## L4 Page Patterns
 
