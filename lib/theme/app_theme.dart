@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'app_colors.dart';
+import 'app_radius.dart';
 import 'app_typography.dart';
 
 export 'app_colors.dart';
@@ -74,13 +75,16 @@ class AppTheme {
       // Shape System: "No-Line" Rule
       cardTheme: CardThemeData(
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        color: AppColors.surfaceContainer,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          side: const BorderSide(color: AppColors.outlineVariant),
+        ),
+        color: AppColors.surfaceContainerLowest,
         margin: EdgeInsets.zero,
       ),
       chipTheme: ChipThemeData(
         shape: const StadiumBorder(),
-        backgroundColor: AppColors.surfaceContainerHigh,
+        backgroundColor: AppColors.surfaceContainerLow,
         selectedColor: AppColors.primary,
         labelStyle: AppTypography.textTheme.labelLarge,
         showCheckmark: false,
