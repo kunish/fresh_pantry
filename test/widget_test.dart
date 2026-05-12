@@ -31,9 +31,11 @@ void main() {
 
     // Bottom navigation chrome must be present on the home shell.
     expect(find.byType(BottomNavBar), findsOneWidget);
-    // Dashboard urgent-attention section header is rendered.
-    expect(find.text('紧急关注'), findsWidgets);
-    // Dashboard greeting prefix appears in the top app bar area.
-    expect(find.textContaining('主厨'), findsWidgets);
+    // FK redesign hero: total inventory stat label appears.
+    expect(find.text('你的冰箱状态'), findsOneWidget);
+    // 5-tab nav shows the four labelled tabs (middle is a label-less FAB).
+    for (final label in const ['首页', '食材', '菜谱', '清单']) {
+      expect(find.text(label), findsOneWidget);
+    }
   });
 }

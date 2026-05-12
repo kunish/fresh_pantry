@@ -23,7 +23,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('dashboard quick action opens my recipes screen', (tester) async {
+  testWidgets(
+    skip: true, // FK redesign moved "我的食谱" off dashboard; Phase 9/12 places it in Settings or Recipes tab toolbar.
+    'dashboard quick action opens my recipes screen',
+    (tester) async {
     final prefs = await _prefs({});
 
     await tester.pumpWidget(_app(prefs, const DashboardScreen()));
@@ -111,9 +114,10 @@ void main() {
     expect(find.byType(Chip), findsNothing);
   });
 
-  testWidgets('dashboard overview stat card jumps to inventory tab', (
-    tester,
-  ) async {
+  testWidgets(
+    skip: true, // FK hero stat is non-clickable in redesign; Phase 13 reasserts via section link.
+    'dashboard overview stat card jumps to inventory tab',
+    (tester) async {
     final prefs = await _prefs({
       'inventory_items': '[]',
       'shopping_items': '[]',

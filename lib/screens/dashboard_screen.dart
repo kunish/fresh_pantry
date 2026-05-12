@@ -1,344 +1,162 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../theme/app_theme.dart';
+
 import '../models/ingredient.dart';
 import '../providers/inventory_provider.dart';
-import '../providers/shopping_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/recipe_provider.dart';
+import '../providers/shopping_provider.dart';
+import '../theme/app_theme.dart';
+import '../theme/fk_category_palette.dart';
 import '../utils/app_snackbar.dart';
 import '../utils/dashboard_greeting.dart';
-import '../utils/storage_labels.dart';
-import '../widgets/dashboard/stat_card.dart';
-import '../widgets/dashboard/alert_card.dart';
-import '../widgets/dashboard/quick_action_card.dart';
-import '../widgets/dashboard/storage_summary_card.dart';
-import '../widgets/dashboard/recent_addition_item.dart';
-import '../widgets/dashboard/curators_tip_card.dart';
 import '../widgets/recipe_card.dart';
+import '../widgets/shared/cat_icon.dart';
 import '../widgets/shared/category_icon.dart';
-import 'my_recipes_screen.dart';
+import '../widgets/shared/fk_card.dart';
+import '../widgets/shared/fk_hero_header.dart';
+import '../widgets/shared/fk_icon_button.dart';
+import '../widgets/shared/fk_pill.dart';
+import '../widgets/shared/fk_section_head.dart';
 import 'recipe_detail_screen.dart';
 
+/// FreshKeeper 首页 — 设计稿 `screens-1.jsx::HomeScreen`。
+///
+/// 视觉栈:
+/// 1. 渐变 Hero(问候 + 总数大数字 + 3-grid mini stats)
+/// 2. Quick Add 浮卡 — overlap hero(扫码 / 拍照 / 手动 → Add tab)
+/// 3. "该用了" 横滚 ExpiringCard
+/// 4. "食材分类" 4-col grid
+/// 5. "今日推荐" recipe card
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final inventory = ref.watch(inventoryProvider);
     final stats = ref.watch(statCountsProvider);
     final expiringItems = ref.watch(expiringItemsProvider);
-    final uncheckedCount = ref.watch(uncheckedCountProvider);
-    final recentItems = ref.watch(recentAdditionsProvider);
     final recommendedRecipes = ref.watch(recommendedRecipesProvider);
-    final storageAreas = ref.watch(storageAreasProvider);
     final now = DateTime.now();
-    final quickActions = Column(
-      children: [
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: QuickActionCard(
-                  icon: Icons.add_circle,
-                  title: '添加新食材',
-                  subtitle: '手动录入食材',
-                  backgroundColor: AppColors.primary,
-                  contentColor: AppColors.onPrimary,
-                  onTap: () {
-                    ref.navigateToTab(FkTab.add);
-                  },
-                  semanticLabel: '添加新食材，手动录入食材',
+
+    final urgent = expiringItems
+        .where((i) => i.state == FreshnessState.expired)
+        .length;
+    final soon = expiringItems
+        .where((i) => i.state == FreshnessState.expiringSoon)
+        .length;
+    final categoryCounts = _countByCategory(inventory);
+    final todayRecipe = recommendedRecipes.isNotEmpty
+        ? recommendedRecipes.first
+        : null;
+
+    return SafeArea(
+      bottom: false,
+      child: RefreshIndicator(
+        onRefresh: () async =>
+            await Future.delayed(const Duration(milliseconds: 600)),
+        color: AppColors.primary,
+        backgroundColor: AppColors.surface,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
+          children: [
+            _HeroSection(
+              greeting: dashboardGreetingFor(now),
+              total: stats.total,
+              categoryCount: categoryCounts.length,
+              urgent: urgent,
+              soon: soon,
+              lowStock: 0,
+            ),
+            Transform.translate(
+              offset: const Offset(0, -36),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _QuickAddCard(
+                  onAdd: () => ref.navigateToTab(FkTab.add),
                 ),
               ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: QuickActionCard(
-                  icon: Icons.shopping_basket,
-                  title: '购物清单',
-                  subtitle: '还需$uncheckedCount件',
-                  backgroundColor: AppColors.tertiaryFixedDim,
-                  contentColor: AppColors.onTertiaryFixedDim,
-                  onTap: () {
-                    ref.navigateToTab(FkTab.shopping);
+            ),
+            if (expiringItems.isNotEmpty) ...[
+              FkSectionHead(
+                title: '该用了',
+                count: expiringItems.length,
+                actionLabel: '全部',
+                onAction: () => ref.navigateToTab(FkTab.fridge),
+              ),
+              SizedBox(
+                height: 168,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  itemCount: expiringItems.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 10),
+                  itemBuilder: (_, i) {
+                    final item = expiringItems[i];
+                    return _ExpiringCard(
+                      item: item,
+                      onAdd: () => _addToShoppingList(context, ref, item),
+                    );
                   },
-                  semanticLabel: '购物清单，还需$uncheckedCount件',
                 ),
               ),
             ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        _RecipeShortcutTile(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const MyRecipesScreen()),
-            );
-          },
-        ),
-      ],
-    );
-
-    return RefreshIndicator(
-      onRefresh: () async {
-        await Future.delayed(const Duration(milliseconds: 800));
-      },
-      color: AppColors.primary,
-      backgroundColor: AppColors.surface,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.lg, AppSpacing.xxl, AppSpacing.huge),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Greeting ──
-            Text(
-              dashboardGreetingFor(now),
-              style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                letterSpacing: -0.5,
-                color: AppColors.onSurface,
+            if (categoryCounts.isNotEmpty) ...[
+              FkSectionHead(
+                title: '食材分类',
+                actionLabel: '全部',
+                onAction: () => ref.navigateToTab(FkTab.fridge),
               ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              dashboardSubtitleFor(now),
-              style: GoogleFonts.manrope(
-                fontSize: AppFontSize.lg,
-                color: AppColors.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-
-            // ── Stats ──
-            Row(
-              children: [
-                Expanded(
-                  child: StatCard(
-                    value: '${stats.total}',
-                    label: '种食材',
-                    semanticLabel: '查看全部食材库存',
-                    onTap: () {
-                      ref.read(selectedCategoryProvider.notifier).state =
-                          inventoryFilterAll;
-                      ref.navigateToTab(FkTab.fridge);
-                    },
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.lg),
-                Expanded(
-                  child: StatCard(
-                    value: '${stats.expiringSoon}',
-                    label: '即将过期',
-                    isWarning: true,
-                    semanticLabel: '查看即将过期食材',
-                    onTap: () {
-                      ref.read(selectedCategoryProvider.notifier).state =
-                          inventoryFilterNotFresh;
-                      ref.navigateToTab(FkTab.fridge);
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xxl),
-
-            // ── Quick Actions ──
-            quickActions,
-            const SizedBox(height: AppSpacing.xxl),
-
-            // ── Urgent Attention (wrapped container) ──
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(top: AppSpacing.xl, bottom: 8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.errorContainer,
-                borderRadius: BorderRadius.circular(AppRadius.xxl),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.priority_high,
-                          color: AppColors.secondary,
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Text(
-                          '紧急关注',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  for (final (index, item) in expiringItems.indexed)
-                    Padding(
-                      key: ValueKey('alert_$index'),
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: AlertCard(
-                        key: ValueKey('alert_card_$index'),
-                        icon: categoryIconFor(item.category),
-                        iconColor:
-                            item.state == FreshnessState.expired
-                                ? AppColors.secondary
-                                : AppColors.primary,
-                        name: item.name,
-                        subtitle: item.expiryLabel ?? '即将过期',
-                        storageTag: storageLabelFor(item.storage),
-                        badge: item.expiryLabel ?? '即将过期',
-                        badgeBg:
-                            item.state == FreshnessState.expired
-                                ? AppColors.secondaryContainer
-                                : AppColors.surfaceContainerHigh,
-                        badgeText:
-                            item.state == FreshnessState.expired
-                                ? AppColors.onSecondaryContainer
-                                : AppColors.onSurfaceVariant,
-                        onConsume: () {
-                          final idx = inventoryIndexOf(
-                            ref.read(inventoryProvider),
-                            item,
-                          );
-                          if (idx >= 0) {
-                            ref.read(inventoryProvider.notifier).remove(idx);
-                          }
-                        },
-                        onAddToCart: () {
-                          _addToShoppingList(context, ref, item);
-                        },
-                      ),
-                    ),
-                  if (expiringItems.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.sm,
-                        horizontal: AppSpacing.lg,
-                      ),
-                      child: Text(
-                        '暂无需要紧急关注的食材',
-                        style: GoogleFonts.manrope(
-                          color: AppColors.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Semantics(
-                        button: true,
-                        label: '食谱推荐',
-                        child: GestureDetector(
-                          onTap: () => _showRecipeSheet(context, ref),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.xxl,
-                              vertical: AppSpacing.lg,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary,
-                              borderRadius: BorderRadius.circular(AppRadius.pill),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primary.withValues(
-                                    alpha: 0.2,
-                                  ),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  '食谱推荐',
-                                  style: GoogleFonts.manrope(
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.onPrimary,
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.sm),
-                                const Icon(
-                                  Icons.arrow_forward,
-                                  color: AppColors.onPrimary,
-                                  size: 16,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // ── Storage Summary ──
-            Text(
-              '存储概况',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.3,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            for (final (index, area) in storageAreas.indexed)
               Padding(
-                key: ValueKey('storage_$index'),
-                padding: const EdgeInsets.only(bottom: 16),
-                child: StorageSummaryCard(
-                  key: ValueKey('storage_card_$index'),
-                  area: area,
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                child: _CategoryGrid(
+                  counts: categoryCounts,
+                  onTap: (cat) => ref.navigateToTab(FkTab.fridge),
                 ),
               ),
-            const SizedBox(height: AppSpacing.xxl),
-
-            // ── Recent Additions ──
-            Text(
-              '最近添加',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: AppFontSize.xl,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.3,
+            ],
+            if (todayRecipe != null) ...[
+              FkSectionHead(
+                title: '今日推荐',
+                trailing: const FkPill(
+                  label: '智能推荐',
+                  backgroundColor: AppColors.primarySoft,
+                  foregroundColor: AppColors.primaryContainer,
+                  sm: true,
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            for (final (index, item) in recentItems.indexed)
-              RecentAdditionItem(key: ValueKey('recent_$index'), item: item),
-            const SizedBox(height: AppSpacing.xxl),
-
-            // ── Curator's Tip ──
-            if (recommendedRecipes.isNotEmpty)
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 0, 18, 100),
+                child: RecipeCard(
+                  recipe: todayRecipe,
+                  matchedCount: matchedIngredientCount(
+                    inventory,
+                    todayRecipe,
+                  ),
+                  onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder:
-                          (_) => RecipeDetailScreen(
-                            recipe: recommendedRecipes.first,
-                          ),
+                      builder: (_) => RecipeDetailScreen(recipe: todayRecipe),
                     ),
-                  );
-                },
-                child: CuratorsTipCard(
-                  tip:
-                      '根据您的库存，推荐制作「${recommendedRecipes.first.name}」——${recommendedRecipes.first.description}',
+                  ),
                 ),
               ),
+            ] else
+              const SizedBox(height: 100),
           ],
         ),
       ),
     );
+  }
+
+  Map<String, int> _countByCategory(List<Ingredient> items) {
+    final m = <String, int>{};
+    for (final item in items) {
+      final id = fkCategoryIdFor(item.category);
+      m[id] = (m[id] ?? 0) + 1;
+    }
+    return m;
   }
 
   Future<void> _addToShoppingList(
@@ -356,169 +174,362 @@ class DashboardScreen extends ConsumerWidget {
       backgroundColor: added ? AppColors.primary : AppColors.tertiary,
     );
   }
-
-  void _showRecipeSheet(BuildContext context, WidgetRef ref) {
-    final recipes = ref.read(recommendedRecipesProvider);
-    final inventory = ref.read(inventoryProvider);
-    final rootNavigator = Navigator.of(context);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (sheetContext) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.6,
-          minChildSize: 0.4,
-          maxChildSize: 0.85,
-          expand: false,
-          builder: (_, scrollController) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.lg, AppSpacing.xxl, AppSpacing.xxl),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Handle bar
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: AppColors.outline,
-                        borderRadius: BorderRadius.circular(AppRadius.xs),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Text(
-                    '食谱推荐',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: AppFontSize.xl,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    '根据您的库存食材智能推荐',
-                    style: GoogleFonts.manrope(
-                      fontSize: AppFontSize.md,
-                      color: AppColors.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Expanded(
-                    child: ListView.builder(
-                      controller: scrollController,
-                      itemCount: recipes.length,
-                      itemBuilder: (_, index) {
-                        final recipe = recipes[index];
-                        final matched = matchedIngredientCount(
-                          inventory,
-                          recipe,
-                        );
-                        return RecipeCard(
-                          recipe: recipe,
-                          matchedCount: matched,
-                          onTap: () {
-                            Navigator.pop(sheetContext);
-                            rootNavigator.push(
-                              MaterialPageRoute(
-                                builder:
-                                    (_) => RecipeDetailScreen(recipe: recipe),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
 }
 
-class _RecipeShortcutTile extends StatelessWidget {
-  final VoidCallback onTap;
+/// 顶部 hero — 渐变背景 + 问候 + 大数字 stat + 3-grid mini stat。
+class _HeroSection extends StatelessWidget {
+  final String greeting;
+  final int total;
+  final int categoryCount;
+  final int urgent;
+  final int soon;
+  final int lowStock;
 
-  const _RecipeShortcutTile({required this.onTap});
+  const _HeroSection({
+    required this.greeting,
+    required this.total,
+    required this.categoryCount,
+    required this.urgent,
+    required this.soon,
+    required this.lowStock,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: '我的食谱，添加和管理私房菜单',
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
-            border: Border.all(color: AppColors.outlineVariant),
-          ),
-          child: Row(
+    return FkHeroHeader(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 60),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryFixed,
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                ),
-                child: const Icon(
-                  Icons.menu_book_outlined,
-                  color: AppColors.primary,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '我的食谱',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: AppFontSize.lg,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.onSurface,
+                      greeting,
+                      style: GoogleFonts.manrope(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withValues(alpha: 0.75),
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.xs),
+                    const SizedBox(height: 4),
                     Text(
-                      '添加和管理私房菜单',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.manrope(
-                        fontSize: AppFontSize.sm,
-                        color: AppColors.onSurfaceVariant,
+                      '你的冰箱状态',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.4,
+                        color: Colors.white,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(
-                Icons.arrow_forward_ios,
-                color: AppColors.outline,
-                size: 16,
+              FkIconButton(
+                backgroundColor: Colors.white.withValues(alpha: 0.18),
+                foregroundColor: Colors.white,
+                child: const Icon(Icons.notifications_outlined),
+                onTap: () {},
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 22),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '$total',
+                style: AppTypography.heroStat.copyWith(color: Colors.white),
+              ),
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Text(
+                  '件食材 · $categoryCount 类',
+                  style: GoogleFonts.manrope(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _MiniStat(
+                  label: '快过期',
+                  count: urgent,
+                  accent: AppColors.fkDanger,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _MiniStat(
+                  label: '即将过期',
+                  count: soon,
+                  accent: AppColors.fkWarn,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _MiniStat(
+                  label: '库存不足',
+                  count: lowStock,
+                  accent: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class _MiniStat extends StatelessWidget {
+  final String label;
+  final int count;
+  final Color accent;
+  const _MiniStat({
+    required this.label,
+    required this.count,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$count',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: GoogleFonts.manrope(
+              fontSize: 11,
+              color: Colors.white.withValues(alpha: 0.85),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickAddCard extends StatelessWidget {
+  final VoidCallback onAdd;
+  const _QuickAddCard({required this.onAdd});
+
+  @override
+  Widget build(BuildContext context) {
+    // 三种添加方式 — barcode scan 在本项目里已被移除,中间用 AI 草稿替代。
+    final items = [
+      (Icons.auto_awesome_outlined, 'AI'),
+      (Icons.photo_camera_outlined, '拍照'),
+      (Icons.edit_outlined, '手动'),
+    ];
+    return FkCard(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          for (final (icon, label) in items)
+            Expanded(
+              child: GestureDetector(
+                onTap: onAdd,
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: AppColors.primarySoft,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          icon,
+                          size: 20,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        label,
+                        style: GoogleFonts.manrope(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ExpiringCard extends StatelessWidget {
+  final Ingredient item;
+  final VoidCallback onAdd;
+  const _ExpiringCard({required this.item, required this.onAdd});
+
+  @override
+  Widget build(BuildContext context) {
+    final catId = fkCategoryIdFor(item.category);
+    final palette = FkCategoryPalette.of(catId);
+    final isExpired = item.state == FreshnessState.expired;
+    final pillBg = isExpired
+        ? AppColors.fkDanger
+        : AppColors.fkWarnSoft;
+    final pillFg = isExpired ? Colors.white : AppColors.onSecondaryContainer;
+    final topBorder = isExpired ? AppColors.fkDanger : AppColors.fkWarn;
+
+    return Container(
+      width: 144,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowSoft,
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+        border: Border(top: BorderSide(color: topBorder, width: 3)),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: palette.tint,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Center(
+              child: CatIcon(category: catId, size: 36, color: palette.ink),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            item.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.onSurface,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '${item.quantity}${item.unit}',
+            style: GoogleFonts.manrope(
+              fontSize: 11,
+              color: AppColors.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (item.expiryLabel != null)
+            FkPill(
+              label: item.expiryLabel!,
+              backgroundColor: pillBg,
+              foregroundColor: pillFg,
+              sm: true,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryGrid extends StatelessWidget {
+  final Map<String, int> counts;
+  final void Function(String catId) onTap;
+  const _CategoryGrid({required this.counts, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = counts.entries.take(8).toList();
+    return GridView.count(
+      crossAxisCount: 4,
+      mainAxisSpacing: 10,
+      crossAxisSpacing: 10,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      childAspectRatio: 0.95,
+      children: [
+        for (final entry in entries)
+          GestureDetector(
+            onTap: () => onTap(entry.key),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              decoration: BoxDecoration(
+                color: FkCategoryPalette.of(entry.key).tint,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CatIcon(
+                    category: entry.key,
+                    size: 28,
+                    color: FkCategoryPalette.of(entry.key).ink,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    FkCategoryPalette.names[entry.key] ?? entry.key,
+                    style: GoogleFonts.manrope(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: FkCategoryPalette.of(entry.key).ink,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${entry.value}',
+                    style: GoogleFonts.manrope(
+                      fontSize: 11,
+                      color: FkCategoryPalette.of(entry.key).ink.withValues(
+                            alpha: 0.7,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

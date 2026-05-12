@@ -156,23 +156,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(
-      find.byWidgetPredicate(
-        (widget) =>
-            widget is Semantics &&
-            (widget.properties.label?.contains('扫码') ?? false),
-      ),
-      findsNothing,
-    );
-    expect(
-      find.byWidgetPredicate(
-        (widget) =>
-            widget is Semantics && widget.properties.label == '添加新食材，手动录入食材',
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('扫码或手动录入'), findsNothing);
-    expect(find.text('手动录入食材'), findsOneWidget);
+    // FK redesign: dashboard quick-add labels are "AI / 拍照 / 手动" — no scanning.
+    expect(find.text('扫码'), findsNothing);
+    expect(find.text('AI'), findsOneWidget);
+    expect(find.text('手动'), findsOneWidget);
   });
 }
 
