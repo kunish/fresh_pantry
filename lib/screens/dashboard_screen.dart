@@ -19,6 +19,7 @@ import '../widgets/shared/fk_hero_header.dart';
 import '../widgets/shared/fk_icon_button.dart';
 import '../widgets/shared/fk_pill.dart';
 import '../widgets/shared/fk_section_head.dart';
+import 'expiring_screen.dart';
 import 'recipe_detail_screen.dart';
 import 'settings_screen.dart';
 
@@ -88,7 +89,11 @@ class DashboardScreen extends ConsumerWidget {
                 title: '该用了',
                 count: expiringItems.length,
                 actionLabel: '全部',
-                onAction: () => ref.navigateToTab(FkTab.fridge),
+                onAction: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ExpiringScreen(),
+                  ),
+                ),
               ),
               SizedBox(
                 height: 168,
