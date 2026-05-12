@@ -20,6 +20,7 @@ import '../widgets/shared/fk_icon_button.dart';
 import '../widgets/shared/fk_pill.dart';
 import '../widgets/shared/fk_section_head.dart';
 import 'recipe_detail_screen.dart';
+import 'settings_screen.dart';
 
 /// FreshKeeper 首页 — 设计稿 `screens-1.jsx::HomeScreen`。
 ///
@@ -69,6 +70,9 @@ class DashboardScreen extends ConsumerWidget {
               urgent: urgent,
               soon: soon,
               lowStock: 0,
+              onSettings: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              ),
             ),
             Transform.translate(
               offset: const Offset(0, -36),
@@ -184,6 +188,7 @@ class _HeroSection extends StatelessWidget {
   final int urgent;
   final int soon;
   final int lowStock;
+  final VoidCallback onSettings;
 
   const _HeroSection({
     required this.greeting,
@@ -192,6 +197,7 @@ class _HeroSection extends StatelessWidget {
     required this.urgent,
     required this.soon,
     required this.lowStock,
+    required this.onSettings,
   });
 
   @override
@@ -231,8 +237,8 @@ class _HeroSection extends StatelessWidget {
               FkIconButton(
                 backgroundColor: Colors.white.withValues(alpha: 0.18),
                 foregroundColor: Colors.white,
+                onTap: onSettings,
                 child: const Icon(Icons.notifications_outlined),
-                onTap: () {},
               ),
             ],
           ),
