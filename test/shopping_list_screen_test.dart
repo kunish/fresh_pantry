@@ -148,6 +148,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('经典卡博纳拉意面'), findsOneWidget);
-    expect(find.text('所需食材'), findsOneWidget);
+    // FK redesign relabels "所需食材" → "食材清单".
+    expect(find.text('食材清单'), findsOneWidget);
   });
 }

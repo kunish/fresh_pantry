@@ -2,18 +2,26 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../data/food_knowledge.dart';
 import '../models/ingredient.dart';
 import '../models/recipe.dart';
 import '../models/shopping_item.dart';
-import '../data/food_knowledge.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/recipe_provider.dart';
 import '../providers/shopping_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_snackbar.dart';
-import '../widgets/shared/pill_chip.dart';
+import '../widgets/shared/fk_card.dart';
+import '../widgets/shared/fk_icon_button.dart';
+import '../widgets/shared/fk_pill.dart';
 import '../widgets/shared/recipe_image.dart';
 
+/// 设计稿 `screens-3.jsx::RecipeDetailScreen`。
+///
+/// 视觉栈:大 hero 图(260px)+ 浮 back/收藏 → 标题 + 时间/难度 + 标签 →
+/// 食材清单(缺少项 dangerSoft 高亮 + dashed border)→ 一键加购缺少 CTA →
+/// 步骤卡(圆形 step number + 可点完成切换)→ 底部 "开始烹饪" primary CTA。
 class RecipeDetailScreen extends ConsumerStatefulWidget {
   final Recipe recipe;
   final bool isCustomRecipe;
@@ -34,11 +42,11 @@ class RecipeDetailScreen extends ConsumerStatefulWidget {
 
 class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
   final Set<int> _completedSteps = <int>{};
+  bool _isFavorite = false;
 
   @override
   void didUpdateWidget(covariant RecipeDetailScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     if (oldWidget.recipe.id != widget.recipe.id ||
         !listEquals(oldWidget.recipe.steps, widget.recipe.steps)) {
       _completedSteps.clear();
@@ -70,9 +78,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
           );
       if (added) addedCount++;
     }
-
     if (!mounted) return;
-
     showAppSnackBar(
       context,
       addedCount == 0 ? '缺失食材已在购物清单中' : '已将 $addedCount 个食材加入购物清单',
@@ -81,366 +87,667 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     );
   }
 
-  List<RecipeIngredient> _getMissingIngredients(
+  String _norm(String name) => name.trim().toLowerCase();
+
+  bool _matchesInventory(String ingredientName, Set<String> inventoryNames) {
+    final n = _norm(ingredientName);
+    if (n.isEmpty) return false;
+    return inventoryNames.any(
+      (name) => name.contains(n) || n.contains(name),
+    );
+  }
+
+  List<RecipeIngredient> _missingIngredients(
     List<Ingredient> inventory,
     Recipe recipe,
   ) {
-    final inventoryNames =
-        inventory.map((i) => _normalizedIngredientName(i.name)).toSet();
-    return recipe.ingredients.where((ing) {
-      return !_ingredientNameMatchesInventory(ing.name, inventoryNames);
-    }).toList();
+    final names = inventory.map((i) => _norm(i.name)).toSet();
+    return recipe
+        .ingredients
+        .where((ing) => !_matchesInventory(ing.name, names))
+        .toList();
   }
 
   @override
   Widget build(BuildContext context) {
     final inventory = ref.watch(inventoryProvider);
+    final inventoryNames = inventory.map((i) => _norm(i.name)).toSet();
     final matched = matchedIngredientCount(inventory, widget.recipe);
-    final missing = _getMissingIngredients(inventory, widget.recipe);
-    final stepProgress =
-        widget.recipe.steps.isEmpty
-            ? 0.0
-            : _completedSteps.length / widget.recipe.steps.length;
+    final missing = _missingIngredients(inventory, widget.recipe);
+
+    final stepProgress = widget.recipe.steps.isEmpty
+        ? 0.0
+        : _completedSteps.length / widget.recipe.steps.length;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
-      body: CustomScrollView(
-        slivers: [
-          // Hero image app bar
-          SliverAppBar(
-            expandedHeight: 240,
-            pinned: true,
-            backgroundColor: AppColors.surface,
-            foregroundColor: AppColors.onSurface,
-            actions: [
-              if (widget.isCustomRecipe && widget.onEdit != null)
-                IconButton(
-                  tooltip: '编辑食谱',
-                  icon: const Icon(Icons.edit_outlined),
-                  onPressed: widget.onEdit,
-                ),
-              if (widget.isCustomRecipe && widget.onDelete != null)
-                IconButton(
-                  tooltip: '删除食谱',
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: widget.onDelete,
-                ),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  RecipeImage(
-                    imageSource: widget.recipe.imageUrl,
-                    fit: BoxFit.cover,
-                    semanticLabel: widget.recipe.name,
-                    fallback: Container(
-                      color: AppColors.surfaceContainerLow,
-                      child: Semantics(
-                        label: widget.recipe.name,
-                        image: true,
-                        child: const Icon(Icons.restaurant, size: 64),
-                      ),
-                    ),
-                  ),
-                  // 顶部 scrim：保证深色 status bar 图标和 leading/actions
-                  // 在任何颜色的封面图（红烧肉、巧克力等深色食物）上都可读。
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: IgnorePointer(
-                      child: SizedBox(
-                        height:
-                            MediaQuery.of(context).padding.top + kToolbarHeight,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                AppColors.surface.withValues(alpha: 0.55),
-                                AppColors.surface.withValues(alpha: 0),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+      body: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          _HeroSection(
+            recipe: widget.recipe,
+            isFavorite: _isFavorite,
+            isCustom: widget.isCustomRecipe,
+            onBack: () => Navigator.of(context).maybePop(),
+            onToggleFavorite: () =>
+                setState(() => _isFavorite = !_isFavorite),
+            onEdit: widget.onEdit,
+            onDelete: widget.onDelete,
           ),
-
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.xxl, AppSpacing.xxl, 40),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                // Title
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 20, 18, 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
                   widget.recipe.name,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: AppFontSize.xxl,
+                    fontSize: 24,
                     fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
+                    letterSpacing: -0.4,
                     color: AppColors.onSurface,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  widget.recipe.description,
+                const SizedBox(height: 8),
+                DefaultTextStyle.merge(
                   style: GoogleFonts.manrope(
-                    fontSize: AppFontSize.md,
+                    fontSize: 13,
                     color: AppColors.onSurfaceVariant,
-                    height: 1.5,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.schedule_rounded,
+                        size: 13,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 4),
+                      Text('${widget.recipe.cookingMinutes} 分钟'),
+                      const SizedBox(width: 14),
+                      const Icon(
+                        Icons.local_fire_department_outlined,
+                        size: 13,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(widget.recipe.difficultyLabel),
+                    ],
                   ),
                 ),
-                const SizedBox(height: AppSpacing.lg),
-
-                // Meta chips
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    PillChip(
-                      icon: Icons.timer_outlined,
-                      label: '${widget.recipe.cookingMinutes}分钟',
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: AppSpacing.sm,
-                      ),
-                      iconForegroundColor: AppColors.primary,
-                    ),
-                    PillChip(
-                      icon: Icons.local_fire_department_outlined,
-                      label: widget.recipe.difficultyLabel,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: AppSpacing.sm,
-                      ),
-                      iconForegroundColor: AppColors.primary,
-                    ),
-                    PillChip(
-                      icon: Icons.checklist,
-                      label: '$matched/${widget.recipe.ingredients.length} 食材已备',
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: AppSpacing.sm,
-                      ),
-                      iconForegroundColor: AppColors.primary,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.huge),
-
-                // Missing ingredients action
-                if (missing.isNotEmpty) ...[
-                  Semantics(
-                    button: true,
-                    label: '一键补齐食材',
-                    child: GestureDetector(
-                      onTap: () => _addMissingToCart(missing),
-                      child: Container(
-                        padding: const EdgeInsets.all(AppSpacing.lg),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryContainer,
-                          borderRadius: BorderRadius.circular(AppRadius.lg),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(AppRadius.md),
-                              ),
-                              child: const Icon(
-                                Icons.add_shopping_cart,
-                                color: AppColors.onPrimary,
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.lg),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '一键补齐食材',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.onPrimaryContainer,
-                                    ),
-                                  ),
-                                  const SizedBox(height: AppSpacing.xs),
-                                  Text(
-                                    '将 ${missing.length} 个缺失食材加入购物清单',
-                                    style: GoogleFonts.manrope(
-                                      fontSize: AppFontSize.sm,
-                                      color: AppColors.onPrimaryContainer
-                                          .withValues(alpha: 0.8),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(
-                              Icons.arrow_forward,
-                              color: AppColors.onPrimaryContainer,
-                            ),
-                          ],
-                        ),
-                      ),
+                if (widget.recipe.description.trim().isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  Text(
+                    widget.recipe.description,
+                    style: GoogleFonts.manrope(
+                      fontSize: 14,
+                      height: 1.6,
+                      color: AppColors.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.huge),
                 ],
-
-                // Ingredients
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '所需食材',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: AppFontSize.xl,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (widget.recipe.ingredients.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                          vertical: AppSpacing.xs,
+                if (widget.recipe.tags.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final tag in widget.recipe.tags)
+                        FkPill(
+                          label: tag,
+                          backgroundColor: AppColors.primarySoft,
+                          foregroundColor: AppColors.primaryContainer,
                         ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryFixed,
-                          borderRadius: BorderRadius.circular(AppRadius.pill),
-                        ),
-                        child: Text(
-                          '$matched/${widget.recipe.ingredients.length}',
-                          style: GoogleFonts.manrope(
-                            fontSize: AppFontSize.xs,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.md),
-                ..._buildIngredientsList(inventory, widget.recipe),
-                const SizedBox(height: AppSpacing.huge),
-
-                // Steps with progress
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '烹饪步骤',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: AppFontSize.xl,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (widget.recipe.steps.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                          vertical: AppSpacing.xs,
-                        ),
-                        decoration: BoxDecoration(
-                          color:
-                              stepProgress >= 1.0
-                                  ? AppColors.primaryFixed
-                                  : AppColors.surfaceContainerHigh,
-                          borderRadius: BorderRadius.circular(AppRadius.pill),
-                        ),
-                        child: Text(
-                          '${_completedSteps.length}/${widget.recipe.steps.length}',
-                          style: GoogleFonts.manrope(
-                            fontSize: AppFontSize.xs,
-                            fontWeight: FontWeight.w700,
-                            color:
-                                stepProgress >= 1.0
-                                    ? AppColors.primary
-                                    : AppColors.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                if (widget.recipe.steps.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  // Progress bar
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(AppRadius.xs),
-                    child: LinearProgressIndicator(
-                      value: stepProgress,
-                      backgroundColor: AppColors.surfaceContainerHigh,
-                      color: AppColors.primary,
-                      minHeight: 6,
-                    ),
+                    ],
                   ),
-                  const SizedBox(height: AppSpacing.xl),
-                ] else
-                  const SizedBox(height: AppSpacing.md),
-                for (final (index, step) in widget.recipe.steps.indexed)
-                  _buildStepRow(index, step),
-              ]),
+                ],
+                const SizedBox(height: 22),
+                _IngredientsSection(
+                  recipe: widget.recipe,
+                  inventoryNames: inventoryNames,
+                  matched: matched,
+                  missingCount: missing.length,
+                ),
+                if (missing.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  _AddMissingCta(
+                    count: missing.length,
+                    onTap: () => _addMissingToCart(missing),
+                  ),
+                ],
+                const SizedBox(height: 24),
+                _StepsSection(
+                  steps: widget.recipe.steps,
+                  completed: _completedSteps,
+                  progress: stepProgress,
+                  onToggleStep: _toggleStep,
+                ),
+                const SizedBox(height: 20),
+                _StartCookingButton(onTap: () {}),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildStepRow(int index, String step) {
-    final isCompleted = _completedSteps.contains(index);
-    return Padding(
-      key: ValueKey('step_$index'),
-      padding: const EdgeInsets.only(bottom: 16),
-      child: GestureDetector(
-        onTap: () => _toggleStep(index),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: isCompleted ? AppColors.primary : AppColors.primaryFixed,
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
+class _HeroSection extends StatelessWidget {
+  final Recipe recipe;
+  final bool isFavorite;
+  final bool isCustom;
+  final VoidCallback onBack;
+  final VoidCallback onToggleFavorite;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+
+  const _HeroSection({
+    required this.recipe,
+    required this.isFavorite,
+    required this.isCustom,
+    required this.onBack,
+    required this.onToggleFavorite,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 260,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          RecipeImage(
+            imageSource: recipe.imageUrl,
+            fit: BoxFit.cover,
+            semanticLabel: recipe.name,
+            fallback: Container(
+              color: AppColors.primarySoft,
               alignment: Alignment.center,
-              child:
-                  isCompleted
-                      ? const Icon(
-                        Icons.check,
-                        size: 16,
-                        color: AppColors.onPrimary,
-                      )
-                      : Text(
-                        '${index + 1}',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: AppFontSize.sm,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
+              child: const Icon(
+                Icons.restaurant_rounded,
+                size: 64,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+          // Top scrim so floating chrome stays readable on dark covers
+          IgnorePointer(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                height: MediaQuery.of(context).padding.top + 64,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.25),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
+              child: Row(
+                children: [
+                  FkIconButton(
+                    onTap: onBack,
+                    onImage: true,
+                    child: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 18,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (isCustom && onEdit != null) ...[
+                    Tooltip(
+                      message: '编辑食谱',
+                      child: FkIconButton(
+                        onTap: onEdit!,
+                        onImage: true,
+                        child: const Icon(Icons.edit_outlined, size: 18),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  if (isCustom && onDelete != null) ...[
+                    Tooltip(
+                      message: '删除食谱',
+                      child: FkIconButton(
+                        onTap: onDelete!,
+                        onImage: true,
+                        foregroundColor: AppColors.fkDanger,
+                        child: const Icon(
+                          Icons.delete_outline_rounded,
+                          size: 18,
                         ),
                       ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  FkIconButton(
+                    onTap: onToggleFavorite,
+                    onImage: true,
+                    foregroundColor: isFavorite
+                        ? AppColors.fkDanger
+                        : AppColors.onSurface,
+                    child: Icon(
+                      isFavorite
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_outline_rounded,
+                      size: 18,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(width: AppSpacing.lg),
-            Expanded(
-              child: Text(
-                step,
-                style: GoogleFonts.manrope(
-                  fontSize: AppFontSize.md,
-                  color:
-                      isCompleted
-                          ? AppColors.onSurfaceVariant
-                          : AppColors.onSurface,
-                  height: 1.5,
-                  decoration: isCompleted ? TextDecoration.lineThrough : null,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _IngredientsSection extends StatelessWidget {
+  final Recipe recipe;
+  final Set<String> inventoryNames;
+  final int matched;
+  final int missingCount;
+
+  const _IngredientsSection({
+    required this.recipe,
+    required this.inventoryNames,
+    required this.matched,
+    required this.missingCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              '食材清单',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.onSurface,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              '已有 $matched/${recipe.ingredients.length}',
+              style: GoogleFonts.manrope(
+                fontSize: 12,
+                color: AppColors.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        FkCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              for (var i = 0; i < recipe.ingredients.length; i++)
+                _IngredientRow(
+                  index: i,
+                  ingredient: recipe.ingredients[i],
+                  isAvailable: _isAvailable(recipe.ingredients[i].name),
+                  isLast: i == recipe.ingredients.length - 1,
                 ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  bool _isAvailable(String ingredientName) {
+    final n = ingredientName.trim().toLowerCase();
+    if (n.isEmpty) return false;
+    return inventoryNames.any((name) => name.contains(n) || n.contains(name));
+  }
+}
+
+class _IngredientRow extends StatelessWidget {
+  final int index;
+  final RecipeIngredient ingredient;
+  final bool isAvailable;
+  final bool isLast;
+
+  const _IngredientRow({
+    required this.index,
+    required this.ingredient,
+    required this.isAvailable,
+    required this.isLast,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: ValueKey('ingredient_$index'),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      decoration: BoxDecoration(
+        color: isAvailable ? Colors.transparent : AppColors.fkDangerSoft,
+        border: isLast
+            ? null
+            : const Border(
+                bottom: BorderSide(color: AppColors.hair, width: 0.5),
+              ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _StatusMark(isAvailable: isAvailable),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  ingredient.name,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: isAvailable
+                        ? AppColors.onSurface
+                        : AppColors.fkDanger,
+                  ),
+                ),
+                if (ingredient.amount.trim().isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    ingredient.amount,
+                    style: GoogleFonts.manrope(
+                      fontSize: 11,
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          isAvailable
+              ? FkPill(
+                  label: '已有',
+                  sm: true,
+                  backgroundColor: AppColors.primarySoft,
+                  foregroundColor: AppColors.primaryContainer,
+                )
+              : FkPill(
+                  label: '缺少',
+                  sm: true,
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppColors.fkDanger,
+                  border: const BorderSide(
+                    color: AppColors.fkDanger,
+                    width: 1,
+                    style: BorderStyle.solid,
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusMark extends StatelessWidget {
+  final bool isAvailable;
+  const _StatusMark({required this.isAvailable});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        color: isAvailable ? AppColors.primary : Colors.white,
+        shape: BoxShape.circle,
+        border: isAvailable
+            ? null
+            : Border.all(color: AppColors.fkDanger, width: 2),
+      ),
+      alignment: Alignment.center,
+      child: Icon(
+        isAvailable ? Icons.check_rounded : Icons.close_rounded,
+        size: isAvailable ? 14 : 12,
+        color: isAvailable ? Colors.white : AppColors.fkDanger,
+      ),
+    );
+  }
+}
+
+class _AddMissingCta extends StatelessWidget {
+  final int count;
+  final VoidCallback onTap;
+  const _AddMissingCta({required this.count, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: '一键加购缺少的 $count 件',
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.primarySoft,
+            borderRadius: BorderRadius.circular(AppRadius.chip),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.shopping_cart_outlined,
+                size: 16,
+                color: AppColors.primaryContainer,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '一键加购缺少的 $count 件',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryContainer,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StepsSection extends StatelessWidget {
+  final List<String> steps;
+  final Set<int> completed;
+  final double progress;
+  final void Function(int) onToggleStep;
+
+  const _StepsSection({
+    required this.steps,
+    required this.completed,
+    required this.progress,
+    required this.onToggleStep,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              '烹饪步骤',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.onSurface,
+              ),
+            ),
+            const Spacer(),
+            if (steps.isNotEmpty)
+              Text(
+                '${completed.length}/${steps.length}',
+                style: GoogleFonts.manrope(
+                  fontSize: 12,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+          ],
+        ),
+        if (steps.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.xs),
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor: AppColors.surfaceContainer,
+              color: AppColors.primary,
+              minHeight: 4,
+            ),
+          ),
+          const SizedBox(height: 12),
+        ] else
+          const SizedBox(height: 10),
+        for (var i = 0; i < steps.length; i++) ...[
+          _StepRow(
+            index: i,
+            text: steps[i],
+            completed: completed.contains(i),
+            onTap: () => onToggleStep(i),
+          ),
+          if (i != steps.length - 1) const SizedBox(height: 10),
+        ],
+      ],
+    );
+  }
+}
+
+class _StepRow extends StatelessWidget {
+  final int index;
+  final String text;
+  final bool completed;
+  final VoidCallback onTap;
+
+  const _StepRow({
+    required this.index,
+    required this.text,
+    required this.completed,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FkCard(
+      key: ValueKey('step_$index'),
+      padding: const EdgeInsets.all(12),
+      onTap: onTap,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(
+              color: completed ? AppColors.primary : AppColors.primarySoft,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: completed
+                ? const Icon(
+                    Icons.check_rounded,
+                    size: 14,
+                    color: Colors.white,
+                  )
+                : Text(
+                    '${index + 1}',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primaryContainer,
+                    ),
+                  ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 3),
+              child: Text(
+                text,
+                style: GoogleFonts.manrope(
+                  fontSize: 14,
+                  height: 1.5,
+                  color: completed
+                      ? AppColors.onSurfaceVariant
+                      : AppColors.onSurface,
+                  decoration:
+                      completed ? TextDecoration.lineThrough : null,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StartCookingButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _StartCookingButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.shadowWarm,
+              blurRadius: 18,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.restaurant_menu_rounded,
+              size: 18,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              '开始烹饪',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
               ),
             ),
           ],
@@ -448,82 +755,4 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       ),
     );
   }
-
-  List<Widget> _buildIngredientsList(
-    List<Ingredient> inventory,
-    Recipe recipe,
-  ) {
-    final inventoryNames =
-        inventory.map((i) => _normalizedIngredientName(i.name)).toSet();
-    return [
-      for (final (index, ingredient) in recipe.ingredients.indexed)
-        _buildIngredientRow(index, ingredient, inventoryNames),
-    ];
-  }
-
-  Widget _buildIngredientRow(
-    int index,
-    RecipeIngredient ingredient,
-    Set<String> inventoryNames,
-  ) {
-    final available = _ingredientNameMatchesInventory(
-      ingredient.name,
-      inventoryNames,
-    );
-    return Padding(
-      key: ValueKey('ingredient_$index'),
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Icon(
-            available ? Icons.check_circle : Icons.circle_outlined,
-            size: 20,
-            color: available ? AppColors.primary : AppColors.onSurfaceVariant,
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Text(
-              '${ingredient.name} (${ingredient.amount})',
-              style: GoogleFonts.manrope(
-                fontSize: AppFontSize.md,
-                color:
-                    available
-                        ? AppColors.onSurface
-                        : AppColors.onSurfaceVariant,
-                decoration: available ? null : TextDecoration.lineThrough,
-              ),
-            ),
-          ),
-          if (available)
-            Text(
-              '库存中',
-              style: GoogleFonts.manrope(
-                fontSize: AppFontSize.sm,
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  bool _ingredientNameMatchesInventory(
-    String ingredientName,
-    Set<String> inventoryNames,
-  ) {
-    final normalizedIngredientName = _normalizedIngredientName(ingredientName);
-    if (normalizedIngredientName.isEmpty) return false;
-
-    return inventoryNames.any(
-      (name) =>
-          name.contains(normalizedIngredientName) ||
-          normalizedIngredientName.contains(name),
-    );
-  }
-
-  String _normalizedIngredientName(String name) {
-    return name.trim().toLowerCase();
-  }
-
 }
