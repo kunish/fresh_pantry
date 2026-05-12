@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fresh_pantry/models/ingredient.dart';
 import 'package:fresh_pantry/models/storage_area.dart';
 import 'package:fresh_pantry/widgets/dashboard/recent_addition_item.dart';
+import 'package:fresh_pantry/widgets/shared/cat_icon.dart';
 
 void main() {
   testWidgets(
@@ -33,7 +34,8 @@ void main() {
       expect(find.text('牛肉'), findsOneWidget);
       expect(find.text('1 个'), findsOneWidget);
       expect(find.text('2小时前添加'), findsOneWidget);
-      expect(find.byIcon(Icons.set_meal_outlined), findsOneWidget);
+      // FK CatIcon (cartoon line SVG) replaced the old Material icon.
+      expect(find.byType(CatIcon), findsOneWidget);
       expect(find.byType(Image), findsNothing);
     },
   );

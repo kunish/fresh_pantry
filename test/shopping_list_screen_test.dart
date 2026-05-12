@@ -8,6 +8,7 @@ import 'package:fresh_pantry/models/shopping_item.dart';
 import 'package:fresh_pantry/providers/shopping_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/screens/shopping_list_screen.dart';
+import 'package:fresh_pantry/widgets/shared/cat_icon.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -46,7 +47,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(FoodCategories.freshProduce), findsOneWidget);
-    expect(find.byIcon(Icons.eco_outlined), findsOneWidget);
+    // FK CatIcon replaces the old Material outlined icon.
+    expect(find.byType(CatIcon), findsAtLeastNWidgets(1));
     expect(find.text('番茄'), findsOneWidget);
     expect(find.text('牛奶'), findsOneWidget);
 

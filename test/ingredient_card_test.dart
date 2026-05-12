@@ -5,6 +5,7 @@ import 'package:fresh_pantry/models/ingredient.dart';
 import 'package:fresh_pantry/models/storage_area.dart';
 import 'package:fresh_pantry/theme/app_theme.dart';
 import 'package:fresh_pantry/widgets/inventory/ingredient_card.dart';
+import 'package:fresh_pantry/widgets/shared/cat_icon.dart';
 
 void main() {
   testWidgets('ingredient card uses the category icon instead of imageUrl', (
@@ -31,7 +32,8 @@ void main() {
     );
 
     expect(find.text('番茄'), findsOneWidget);
-    expect(find.byIcon(Icons.eco_outlined), findsOneWidget);
+    // FK CatIcon (cartoon line SVG) replaced the old Material outlined icon.
+    expect(find.byType(CatIcon), findsOneWidget);
     expect(find.byType(Image), findsNothing);
   });
 
