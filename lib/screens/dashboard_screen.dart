@@ -47,7 +47,7 @@ class DashboardScreen extends ConsumerWidget {
                   backgroundColor: AppColors.primary,
                   contentColor: AppColors.onPrimary,
                   onTap: () {
-                    ref.navigateToTab(2);
+                    ref.navigateToTab(FkTab.add);
                   },
                   semanticLabel: '添加新食材，手动录入食材',
                 ),
@@ -61,7 +61,7 @@ class DashboardScreen extends ConsumerWidget {
                   backgroundColor: AppColors.tertiaryFixedDim,
                   contentColor: AppColors.onTertiaryFixedDim,
                   onTap: () {
-                    ref.navigateToTab(3);
+                    ref.navigateToTab(FkTab.shopping);
                   },
                   semanticLabel: '购物清单，还需$uncheckedCount件',
                 ),
@@ -122,7 +122,7 @@ class DashboardScreen extends ConsumerWidget {
                     onTap: () {
                       ref.read(selectedCategoryProvider.notifier).state =
                           inventoryFilterAll;
-                      ref.navigateToTab(1);
+                      ref.navigateToTab(FkTab.fridge);
                     },
                   ),
                 ),
@@ -136,7 +136,7 @@ class DashboardScreen extends ConsumerWidget {
                     onTap: () {
                       ref.read(selectedCategoryProvider.notifier).state =
                           inventoryFilterNotFresh;
-                      ref.navigateToTab(1);
+                      ref.navigateToTab(FkTab.fridge);
                     },
                   ),
                 ),

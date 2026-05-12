@@ -249,7 +249,7 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
-          navigationProvider.overrideWith((ref) => 3),
+          navigationProvider.overrideWith((ref) => FkTab.shopping),
           foodDetailsClientProvider.overrideWithValue(
             const _FakeFoodDetailsClient(null),
           ),

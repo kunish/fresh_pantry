@@ -433,7 +433,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
       onTap: () {
         // Navigate to inventory tab and close search
         ref.read(selectedCategoryProvider.notifier).state = inventoryFilterAll;
-        ref.navigateToTab(1);
+        ref.navigateToTab(FkTab.fridge);
         _close();
       },
     );
@@ -468,7 +468,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
         // Navigate to shopping list tab and close search
         ref.read(shoppingCategoryToExpandProvider.notifier).state =
             item.category;
-        ref.navigateToTab(3);
+        ref.navigateToTab(FkTab.shopping);
         _close();
       },
     );

@@ -2,8 +2,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../theme/app_theme.dart';
+
 import '../../providers/navigation_provider.dart';
+import '../../theme/app_theme.dart';
 
 class _NavItem {
   final IconData icon;
@@ -11,14 +12,17 @@ class _NavItem {
   const _NavItem(this.icon, this.label);
 }
 
+/// 设计稿 `ui.jsx::FKTabBar` — 5 tab,中间 add 是 52×52 primary FAB,左右各
+/// 两个普通 tab(icon + label)。底栏底白半透明 + 模糊。
 class BottomNavBar extends ConsumerWidget {
   const BottomNavBar({super.key});
 
   static const _items = [
-    _NavItem(Icons.dashboard, '首页'),
-    _NavItem(Icons.inventory_2, '库存'),
-    _NavItem(Icons.add_circle, '添加'),
-    _NavItem(Icons.shopping_cart, '购物'),
+    _NavItem(Icons.home_rounded, '首页'),
+    _NavItem(Icons.kitchen_rounded, '食材'),
+    _NavItem(Icons.add_rounded, ''),
+    _NavItem(Icons.menu_book_rounded, '菜谱'),
+    _NavItem(Icons.shopping_cart_rounded, '清单'),
   ];
 
   @override
@@ -31,82 +35,124 @@ class BottomNavBar extends ConsumerWidget {
         topRight: Radius.circular(24),
       ),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.surface.withValues(alpha: 0.8),
+            color: AppColors.surface.withValues(alpha: 0.92),
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.onSurface.withValues(alpha: 0.06),
-                blurRadius: 24,
-                offset: const Offset(0, -8),
-              ),
-            ],
+            border: const Border(
+              top: BorderSide(color: AppColors.hair, width: 0.5),
+            ),
           ),
           child: SafeArea(
+            top: false,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   for (final (index, item) in _items.indexed)
-                    Semantics(
-                      selected: index == currentIndex,
-                      button: true,
-                      label: item.label,
-                      child: GestureDetector(
-                        onTap: () => ref.navigateToTab(index),
-                        behavior: HitTestBehavior.opaque,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: index == currentIndex ? 16 : 12,
-                            vertical: AppSpacing.sm,
+                    index == FkTab.add
+                        ? _PrimaryFab(
+                            icon: item.icon,
+                            onTap: () => ref.navigateToTab(index),
+                          )
+                        : _TabButton(
+                            icon: item.icon,
+                            label: item.label,
+                            active: index == currentIndex,
+                            onTap: () => ref.navigateToTab(index),
                           ),
-                          decoration: BoxDecoration(
-                            color:
-                                index == currentIndex
-                                    ? AppColors.primaryContainer
-                                    : Colors.transparent,
-                            borderRadius: BorderRadius.circular(AppRadius.lg),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                item.icon,
-                                color:
-                                    index == currentIndex
-                                        ? AppColors.onPrimary
-                                        : AppColors.outline,
-                                size: 24,
-                              ),
-                              const SizedBox(height: AppSpacing.xs),
-                              Text(
-                                item.label.toUpperCase(),
-                                style: GoogleFonts.manrope(
-                                  fontSize: AppFontSize.xs,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.5,
-                                  color:
-                                      index == currentIndex
-                                          ? Colors.white
-                                          : AppColors.outline,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TabButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+  const _TabButton({
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = active ? AppColors.primary : AppColors.outline;
+    return Semantics(
+      selected: active,
+      button: true,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 22, color: color),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: GoogleFonts.manrope(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.1,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PrimaryFab extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _PrimaryFab({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: '添加食材',
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          width: 52,
+          height: 52,
+          margin: const EdgeInsets.only(bottom: 4),
+          decoration: const BoxDecoration(
+            color: AppColors.primary,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.shadowWarm,
+                blurRadius: 18,
+                offset: Offset(0, 6),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, size: 26, color: Colors.white),
         ),
       ),
     );

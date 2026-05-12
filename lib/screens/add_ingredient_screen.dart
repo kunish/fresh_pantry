@@ -332,7 +332,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     _showAddedSnackBar(name, addedItem);
 
     if (navigateToInventory) {
-      ref.navigateToTab(1);
+      ref.navigateToTab(FkTab.fridge);
     }
   }
 

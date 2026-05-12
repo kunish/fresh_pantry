@@ -283,9 +283,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('库存'));
+    // FK bottom nav: tap "食材" tab then center primary "+" FAB.
+    await tester.tap(find.text('食材'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('添加'));
+    await tester.tap(find.bySemanticsLabel('添加食材'));
     await tester.pumpAndSettle();
 
     expect(container.read(navigationProvider), 2);

@@ -9,6 +9,7 @@ import 'screens/custom_recipe_form_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/inventory_screen.dart';
 import 'screens/add_ingredient_screen.dart';
+import 'screens/recipes_screen.dart';
 import 'screens/shopping_list_screen.dart';
 import 'services/share_intent_service.dart';
 import 'widgets/common/top_app_bar.dart';
@@ -51,10 +52,12 @@ class AppShell extends ConsumerStatefulWidget {
 }
 
 class _AppShellState extends ConsumerState<AppShell> {
+  // Order MUST match FkTab constants in navigation_provider.dart.
   static const _screens = [
     DashboardScreen(),
     InventoryScreen(),
     AddIngredientScreen(),
+    RecipesScreen(),
     ShoppingListScreen(),
   ];
 
