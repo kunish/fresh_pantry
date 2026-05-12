@@ -413,20 +413,21 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
+            // Header — FK plum-ink display, more concise than the legacy copy.
             Text(
-              _isEditing ? '编辑食材' : '策划您的食材库',
+              _isEditing ? '编辑食材' : '添加食材',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: AppFontSize.xxxl,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
-                letterSpacing: -0.3,
+                fontWeight: FontWeight.w800,
+                color: AppColors.onSurface,
+                letterSpacing: -0.4,
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              _isEditing ? '更新库存中的食材信息。' : '添加新食材到您的收藏。',
+              _isEditing ? '更新库存中的食材信息' : '为冰箱添加一样新食材',
               style: GoogleFonts.manrope(
+                fontSize: AppFontSize.md,
                 color: AppColors.onSurfaceVariant,
                 height: 1.5,
               ),

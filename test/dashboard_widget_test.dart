@@ -296,7 +296,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(container.read(navigationProvider), 2);
-    expect(find.text('策划您的食材库'), findsOneWidget);
+    expect(find.text('添加食材'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField).first, '牛奶');
     await tester.pumpAndSettle();
@@ -310,7 +310,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(container.read(navigationProvider), 2);
-    expect(find.text('策划您的食材库'), findsOneWidget);
+    expect(find.text('添加食材'), findsOneWidget);
     expect(find.widgetWithText(TextField, '牛奶'), findsNothing);
   });
 }
