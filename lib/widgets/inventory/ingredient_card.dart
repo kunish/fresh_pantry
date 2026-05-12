@@ -1,24 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '../../models/ingredient.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/fk_category_palette.dart';
 import '../../utils/storage_labels.dart';
+import '../shared/cat_icon.dart';
 import '../shared/category_icon.dart';
-import '../shared/freshness_meter.dart';
+import '../shared/fk_pill.dart';
+import '../shared/zone_icon.dart';
 
+/// 旧 API:freshness 状态 → 徽章配色。保留供未迁移的 caller(测试)读取。
 ({Color bg, Color text}) freshnessBadgeColors(FreshnessState state) {
   switch (state) {
     case FreshnessState.fresh:
-      return (bg: AppColors.primaryFixed, text: AppColors.primary);
+      return (bg: AppColors.primarySoft, text: AppColors.primaryContainer);
     case FreshnessState.expiringSoon:
-      return (
-        bg: AppColors.secondaryContainer,
-        text: AppColors.onSecondaryContainer,
-      );
+      return (bg: AppColors.fkWarnSoft, text: AppColors.onSecondaryContainer);
     case FreshnessState.expired:
-      return (bg: AppColors.errorContainer, text: AppColors.onErrorContainer);
+      return (bg: AppColors.fkDanger, text: Colors.white);
   }
 }
 
+/// 食材卡片 — 设计稿 `screens-2.jsx::IngredientCard`。
+///
+/// 适配 2-col grid 的紧凑布局:CatIcon avatar + 名称 + qty/zone + 底部 4px 进度
+/// 条 + 右上 status pill。`onBuyAgain` 保留但被折叠到底部 inline 行(非 fresh 才显示)。
 class IngredientCard extends StatelessWidget {
   final Ingredient ingredient;
   final VoidCallback? onBuyAgain;
@@ -33,169 +40,133 @@ class IngredientCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isExpired = ingredient.state == FreshnessState.expired;
-    final badgeColors = freshnessBadgeColors(ingredient.state);
+    final state = ingredient.state;
+    final isFresh = state == FreshnessState.fresh;
+    final isExpired = state == FreshnessState.expired;
+    final catId = fkCategoryIdFor(ingredient.category);
+    final palette = FkCategoryPalette.of(catId);
+    final statusBadge = _statusBadgeFor(state, ingredient.expiryLabel);
+    final progress = ingredient.freshnessPercent.clamp(0.0, 1.0);
+    final progressColor = isExpired
+        ? AppColors.fkDanger
+        : (state == FreshnessState.expiringSoon
+            ? AppColors.fkWarn
+            : AppColors.primary);
 
-    final cardContent = Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: const BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
-        borderRadius: BorderRadius.all(Radius.circular(AppRadius.md)),
+    final card = Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowSoft,
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Opacity(
-                opacity: isExpired ? 0.6 : 1.0,
-                child: CategoryIconAvatar(
-                  category: ingredient.category,
-                  size: 80,
-                  iconSize: 34,
-                  muted: isExpired,
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: palette.tint,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: CatIcon(
+                    category: catId,
+                    size: 30,
+                    color: palette.ink,
+                  ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.lg),
-              // Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            ingredient.name,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.titleMedium?.copyWith(
-                              fontSize: AppFontSize.lg,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.onSurface.withValues(
-                                alpha: isExpired ? 0.6 : 1.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                        if (onTap != null)
-                          Icon(
-                            Icons.chevron_right,
-                            color: AppColors.outline,
-                            size: 20,
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      '${ingredient.quantity} \u2022 ${ingredient.unit}',
-                      style: TextStyle(
-                        fontSize: AppFontSize.md,
-                        color: AppColors.onSurfaceVariant.withValues(
-                          alpha: isExpired ? 0.6 : 1.0,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      children: [
-                        if (ingredient.expiryLabel != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.md,
-                              vertical: AppSpacing.xs,
-                            ),
-                            decoration: BoxDecoration(
-                              color: badgeColors.bg,
-                              borderRadius: BorderRadius.circular(AppRadius.pill),
-                            ),
-                            child: Text(
-                              ingredient.expiryLabel!.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: AppFontSize.xs,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.8,
-                                color: badgeColors.text,
-                              ),
-                            ),
-                          ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.md,
-                            vertical: AppSpacing.xs,
-                          ),
-                          decoration: const BoxDecoration(
-                            color: AppColors.surfaceContainerHigh,
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(AppRadius.pill),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                storageIconFor(ingredient.storage),
-                                size: 12,
-                                color: AppColors.onSurfaceVariant,
-                              ),
-                              const SizedBox(width: AppSpacing.xs),
-                              Text(
-                                storageLabelFor(ingredient.storage),
-                                style: const TextStyle(
-                                  fontSize: AppFontSize.xs,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.8,
-                                  color: AppColors.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              const Spacer(),
+              if (statusBadge != null) statusBadge,
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
-          FreshnessMeter(
-            percent: ingredient.freshnessPercent,
-            state: ingredient.state,
+          const SizedBox(height: 10),
+          Text(
+            ingredient.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.onSurface.withValues(alpha: isExpired ? 0.6 : 1.0),
+            ),
           ),
-          if (onBuyAgain != null &&
-              ingredient.state != FreshnessState.fresh) ...[
-            const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: 2),
+          DefaultTextStyle.merge(
+            style: GoogleFonts.manrope(
+              fontSize: 11,
+              color: AppColors.onSurfaceVariant,
+              height: 1.2,
+            ),
+            child: Row(
+              children: [
+                Text('${ingredient.quantity}${ingredient.unit} · '),
+                ZoneIcon(
+                  zone: _zoneId(ingredient.storage),
+                  size: 12,
+                  color: AppColors.onSurfaceVariant,
+                ),
+                const SizedBox(width: 2),
+                Flexible(
+                  child: Text(
+                    storageLabelFor(ingredient.storage),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainer,
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: progress.clamp(0.05, 1.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: progressColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+          ),
+          if (onBuyAgain != null && !isFresh) ...[
+            const SizedBox(height: 10),
             GestureDetector(
               onTap: onBuyAgain,
+              behavior: HitTestBehavior.opaque,
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                decoration: const BoxDecoration(
-                  color: AppColors.secondaryContainer,
-                  borderRadius: BorderRadius.all(Radius.circular(AppRadius.md)),
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.replay,
-                      size: 16,
-                      color: AppColors.onSecondaryContainer,
-                    ),
-                    SizedBox(width: AppSpacing.sm),
-                    Text(
-                      '再买一次',
-                      style: TextStyle(
-                        fontSize: AppFontSize.sm,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.onSecondaryContainer,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  '加购',
+                  style: GoogleFonts.manrope(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryContainer,
+                  ),
                 ),
               ),
             ),
@@ -204,13 +175,41 @@ class IngredientCard extends StatelessWidget {
       ),
     );
 
-    if (onTap != null) {
-      return GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: cardContent,
-      );
-    }
-    return cardContent;
+    if (onTap == null) return card;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: card,
+    );
+  }
+
+  /// 右上小角徽 — 设计稿用 expiryLabel 作为内容;fresh 状态不显示。
+  Widget? _statusBadgeFor(FreshnessState state, String? expiryLabel) {
+    if (state == FreshnessState.fresh) return null;
+    final label = expiryLabel ?? _defaultLabel(state);
+    final colors = freshnessBadgeColors(state);
+    return FkPill(
+      label: label.toUpperCase(),
+      backgroundColor: colors.bg,
+      foregroundColor: colors.text,
+      sm: true,
+    );
+  }
+
+  String _defaultLabel(FreshnessState state) => switch (state) {
+        FreshnessState.expiringSoon => '即将过期',
+        FreshnessState.expired => '已过期',
+        FreshnessState.fresh => '新鲜',
+      };
+
+  /// 把 Ingredient 的 storage(IconType.fridge / pantry / ...)映射到 FK zone id。
+  String _zoneId(dynamic storage) {
+    final name = storage.toString().split('.').last;
+    return switch (name) {
+      'fridge' => 'fridge',
+      'freezer' => 'freezer',
+      'pantry' => 'pantry',
+      _ => 'fridge',
+    };
   }
 }

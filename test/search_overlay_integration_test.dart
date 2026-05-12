@@ -128,9 +128,10 @@ void main() {
     await tester.tap(find.text('有机全脂牛奶'));
     await tester.pumpAndSettle();
 
-    expect(find.text('食材详情'), findsOneWidget);
-    expect(find.text('分类：${FoodCategories.dairyAndEggs}'), findsOneWidget);
-    expect(find.text('来源：Open Food Facts'), findsOneWidget);
+    // FK redesign: AppBar removed; info list shows separate label/value rows.
+    expect(find.text(FoodCategories.dairyAndEggs), findsAtLeastNWidgets(1));
+    expect(find.text('来源'), findsOneWidget);
+    expect(find.text('Open Food Facts'), findsOneWidget);
   });
 
   testWidgets('top search summarizes generic online food details usefully', (

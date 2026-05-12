@@ -106,6 +106,7 @@ void main() {
           .first,
     );
     final decoration = badge.decoration as BoxDecoration;
-    expect(decoration.color, AppColors.errorContainer);
+    // FK redesign: expired status uses solid danger color (#E76F51), not its container.
+    expect(decoration.color, AppColors.fkDanger);
   });
 }
