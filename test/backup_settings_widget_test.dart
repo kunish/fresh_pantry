@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fresh_pantry/providers/notification_service_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/screens/settings_screen.dart';
+import 'package:fresh_pantry/services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -25,7 +27,10 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          notificationServiceProvider.overrideWithValue(NotificationService()),
+        ],
         child: const MaterialApp(home: SettingsScreen()),
       ),
     );
@@ -72,7 +77,10 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          notificationServiceProvider.overrideWithValue(NotificationService()),
+        ],
         child: const MaterialApp(home: SettingsScreen()),
       ),
     );

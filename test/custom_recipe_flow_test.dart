@@ -11,7 +11,9 @@ import 'package:fresh_pantry/models/storage_area.dart';
 import 'package:fresh_pantry/providers/ai_draft_provider.dart';
 import 'package:fresh_pantry/providers/custom_recipe_provider.dart';
 import 'package:fresh_pantry/providers/navigation_provider.dart';
+import 'package:fresh_pantry/providers/notification_service_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
+import 'package:fresh_pantry/services/notification_service.dart';
 import 'package:fresh_pantry/services/share_intent_service.dart';
 import 'package:fresh_pantry/screens/custom_recipe_form_screen.dart';
 import 'package:fresh_pantry/screens/dashboard_screen.dart';
@@ -792,6 +794,7 @@ Widget _app(
   return ProviderScope(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(prefs),
+      notificationServiceProvider.overrideWithValue(NotificationService()),
       ...overrides,
     ],
     child: MaterialApp(home: Scaffold(body: child)),

@@ -141,6 +141,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final reminder = ref.watch(reminderSettingsProvider);
     final reminderN = ref.read(reminderSettingsProvider.notifier);
 
+    final anyReminderOn = reminder.remindD1 ||
+        reminder.remindD3 ||
+        reminder.remindD7 ||
+        reminder.remindDaily;
+    final service = ref.watch(notificationServiceProvider);
+    final permissionMissing = anyReminderOn && !service.permissionGranted;
+
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
@@ -170,6 +177,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
             ),
+            if (permissionMissing)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.fkWarnSoft,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.warning_amber, color: AppColors.fkWarn),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          '系统通知权限未开启,提醒不会送达。请去 系统设置 → 通知 中允许。',
+                          style: TextStyle(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            if (permissionMissing) const SizedBox(height: 12),
             const FkSectionHead(title: '临期提醒'),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18),
