@@ -9,6 +9,7 @@ import '../providers/shopping_provider.dart';
 import '../screens/ingredient_detail_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_snackbar.dart';
+import '../widgets/dashboard/low_stock_card.dart';
 import '../widgets/inventory/ingredient_card.dart';
 import '../widgets/shared/fk_icon_button.dart';
 import '../widgets/shared/fk_top_bar.dart';
@@ -139,6 +140,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     final inventory = ref.watch(inventoryProvider);
     final selectedCategory = ref.watch(selectedCategoryProvider);
     final filteredByCategory = ref.watch(filteredByCategoryProvider);
+    final lowStock = ref.watch(lowStockItemsProvider);
 
     // Apply free-text search on top of the category filter.
     final items = _query.isEmpty
@@ -150,8 +152,11 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             .toList();
 
     final canMerge = _canMerge(items);
+    final showLowStockCta = lowStock.isNotEmpty && !_selectionMode;
 
-    return GestureDetector(
+    return Stack(
+      children: [
+        GestureDetector(
       onTap: () {
         FocusManager.instance.primaryFocus?.unfocus();
         if (_selectionMode) setState(() => _selected.clear());
@@ -270,6 +275,26 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
           ],
         ),
       ),
+        ),
+        if (showLowStockCta)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: SafeArea(
+              minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: FilledButton.icon(
+                key: const Key('inventory_low_stock_cta'),
+                icon: const Icon(Icons.add_shopping_cart, size: 18),
+                label: Text('补货 ${lowStock.length} 项'),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                ),
+                onPressed: () => runBulkLowStockAdd(context, ref, lowStock),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
