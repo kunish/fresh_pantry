@@ -195,14 +195,33 @@ final recommendedRecipesProvider = Provider<List<Recipe>>((ref) {
 
   if (inventoryNames.isEmpty) return [];
 
-  // Score each recipe by how many ingredients are available
+  // Build a set of normalised names for expiring/expired inventory items so
+  // that recipes using them can receive a ranking boost.
+  final expiringNameSet = ref
+      .read(inventoryProvider)
+      .where(
+        (i) =>
+            i.state == FreshnessState.expiringSoon ||
+            i.state == FreshnessState.expired,
+      )
+      .map((i) => i.name.trim().toLowerCase())
+      .toSet();
+
+  // Score each recipe by how many ingredients are available, with a +0.5
+  // boost when any ingredient is expiring/expired so those recipes surface
+  // first and help the user use up perishables.
   final scored =
       recipes.map((recipe) {
         final matched = _matchedIngredientCountForNames(inventoryNames, recipe);
         if (matched == 0 || recipe.ingredients.isEmpty) {
           return (recipe: recipe, score: 0.0);
         }
-        return (recipe: recipe, score: matched / recipe.ingredients.length);
+        final base = matched / recipe.ingredients.length;
+        final usesExpiring = recipe.ingredients.any(
+          (ri) => expiringNameSet.contains(ri.name.trim().toLowerCase()),
+        );
+        final boost = usesExpiring ? 0.5 : 0.0;
+        return (recipe: recipe, score: base + boost);
       }).toList();
 
   // Sort by match score descending
