@@ -61,14 +61,14 @@ void main() {
 
     test('different unit → newRow (no merge across units)', () {
       final inventory = [
-        _ing(name: '葱', unit: '把', category: FoodCategories.freshProduce),
+        _ing(name: '葱', unit: '把', category: FoodCategories.other),
       ];
       final action = ProposalPlanner.computeIntakeDefaultAction(
         candidate: _IntakeCandidate(
           name: '葱',
           unit: 'g',
           storage: IconType.fridge,
-          category: FoodCategories.freshProduce,
+          category: FoodCategories.other,
         ),
         inventory: inventory,
       );
