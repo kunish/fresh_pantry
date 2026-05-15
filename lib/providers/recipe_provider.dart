@@ -233,3 +233,44 @@ final recommendedRecipesProvider = Provider<List<Recipe>>((ref) {
 int matchedIngredientCount(List<Ingredient> inventory, Recipe recipe) {
   return _matchedIngredientCountForNames(_inventoryNameSet(inventory), recipe);
 }
+
+/// Returns the single recipe that covers the most expiring inventory items,
+/// along with the set of expiring names it would use. Returns null when:
+/// - inventory has no expiring/expired items, OR
+/// - no recipe matches any expiring item.
+///
+/// Distinct from [recommendedRecipesProvider]'s +0.5 ordering boost (Stage 2):
+/// this provider gives a single, explicit answer to "which one dish best uses
+/// my 临期 items today". UI: ExpiringFallbackCard on Dashboard.
+final expiringFallbackRecipeProvider =
+    Provider<({Recipe recipe, Set<String> coveredExpiringNames})?>((ref) {
+  final inventory = ref.watch(inventoryProvider);
+  final expiringNameSet = inventory
+      .where((i) =>
+          i.state == FreshnessState.expiringSoon ||
+          i.state == FreshnessState.expired)
+      .map((i) => i.name.trim().toLowerCase())
+      .toSet();
+  if (expiringNameSet.isEmpty) return null;
+
+  final recipesAsync = ref.watch(recipesProvider);
+  final customRecipes = ref.watch(customRecipesProvider);
+  final base = recipesAsync.maybeWhen(data: (d) => d, orElse: () => const <Recipe>[]);
+  final seen = base.map((r) => r.id).toSet();
+  final all = [...base, ...customRecipes.where((r) => !seen.contains(r.id))];
+
+  ({Recipe recipe, Set<String> covered})? best;
+  for (final recipe in all) {
+    final covered = <String>{};
+    for (final ri in recipe.ingredients) {
+      final n = ri.name.trim().toLowerCase();
+      if (expiringNameSet.contains(n)) covered.add(n);
+    }
+    if (covered.isEmpty) continue;
+    if (best == null || covered.length > best.covered.length) {
+      best = (recipe: recipe, covered: covered);
+    }
+  }
+  if (best == null) return null;
+  return (recipe: best.recipe, coveredExpiringNames: best.covered);
+});
