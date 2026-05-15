@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class BackupVersionException implements Exception {
-  BackupVersionException(this.message);
+  const BackupVersionException(this.message);
   final String message;
   @override
   String toString() => 'BackupVersionException: $message';

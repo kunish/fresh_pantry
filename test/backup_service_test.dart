@@ -81,5 +81,12 @@ void main() {
         throwsA(isA<BackupVersionException>()),
       );
     });
+
+    test('decodeFromJson throws BackupVersionException for float version', () {
+      expect(
+        () => BackupService.decodeFromJson('{"version": 1.0, "data": {}}'),
+        throwsA(isA<BackupVersionException>()),
+      );
+    });
   });
 }
