@@ -16,8 +16,10 @@ import 'package:fresh_pantry/providers/ai_draft_provider.dart';
 import 'package:fresh_pantry/providers/food_details_provider.dart';
 import 'package:fresh_pantry/providers/inventory_provider.dart';
 import 'package:fresh_pantry/providers/navigation_provider.dart';
+import 'package:fresh_pantry/providers/notification_service_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/services/share_intent_service.dart';
+import 'helpers/fake_notification_service.dart';
 
 void main() {
   setUpAll(() {
@@ -44,6 +46,8 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
+          notificationServiceProvider
+              .overrideWithValue(FakeNotificationService()),
           foodDetailsClientProvider.overrideWithValue(
             const _FakeFoodDetailsClient(null),
           ),
@@ -101,6 +105,8 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
+          notificationServiceProvider
+              .overrideWithValue(FakeNotificationService()),
           foodDetailsClientProvider.overrideWithValue(
             _FakeFoodDetailsClient(details),
           ),
@@ -159,6 +165,8 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
+          notificationServiceProvider
+              .overrideWithValue(FakeNotificationService()),
           foodDetailsClientProvider.overrideWithValue(
             _FakeFoodDetailsClient(details),
           ),
@@ -209,6 +217,8 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
+          notificationServiceProvider
+              .overrideWithValue(FakeNotificationService()),
           foodDetailsClientProvider.overrideWithValue(
             _FakeFoodDetailsClient(details),
           ),
@@ -250,6 +260,8 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
+          notificationServiceProvider
+              .overrideWithValue(FakeNotificationService()),
           navigationProvider.overrideWith((ref) => FkTab.shopping),
           foodDetailsClientProvider.overrideWithValue(
             const _FakeFoodDetailsClient(null),

@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fresh_pantry/app.dart';
 import 'package:fresh_pantry/providers/ai_draft_provider.dart';
+import 'package:fresh_pantry/providers/notification_service_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/services/share_intent_service.dart';
+import 'helpers/fake_notification_service.dart';
 import 'package:fresh_pantry/theme/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,6 +26,8 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
+          notificationServiceProvider
+              .overrideWithValue(FakeNotificationService()),
         ],
         child: const FreshPantryApp(),
       ),
