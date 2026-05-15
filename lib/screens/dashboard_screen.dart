@@ -11,6 +11,7 @@ import '../theme/app_theme.dart';
 import '../theme/fk_category_palette.dart';
 import '../utils/app_snackbar.dart';
 import '../utils/dashboard_greeting.dart';
+import '../widgets/dashboard/low_stock_card.dart';
 import '../widgets/recipe_card.dart';
 import '../widgets/shared/cat_icon.dart';
 import '../widgets/shared/category_icon.dart';
@@ -102,6 +103,10 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
             ],
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+              child: LowStockCard(),
+            ),
             if (categoryCounts.isNotEmpty) ...[
               FkSectionHead(
                 title: '食材分类',
