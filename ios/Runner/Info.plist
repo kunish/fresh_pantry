@@ -30,6 +30,8 @@
 	<string>用于拍摄食谱封面图片。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>用于从相册选择食谱封面图片。</string>
+	<key>UNUserNotificationCenterDelegateClass</key>
+	<string></string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
