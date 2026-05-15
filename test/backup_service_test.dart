@@ -89,4 +89,77 @@ void main() {
       );
     });
   });
+
+  group('BackupService.importFromMap', () {
+    test('writes each present user-data key back to prefs', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      await BackupService.importFromMap(prefs, {
+        'version': 1,
+        'exportedAt': '2026-05-15T13:00:00.000Z',
+        'data': {
+          'inventory_items': '[{"name":"苹果"}]',
+          'shopping_items': '[]',
+        },
+      });
+
+      expect(prefs.getString('inventory_items'), '[{"name":"苹果"}]');
+      expect(prefs.getString('shopping_items'), '[]');
+      expect(prefs.getString('add_history'), isNull);
+    });
+
+    test('ignores keys outside the userDataKeys allowlist', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      await BackupService.importFromMap(prefs, {
+        'version': 1,
+        'data': {
+          'inventory_items': '[]',
+          'food_details_cache': '"malicious"',
+          'unknown_key': '"hostile"',
+        },
+      });
+
+      expect(prefs.getString('inventory_items'), '[]');
+      expect(prefs.getString('food_details_cache'), isNull,
+          reason: 'cache keys must not be importable');
+      expect(prefs.getString('unknown_key'), isNull);
+    });
+
+    test('overwrites existing values', () async {
+      SharedPreferences.setMockInitialValues({
+        'inventory_items': '[{"old":true}]',
+      });
+      final prefs = await SharedPreferences.getInstance();
+
+      await BackupService.importFromMap(prefs, {
+        'version': 1,
+        'data': {'inventory_items': '[{"new":true}]'},
+      });
+
+      expect(prefs.getString('inventory_items'), '[{"new":true}]');
+    });
+
+    test('round-trips: export → encode → decode → import → same prefs', () async {
+      SharedPreferences.setMockInitialValues({
+        'inventory_items': '[{"name":"葱"}]',
+        'shopping_items': '[{"id":"si_1"}]',
+        'add_history': '{"葱":{"count":3}}',
+      });
+      final source = await SharedPreferences.getInstance();
+      final exported = BackupService.exportToMap(source);
+      final json = BackupService.encodeToJson(exported);
+
+      SharedPreferences.setMockInitialValues({});
+      final target = await SharedPreferences.getInstance();
+      final decoded = BackupService.decodeFromJson(json);
+      await BackupService.importFromMap(target, decoded);
+
+      expect(target.getString('inventory_items'), '[{"name":"葱"}]');
+      expect(target.getString('shopping_items'), '[{"id":"si_1"}]');
+      expect(target.getString('add_history'), '{"葱":{"count":3}}');
+    });
+  });
 }

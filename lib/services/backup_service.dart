@@ -53,6 +53,22 @@ class BackupService {
     return decoded;
   }
 
+  static Future<void> importFromMap(
+    SharedPreferences prefs,
+    Map<String, dynamic> envelope,
+  ) async {
+    final data = envelope['data'];
+    if (data is! Map<String, dynamic>) {
+      throw const FormatException('Backup data is not a JSON object');
+    }
+    for (final key in userDataKeys) {
+      final value = data[key];
+      if (value is String) {
+        await prefs.setString(key, value);
+      }
+    }
+  }
+
   static Map<String, dynamic> exportToMap(SharedPreferences prefs) {
     final data = <String, dynamic>{};
     for (final key in userDataKeys) {
