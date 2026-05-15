@@ -439,8 +439,9 @@ final filteredByCategoryProvider = Provider<List<Ingredient>>((ref) {
   return inventoryItemsForCategory(items, category);
 });
 
-/// Top frequent items derived from add history.
-final frequentItemsProvider = Provider<List<FrequentItem>>((ref) {
+/// Shared helper: reads add_history prefs and returns ALL FrequentItems with
+/// no threshold or cap. Consumers apply their own filters.
+List<FrequentItem> _allFrequentItemsFromHistory(Ref ref) {
   // Re-read after add history changes.
   ref.watch(_addHistoryVersionProvider);
   final prefs = ref.read(sharedPreferencesProvider);
@@ -449,40 +450,58 @@ final frequentItemsProvider = Provider<List<FrequentItem>>((ref) {
 
   try {
     final history = json.decode(historyJson) as Map<String, dynamic>;
-    final items =
-        history.entries.map((e) {
-          final value = e.value;
-          final data = value is Map<String, dynamic> ? value : const {};
-          final count = switch (value) {
-            {'count': final num count} => count.toInt(),
-            num count => count.toInt(),
-            _ => 1,
-          };
-          final category = data['category'];
-          final storageValue = data['storage'];
-          final unit = data['unit'];
-          final storageName = storageValue is String ? storageValue : 'fridge';
-          final defaults = FoodKnowledge.lookup(e.key);
+    return history.entries.map((e) {
+      final value = e.value;
+      final data = value is Map<String, dynamic> ? value : const {};
+      final count = switch (value) {
+        {'count': final num count} => count.toInt(),
+        num count => count.toInt(),
+        _ => 1,
+      };
+      final category = data['category'];
+      final storageValue = data['storage'];
+      final unit = data['unit'];
+      final storageName = storageValue is String ? storageValue : 'fridge';
+      final defaults = FoodKnowledge.lookup(e.key);
+      final storage = iconTypeFromName(storageName);
+      final rememberedCategory =
+          category is String ? category : defaults?.category;
 
-          final storage = iconTypeFromName(storageName);
-
-          final rememberedCategory =
-              category is String ? category : defaults?.category;
-
-          return FrequentItem(
-            name: e.key,
-            category: FoodCategories.dropdownValue(rememberedCategory),
-            storage: storage,
-            unit: unit is String ? unit : '个',
-            shelfLifeDays: defaults?.shelfLifeDays,
-            count: count,
-          );
-        }).toList();
-
-    // Sort by frequency, take top 6
-    items.sort((a, b) => b.count.compareTo(a.count));
-    return items.where((i) => i.count >= 2).take(6).toList();
+      return FrequentItem(
+        name: e.key,
+        category: FoodCategories.dropdownValue(rememberedCategory),
+        storage: storage,
+        unit: unit is String ? unit : '个',
+        shelfLifeDays: defaults?.shelfLifeDays,
+        count: count,
+      );
+    }).toList();
   } catch (_) {
     return [];
   }
+}
+
+/// Top frequent items derived from add history.
+final frequentItemsProvider = Provider<List<FrequentItem>>((ref) {
+  final all = _allFrequentItemsFromHistory(ref);
+  all.sort((a, b) => b.count.compareTo(a.count));
+  return all.where((i) => i.count >= 2).take(6).toList();
+});
+
+/// Items the user has bought >=3 times historically but which are NOT currently
+/// in inventory (by name, case+whitespace insensitive). Sorted by historical
+/// frequency descending.
+final lowStockItemsProvider = Provider<List<FrequentItem>>((ref) {
+  final all = _allFrequentItemsFromHistory(ref);
+  final inventory = ref.watch(inventoryProvider);
+  final presentNames = inventory
+      .map((i) => i.name.trim().toLowerCase())
+      .toSet();
+
+  final filtered = all
+      .where((f) => f.count >= 3)
+      .where((f) => !presentNames.contains(f.name.trim().toLowerCase()))
+      .toList();
+  filtered.sort((a, b) => b.count.compareTo(a.count));
+  return filtered;
 });
