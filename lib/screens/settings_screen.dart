@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../providers/inventory_provider.dart';
+import '../providers/notification_service_provider.dart';
 import '../providers/reminder_settings_provider.dart';
 import '../providers/shopping_provider.dart';
 import '../providers/storage_service_provider.dart';
@@ -87,6 +88,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _showSimpleDialog('导入完成', '请重启 App 以加载新数据。');
   }
 
+  Future<void> _onReminderToggle(
+    bool newValue,
+    Future<void> Function() apply,
+  ) async {
+    if (newValue) {
+      final service = ref.read(notificationServiceProvider);
+      if (!service.permissionGranted) {
+        final granted = await service.requestPermission();
+        if (!mounted) return;
+        if (!granted) {
+          await showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: const Text('未开启通知权限'),
+              content: const Text('系统通知权限未开启,无法发送临期提醒。请在 系统设置 → 通知 中允许。'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('好'),
+                ),
+              ],
+            ),
+          );
+          return; // don't apply
+        }
+      }
+    }
+    await apply();
+  }
+
   Future<void> _showSimpleDialog(String title, String body) {
     return showDialog(
       context: context,
@@ -150,25 +181,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       label: '提前 1 天提醒',
                       sub: '高优先级 · 推送 + 角标',
                       value: reminder.remindD1,
-                      onChanged: (v) => reminderN.update(remindD1: v),
+                      onChanged: (v) => _onReminderToggle(v, () => reminderN.update(remindD1: v)),
                     ),
                     _ToggleRow(
                       label: '提前 3 天提醒',
                       sub: '标准 · 仅推送',
                       value: reminder.remindD3,
-                      onChanged: (v) => reminderN.update(remindD3: v),
+                      onChanged: (v) => _onReminderToggle(v, () => reminderN.update(remindD3: v)),
                     ),
                     _ToggleRow(
                       label: '提前 7 天提醒',
                       sub: '轻量 · 仅角标',
                       value: reminder.remindD7,
-                      onChanged: (v) => reminderN.update(remindD7: v),
+                      onChanged: (v) => _onReminderToggle(v, () => reminderN.update(remindD7: v)),
                     ),
                     _ToggleRow(
                       label: '每日 9:00 汇总',
                       sub: '包含临期 + 库存不足',
                       value: reminder.remindDaily,
-                      onChanged: (v) => reminderN.update(remindDaily: v),
+                      onChanged: (v) => _onReminderToggle(v, () => reminderN.update(remindDaily: v)),
                       isLast: true,
                     ),
                   ],
