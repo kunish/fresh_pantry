@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../providers/inventory_provider.dart';
+import '../providers/reminder_settings_provider.dart';
 import '../providers/shopping_provider.dart';
 import '../providers/storage_service_provider.dart';
 import '../services/backup_service.dart';
@@ -28,12 +29,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  // Local-only toggle states; persistence is out of scope for this redesign.
-  bool _remindD1 = true;
-  bool _remindD3 = true;
-  bool _remindD7 = false;
-  bool _remindDaily = true;
-
   final Set<String> _selectedPrefs = {'高蛋白', '低脂', '素食'};
 
   Future<void> _onExportTap() async {
@@ -112,6 +107,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final inventory = ref.watch(inventoryProvider);
     final shopping = ref.watch(shoppingProvider);
+    final reminder = ref.watch(reminderSettingsProvider);
+    final reminderN = ref.read(reminderSettingsProvider.notifier);
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -152,26 +149,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     _ToggleRow(
                       label: '提前 1 天提醒',
                       sub: '高优先级 · 推送 + 角标',
-                      value: _remindD1,
-                      onChanged: (v) => setState(() => _remindD1 = v),
+                      value: reminder.remindD1,
+                      onChanged: (v) => reminderN.update(remindD1: v),
                     ),
                     _ToggleRow(
                       label: '提前 3 天提醒',
                       sub: '标准 · 仅推送',
-                      value: _remindD3,
-                      onChanged: (v) => setState(() => _remindD3 = v),
+                      value: reminder.remindD3,
+                      onChanged: (v) => reminderN.update(remindD3: v),
                     ),
                     _ToggleRow(
                       label: '提前 7 天提醒',
                       sub: '轻量 · 仅角标',
-                      value: _remindD7,
-                      onChanged: (v) => setState(() => _remindD7 = v),
+                      value: reminder.remindD7,
+                      onChanged: (v) => reminderN.update(remindD7: v),
                     ),
                     _ToggleRow(
                       label: '每日 9:00 汇总',
                       sub: '包含临期 + 库存不足',
-                      value: _remindDaily,
-                      onChanged: (v) => setState(() => _remindDaily = v),
+                      value: reminder.remindDaily,
+                      onChanged: (v) => reminderN.update(remindDaily: v),
                       isLast: true,
                     ),
                   ],
