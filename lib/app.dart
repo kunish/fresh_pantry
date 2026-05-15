@@ -11,6 +11,7 @@ import 'screens/inventory_screen.dart';
 import 'screens/add_ingredient_screen.dart';
 import 'screens/recipes_screen.dart';
 import 'screens/shopping_list_screen.dart';
+import 'providers/notification_sync_provider.dart';
 import 'services/share_intent_service.dart';
 import 'widgets/common/top_app_bar.dart';
 import 'widgets/common/bottom_nav_bar.dart';
@@ -81,6 +82,7 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(notificationSyncProvider);
     final currentIndex = ref.watch(navigationProvider);
 
     return Scaffold(
