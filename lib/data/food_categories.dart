@@ -56,4 +56,18 @@ class FoodCategories {
   static String dropdownValue(String? category) {
     return normalize(category) ?? other;
   }
+
+  /// Perishable categories track each Intake as a new Batch (per ADR-0001).
+  /// Non-perishable categories merge by name+unit+storage.
+  static const _perishable = {
+    freshProduce,
+    meatAndSeafood,
+    dairyAndEggs,
+  };
+
+  static bool isPerishable(String? category) {
+    final normalized = normalize(category);
+    if (normalized == null) return false;
+    return _perishable.contains(normalized);
+  }
 }
