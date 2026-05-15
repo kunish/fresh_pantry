@@ -548,8 +548,8 @@ class _ActionRow extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: TextStyle(
-                      fontSize: 15,
+                    style: GoogleFonts.manrope(
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: color,
                     ),
@@ -558,9 +558,9 @@ class _ActionRow extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       sub!,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.outline,
+                      style: GoogleFonts.manrope(
+                        fontSize: 11,
+                        color: AppColors.onSurfaceVariant,
                       ),
                     ),
                   ],
