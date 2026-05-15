@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../providers/inventory_provider.dart';
 import '../providers/shopping_provider.dart';
+import '../providers/storage_service_provider.dart';
+import '../services/backup_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/fk_toast.dart';
 import '../widgets/shared/fk_card.dart';
 import '../widgets/shared/fk_pill.dart';
 import '../widgets/shared/fk_section_head.dart';
@@ -32,8 +36,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   final Set<String> _selectedPrefs = {'高蛋白', '低脂', '素食'};
 
-  void _onExportTap() {
-    // Wired in Task 5.
+  Future<void> _onExportTap() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final envelope = BackupService.exportToMap(prefs);
+    final json = BackupService.encodeToJson(envelope);
+    await Clipboard.setData(ClipboardData(text: json));
+    if (!mounted) return;
+    final bytes = json.length;
+    fkToast(context, '已复制 $bytes 字节,粘贴到 Notes/邮箱保存');
   }
 
   void _onImportTap() {
