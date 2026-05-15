@@ -7,7 +7,7 @@ import 'package:fresh_pantry/models/ingredient_draft.dart';
 import 'package:fresh_pantry/models/storage_area.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/screens/add_ingredient_screen.dart';
-import 'package:fresh_pantry/screens/ingredient_draft_review_screen.dart';
+import 'package:fresh_pantry/screens/intake_review_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -61,6 +61,6 @@ void main() {
     await tester.enterText(find.byKey(const Key('quick_text_input')), '番茄 3 个 鸡蛋 6 颗');
     await tester.tap(find.byKey(const Key('quick_text_parse')));
     await tester.pumpAndSettle();
-    expect(find.byType(IngredientDraftReviewScreen), findsOneWidget);
+    expect(find.byType(IntakeReviewScreen), findsOneWidget);
   });
 }
