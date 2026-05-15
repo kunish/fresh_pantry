@@ -32,6 +32,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   final Set<String> _selectedPrefs = {'高蛋白', '低脂', '素食'};
 
+  void _onExportTap() {
+    // Wired in Task 5.
+  }
+
+  void _onImportTap() {
+    // Wired in Task 6.
+  }
+
   @override
   Widget build(BuildContext context) {
     final inventory = ref.watch(inventoryProvider);
@@ -102,6 +110,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               ),
             ),
+            const FkSectionHead(title: '数据备份'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: FkCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    _ActionRow(
+                      key: const Key('backup_export_action'),
+                      label: '导出到剪贴板',
+                      sub: '复制全部数据为 JSON,粘贴到 Notes/邮箱保存',
+                      icon: Icons.upload_outlined,
+                      onTap: _onExportTap,
+                    ),
+                    const Divider(height: 1, color: AppColors.hair),
+                    _ActionRow(
+                      key: const Key('backup_import_action'),
+                      label: '从剪贴板导入',
+                      sub: '会覆盖当前所有数据',
+                      icon: Icons.download_outlined,
+                      destructive: true,
+                      onTap: _onImportTap,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
             const FkSectionHead(title: '饮食偏好'),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -467,6 +503,73 @@ class _LinkRow extends StatelessWidget {
             const Icon(
               Icons.chevron_right_rounded,
               size: 16,
+              color: AppColors.outline,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A tappable settings row: leading icon (optional) + label + trailing chevron.
+class _ActionRow extends StatelessWidget {
+  const _ActionRow({
+    super.key,
+    required this.label,
+    this.sub,
+    required this.onTap,
+    this.icon,
+    this.destructive = false,
+  });
+
+  final String label;
+  final String? sub;
+  final VoidCallback onTap;
+  final IconData? icon;
+  final bool destructive;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = destructive ? AppColors.fkDanger : AppColors.onSurface;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 20, color: color),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                    ),
+                  ),
+                  if (sub != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      sub!,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.outline,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              size: 20,
               color: AppColors.outline,
             ),
           ],
