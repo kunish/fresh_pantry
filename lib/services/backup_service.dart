@@ -4,8 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../providers/ai_settings_provider.dart' show aiSettingsStorageKey;
 import '../providers/custom_recipe_provider.dart' show customRecipesStorageKey;
-import '../providers/inventory_provider.dart' show kAddHistoryKey, kInventoryKey;
-import '../providers/shopping_provider.dart' show kShoppingKey;
+import '../providers/inventory_provider.dart' show addHistoryStorageKey, inventoryItemsStorageKey;
+import '../providers/shopping_provider.dart' show shoppingItemsStorageKey;
 
 class BackupVersionException implements Exception {
   const BackupVersionException(this.message);
@@ -23,9 +23,9 @@ class BackupService {
   /// Cache keys (`food_details_cache`, `recipe_details_cache`) are intentionally
   /// excluded — they regenerate and would bloat the blob.
   static const List<String> userDataKeys = [
-    kInventoryKey,
-    kAddHistoryKey,
-    kShoppingKey,
+    inventoryItemsStorageKey,
+    addHistoryStorageKey,
+    shoppingItemsStorageKey,
     customRecipesStorageKey,
     aiSettingsStorageKey,
   ];

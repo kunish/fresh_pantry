@@ -11,7 +11,7 @@ import '../utils/json_object_list.dart';
 import '_persistence_queue.dart';
 import 'storage_service_provider.dart';
 
-const kShoppingKey = 'shopping_items';
+const shoppingItemsStorageKey = 'shopping_items';
 
 ShoppingItem _normalizeShoppingItemCategory(ShoppingItem item) {
   final category =
@@ -68,7 +68,7 @@ class ShoppingNotifier extends Notifier<List<ShoppingItem>>
 
   Future<void> _save(List<ShoppingItem> items) async {
     final jsonString = json.encode(items.map((e) => e.toJson()).toList());
-    final saved = await _prefs.setString(kShoppingKey, jsonString);
+    final saved = await _prefs.setString(shoppingItemsStorageKey, jsonString);
     if (!saved) {
       throw StateError('Failed to save shopping items');
     }
@@ -154,7 +154,7 @@ final shoppingSeedProvider = Provider<List<ShoppingItem>>((ref) {
 /// 把存储中的 shopping JSON 解码为 `List<ShoppingItem>`(同步)。
 /// 仅供 main.dart hydrate 与 [shoppingSeedProvider] fallback 使用。
 List<ShoppingItem> loadShoppingFromPrefs(SharedPreferences prefs) {
-  final jsonString = prefs.getString(kShoppingKey);
+  final jsonString = prefs.getString(shoppingItemsStorageKey);
   if (jsonString == null) {
     return kDebugMode ? List.from(MockData.shoppingItems) : [];
   }

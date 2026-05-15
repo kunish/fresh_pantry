@@ -15,8 +15,8 @@ import '../utils/json_object_list.dart';
 import '_persistence_queue.dart';
 import 'storage_service_provider.dart';
 
-const kInventoryKey = 'inventory_items';
-const kAddHistoryKey = 'add_history';
+const inventoryItemsStorageKey = 'inventory_items';
+const addHistoryStorageKey = 'add_history';
 const inventoryFilterAll = '全部';
 const inventoryFilterNotFresh = '不新鲜';
 
@@ -123,7 +123,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
 
   Future<void> _save(List<Ingredient> items) async {
     final jsonString = json.encode(items.map((e) => e.toJson()).toList());
-    final saved = await _prefs.setString(kInventoryKey, jsonString);
+    final saved = await _prefs.setString(inventoryItemsStorageKey, jsonString);
     if (!saved) {
       throw StateError('Failed to save inventory items');
     }
@@ -306,7 +306,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
   }
 
   Future<void> _recordAddHistory(Ingredient item) async {
-    final historyJson = _prefs.getString(kAddHistoryKey);
+    final historyJson = _prefs.getString(addHistoryStorageKey);
     final history = <String, dynamic>{};
     if (historyJson != null) {
       try {
@@ -332,7 +332,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
       'unit': item.unit,
     };
 
-    final saved = await _prefs.setString(kAddHistoryKey, json.encode(history));
+    final saved = await _prefs.setString(addHistoryStorageKey, json.encode(history));
     if (!saved) {
       throw StateError('Failed to save add history');
     }
@@ -350,7 +350,7 @@ final inventoryProvider = NotifierProvider<InventoryNotifier, List<Ingredient>>(
 /// (main.dart 始终注入实际数据，包括 kDebugMode 下的 mock 数据)。
 final inventorySeedProvider = Provider<List<Ingredient>>((ref) {
   final prefs = ref.read(sharedPreferencesProvider);
-  final jsonString = prefs.getString(kInventoryKey);
+  final jsonString = prefs.getString(inventoryItemsStorageKey);
   if (jsonString == null) return [];
   try {
     return decodeJsonObjectList(jsonString)
@@ -365,7 +365,7 @@ final inventorySeedProvider = Provider<List<Ingredient>>((ref) {
 /// 把存储中的 inventory JSON 解码为 `List<Ingredient>`(同步)。
 /// 仅供 main.dart hydrate 与 [inventorySeedProvider] fallback 使用,公共 API 不依赖。
 List<Ingredient> loadInventoryFromPrefs(SharedPreferences prefs) {
-  final jsonString = prefs.getString(kInventoryKey);
+  final jsonString = prefs.getString(inventoryItemsStorageKey);
   if (jsonString == null) {
     return kDebugMode ? List.from(MockData.inventoryItems) : [];
   }
@@ -444,7 +444,7 @@ final frequentItemsProvider = Provider<List<FrequentItem>>((ref) {
   // Re-read after add history changes.
   ref.watch(_addHistoryVersionProvider);
   final prefs = ref.read(sharedPreferencesProvider);
-  final historyJson = prefs.getString(kAddHistoryKey);
+  final historyJson = prefs.getString(addHistoryStorageKey);
   if (historyJson == null) return [];
 
   try {
