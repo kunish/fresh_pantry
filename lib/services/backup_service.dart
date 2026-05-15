@@ -1,4 +1,13 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
+
+class BackupVersionException implements Exception {
+  BackupVersionException(this.message);
+  final String message;
+  @override
+  String toString() => 'BackupVersionException: $message';
+}
 
 class BackupService {
   BackupService._();
@@ -15,6 +24,29 @@ class BackupService {
     'custom_recipes',
     'ai_settings_v1',
   ];
+
+  static String encodeToJson(Map<String, dynamic> map) {
+    return const JsonEncoder.withIndent('  ').convert(map);
+  }
+
+  static Map<String, dynamic> decodeFromJson(String json) {
+    final decoded = jsonDecode(json);
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException('Backup blob is not a JSON object');
+    }
+    final version = decoded['version'];
+    if (version is! int) {
+      throw BackupVersionException(
+        'Missing or invalid version (got: $version)',
+      );
+    }
+    if (version != backupVersion) {
+      throw BackupVersionException(
+        'Unsupported backup version $version (expected $backupVersion)',
+      );
+    }
+    return decoded;
+  }
 
   static Map<String, dynamic> exportToMap(SharedPreferences prefs) {
     final data = <String, dynamic>{};
