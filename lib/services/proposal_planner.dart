@@ -27,6 +27,36 @@ class IntakeDefaultAction {
 class ProposalPlanner {
   ProposalPlanner._();
 
+  static List<DeductionCandidate> fuzzyMatchInventoryRows(
+    String recipeIngredientName,
+    List<Ingredient> inventory,
+  ) {
+    final query = recipeIngredientName.trim().toLowerCase();
+    if (query.isEmpty) return const [];
+    final matches = <(int, Ingredient)>[];
+    for (var i = 0; i < inventory.length; i++) {
+      final n = inventory[i].name.trim().toLowerCase();
+      if (n == query || n.contains(query) || query.contains(n)) {
+        matches.add((i, inventory[i]));
+      }
+    }
+    matches.sort((a, b) {
+      final ea = a.$2.expiryDate;
+      final eb = b.$2.expiryDate;
+      if (ea == null && eb == null) return 0;
+      if (ea == null) return 1;
+      if (eb == null) return -1;
+      return ea.compareTo(eb);
+    });
+    return matches
+        .map((m) => DeductionCandidate(
+              inventoryRowIndex: m.$1,
+              displayLabel:
+                  '${m.$2.name} ${m.$2.quantity}${m.$2.unit}${m.$2.expiryLabel == null ? '' : ' · ${m.$2.expiryLabel}'}',
+            ))
+        .toList();
+  }
+
   /// Implements ADR-0001 merge rule γ: perishables always new Batch;
   /// non-perishables merge when name+unit+storage match.
   static IntakeDefaultAction computeIntakeDefaultAction({
