@@ -2,6 +2,11 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../providers/ai_settings_provider.dart' show aiSettingsStorageKey;
+import '../providers/custom_recipe_provider.dart' show customRecipesStorageKey;
+import '../providers/inventory_provider.dart' show kAddHistoryKey, kInventoryKey;
+import '../providers/shopping_provider.dart' show kShoppingKey;
+
 class BackupVersionException implements Exception {
   const BackupVersionException(this.message);
   final String message;
@@ -18,11 +23,11 @@ class BackupService {
   /// Cache keys (`food_details_cache`, `recipe_details_cache`) are intentionally
   /// excluded — they regenerate and would bloat the blob.
   static const List<String> userDataKeys = [
-    'inventory_items',
-    'add_history',
-    'shopping_items',
-    'custom_recipes',
-    'ai_settings_v1',
+    kInventoryKey,
+    kAddHistoryKey,
+    kShoppingKey,
+    customRecipesStorageKey,
+    aiSettingsStorageKey,
   ];
 
   static String encodeToJson(Map<String, dynamic> map) {
