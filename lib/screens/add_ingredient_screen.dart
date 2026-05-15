@@ -11,8 +11,8 @@ import '../models/ingredient_draft.dart';
 import '../models/storage_area.dart';
 import '../data/food_categories.dart';
 import '../data/food_knowledge.dart';
-import '../providers/ai_draft_provider.dart';
 import '../providers/ai_settings_provider.dart';
+import '../providers/intake_review_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../services/ai_client.dart';
@@ -24,9 +24,10 @@ import '../utils/storage_labels.dart';
 import '../widgets/shared/expiry_range_picker.dart';
 import '../widgets/shared/freshness_meter.dart';
 import '../widgets/shared/pill_chip.dart';
+import '../services/intake_proposal_factory.dart';
 import '../services/open_food_facts_service.dart';
 import 'ai_settings_screen.dart';
-import 'ingredient_draft_review_screen.dart';
+import 'intake_review_screen.dart';
 
 class AddIngredientScreen extends ConsumerStatefulWidget {
   const AddIngredientScreen({
@@ -1085,13 +1086,11 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
         );
         return;
       }
-      ref.read(aiDraftProvider.notifier).updateIngredientDrafts(drafts);
+      final inventory = ref.read(inventoryProvider);
+      final proposals = IntakeProposalFactory.fromDrafts(drafts, inventory);
+      ref.read(intakeReviewProvider.notifier).seed(proposals);
       await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => IngredientDraftReviewScreen(regenerate: () => runner().then(
-            (next) => ref.read(aiDraftProvider.notifier).updateIngredientDrafts(next),
-          )),
-        ),
+        MaterialPageRoute(builder: (_) => const IntakeReviewScreen()),
       );
     } on AiNotConfiguredException {
       if (!mounted) return;
