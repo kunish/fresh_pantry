@@ -11,6 +11,7 @@ import '../theme/app_theme.dart';
 import '../theme/fk_category_palette.dart';
 import '../utils/app_snackbar.dart';
 import '../utils/dashboard_greeting.dart';
+import '../widgets/dashboard/expiring_fallback_card.dart';
 import '../widgets/dashboard/low_stock_card.dart';
 import '../widgets/recipe_card.dart';
 import '../widgets/shared/cat_icon.dart';
@@ -106,6 +107,10 @@ class DashboardScreen extends ConsumerWidget {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               child: LowStockCard(),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+              child: ExpiringFallbackCard(),
             ),
             if (categoryCounts.isNotEmpty) ...[
               FkSectionHead(
