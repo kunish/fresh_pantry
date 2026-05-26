@@ -7,23 +7,51 @@ import '../theme/app_theme.dart';
 import '../widgets/review/proposal_row.dart';
 import '../widgets/review/review_bottom_bar.dart';
 
-class IntakeReviewScreen extends ConsumerWidget {
+class IntakeReviewScreen extends ConsumerStatefulWidget {
   const IntakeReviewScreen({super.key, this.title = '审核入库'});
 
   final String title;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<IntakeReviewScreen> createState() => _IntakeReviewScreenState();
+}
+
+class _IntakeReviewScreenState extends ConsumerState<IntakeReviewScreen> {
+  bool _isConfirming = false;
+
+  Future<void> _confirm() async {
+    if (_isConfirming) return;
+    setState(() => _isConfirming = true);
+    try {
+      final n = ref.read(intakeReviewProvider.notifier);
+      final inventoryN = ref.read(inventoryProvider.notifier);
+      await n.applyToInventory(inventoryN);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('已入库')),
+      );
+      Navigator.of(context).maybePop();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('入库失败，请重试')),
+      );
+    } finally {
+      if (mounted) setState(() => _isConfirming = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(intakeReviewProvider);
     final n = ref.read(intakeReviewProvider.notifier);
-    final inventoryN = ref.read(inventoryProvider.notifier);
 
     if (state.proposals.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: Text(title)),
+        appBar: AppBar(title: Text(widget.title)),
         body: const Center(
           child: Padding(
-            padding: EdgeInsets.all(24),
+            padding: EdgeInsets.all(AppSpacing.xxl),
             child: Text(
               '没有待审核的项目。\n回到上一屏粘贴清单或选择已购买项后再来。',
               textAlign: TextAlign.center,
@@ -35,11 +63,11 @@ class IntakeReviewScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(title: Text(widget.title)),
       body: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
         itemCount: state.proposals.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        separatorBuilder: (_, _) => const SizedBox(height: 8),
         itemBuilder: (_, i) {
           final p = state.proposals[i];
           return IntakeProposalRow(
@@ -54,15 +82,8 @@ class IntakeReviewScreen extends ConsumerWidget {
       bottomNavigationBar: ReviewBottomBar(
         selectedCount: state.selectedCount,
         totalCount: state.proposals.length,
-        confirmLabel: '入库',
-        onConfirm: () async {
-          await n.applyToInventory(inventoryN);
-          if (!context.mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('已入库')),
-          );
-          Navigator.of(context).maybePop();
-        },
+        confirmLabel: _isConfirming ? '入库中…' : '入库',
+        onConfirm: _isConfirming ? null : _confirm,
         onToggleSelectAll: n.toggleSelectAll,
         onCancel: () => Navigator.of(context).maybePop(),
       ),
