@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../models/ingredient.dart';
 import '../providers/inventory_provider.dart';
@@ -17,23 +16,24 @@ import '../widgets/shared/fk_top_bar.dart';
 import 'ingredient_detail_screen.dart';
 import 'settings_screen.dart';
 
-/// FreshKeeper 临期提醒页 — 设计稿 `screens-2.jsx::ExpiringScreen`。
-///
-/// 按剩余天数分组(已过期 / 即将过期)展示。每条 row 含 CatIcon + 名称 +
-/// qty/zone + status pill + 3 个 mini action(用了 / 加购 / 菜谱)。顶部
-/// 提醒设置入口 push 进入 [SettingsScreen]。
 class ExpiringScreen extends ConsumerWidget {
   const ExpiringScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final expiring = ref.watch(expiringItemsProvider);
-    final expired = expiring
-        .where((i) => i.state == FreshnessState.expired)
-        .toList();
-    final soon = expiring
-        .where((i) => i.state == FreshnessState.expiringSoon)
-        .toList();
+    final expiredCount = ref.watch(
+      expiringItemsProvider.select(
+        (items) => items.where((i) => i.state == FreshnessState.expired).length,
+      ),
+    );
+    final soonCount = ref.watch(
+      expiringItemsProvider.select(
+        (items) =>
+            items
+                .where((i) => i.state == FreshnessState.expiringSoon)
+                .length,
+      ),
+    );
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -48,7 +48,7 @@ class ExpiringScreen extends ConsumerWidget {
               onBack: () => Navigator.of(context).maybePop(),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               child: _RemindShortcut(
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
@@ -57,23 +57,21 @@ class ExpiringScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 18),
-            if (expired.isEmpty && soon.isEmpty)
+            const SizedBox(height: AppSpacing.xl),
+            if (expiredCount == 0 && soonCount == 0)
               const _EmptyState()
             else ...[
-              if (expired.isNotEmpty)
-                _Group(
+              if (expiredCount > 0)
+                const _Group(
                   title: '已过期 / 今天到期',
-                  count: expired.length,
+                  filter: FreshnessState.expired,
                   dotColor: AppColors.fkDanger,
-                  items: expired,
                 ),
-              if (soon.isNotEmpty)
-                _Group(
+              if (soonCount > 0)
+                const _Group(
                   title: '即将过期',
-                  count: soon.length,
+                  filter: FreshnessState.expiringSoon,
                   dotColor: AppColors.fkWarn,
-                  items: soon,
                 ),
             ],
           ],
@@ -89,44 +87,46 @@ class _RemindShortcut extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
     return FkCard(
       backgroundColor: AppColors.primarySoft,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       onTap: onTap,
       child: Row(
         children: [
-          Container(
+          const SizedBox(
             width: 36,
             height: 36,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: const Icon(
-              Icons.notifications_outlined,
-              size: 18,
-              color: AppColors.primaryContainer,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.notifications_outlined,
+                  size: 18,
+                  color: AppColors.primaryContainer,
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '提醒已开启',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
+                  style: tt.labelLarge?.copyWith(
+                    fontSize: AppFontSize.xs + 2,
                     color: AppColors.primaryContainer,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   '提前 1 天 · 每日 9:00 提醒',
-                  style: GoogleFonts.manrope(
-                    fontSize: 11,
+                  style: tt.labelSmall?.copyWith(
                     color: AppColors.primaryContainer.withValues(alpha: 0.75),
                   ),
                 ),
@@ -146,50 +146,57 @@ class _RemindShortcut extends StatelessWidget {
 
 class _Group extends ConsumerWidget {
   final String title;
-  final int count;
+  final FreshnessState filter;
   final Color dotColor;
-  final List<Ingredient> items;
 
   const _Group({
     required this.title,
-    required this.count,
+    required this.filter,
     required this.dotColor,
-    required this.items,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final items = ref.watch(
+      expiringItemsProvider.select(
+        (all) => all.where((i) => i.state == filter).toList(),
+      ),
+    );
+    final tt = Theme.of(context).textTheme;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 0, 18, 22),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xl,
+        0,
+        AppSpacing.xl,
+        AppSpacing.xxl,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm + 2),
             child: Row(
               children: [
-                Container(
+                SizedBox(
                   width: 8,
                   height: 8,
-                  decoration: BoxDecoration(
-                    color: dotColor,
-                    shape: BoxShape.circle,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: dotColor,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
                   title,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.onSurface,
-                  ),
+                  style: tt.labelLarge?.copyWith(color: AppColors.onSurface),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Text(
-                  '$count 件',
-                  style: GoogleFonts.manrope(
-                    fontSize: 12,
+                  '${items.length} 件',
+                  style: tt.bodySmall?.copyWith(
                     color: AppColors.onSurfaceVariant,
                   ),
                 ),
@@ -201,10 +208,7 @@ class _Group extends ConsumerWidget {
             child: Column(
               children: [
                 for (var i = 0; i < items.length; i++)
-                  _ExpiringRow(
-                    item: items[i],
-                    isLast: i == items.length - 1,
-                  ),
+                  _ExpiringRow(item: items[i], isLast: i == items.length - 1),
               ],
             ),
           ),
@@ -226,9 +230,10 @@ class _ExpiringRow extends ConsumerWidget {
     final isExpired = item.state == FreshnessState.expired;
     final pillBg = isExpired ? AppColors.fkDanger : AppColors.fkWarnSoft;
     final pillFg = isExpired ? Colors.white : AppColors.onSecondaryContainer;
+    final tt = Theme.of(context).textTheme;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         border: isLast
             ? null
@@ -238,64 +243,65 @@ class _ExpiringRow extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => IngredientDetailScreen(ingredient: item),
+          Semantics(
+            label: '查看 ${item.name} 详情',
+            button: true,
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => IngredientDetailScreen(ingredient: item),
+                ),
+              ),
+              behavior: HitTestBehavior.opaque,
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: palette.tint,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                    alignment: Alignment.center,
+                    child: CatIcon(
+                      category: catId,
+                      size: 28,
+                      color: palette.ink,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.name,
+                          style: tt.labelLarge?.copyWith(
+                            color: AppColors.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${item.quantity}${item.unit} · ${storageLabelFor(item.storage)}',
+                          style: tt.labelSmall?.copyWith(
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (item.expiryLabel != null)
+                    FkPill(
+                      label: item.expiryLabel!,
+                      backgroundColor: pillBg,
+                      foregroundColor: pillFg,
+                      sm: true,
+                    ),
+                ],
               ),
             ),
-            behavior: HitTestBehavior.opaque,
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: palette.tint,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  alignment: Alignment.center,
-                  child: CatIcon(
-                    category: catId,
-                    size: 28,
-                    color: palette.ink,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.name,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.onSurface,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${item.quantity}${item.unit} · ${storageLabelFor(item.storage)}',
-                        style: GoogleFonts.manrope(
-                          fontSize: 11,
-                          color: AppColors.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (item.expiryLabel != null)
-                  FkPill(
-                    label: item.expiryLabel!,
-                    backgroundColor: pillBg,
-                    foregroundColor: pillFg,
-                    sm: true,
-                  ),
-              ],
-            ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.sm + 2),
           Padding(
             padding: const EdgeInsets.only(left: 56),
             child: Row(
@@ -306,7 +312,7 @@ class _ExpiringRow extends ConsumerWidget {
                   soft: true,
                   onTap: () => _markUsed(context, ref),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 _MiniBtn(
                   icon: Icons.shopping_cart_outlined,
                   label: '加购',
@@ -322,7 +328,10 @@ class _ExpiringRow extends ConsumerWidget {
 
   void _markUsed(BuildContext context, WidgetRef ref) {
     final index = inventoryIndexOf(ref.read(inventoryProvider), item);
-    if (index == -1) return;
+    if (index == -1) {
+      showAppSnackBar(context, '未找到「${item.name}」库存项');
+      return;
+    }
     ref.read(inventoryProvider.notifier).remove(index);
     showAppSnackBar(
       context,
@@ -332,15 +341,20 @@ class _ExpiringRow extends ConsumerWidget {
   }
 
   Future<void> _addToShopping(BuildContext context, WidgetRef ref) async {
-    final added = await ref
-        .read(shoppingProvider.notifier)
-        .addFromIngredient(item);
-    if (!context.mounted) return;
-    showAppSnackBar(
-      context,
-      added ? '已加入清单 · ${item.name}' : '「${item.name}」已在购物清单中',
-      backgroundColor: added ? AppColors.primary : AppColors.tertiary,
-    );
+    try {
+      final added = await ref
+          .read(shoppingProvider.notifier)
+          .addFromIngredient(item);
+      if (!context.mounted) return;
+      showAppSnackBar(
+        context,
+        added ? '已加入清单 · ${item.name}' : '「${item.name}」已在购物清单中',
+        backgroundColor: added ? AppColors.primary : AppColors.tertiary,
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      showAppSnackBar(context, '加入购物清单失败，请重试');
+    }
   }
 }
 
@@ -360,29 +374,36 @@ class _MiniBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     final bg = soft ? AppColors.primarySoft : AppColors.surfaceContainer;
     final fg = soft ? AppColors.primaryContainer : AppColors.onSurface;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 12, color: fg),
-            const SizedBox(width: 3),
-            Text(
-              label,
-              style: GoogleFonts.manrope(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: fg,
+    final tt = Theme.of(context).textTheme;
+    return Semantics(
+      button: true,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm + 2,
+            vertical: 5,
+          ),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 12, color: fg),
+              const SizedBox(width: 3),
+              Text(
+                label,
+                style: tt.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: fg,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -394,41 +415,44 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 60),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xl,
+        vertical: 60,
+      ),
       child: Center(
         child: Column(
           children: [
-            Container(
+            const SizedBox(
               width: 64,
               height: 64,
-              decoration: const BoxDecoration(
-                color: AppColors.primarySoft,
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.check_circle_outline_rounded,
-                size: 32,
-                color: AppColors.primary,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.check_circle_outline_rounded,
+                    size: 32,
+                    color: AppColors.primary,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               '没有临期食材',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
+              style: tt.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: AppColors.onSurface,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               '冰箱状态健康,继续保持!',
-              style: GoogleFonts.manrope(
-                fontSize: 12,
-                color: AppColors.onSurfaceVariant,
-              ),
+              style: tt.bodySmall?.copyWith(color: AppColors.onSurfaceVariant),
             ),
           ],
         ),
