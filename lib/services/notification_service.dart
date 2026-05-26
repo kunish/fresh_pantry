@@ -20,13 +20,17 @@ class NotificationService {
     if (_initialized) return;
     tz_data.initializeTimeZones();
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const ios = DarwinInitializationSettings(
+    const darwin = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
     await _plugin.initialize(
-      const InitializationSettings(android: android, iOS: ios),
+      settings: const InitializationSettings(
+        android: android,
+        iOS: darwin,
+        macOS: darwin,
+      ),
       onDidReceiveNotificationResponse: (resp) {
         final id = resp.id;
         if (id != null) onTap?.call(id);
@@ -42,6 +46,9 @@ class NotificationService {
     final iosImpl = _plugin
         .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>();
+    final macImpl = _plugin
+        .resolvePlatformSpecificImplementation<
+            MacOSFlutterLocalNotificationsPlugin>();
     final androidImpl = _plugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
@@ -51,9 +58,14 @@ class NotificationService {
       badge: true,
       sound: true,
     );
+    final mac = await macImpl?.requestPermissions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
     final android = await androidImpl?.requestNotificationsPermission();
 
-    _permissionGranted = (ios ?? android ?? false);
+    _permissionGranted = (ios ?? mac ?? android ?? false);
     return _permissionGranted;
   }
 
@@ -63,14 +75,12 @@ class NotificationService {
     final scheduledTz = tz.TZDateTime.from(n.scheduledAt, tz.local);
     if (scheduledTz.isBefore(tz.TZDateTime.now(tz.local))) return; // past
     await _plugin.zonedSchedule(
-      n.id,
-      n.title,
-      n.body,
-      scheduledTz,
-      _notifDetails(),
+      id: n.id,
+      title: n.title,
+      body: n.body,
+      scheduledDate: scheduledTz,
+      notificationDetails: _notifDetails(),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 
@@ -81,7 +91,7 @@ class NotificationService {
   }) async {
     if (!_initialized || !_permissionGranted) return;
     for (final id in previousIds) {
-      await _plugin.cancel(id);
+      await _plugin.cancel(id: id);
     }
     for (final n in next) {
       await schedule(n);
@@ -90,7 +100,7 @@ class NotificationService {
 
   Future<void> cancel(int id) async {
     if (!_initialized) return;
-    await _plugin.cancel(id);
+    await _plugin.cancel(id: id);
   }
 
   NotificationDetails _notifDetails() => const NotificationDetails(
@@ -102,6 +112,7 @@ class NotificationService {
           priority: Priority.high,
         ),
         iOS: DarwinNotificationDetails(),
+        macOS: DarwinNotificationDetails(),
       );
 
   @visibleForTesting

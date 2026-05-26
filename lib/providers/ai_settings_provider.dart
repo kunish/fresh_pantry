@@ -4,6 +4,8 @@ import '../models/ai_settings.dart';
 import '../storage/ai_settings_repo.dart';
 import 'storage_service_provider.dart';
 
+const aiSettingsStorageKey = AiSettingsRepo.storageKey;
+
 class AiSettingsNotifier extends Notifier<AiSettings> {
   late AiSettingsRepo _repo;
 

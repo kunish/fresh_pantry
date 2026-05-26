@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
@@ -113,5 +114,26 @@ class ReceiveSharingIntentSource implements SystemShareSource {
     final text = initial.map((e) => e.path).join(' ');
     ReceiveSharingIntent.instance.reset();
     return text.isEmpty ? null : text;
+  }
+}
+
+/// Desktop / unsupported platforms: share-intent plugin has no native impl.
+class NoOpShareSource implements SystemShareSource {
+  const NoOpShareSource();
+
+  @override
+  Stream<String> get incomingTextStream => const Stream.empty();
+
+  @override
+  Future<String?> consumeInitialText() async => null;
+}
+
+SystemShareSource createSystemShareSource() {
+  switch (defaultTargetPlatform) {
+    case TargetPlatform.android:
+    case TargetPlatform.iOS:
+      return ReceiveSharingIntentSource();
+    default:
+      return const NoOpShareSource();
   }
 }

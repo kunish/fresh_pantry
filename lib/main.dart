@@ -37,7 +37,7 @@ void main() async {
         inventoryRepoProvider.overrideWithValue(inventoryRepo),
         shoppingRepoProvider.overrideWithValue(shoppingRepo),
         customRecipeRepoProvider.overrideWithValue(customRecipeRepo),
-        systemShareSourceProvider.overrideWithValue(ReceiveSharingIntentSource()),
+        systemShareSourceProvider.overrideWithValue(createSystemShareSource()),
       ],
       child: const FreshPantryApp(),
     ),

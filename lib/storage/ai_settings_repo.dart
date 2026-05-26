@@ -3,14 +3,14 @@ import '../models/ai_settings.dart';
 import 'storage_adapter.dart';
 
 class AiSettingsRepo {
-  static const _storageKey = 'ai_settings_v1';
+  static const storageKey = 'ai_settings_v1';
 
   final StorageAdapter _adapter;
 
   AiSettingsRepo(this._adapter);
 
   AiSettings load() {
-    final raw = _adapter.read(_storageKey);
+    final raw = _adapter.read(storageKey);
     if (raw == null || raw.isEmpty) return AiSettings.empty;
     try {
       final map = jsonDecode(raw) as Map<String, dynamic>;
@@ -21,6 +21,6 @@ class AiSettingsRepo {
   }
 
   void save(AiSettings settings) {
-    _adapter.write(_storageKey, jsonEncode(settings.toJson()));
+    _adapter.write(storageKey, jsonEncode(settings.toJson()));
   }
 }

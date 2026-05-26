@@ -1,0 +1,16 @@
+---
+description: Default Flutter debug/run target is iOS simulator, not macOS
+alwaysApply: true
+---
+
+# Flutter debug target: iOS
+
+When running or verifying the app locally, prefer **iOS** (simulator or device), not macOS desktop.
+
+- IDE: use **Run and Debug → fresh_pantry (iOS)** (`.vscode/launch.json`)
+- CLI: `flutter run -d iphone` (or a specific simulator id from `flutter devices`)
+- Tests: `flutter test` (no device needed)
+
+Use macOS (`-d macos`) only when explicitly debugging macOS-specific behavior.
+
+`receive_sharing_intent` and other mobile share flows are iOS/Android only; macOS uses `NoOpShareSource`.
