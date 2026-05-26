@@ -14,6 +14,7 @@ void main() {
       final draft = await AiRecipeParser.fromUrl(
         'https://lanfanapp.com/recipe/15978',
         chatFn: (_) async => _readFixture('recipe_lanfan_15978.json'),
+        pageContentFetcher: (_) async => 'mock page content',
       );
       expect(draft.name.value, '番茄牛腩面');
       expect(draft.cookingMinutes.value, 60);
@@ -27,6 +28,7 @@ void main() {
       final draft = await AiRecipeParser.fromUrl(
         'https://x',
         chatFn: (_) async => _readFixture('recipe_invalid.txt'),
+        pageContentFetcher: (_) async => 'mock page content',
       );
       expect(draft.name.value, '番茄牛腩面');
     });
@@ -36,6 +38,7 @@ void main() {
         () => AiRecipeParser.fromUrl(
           'https://x',
           chatFn: (_) async => _readFixture('recipe_partial_fields.json'),
+          pageContentFetcher: (_) async => 'mock page content',
         ),
         throwsA(isA<AiParseException>()),
       );
@@ -46,6 +49,7 @@ void main() {
         () => AiRecipeParser.fromUrl(
           'https://x',
           chatFn: (_) async => throw const AiAuthException('401'),
+          pageContentFetcher: (_) async => 'mock page content',
         ),
         throwsA(isA<AiAuthException>()),
       );

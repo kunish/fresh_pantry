@@ -73,4 +73,25 @@ void main() {
     await tester.pumpAndSettle();
     expect(container.read(aiDraftProvider).recipeDraft, isNull);
   });
+
+  testWidgets('action buttons share a consistent height', (tester) async {
+    final container = await _container();
+    addTearDown(container.dispose);
+    container.read(aiDraftProvider.notifier).updateRecipeDraft(_stub());
+
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: container,
+      child: MaterialApp(
+        home: RecipeDraftReviewScreen(regenerate: (_) async {}),
+      ),
+    ));
+
+    final regenerate = tester.getSize(find.byKey(const Key('recipe_review_regenerate')));
+    final discard = tester.getSize(find.byKey(const Key('recipe_review_discard')));
+    final confirm = tester.getSize(find.byKey(const Key('recipe_review_confirm')));
+
+    expect(regenerate.height, 48);
+    expect(discard.height, 48);
+    expect(confirm.height, 48);
+  });
 }

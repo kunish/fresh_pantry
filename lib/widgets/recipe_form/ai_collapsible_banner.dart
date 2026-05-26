@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/clipboard_text.dart';
 
 class AiCollapsibleBanner extends StatefulWidget {
   const AiCollapsibleBanner({
@@ -7,11 +8,13 @@ class AiCollapsibleBanner extends StatefulWidget {
     required this.urlController,
     required this.onParse,
     this.initiallyExpanded = false,
+    this.isLoading = false,
   });
 
   final TextEditingController urlController;
   final VoidCallback onParse;
   final bool initiallyExpanded;
+  final bool isLoading;
 
   @override
   State<AiCollapsibleBanner> createState() => AiCollapsibleBannerState();
@@ -105,6 +108,18 @@ class AiCollapsibleBannerState extends State<AiCollapsibleBanner> {
           TextField(
             key: const Key('recipe_url_input'),
             controller: widget.urlController,
+            keyboardType: TextInputType.url,
+            autocorrect: false,
+            enableSuggestions: false,
+            readOnly: widget.isLoading,
+            onChanged: (value) {
+              final normalized = normalizePastedRecipeUrl(value);
+              if (normalized == value) return;
+              widget.urlController.value = TextEditingValue(
+                text: normalized,
+                selection: TextSelection.collapsed(offset: normalized.length),
+              );
+            },
             decoration: const InputDecoration(
               hintText: '粘贴食谱链接 (懒饭 / 下厨房…)',
               filled: true,
@@ -113,10 +128,29 @@ class AiCollapsibleBannerState extends State<AiCollapsibleBanner> {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          FilledButton(
-            key: const Key('recipe_url_parse'),
-            onPressed: widget.onParse,
-            child: const Text('解析为草稿'),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              key: const Key('recipe_url_parse'),
+              onPressed: widget.isLoading ? null : widget.onParse,
+              child: widget.isLoading
+                  ? const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: AppSpacing.sm),
+                        Text('解析中…'),
+                      ],
+                    )
+                  : const Text('解析并填入'),
+            ),
           ),
         ],
       ),

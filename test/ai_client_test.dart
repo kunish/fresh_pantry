@@ -50,6 +50,18 @@ void main() {
       );
     });
 
+    test('throws AiNetworkException on 404 with guidance', () async {
+      final client = MockClient((_) async => http.Response('404 page not found', 404));
+      expect(
+        () => AiClient.chat(settings: _settings, messages: [AiMessage.text('user', 'hi')], client: client),
+        throwsA(
+          predicate<AiNetworkException>(
+            (e) => e.message.contains('404') && e.message.contains('/v1'),
+          ),
+        ),
+      );
+    });
+
     test('throws AiNetworkException on 5xx', () async {
       final client = MockClient((_) async => http.Response('{}', 503));
       expect(

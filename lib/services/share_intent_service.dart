@@ -4,12 +4,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
+import '../utils/clipboard_text.dart';
+
 typedef ClipboardReader = Future<String?> Function();
 typedef Clock = DateTime Function();
 
 Future<String?> _defaultClipboardRead() async {
-  final data = await Clipboard.getData('text/plain');
-  return data?.text;
+  final data = await Clipboard.getData(Clipboard.kTextPlain);
+  final text = data?.text;
+  if (text == null || text.isEmpty) return null;
+  return normalizeClipboardText(text);
 }
 
 /// Hosts we recognize as recipe sources. Subdomains (e.g. `www.lanfanapp.com`,
@@ -20,7 +24,7 @@ const Set<String> kSupportedRecipeHosts = {
   'xiachufang.com',
 };
 
-bool _isSupportedRecipeHost(String? host) {
+bool isSupportedRecipeHost(String? host) {
   if (host == null || host.isEmpty) return false;
   final lower = host.toLowerCase();
   for (final h in kSupportedRecipeHosts) {
@@ -28,6 +32,8 @@ bool _isSupportedRecipeHost(String? host) {
   }
   return false;
 }
+
+bool _isSupportedRecipeHost(String? host) => isSupportedRecipeHost(host);
 
 class ClipboardUrlDetector {
   ClipboardUrlDetector({

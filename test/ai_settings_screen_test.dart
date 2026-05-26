@@ -37,16 +37,52 @@ void main() {
       child: const MaterialApp(home: AiSettingsScreen()),
     ));
 
-    await tester.enterText(find.byKey(const Key('ai_base_url')), 'https://api.example.com/v1');
+    await tester.enterText(find.byKey(const Key('ai_base_url')), 'https://cpa.kunish.eu.org');
     await tester.enterText(find.byKey(const Key('ai_api_key')), 'sk-x');
     await tester.enterText(find.byKey(const Key('ai_model')), 'gpt-4o');
     await tester.tap(find.byKey(const Key('ai_save')));
     await tester.pumpAndSettle();
 
     final saved = container.read(aiSettingsProvider);
-    expect(saved.baseUrl, 'https://api.example.com/v1');
+    expect(saved.baseUrl, 'https://cpa.kunish.eu.org/v1');
     expect(saved.apiKey, 'sk-x');
     expect(saved.model, 'gpt-4o');
+  });
+
+  testWidgets('save pops back when opened from another screen', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: FilledButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AiSettingsScreen()),
+                ),
+                child: const Text('open ai settings'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open ai settings'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AiSettingsScreen), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('ai_base_url')), 'https://cpa.kunish.eu.org');
+    await tester.enterText(find.byKey(const Key('ai_api_key')), 'sk-x');
+    await tester.enterText(find.byKey(const Key('ai_model')), 'gpt-4o');
+    await tester.tap(find.byKey(const Key('ai_save')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AiSettingsScreen), findsNothing);
+    expect(find.text('open ai settings'), findsOneWidget);
   });
 
   testWidgets('test connection shows result via injected callback', (tester) async {

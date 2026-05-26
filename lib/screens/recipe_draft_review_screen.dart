@@ -6,6 +6,7 @@ import '../models/recipe_draft.dart';
 import '../providers/ai_draft_provider.dart';
 import '../providers/custom_recipe_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/shared/ai_busy_overlay.dart';
 import '../widgets/shared/ai_draft_field.dart';
 
 class RecipeDraftReviewScreen extends ConsumerWidget {
@@ -14,6 +15,8 @@ class RecipeDraftReviewScreen extends ConsumerWidget {
   /// Optional callback used when "重新生成" is tapped.
   /// Called with the original `sourceUrl`. If null, button is hidden.
   final Future<void> Function(String url)? regenerate;
+
+  static const _actionButtonHeight = 48.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,112 +27,152 @@ class RecipeDraftReviewScreen extends ConsumerWidget {
     }
     return Scaffold(
       appBar: AppBar(title: const Text('审核 AI 草稿')),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+      body: Stack(
         children: [
-          if (draft.sourceUrl != null) ...[
-            Text(
-              '来源: ${draft.sourceUrl}',
-              style: const TextStyle(
-                fontSize: AppFontSize.xs,
-                color: AppColors.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-          ],
-          AiDraftFieldChip<String>(
-            label: '名称',
-            field: draft.name,
-            onChanged: (next) => _patch(ref, draft.copyWith(name: next)),
-            editorBuilder: _stringEditor,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
+          ListView(
+            padding: const EdgeInsets.all(AppSpacing.lg),
             children: [
-              Expanded(
-                child: AiDraftFieldChip<String>(
-                  label: '分类',
-                  field: draft.category,
-                  onChanged: (next) => _patch(ref, draft.copyWith(category: next)),
-                  editorBuilder: _stringEditor,
+              if (draft.sourceUrl != null) ...[
+                Text(
+                  '来源: ${draft.sourceUrl}',
+                  style: const TextStyle(
+                    fontSize: AppFontSize.xs,
+                    color: AppColors.onSurfaceVariant,
+                  ),
                 ),
+                const SizedBox(height: AppSpacing.md),
+              ],
+              AiDraftFieldChip<String>(
+                label: '名称',
+                field: draft.name,
+                onChanged: (next) => _patch(ref, draft.copyWith(name: next)),
+                editorBuilder: _stringEditor,
               ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: AiDraftFieldChip<int>(
-                  label: '时长 (分钟)',
-                  field: draft.cookingMinutes,
-                  onChanged: (next) => _patch(ref, draft.copyWith(cookingMinutes: next)),
-                  formatter: (v) => '$v 分钟',
-                  editorBuilder: _intEditor,
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  Expanded(
+                    child: AiDraftFieldChip<String>(
+                      label: '分类',
+                      field: draft.category,
+                      onChanged: (next) => _patch(ref, draft.copyWith(category: next)),
+                      editorBuilder: _stringEditor,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: AiDraftFieldChip<int>(
+                      label: '时长 (分钟)',
+                      field: draft.cookingMinutes,
+                      onChanged: (next) => _patch(ref, draft.copyWith(cookingMinutes: next)),
+                      formatter: (v) => '$v 分钟',
+                      editorBuilder: _intEditor,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: AiDraftFieldChip<int>(
+                      label: '难度',
+                      field: draft.difficulty,
+                      onChanged: (next) => _patch(ref, draft.copyWith(difficulty: next)),
+                      formatter: (v) => '⭐' * v,
+                      editorBuilder: _intEditor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text('食材 · ${draft.ingredients.length} 项', style: const TextStyle(fontWeight: FontWeight.w700)),
+              for (final ing in draft.ingredients)
+                ListTile(
+                  dense: true,
+                  title: Text(ing.name.value),
+                  trailing: Text(ing.amount.value),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: AiDraftFieldChip<int>(
-                  label: '难度',
-                  field: draft.difficulty,
-                  onChanged: (next) => _patch(ref, draft.copyWith(difficulty: next)),
-                  formatter: (v) => '⭐' * v,
-                  editorBuilder: _intEditor,
-                ),
-              ),
+              const SizedBox(height: AppSpacing.md),
+              Text('步骤 · ${draft.steps.length} 步', style: const TextStyle(fontWeight: FontWeight.w700)),
+              for (var i = 0; i < draft.steps.length; i++)
+                ListTile(dense: true, title: Text('${i + 1}. ${draft.steps[i].value}')),
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
-          Text('食材 · ${draft.ingredients.length} 项', style: const TextStyle(fontWeight: FontWeight.w700)),
-          for (final ing in draft.ingredients)
-            ListTile(
-              dense: true,
-              title: Text(ing.name.value),
-              trailing: Text(ing.amount.value),
-            ),
-          const SizedBox(height: AppSpacing.md),
-          Text('步骤 · ${draft.steps.length} 步', style: const TextStyle(fontWeight: FontWeight.w700)),
-          for (var i = 0; i < draft.steps.length; i++)
-            ListTile(dense: true, title: Text('${i + 1}. ${draft.steps[i].value}')),
+          if (state.isRunning) const Positioned.fill(child: AiBusyOverlay()),
         ],
       ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.all(AppSpacing.md),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (regenerate != null && draft.sourceUrl != null)
-              Expanded(
+            if (regenerate != null && draft.sourceUrl != null) ...[
+              SizedBox(
+                height: _actionButtonHeight,
                 child: OutlinedButton(
                   key: const Key('recipe_review_regenerate'),
+                  style: _outlinedActionStyle(context),
                   onPressed: state.isRunning ? null : () => regenerate!(draft.sourceUrl!),
                   child: const Text('重新生成'),
                 ),
               ),
-            if (regenerate != null) const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: OutlinedButton(
-                key: const Key('recipe_review_discard'),
-                onPressed: () {
-                  ref.read(aiDraftProvider.notifier).clear();
-                  Navigator.of(context).maybePop();
-                },
-                child: const Text('丢弃'),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              flex: 2,
-              child: FilledButton(
-                key: const Key('recipe_review_confirm'),
-                onPressed: () async {
-                  await ref.read(customRecipesProvider.notifier).add(draft.toRecipe());
-                  if (!context.mounted) return;
-                  ref.read(aiDraftProvider.notifier).clear();
-                  Navigator.of(context).maybePop();
-                },
-                child: const Text('确认入库'),
+              const SizedBox(height: AppSpacing.sm),
+            ],
+            SizedBox(
+              height: _actionButtonHeight,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      key: const Key('recipe_review_discard'),
+                      style: _outlinedActionStyle(context),
+                      onPressed: state.isRunning
+                          ? null
+                          : () {
+                              ref.read(aiDraftProvider.notifier).clear();
+                              Navigator.of(context).maybePop();
+                            },
+                      child: const Text('丢弃'),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    flex: 2,
+                    child: FilledButton(
+                      key: const Key('recipe_review_confirm'),
+                      style: _filledActionStyle(context),
+                      onPressed: state.isRunning
+                          ? null
+                          : () async {
+                              await ref.read(customRecipesProvider.notifier).add(draft.toRecipe());
+                              if (!context.mounted) return;
+                              ref.read(aiDraftProvider.notifier).clear();
+                              Navigator.of(context).maybePop();
+                            },
+                      child: const Text('确认入库'),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  ButtonStyle _outlinedActionStyle(BuildContext context) {
+    return OutlinedButton.styleFrom(
+      minimumSize: const Size(0, _actionButtonHeight),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+      textStyle: Theme.of(context).textTheme.labelLarge,
+    );
+  }
+
+  ButtonStyle _filledActionStyle(BuildContext context) {
+    return FilledButton.styleFrom(
+      minimumSize: const Size(0, _actionButtonHeight),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+      textStyle: Theme.of(context).textTheme.labelLarge,
     );
   }
 

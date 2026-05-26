@@ -5,6 +5,7 @@ import '../models/ai_settings.dart';
 import '../providers/ai_settings_provider.dart';
 import '../services/ai_client.dart';
 import '../theme/app_theme.dart';
+import '../utils/ai_base_url.dart';
 
 class ConnectionTestResult {
   const ConnectionTestResult.ok() : success = true, message = '连接成功';
@@ -17,7 +18,12 @@ typedef ConnectionTestFn = Future<ConnectionTestResult> Function(AiSettings sett
 
 Future<ConnectionTestResult> defaultTestConnection(AiSettings settings) async {
   try {
-    final probeSettings = settings.copyWith(timeout: const Duration(seconds: 2));
+    final probeSettings = settings.copyWith(
+      baseUrl: normalizeAiBaseUrl(settings.baseUrl),
+      timeout: settings.timeout < const Duration(seconds: 15)
+          ? const Duration(seconds: 15)
+          : settings.timeout,
+    );
     await AiClient.chat(
       settings: probeSettings,
       messages: [AiMessage.text('user', 'reply with: ok')],
@@ -67,18 +73,22 @@ class _AiSettingsScreenState extends ConsumerState<AiSettingsScreen> {
     super.dispose();
   }
 
-  AiSettings _currentInputs() => AiSettings(
-        baseUrl: _baseUrl.text.trim(),
-        apiKey: _apiKey.text.trim(),
-        model: _model.text.trim(),
-        timeout: Duration(seconds: int.tryParse(_timeout.text.trim()) ?? 60),
-      );
+  AiSettings _currentInputs() {
+    return AiSettings(
+      baseUrl: normalizeAiBaseUrl(_baseUrl.text),
+      apiKey: _apiKey.text.trim(),
+      model: _model.text.trim(),
+      timeout: Duration(seconds: int.tryParse(_timeout.text.trim()) ?? 60),
+    );
+  }
 
   Future<void> _save() async {
     final next = _currentInputs();
     await ref.read(aiSettingsProvider.notifier).save(next);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已保存')));
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
   }
 
   Future<void> _runTest() async {
@@ -105,7 +115,11 @@ class _AiSettingsScreenState extends ConsumerState<AiSettingsScreen> {
           TextField(
             key: const Key('ai_base_url'),
             controller: _baseUrl,
-            decoration: const InputDecoration(labelText: 'Base URL', hintText: 'https://api.openai.com/v1'),
+            decoration: const InputDecoration(
+              labelText: 'Base URL',
+              hintText: 'https://cpa.kunish.eu.org/v1',
+              helperText: '填写到 /v1 即可；仅填域名也会自动补全',
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
           TextField(

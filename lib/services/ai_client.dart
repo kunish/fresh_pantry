@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/ai_settings.dart';
+import '../utils/ai_base_url.dart';
 
 sealed class AiException implements Exception {
   const AiException(this.message);
@@ -84,7 +85,9 @@ class AiClient {
       throw const AiNotConfiguredException();
     }
 
-    final uri = Uri.parse(_join(settings.baseUrl, '/chat/completions'));
+    final uri = Uri.parse(
+      _join(normalizeAiBaseUrl(settings.baseUrl), '/chat/completions'),
+    );
     final ownClient = client == null;
     final c = client ?? http.Client();
     try {
@@ -122,8 +125,18 @@ class AiClient {
       if (res.statusCode >= 500) {
         throw AiNetworkException('服务错误 (${res.statusCode})');
       }
+      if (res.statusCode == 404) {
+        throw AiNetworkException(
+          '接口不存在 (404)。Base URL 应填写到 /v1，例如 https://example.com/v1，'
+          '不要包含 /chat/completions',
+        );
+      }
       if (res.statusCode != 200) {
-        throw AiNetworkException('意外状态 (${res.statusCode})');
+        final detail = res.body.trim();
+        final suffix = detail.isEmpty
+            ? ''
+            : '：${detail.length > 120 ? '${detail.substring(0, 120)}…' : detail}';
+        throw AiNetworkException('意外状态 (${res.statusCode})$suffix');
       }
 
       try {

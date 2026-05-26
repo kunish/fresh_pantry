@@ -6,7 +6,6 @@ import 'package:fresh_pantry/models/recipe.dart';
 import 'package:fresh_pantry/models/recipe_draft.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/screens/custom_recipe_form_screen.dart';
-import 'package:fresh_pantry/screens/recipe_draft_review_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -41,7 +40,7 @@ void main() {
     expect(find.byKey(const Key('recipe_url_input')), findsNothing);
   });
 
-  testWidgets('parse button with valid URL pushes RecipeDraftReviewScreen', (tester) async {
+  testWidgets('parse button fills form inline and shows review banner', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(ProviderScope(
@@ -58,7 +57,62 @@ void main() {
     await tester.enterText(find.byKey(const Key('recipe_url_input')), 'https://lanfanapp.com/recipe/15978');
     await tester.tap(find.byKey(const Key('recipe_url_parse')));
     await tester.pumpAndSettle();
-    expect(find.byType(RecipeDraftReviewScreen), findsOneWidget);
+    expect(find.text('番茄烤肠意面'), findsOneWidget);
+    expect(find.text('番茄'), findsOneWidget);
+    expect(find.text('2'), findsOneWidget);
+    expect(find.text('个 ▾'), findsOneWidget);
+    expect(find.text('煮面'), findsOneWidget);
+    expect(find.byKey(const Key('ai_draft_review_banner')), findsOneWidget);
+    expect(find.text('保存食谱'), findsOneWidget);
+  });
+
+  testWidgets('leaving form without saving clears ai draft on re-entry', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        child: MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => FilledButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => CustomRecipeFormScreen(
+                        urlParserOverride: (url) async => _stubDraft(url),
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('✨ 粘贴链接，AI 自动填表'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('recipe_url_input')),
+      'https://lanfanapp.com/recipe/15978',
+    );
+    await tester.tap(find.byKey(const Key('recipe_url_parse')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('ai_draft_review_banner')), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('ai_draft_review_banner')), findsNothing);
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('ai_draft_review_banner')), findsNothing);
   });
 }
 
@@ -76,12 +130,17 @@ Recipe _stubRecipe() => const Recipe(
 
 RecipeDraft _stubDraft(String url) => RecipeDraft(
       sourceUrl: url,
-      name: DraftField.ai('Test'),
-      category: DraftField.ai('家常'),
-      cookingMinutes: DraftField.ai(30),
+      name: DraftField.ai('番茄烤肠意面'),
+      category: DraftField.ai('面'),
+      cookingMinutes: DraftField.ai(20),
       difficulty: DraftField.ai(2),
       description: DraftField.ai(''),
       imageUrl: const DraftField(value: null, source: DraftSource.ai),
-      ingredients: const [],
-      steps: const [],
+      ingredients: [
+        RecipeIngredientDraft(
+          name: DraftField.ai('番茄'),
+          amount: DraftField.ai('2个'),
+        ),
+      ],
+      steps: [DraftField.ai('煮面')],
     );

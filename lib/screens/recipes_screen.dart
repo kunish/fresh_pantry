@@ -2,20 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/ingredient.dart';
+import '../providers/custom_recipe_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/recipe_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/recipe_card.dart';
 import '../widgets/shared/fk_icon_button.dart';
 import '../widgets/shared/fk_top_bar.dart';
+import 'custom_recipe_detail_screen.dart';
 import 'custom_recipe_form_screen.dart';
 import 'recipe_detail_screen.dart';
 
 /// FreshKeeper 菜谱 tab — 设计稿 `screens-3.jsx::RecipesScreen`。
 ///
-/// 3-tab segmented(用临期 / 现有食材 / 探索)+ 时间筛选(不限 / ≤15 / ≤30 分钟)。
+/// 4-tab segmented(用临期 / 现有食材 / 探索 / 我的)+ 时间筛选(不限 / ≤15 / ≤30 分钟)。
 /// "用临期" 顶部展示橙黄 banner 提醒优先使用临期食材的数量。
-enum _RecipeTab { expiring, available, explore }
+enum _RecipeTab { expiring, available, explore, mine }
 
 enum _TimeFilter { all, fast15, fast30 }
 
@@ -74,6 +76,7 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
     final inventory = ref.read(inventoryProvider);
     final inventoryNames = inventoryNameSet(inventory);
     final recommended = ref.watch(recommendedRecipesProvider);
+    final customRecipes = ref.watch(customRecipesProvider);
     final allAsync = ref.watch(recipesProvider);
 
     final all = allAsync.maybeWhen(
@@ -95,6 +98,7 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
       _RecipeTab.expiring => expiringRecipes,
       _RecipeTab.available => recommended,
       _RecipeTab.explore => all,
+      _RecipeTab.mine => customRecipes,
     };
 
     final filtered =
@@ -185,7 +189,14 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                               () => Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder:
-                                      (_) => RecipeDetailScreen(recipe: recipe),
+                                      (_) =>
+                                          _tab == _RecipeTab.mine
+                                              ? CustomRecipeDetailScreen(
+                                                recipeId: recipe.id,
+                                              )
+                                              : RecipeDetailScreen(
+                                                recipe: recipe,
+                                              ),
                                 ),
                               ),
                         );
@@ -225,8 +236,9 @@ class _TabRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final tabs = <(_RecipeTab, String, IconData)>[
       (_RecipeTab.expiring, '用临期', Icons.local_fire_department_rounded),
-      (_RecipeTab.available, '现有食材', Icons.eco_rounded),
+      (_RecipeTab.available, '现有', Icons.eco_rounded),
       (_RecipeTab.explore, '探索', Icons.menu_book_rounded),
+      (_RecipeTab.mine, '我的', Icons.bookmark_rounded),
     ];
     return Container(
       decoration: const BoxDecoration(
@@ -556,6 +568,7 @@ class _EmptyState extends StatelessWidget {
             _RecipeTab.expiring => '没有临期食材,先去添加几样吧',
             _RecipeTab.available => '冰箱里加点食材,菜谱就来啦',
             _RecipeTab.explore => '暂无可探索的菜谱',
+            _RecipeTab.mine => '还没有保存的食谱，点右上角 + 创建',
           };
     return Center(
       child: Padding(

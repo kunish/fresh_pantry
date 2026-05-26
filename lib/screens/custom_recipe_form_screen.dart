@@ -15,7 +15,11 @@ import '../services/ai_recipe_parser.dart';
 import '../services/share_intent_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_snackbar.dart';
+import '../utils/clipboard_text.dart';
+import '../utils/recipe_draft_apply.dart';
 import '../widgets/recipe_form/ai_collapsible_banner.dart';
+import '../widgets/recipe_form/ai_draft_review_banner.dart';
+import '../widgets/shared/ai_busy_overlay.dart';
 import '../widgets/recipe_form/cooking_time_row.dart';
 import '../widgets/recipe_form/difficulty_stars.dart';
 import '../widgets/recipe_form/recipe_category_chips.dart';
@@ -23,7 +27,7 @@ import '../widgets/recipe_form/recipe_form_card.dart';
 import '../widgets/recipe_form/unit_dropdown.dart';
 import '../widgets/shared/recipe_image.dart';
 import 'ai_settings_screen.dart';
-import 'recipe_draft_review_screen.dart';
+import 'custom_recipe_detail_screen.dart';
 
 typedef CoverImagePicker = Future<String?> Function(ImageSource source);
 
@@ -108,9 +112,10 @@ class _CustomRecipeFormScreenState
             : [_StepEntry()];
 
     if (!_isEditing) {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => _maybeOfferClipboardUrl(),
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(aiDraftProvider.notifier).clear();
+        _maybeOfferClipboardUrl();
+      });
     }
   }
 
@@ -133,7 +138,19 @@ class _CustomRecipeFormScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final aiDraftState = ref.watch(aiDraftProvider);
+    final isParsing = !_isEditing && aiDraftState.isRunning;
+    final aiDraft = aiDraftState.recipeDraft;
+
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop && !_isEditing) {
+          ref.read(aiDraftProvider.notifier).clear();
+        }
+      },
+      child: Stack(
+      children: [
+        Scaffold(
       appBar: AppBar(title: Text(_isEditing ? '编辑食谱' : '新建食谱')),
       body: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -155,6 +172,22 @@ class _CustomRecipeFormScreenState
                     key: _aiBannerKey,
                     urlController: _urlController,
                     onParse: _onParseUrl,
+                    isLoading: isParsing,
+                  ),
+                ),
+              if (!_isEditing && aiDraft != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.md,
+                    AppSpacing.lg,
+                    0,
+                  ),
+                  child: AiDraftReviewBanner(
+                    sourceUrl: aiDraft.sourceUrl,
+                    isLoading: isParsing,
+                    onRegenerate: _onParseUrl,
+                    onDiscard: () => ref.read(aiDraftProvider.notifier).clear(),
                   ),
                 ),
               Padding(
@@ -565,7 +598,7 @@ class _CustomRecipeFormScreenState
         child: SafeArea(
           minimum: const EdgeInsets.all(AppSpacing.lg),
           child: FilledButton(
-            onPressed: _isSaving ? null : _saveRecipe,
+            onPressed: (_isSaving || isParsing) ? null : _saveRecipe,
             style: FilledButton.styleFrom(
               minimumSize: const Size(double.infinity, 48),
             ),
@@ -591,6 +624,10 @@ class _CustomRecipeFormScreenState
                     : const Text('保存食谱'),
           ),
         ),
+      ),
+        ),
+        if (isParsing) const Positioned.fill(child: AiBusyOverlay()),
+      ],
       ),
     );
   }
@@ -624,7 +661,7 @@ class _CustomRecipeFormScreenState
     if (url == null || !mounted) return;
 
     _aiBannerKey.currentState?.expand();
-    _urlController.text = url;
+    _urlController.text = normalizePastedRecipeUrl(url);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -642,24 +679,16 @@ class _CustomRecipeFormScreenState
   }
 
   Future<void> _onParseUrl() async {
-    final url = _urlController.text.trim();
+    final url = normalizePastedRecipeUrl(_urlController.text.trim());
+    if (url != _urlController.text) {
+      _urlController.text = url;
+    }
     if (!url.startsWith('http')) {
       _showError('请填入合法的 http(s) 链接');
       return;
     }
     final notifier = ref.read(aiDraftProvider.notifier);
-    final parser =
-        widget.urlParserOverride ??
-        (u) => AiRecipeParser.fromUrl(
-          u,
-          chatFn:
-              (msgs) => AiClient.chat(
-                settings: ref.read(aiSettingsProvider),
-                messages: msgs,
-                responseFormat: const {'type': 'json_object'},
-              ),
-        );
-    await notifier.runRecipeFromUrl(url, parser: parser);
+    await notifier.runRecipeFromUrl(url, parser: _buildUrlParser());
     final state = ref.read(aiDraftProvider);
     if (state.error is AiNotConfiguredException) {
       if (!mounted) return;
@@ -674,16 +703,86 @@ class _CustomRecipeFormScreenState
     }
     if (state.recipeDraft == null) return;
     if (!mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder:
-            (_) => RecipeDraftReviewScreen(
-              regenerate:
-                  (sourceUrl) =>
-                      notifier.runRecipeFromUrl(sourceUrl, parser: parser),
-            ),
-      ),
+    _applyRecipeDraft(state.recipeDraft!);
+    showAppSnackBar(context, 'AI 已填入，请核对后保存');
+  }
+
+  RecipeUrlParser _buildUrlParser() {
+    return widget.urlParserOverride ??
+        (u) => AiRecipeParser.fromUrl(
+          u,
+          chatFn:
+              (msgs) => AiClient.chat(
+                settings: ref.read(aiSettingsProvider),
+                messages: msgs,
+                responseFormat: const {'type': 'json_object'},
+              ),
+        );
+  }
+
+  void _applyRecipeDraft(RecipeDraft draft) {
+    final applied = recipeDraftToApplyResult(
+      draft,
+      isSupportedImageSource: _isSupportedImageSource,
     );
+
+    for (final ingredient in _ingredientControllers) {
+      ingredient.dispose();
+    }
+    for (final step in _stepEntries) {
+      step.dispose();
+    }
+
+    setState(() {
+      _nameController.text = applied.name;
+      _categoryController.text = applied.category;
+      _cookingMinutesController.text = applied.cookingMinutes;
+      _difficultyController.text = applied.difficulty;
+      _descriptionController.text = applied.description;
+      if (applied.coverImageSource != null) {
+        _coverImageSource = applied.coverImageSource;
+      }
+
+      _ingredientControllers.clear();
+      if (applied.ingredients.isEmpty) {
+        _ingredientControllers.add(_IngredientControllers.empty());
+      } else {
+        _ingredientControllers.addAll(
+          applied.ingredients.map(
+            (row) => _IngredientControllers(
+              name: row.name,
+              quantity: row.quantity,
+              unit: row.unit,
+            ),
+          ),
+        );
+      }
+
+      _stepEntries.clear();
+      if (applied.steps.isEmpty) {
+        _stepEntries.add(_StepEntry());
+      } else {
+        _stepEntries.addAll(applied.steps.map((step) => _StepEntry(text: step)));
+      }
+
+      _nameError = null;
+      _categoryError = null;
+      _cookingMinutesError = null;
+      _difficultyError = null;
+      _ingredientsError = null;
+      _stepsError = null;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final context = _nameFieldKey.currentContext;
+      if (context == null) return;
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 240),
+        alignment: 0.05,
+      );
+    });
   }
 
   Future<void> _saveRecipe() async {
@@ -782,9 +881,18 @@ class _CustomRecipeFormScreenState
     if (!mounted) {
       return;
     }
-    if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
+    ref.read(aiDraftProvider.notifier).clear();
+    if (_isEditing) {
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      return;
     }
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => CustomRecipeDetailScreen(recipeId: recipe.id),
+      ),
+    );
   }
 
   void _addIngredient() {
