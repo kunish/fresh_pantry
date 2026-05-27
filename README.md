@@ -12,11 +12,54 @@ Fresh Pantry is a local-first household pantry app with a Flutter mobile client,
 ## Common Commands
 
 ```bash
+npm run mobile:pub-get
+npm run mobile:analyze
+npm run mobile:test
+npm run api:test
+npm run supabase:status
+```
+
+Run mobile-specific Flutter commands from `apps/mobile` when debugging locally.
+
+## Local Development
+
+### Mobile
+
+```bash
+npm run mobile:pub-get
 npm run mobile:analyze
 npm run mobile:test
 ```
 
-Run mobile-specific Flutter commands from `apps/mobile` when debugging locally.
+Run the app with Supabase configuration:
+
+```bash
+cd apps/mobile
+flutter run \
+  --dart-define=SUPABASE_URL=https://<project-ref>.supabase.co \
+  --dart-define=SUPABASE_PUBLISHABLE_KEY=<publishable-key>
+```
+
+`FRESH_PANTRY_API_BASE_URL` defaults to `https://api.fresh-pantry.kunish.eu.org`.
+
+### Supabase
+
+```bash
+npm run supabase:start
+npm run supabase:reset
+npx -y supabase@2.101.0 test db
+```
+
+### API
+
+```bash
+cd apps/api
+npm install
+npm test
+npx wrangler deploy
+```
+
+The production Worker route is `api.fresh-pantry.kunish.eu.org`.
 
 ## Supabase Auth Redirect
 
@@ -27,11 +70,3 @@ com.kunish.freshpantry://signin-callback/
 ```
 
 Add that URL to the Supabase project's Auth redirect URL allow list before testing magic-link sign-in on devices.
-
-The API and Supabase workspaces are planned for later implementation tasks. Until those directories exist, these root scripts print what will be added and exit successfully; once the directories land, they run the real workspace commands:
-
-```bash
-npm run api:test
-npm run api:deploy
-npm run supabase:status
-```
