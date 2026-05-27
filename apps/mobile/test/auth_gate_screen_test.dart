@@ -35,6 +35,19 @@ class FakeHouseholdGateway implements HouseholdGateway {
   @override
   Future<void> uploadInitialData(String householdId) async {}
 
+  @override
+  Future<String> createInvite({
+    required String householdId,
+    required String email,
+  }) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
+  Future<void> acceptInvite(String token) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
   void emitAuthStateChange() {
     authStateController.add(null);
   }

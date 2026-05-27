@@ -1,3 +1,5 @@
+const defaultFreshPantryApiBaseUrl = 'https://api.fresh-pantry.kunish.eu.org';
+
 class BackendConfigException implements Exception {
   const BackendConfigException(this.message);
 
@@ -22,7 +24,7 @@ class BackendConfig {
       ),
       apiBaseUrl: String.fromEnvironment(
         'FRESH_PANTRY_API_BASE_URL',
-        defaultValue: 'https://api.fresh-pantry.kunish.eu.org',
+        defaultValue: defaultFreshPantryApiBaseUrl,
       ),
     ).validate();
   }

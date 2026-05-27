@@ -45,6 +45,19 @@ class FakeBootstrapGateway implements HouseholdGateway {
     selectedDuringUpload = readHouseholds?.call() ?? const [];
   }
 
+  @override
+  Future<String> createInvite({
+    required String householdId,
+    required String email,
+  }) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
+  Future<void> acceptInvite(String token) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
   Future<void> close() {
     return authStateController.close();
   }
@@ -68,6 +81,19 @@ class RecordingRemotePantryRepository implements RemotePantryRepository {
       ownerId: 'owner_1',
       defaultStorageArea: 'fridge',
     );
+  }
+
+  @override
+  Future<String> createInvite({
+    required String householdId,
+    required String email,
+  }) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
+  Future<void> acceptInvite(String token) {
+    throw UnimplementedError('Not needed by these tests.');
   }
 
   @override

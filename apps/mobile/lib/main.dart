@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
+import 'backend/backend_config_provider.dart';
 import 'config/backend_config.dart';
 import 'providers/ai_draft_provider.dart';
 import 'providers/notification_service_provider.dart';
@@ -50,6 +51,7 @@ void main() async {
         shoppingRepoProvider.overrideWithValue(shoppingRepo),
         customRecipeRepoProvider.overrideWithValue(customRecipeRepo),
         systemShareSourceProvider.overrideWithValue(createSystemShareSource()),
+        backendConfigProvider.overrideWithValue(backendConfig),
       ],
       child: const FreshPantryApp(),
     ),

@@ -1,6 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../config/backend_config.dart';
+import '../household/invite_token.dart';
 import '../household/household_models.dart';
 
 Map<String, dynamic> inventoryRowFromJson(Map<String, dynamic> row) {
@@ -137,6 +139,11 @@ bool _isUuid(String value) {
 abstract class RemotePantryRepository {
   Future<List<Household>> loadHouseholds();
   Future<Household> createHousehold(String name);
+  Future<String> createInvite({
+    required String householdId,
+    required String email,
+  });
+  Future<void> acceptInvite(String token);
   Future<List<Map<String, dynamic>>> loadInventory(String householdId);
   Future<void> upsertInventory(
     String householdId,
@@ -156,9 +163,13 @@ abstract class RemotePantryRepository {
 }
 
 class SupabaseRemotePantryRepository implements RemotePantryRepository {
-  SupabaseRemotePantryRepository(this._client);
+  SupabaseRemotePantryRepository(
+    this._client, {
+    String apiBaseUrl = defaultFreshPantryApiBaseUrl,
+  }) : _apiBaseUrl = apiBaseUrl;
 
   final SupabaseClient _client;
+  final String _apiBaseUrl;
 
   @override
   Future<List<Household>> loadHouseholds() async {
@@ -186,6 +197,54 @@ class SupabaseRemotePantryRepository implements RemotePantryRepository {
       'role': 'owner',
     });
     return Household.fromJson(row);
+  }
+
+  @override
+  Future<String> createInvite({
+    required String householdId,
+    required String email,
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) {
+      throw StateError('Cannot create invite without a signed-in user.');
+    }
+
+    final trimmedEmail = email.trim();
+    if (trimmedEmail.isEmpty) {
+      throw ArgumentError.value(email, 'email', 'Invite email cannot be empty');
+    }
+
+    final token = generateInviteToken();
+    await _client.from('household_invites').insert({
+      'household_id': householdId,
+      'email': trimmedEmail,
+      'token_hash': hashInviteToken(token),
+      'expires_at': DateTime.now()
+          .toUtc()
+          .add(const Duration(days: 14))
+          .toIso8601String(),
+      'created_by': userId,
+    });
+    final baseUrl = _apiBaseUrl.endsWith('/')
+        ? _apiBaseUrl.substring(0, _apiBaseUrl.length - 1)
+        : _apiBaseUrl;
+    return '$baseUrl/invite/$token';
+  }
+
+  @override
+  Future<void> acceptInvite(String token) async {
+    final trimmedToken = token.trim();
+    if (!isInviteTokenShapeValid(trimmedToken)) {
+      throw ArgumentError.value(token, 'token', 'Invalid invite token');
+    }
+    if (_client.auth.currentUser == null) {
+      throw StateError('Cannot accept invite without a signed-in user.');
+    }
+
+    await _client.rpc(
+      'accept_household_invite',
+      params: {'invite_token_hash': hashInviteToken(trimmedToken)},
+    );
   }
 
   @override

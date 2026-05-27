@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../backend/backend_config_provider.dart';
 import '../backend/supabase_client_provider.dart';
 import '../providers/storage_service_provider.dart';
 import '../storage/custom_recipe_repo.dart';
@@ -23,6 +24,11 @@ abstract class HouseholdGateway {
   Future<List<Household>> loadHouseholds();
   Future<Household> createHousehold(String name);
   Future<void> uploadInitialData(String householdId);
+  Future<String> createInvite({
+    required String householdId,
+    required String email,
+  });
+  Future<void> acceptInvite(String token);
 }
 
 class SupabaseHouseholdGateway implements HouseholdGateway {
@@ -87,6 +93,22 @@ class SupabaseHouseholdGateway implements HouseholdGateway {
       householdId,
       _customRecipeRepo.loadAll().map((recipe) => recipe.toJson()).toList(),
     );
+  }
+
+  @override
+  Future<String> createInvite({
+    required String householdId,
+    required String email,
+  }) {
+    return _remoteRepository.createInvite(
+      householdId: householdId,
+      email: email,
+    );
+  }
+
+  @override
+  Future<void> acceptInvite(String token) {
+    return _remoteRepository.acceptInvite(token);
   }
 }
 
@@ -185,6 +207,53 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
     }
   }
 
+  Future<String> createInvite(String householdId, String email) async {
+    final trimmedEmail = email.trim();
+    if (trimmedEmail.isEmpty) {
+      final error = ArgumentError.value(
+        email,
+        'email',
+        'Invite email cannot be empty',
+      );
+      state = state.copyWith(error: error.toString());
+      throw error;
+    }
+
+    state = state.copyWith(isSubmitting: true, error: null);
+    try {
+      final inviteUrl = await _gateway.createInvite(
+        householdId: householdId,
+        email: trimmedEmail,
+      );
+      if (!mounted) return inviteUrl;
+      state = state.copyWith(isSubmitting: false, error: null);
+      return inviteUrl;
+    } catch (error) {
+      if (mounted) {
+        state = state.copyWith(isSubmitting: false, error: error.toString());
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> acceptInvite(String token) async {
+    final trimmedToken = token.trim();
+    state = state.copyWith(isSubmitting: true, error: null);
+    try {
+      await _gateway.acceptInvite(trimmedToken);
+      final households = await _gateway.loadHouseholds();
+      if (!mounted) return;
+      state = state.copyWith(
+        isSubmitting: false,
+        error: null,
+        households: List.unmodifiable(households),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      state = state.copyWith(isSubmitting: false, error: error.toString());
+    }
+  }
+
   void _setError(Object error) {
     if (!mounted) return;
     state = state.copyWith(error: error.toString());
@@ -199,9 +268,13 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
 
 final householdGatewayProvider = Provider<HouseholdGateway>((ref) {
   final client = ref.read(supabaseClientProvider);
+  final backendConfig = ref.read(backendConfigProvider);
   return SupabaseHouseholdGateway(
     client,
-    SupabaseRemotePantryRepository(client),
+    SupabaseRemotePantryRepository(
+      client,
+      apiBaseUrl: backendConfig.apiBaseUrl,
+    ),
     ref.read(inventoryRepoProvider),
     ref.read(shoppingRepoProvider),
     ref.read(customRecipeRepoProvider),
