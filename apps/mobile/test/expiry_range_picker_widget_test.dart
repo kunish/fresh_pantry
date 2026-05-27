@@ -34,11 +34,12 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
-          notificationServiceProvider
-              .overrideWithValue(FakeNotificationService()),
+          notificationServiceProvider.overrideWithValue(
+            FakeNotificationService(),
+          ),
           navigationProvider.overrideWith((ref) => 2),
         ],
-        child: const FreshPantryApp(),
+        child: const FreshPantryApp(home: AppShell()),
       ),
     );
     await tester.pumpAndSettle();
@@ -69,11 +70,12 @@ void main() {
           overrides: [
             sharedPreferencesProvider.overrideWithValue(prefs),
             systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
-            notificationServiceProvider
-                .overrideWithValue(FakeNotificationService()),
+            notificationServiceProvider.overrideWithValue(
+              FakeNotificationService(),
+            ),
             navigationProvider.overrideWith((ref) => 2),
           ],
-          child: const FreshPantryApp(),
+          child: const FreshPantryApp(home: AppShell()),
         ),
       );
       await tester.pumpAndSettle();
@@ -104,11 +106,12 @@ void main() {
           overrides: [
             sharedPreferencesProvider.overrideWithValue(prefs),
             systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
-            notificationServiceProvider
-                .overrideWithValue(FakeNotificationService()),
+            notificationServiceProvider.overrideWithValue(
+              FakeNotificationService(),
+            ),
             navigationProvider.overrideWith((ref) => 2),
           ],
-          child: const FreshPantryApp(),
+          child: const FreshPantryApp(home: AppShell()),
         ),
       );
       await tester.pumpAndSettle();
@@ -147,11 +150,12 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
-          notificationServiceProvider
-              .overrideWithValue(FakeNotificationService()),
+          notificationServiceProvider.overrideWithValue(
+            FakeNotificationService(),
+          ),
           navigationProvider.overrideWith((ref) => 2),
         ],
-        child: const FreshPantryApp(),
+        child: const FreshPantryApp(home: AppShell()),
       ),
     );
     await tester.pumpAndSettle();
@@ -190,11 +194,12 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
-          notificationServiceProvider
-              .overrideWithValue(FakeNotificationService()),
+          notificationServiceProvider.overrideWithValue(
+            FakeNotificationService(),
+          ),
           navigationProvider.overrideWith((ref) => 2),
         ],
-        child: const FreshPantryApp(),
+        child: const FreshPantryApp(home: AppShell()),
       ),
     );
     await tester.pumpAndSettle();
@@ -232,11 +237,12 @@ void main() {
           overrides: [
             sharedPreferencesProvider.overrideWithValue(prefs),
             systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
-            notificationServiceProvider
-                .overrideWithValue(FakeNotificationService()),
+            notificationServiceProvider.overrideWithValue(
+              FakeNotificationService(),
+            ),
             navigationProvider.overrideWith((ref) => 2),
           ],
-          child: const FreshPantryApp(),
+          child: const FreshPantryApp(home: AppShell()),
         ),
       );
       await tester.pumpAndSettle();
@@ -283,11 +289,12 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
-          notificationServiceProvider
-              .overrideWithValue(FakeNotificationService()),
+          notificationServiceProvider.overrideWithValue(
+            FakeNotificationService(),
+          ),
           navigationProvider.overrideWith((ref) => 2),
         ],
-        child: const FreshPantryApp(),
+        child: const FreshPantryApp(home: AppShell()),
       ),
     );
     await tester.pumpAndSettle();
@@ -313,11 +320,12 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
-          notificationServiceProvider
-              .overrideWithValue(FakeNotificationService()),
+          notificationServiceProvider.overrideWithValue(
+            FakeNotificationService(),
+          ),
           navigationProvider.overrideWith((ref) => 2),
         ],
-        child: const FreshPantryApp(),
+        child: const FreshPantryApp(home: AppShell()),
       ),
     );
     await tester.pumpAndSettle();

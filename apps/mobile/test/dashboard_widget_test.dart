@@ -45,7 +45,7 @@ void main() {
               FakeNotificationService(),
             ),
           ],
-          child: const FreshPantryApp(),
+          child: const FreshPantryApp(home: AppShell()),
         ),
       );
       await tester.pumpAndSettle();
@@ -89,7 +89,7 @@ void main() {
             FakeNotificationService(),
           ),
         ],
-        child: const FreshPantryApp(),
+        child: const FreshPantryApp(home: AppShell()),
       ),
     );
     await tester.pumpAndSettle();
@@ -126,7 +126,7 @@ void main() {
             FakeNotificationService(),
           ),
         ],
-        child: const FreshPantryApp(),
+        child: const FreshPantryApp(home: AppShell()),
       ),
     );
     await tester.pumpAndSettle();
@@ -159,7 +159,7 @@ void main() {
             FakeNotificationService(),
           ),
         ],
-        child: const FreshPantryApp(),
+        child: const FreshPantryApp(home: AppShell()),
       ),
     );
     await tester.pumpAndSettle();
@@ -200,7 +200,7 @@ void main() {
           child: Builder(
             builder: (context) {
               container = ProviderScope.containerOf(context);
-              return const FreshPantryApp();
+              return const FreshPantryApp(home: AppShell());
             },
           ),
         ),
@@ -245,7 +245,7 @@ void main() {
           child: Builder(
             builder: (context) {
               container = ProviderScope.containerOf(context);
-              return const FreshPantryApp();
+              return const FreshPantryApp(home: AppShell());
             },
           ),
         ),
@@ -291,7 +291,7 @@ void main() {
           child: Builder(
             builder: (context) {
               container = ProviderScope.containerOf(context);
-              return const FreshPantryApp();
+              return const FreshPantryApp(home: AppShell());
             },
           ),
         ),
@@ -336,7 +336,7 @@ void main() {
         child: Builder(
           builder: (context) {
             container = ProviderScope.containerOf(context);
-            return const FreshPantryApp();
+            return const FreshPantryApp(home: AppShell());
           },
         ),
       ),

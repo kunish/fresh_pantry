@@ -18,6 +18,16 @@ npm run mobile:test
 
 Run mobile-specific Flutter commands from `apps/mobile` when debugging locally.
 
+## Supabase Auth Redirect
+
+Email OTP sign-in redirects back into the mobile app with:
+
+```text
+com.kunish.freshpantry://signin-callback/
+```
+
+Add that URL to the Supabase project's Auth redirect URL allow list before testing magic-link sign-in on devices.
+
 The API and Supabase workspaces are planned for later implementation tasks. Until those directories exist, these root scripts print what will be added and exit successfully; once the directories land, they run the real workspace commands:
 
 ```bash

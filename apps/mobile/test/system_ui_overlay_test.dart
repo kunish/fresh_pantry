@@ -26,10 +26,11 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
-          notificationServiceProvider
-              .overrideWithValue(FakeNotificationService()),
+          notificationServiceProvider.overrideWithValue(
+            FakeNotificationService(),
+          ),
         ],
-        child: const FreshPantryApp(),
+        child: const FreshPantryApp(home: AppShell()),
       ),
     );
     await tester.pumpAndSettle();

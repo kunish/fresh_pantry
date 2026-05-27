@@ -35,7 +35,7 @@ void main() {
             FakeNotificationService(),
           ),
         ],
-        child: const FreshPantryApp(),
+        child: const FreshPantryApp(home: AppShell()),
       ),
     );
     await tester.pumpAndSettle();
@@ -69,7 +69,7 @@ void main() {
             FakeNotificationService(),
           ),
         ],
-        child: const FreshPantryApp(),
+        child: const FreshPantryApp(home: AppShell()),
       ),
     );
     await tester.pumpAndSettle();

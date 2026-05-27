@@ -11,6 +11,7 @@ import 'screens/custom_recipe_form_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/inventory_screen.dart';
 import 'screens/add_ingredient_screen.dart';
+import 'screens/auth_gate_screen.dart';
 import 'screens/recipes_screen.dart';
 import 'screens/shopping_list_screen.dart';
 import 'providers/notification_sync_provider.dart';
@@ -25,7 +26,9 @@ String _localizedTitle(BuildContext context) {
 }
 
 class FreshPantryApp extends StatelessWidget {
-  const FreshPantryApp({super.key});
+  const FreshPantryApp({super.key, this.home});
+
+  final Widget? home;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +44,7 @@ class FreshPantryApp extends StatelessWidget {
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: const [Locale('en', 'US'), Locale('zh', 'CN')],
-        home: const AppShell(),
+        home: home ?? const AuthGateScreen(authenticatedChild: AppShell()),
       ),
     );
   }
