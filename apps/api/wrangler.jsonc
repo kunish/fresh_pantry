@@ -1,0 +1,11 @@
+{
+  "name": "fresh-pantry-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-27",
+  "routes": [
+    {
+      "pattern": "api.fresh-pantry.kunish.eu.org",
+      "custom_domain": true
+    }
+  ]
+}
