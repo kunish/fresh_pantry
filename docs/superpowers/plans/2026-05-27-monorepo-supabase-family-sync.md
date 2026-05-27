@@ -148,6 +148,14 @@ npm run supabase:status
 ```
 
 Run mobile-specific Flutter commands from `apps/mobile` when debugging locally.
+
+The API and Supabase workspaces are planned for later implementation tasks. Until those directories exist, these root scripts print what will be added and exit successfully; once the directories land, they run the real workspace commands:
+
+```bash
+npm run api:test
+npm run api:deploy
+npm run supabase:status
+```
 ```
 
 - [ ] **Step 4: Add root workspace scripts**
@@ -162,12 +170,12 @@ Create `package.json`:
     "mobile:analyze": "cd apps/mobile && flutter analyze",
     "mobile:test": "cd apps/mobile && flutter test",
     "mobile:pub-get": "cd apps/mobile && flutter pub get",
-    "api:test": "cd apps/api && npm test",
-    "api:deploy": "cd apps/api && npx wrangler deploy",
-    "supabase:start": "supabase start",
-    "supabase:stop": "supabase stop",
-    "supabase:status": "supabase status",
-    "supabase:reset": "supabase db reset",
+    "api:test": "sh -c 'if [ -d apps/api ]; then cd apps/api && npm test; else echo \"apps/api will be added in Task 2\"; fi'",
+    "api:deploy": "sh -c 'if [ -d apps/api ]; then cd apps/api && npx wrangler deploy; else echo \"apps/api will be added in Task 2\"; fi'",
+    "supabase:start": "sh -c 'if [ -d supabase ]; then supabase start; else echo \"supabase project will be added in Task 3\"; fi'",
+    "supabase:stop": "sh -c 'if [ -d supabase ]; then supabase stop; else echo \"supabase project will be added in Task 3\"; fi'",
+    "supabase:status": "sh -c 'if [ -d supabase ]; then supabase status; else echo \"supabase project will be added in Task 3\"; fi'",
+    "supabase:reset": "sh -c 'if [ -d supabase ]; then supabase db reset; else echo \"supabase project will be added in Task 3\"; fi'",
     "check": "npm run mobile:analyze && npm run mobile:test"
   }
 }

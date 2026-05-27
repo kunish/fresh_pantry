@@ -1,17 +1,27 @@
-# fresh_pantry
+# Fresh Pantry
 
-A new Flutter project.
+Fresh Pantry is a local-first household pantry app with a Flutter mobile client, Supabase-backed family sharing, and a thin Cloudflare Worker API surface.
 
-## Getting Started
+## Layout
 
-This project is a starting point for a Flutter application.
+- `apps/mobile` - Flutter app.
+- `apps/api` - Cloudflare Worker for health checks and invite deep links.
+- `supabase` - Supabase migrations, tests, and local configuration.
+- `docs/superpowers` - design specs and implementation plans.
 
-A few resources to get you started if this is your first Flutter project:
+## Common Commands
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+npm run mobile:analyze
+npm run mobile:test
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Run mobile-specific Flutter commands from `apps/mobile` when debugging locally.
+
+The API and Supabase workspaces are planned for later implementation tasks. Until those directories exist, these root scripts print what will be added and exit successfully; once the directories land, they run the real workspace commands:
+
+```bash
+npm run api:test
+npm run api:deploy
+npm run supabase:status
+```

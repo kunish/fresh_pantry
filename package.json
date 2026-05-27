@@ -1,0 +1,16 @@
+{
+  "name": "fresh-pantry-monorepo",
+  "private": true,
+  "scripts": {
+    "mobile:analyze": "cd apps/mobile && flutter analyze",
+    "mobile:test": "cd apps/mobile && flutter test",
+    "mobile:pub-get": "cd apps/mobile && flutter pub get",
+    "api:test": "sh -c 'if [ -d apps/api ]; then cd apps/api && npm test; else echo \"apps/api will be added in Task 2\"; fi'",
+    "api:deploy": "sh -c 'if [ -d apps/api ]; then cd apps/api && npx wrangler deploy; else echo \"apps/api will be added in Task 2\"; fi'",
+    "supabase:start": "sh -c 'if [ -d supabase ]; then supabase start; else echo \"supabase project will be added in Task 3\"; fi'",
+    "supabase:stop": "sh -c 'if [ -d supabase ]; then supabase stop; else echo \"supabase project will be added in Task 3\"; fi'",
+    "supabase:status": "sh -c 'if [ -d supabase ]; then supabase status; else echo \"supabase project will be added in Task 3\"; fi'",
+    "supabase:reset": "sh -c 'if [ -d supabase ]; then supabase db reset; else echo \"supabase project will be added in Task 3\"; fi'",
+    "check": "npm run mobile:analyze && npm run mobile:test"
+  }
+}

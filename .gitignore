@@ -45,3 +45,15 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Monorepo generated outputs
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/build/
+**/coverage/
+**/node_modules/
+**/.wrangler/
+**/.dev.vars
+supabase/.branches/
+supabase/.temp/
