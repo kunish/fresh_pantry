@@ -20,6 +20,9 @@ class FakeBootstrapGateway implements HouseholdGateway {
   List<Household> selectedDuringUpload = const [];
 
   @override
+  bool get isAuthenticated => true;
+
+  @override
   Stream<void> get authStateChanges => authStateController.stream;
 
   @override

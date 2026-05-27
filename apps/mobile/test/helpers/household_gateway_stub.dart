@@ -8,6 +8,7 @@ class HouseholdGatewayStub implements HouseholdGateway {
   HouseholdGatewayStub({
     this.households = const [],
     this.inviteUrl = stubInviteUrl,
+    this.isAuthenticated = false,
     bool emitInitialAuthState = false,
   }) : _authStateChanges = emitInitialAuthState
            ? Stream<void>.value(null)
@@ -15,6 +16,8 @@ class HouseholdGatewayStub implements HouseholdGateway {
 
   final List<Household> households;
   final String inviteUrl;
+  @override
+  final bool isAuthenticated;
   final Stream<void> _authStateChanges;
   var inviteHouseholdId = '';
   var inviteEmail = '';

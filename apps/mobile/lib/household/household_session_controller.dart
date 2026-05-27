@@ -17,8 +17,23 @@ import 'household_models.dart';
 const supabaseAuthRedirectUrl = 'com.kunish.freshpantry://signin-callback/';
 const _preserveError = Object();
 
+@visibleForTesting
+String resolveSupabaseAuthRedirectUrl({bool isWeb = kIsWeb, Uri? webBaseUri}) {
+  if (!isWeb) return supabaseAuthRedirectUrl;
+
+  final uri = webBaseUri ?? Uri.base;
+  if (uri.hasScheme &&
+      (uri.scheme == 'http' || uri.scheme == 'https') &&
+      uri.hasAuthority) {
+    return '${uri.scheme}://${uri.authority}/';
+  }
+
+  return supabaseAuthRedirectUrl;
+}
+
 abstract class HouseholdGateway {
   Stream<void> get authStateChanges;
+  bool get isAuthenticated;
 
   Future<void> sendOtp(String email);
   Future<List<Household>> loadHouseholds();
@@ -47,6 +62,9 @@ class SupabaseHouseholdGateway implements HouseholdGateway {
   final CustomRecipeRepo _customRecipeRepo;
 
   @override
+  bool get isAuthenticated => _client.auth.currentUser != null;
+
+  @override
   Stream<void> get authStateChanges {
     return _client.auth.onAuthStateChange
         .where((data) {
@@ -64,7 +82,7 @@ class SupabaseHouseholdGateway implements HouseholdGateway {
   Future<void> sendOtp(String email) {
     return _client.auth.signInWithOtp(
       email: email,
-      emailRedirectTo: kIsWeb ? null : supabaseAuthRedirectUrl,
+      emailRedirectTo: resolveSupabaseAuthRedirectUrl(),
     );
   }
 
@@ -115,25 +133,33 @@ class SupabaseHouseholdGateway implements HouseholdGateway {
 class HouseholdSessionState {
   const HouseholdSessionState({
     this.email = '',
+    this.isLoading = true,
     this.isSubmitting = false,
+    this.isAuthenticated = false,
     this.error,
     this.households = const [],
   });
 
   final String email;
+  final bool isLoading;
   final bool isSubmitting;
+  final bool isAuthenticated;
   final String? error;
   final List<Household> households;
 
   HouseholdSessionState copyWith({
     String? email,
+    bool? isLoading,
     bool? isSubmitting,
+    bool? isAuthenticated,
     Object? error = _preserveError,
     List<Household>? households,
   }) {
     return HouseholdSessionState(
       email: email ?? this.email,
+      isLoading: isLoading ?? this.isLoading,
       isSubmitting: isSubmitting ?? this.isSubmitting,
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       error: identical(error, _preserveError) ? this.error : error as String?,
       households: households ?? this.households,
     );
@@ -172,11 +198,14 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
   }
 
   Future<void> refreshHouseholds() async {
+    state = state.copyWith(isLoading: true, error: null);
     try {
       final households = await _gateway.loadHouseholds();
       if (!mounted) return;
       state = state.copyWith(
+        isLoading: false,
         error: null,
+        isAuthenticated: _gateway.isAuthenticated,
         households: List.unmodifiable(households),
       );
     } catch (error) {
@@ -198,6 +227,7 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
       if (!mounted) return;
       state = state.copyWith(
         isSubmitting: false,
+        isAuthenticated: true,
         error: null,
         households: List.unmodifiable([household]),
       );
@@ -246,6 +276,7 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
       state = state.copyWith(
         isSubmitting: false,
         error: null,
+        isAuthenticated: _gateway.isAuthenticated,
         households: List.unmodifiable(households),
       );
     } catch (error) {
@@ -256,7 +287,7 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
 
   void _setError(Object error) {
     if (!mounted) return;
-    state = state.copyWith(error: error.toString());
+    state = state.copyWith(isLoading: false, error: error.toString());
   }
 
   @override

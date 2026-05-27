@@ -7,6 +7,8 @@ import 'package:fresh_pantry/household/household_session_controller.dart';
 class FakeHouseholdGateway implements HouseholdGateway {
   final households = <Household>[];
   final authStateController = StreamController<void>.broadcast();
+  @override
+  var isAuthenticated = false;
   var sentEmail = '';
   Object? sendOtpError;
   Object? loadHouseholdsError;
@@ -95,6 +97,15 @@ void main() {
     await controller.refreshHouseholds();
 
     expect(controller.state.households.single.id, 'household_1');
+  });
+
+  test('refreshHouseholds stores authentication state', () async {
+    final gateway = FakeHouseholdGateway()..isAuthenticated = true;
+    final controller = HouseholdSessionController(gateway);
+
+    await controller.refreshHouseholds();
+
+    expect(controller.state.isAuthenticated, isTrue);
   });
 
   test('refreshHouseholds exposes gateway errors in state', () async {

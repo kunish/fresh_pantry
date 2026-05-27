@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -48,6 +49,44 @@ void main() {
     for (final label in const ['首页', '食材', '菜谱', '清单']) {
       expect(find.text(label), findsOneWidget);
     }
+  });
+
+  testWidgets('handles Supabase auth callback route with query parameters', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final adapter = SharedPrefsStorageAdapter(prefs);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          storageAdapterProvider.overrideWithValue(adapter),
+          systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
+          notificationServiceProvider.overrideWithValue(
+            FakeNotificationService(),
+          ),
+        ],
+        child: const FreshPantryApp(home: AppShell()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final message = const JSONMethodCodec().encodeMethodCall(
+      const MethodCall('pushRouteInformation', {
+        'location': '/?code=8e323390-9fc8-4a1c-a692-2909516b323b',
+        'state': null,
+      }),
+    );
+    final result = await tester.binding.defaultBinaryMessenger
+        .handlePlatformMessage('flutter/navigation', message, (_) {});
+
+    expect(const JSONMethodCodec().decodeEnvelope(result!), isTrue);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(BottomNavBar), findsOneWidget);
   });
 
   testWidgets('AppShell cancels share stream subscription on dispose', (

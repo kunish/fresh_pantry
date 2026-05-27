@@ -69,4 +69,6 @@ Email OTP sign-in redirects back into the mobile app with:
 com.kunish.freshpantry://signin-callback/
 ```
 
-Add that URL to the Supabase project's Auth redirect URL allow list before testing magic-link sign-in on devices.
+Set the Supabase project's Auth Site URL to that deep link and keep the same URL in the redirect allow list before testing magic-link sign-in on devices. For local web testing, run Flutter on port 3000 or add the exact local origin to the redirect allow list.
+
+The checked-in Auth resend interval is tuned for development login testing. Supabase's default SMTP still has a very low hourly email cap; configure a custom SMTP provider before relying on email auth outside personal testing.

@@ -25,10 +25,33 @@ String _localizedTitle(BuildContext context) {
   return locale.languageCode == 'zh' ? '食材管家' : 'Fresh Pantry';
 }
 
+bool _isRootAuthCallbackRoute(String? routeName) {
+  if (routeName == null) return false;
+
+  final uri = Uri.tryParse(routeName);
+  if (uri == null) return false;
+
+  final isRootPath = uri.path.isEmpty || uri.path == '/';
+  return isRootPath && (uri.hasQuery || uri.hasFragment);
+}
+
 class FreshPantryApp extends StatelessWidget {
   const FreshPantryApp({super.key, this.home});
 
   final Widget? home;
+
+  Widget _buildHome() {
+    return home ?? const AuthGateScreen(authenticatedChild: AppShell());
+  }
+
+  Route<dynamic>? _generateRoute(RouteSettings settings) {
+    if (!_isRootAuthCallbackRoute(settings.name)) return null;
+
+    return MaterialPageRoute<void>(
+      settings: settings,
+      builder: (_) => _buildHome(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +67,8 @@ class FreshPantryApp extends StatelessWidget {
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: const [Locale('en', 'US'), Locale('zh', 'CN')],
-        home: home ?? const AuthGateScreen(authenticatedChild: AppShell()),
+        home: _buildHome(),
+        onGenerateRoute: _generateRoute,
       ),
     );
   }

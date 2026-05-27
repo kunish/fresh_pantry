@@ -22,6 +22,9 @@ class InviteRecordingGateway implements HouseholdGateway {
   Object? createInviteError;
 
   @override
+  bool get isAuthenticated => true;
+
+  @override
   Stream<void> get authStateChanges => authStateController.stream;
 
   @override
