@@ -1,8 +1,10 @@
 import '../models/storage_area.dart';
+import 'sync_metadata.dart';
 
 enum FreshnessState { fresh, expiringSoon, expired }
 
 class Ingredient {
+  final String id;
   final String name;
   final String quantity;
   final String unit;
@@ -16,8 +18,18 @@ class Ingredient {
   final DateTime? expiryDate;
   final DateTime? addedAt;
   final int? shelfLifeDays;
+  final int remoteVersion;
+  final DateTime? clientUpdatedAt;
+  final DateTime? deletedAt;
+
+  SyncMetadata get syncMetadata => SyncMetadata(
+    remoteVersion: remoteVersion,
+    clientUpdatedAt: clientUpdatedAt,
+    deletedAt: deletedAt,
+  );
 
   const Ingredient({
+    this.id = '',
     required this.name,
     required this.quantity,
     required this.unit,
@@ -31,6 +43,9 @@ class Ingredient {
     this.expiryDate,
     this.addedAt,
     this.shelfLifeDays,
+    this.remoteVersion = 0,
+    this.clientUpdatedAt,
+    this.deletedAt,
   });
 
   @override
@@ -38,6 +53,7 @@ class Ingredient {
       identical(this, other) ||
       other is Ingredient &&
           runtimeType == other.runtimeType &&
+          id == other.id &&
           name == other.name &&
           quantity == other.quantity &&
           unit == other.unit &&
@@ -50,10 +66,14 @@ class Ingredient {
           storage == other.storage &&
           expiryDate == other.expiryDate &&
           addedAt == other.addedAt &&
-          shelfLifeDays == other.shelfLifeDays;
+          shelfLifeDays == other.shelfLifeDays &&
+          remoteVersion == other.remoteVersion &&
+          clientUpdatedAt == other.clientUpdatedAt &&
+          deletedAt == other.deletedAt;
 
   @override
   int get hashCode => Object.hash(
+    id,
     name,
     quantity,
     unit,
@@ -67,9 +87,13 @@ class Ingredient {
     expiryDate,
     addedAt,
     shelfLifeDays,
+    remoteVersion,
+    clientUpdatedAt,
+    deletedAt,
   );
 
   Ingredient copyWith({
+    String? id,
     String? name,
     String? quantity,
     String? unit,
@@ -83,8 +107,14 @@ class Ingredient {
     DateTime? expiryDate,
     DateTime? addedAt,
     int? shelfLifeDays,
+    int? remoteVersion,
+    DateTime? clientUpdatedAt,
+    DateTime? deletedAt,
+    bool clearClientUpdatedAt = false,
+    bool clearDeletedAt = false,
   }) {
     return Ingredient(
+      id: id ?? this.id,
       name: name ?? this.name,
       quantity: quantity ?? this.quantity,
       unit: unit ?? this.unit,
@@ -98,11 +128,17 @@ class Ingredient {
       expiryDate: expiryDate ?? this.expiryDate,
       addedAt: addedAt ?? this.addedAt,
       shelfLifeDays: shelfLifeDays ?? this.shelfLifeDays,
+      remoteVersion: remoteVersion ?? this.remoteVersion,
+      clientUpdatedAt: clearClientUpdatedAt
+          ? null
+          : clientUpdatedAt ?? this.clientUpdatedAt,
+      deletedAt: clearDeletedAt ? null : deletedAt ?? this.deletedAt,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'name': name,
       'quantity': quantity,
       'unit': unit,
@@ -116,6 +152,9 @@ class Ingredient {
       'expiryDate': expiryDate?.toIso8601String(),
       'addedAt': addedAt?.toIso8601String(),
       'shelfLifeDays': shelfLifeDays,
+      'remoteVersion': remoteVersion,
+      'clientUpdatedAt': dateTimeToJsonValue(clientUpdatedAt),
+      'deletedAt': dateTimeToJsonValue(deletedAt),
     };
   }
 
@@ -128,6 +167,7 @@ class Ingredient {
     }
 
     return Ingredient(
+      id: json['id'] as String? ?? '',
       name: json['name'] as String? ?? '',
       quantity: json['quantity'] as String? ?? '1',
       unit: json['unit'] as String? ?? '份',
@@ -138,15 +178,16 @@ class Ingredient {
       category: json['category'] as String?,
       barcode: json['barcode'] as String?,
       storage: iconTypeFromName(json['storage'] as String?),
-      expiryDate:
-          json['expiryDate'] is String
-              ? DateTime.tryParse(json['expiryDate'] as String)
-              : null,
-      addedAt:
-          json['addedAt'] is String
-              ? DateTime.tryParse(json['addedAt'] as String)
-              : null,
+      expiryDate: json['expiryDate'] is String
+          ? DateTime.tryParse(json['expiryDate'] as String)
+          : null,
+      addedAt: json['addedAt'] is String
+          ? DateTime.tryParse(json['addedAt'] as String)
+          : null,
       shelfLifeDays: (json['shelfLifeDays'] as num?)?.toInt(),
+      remoteVersion: (json['remoteVersion'] as num?)?.toInt() ?? 0,
+      clientUpdatedAt: dateTimeFromJsonValue(json['clientUpdatedAt']),
+      deletedAt: dateTimeFromJsonValue(json['deletedAt']),
     );
   }
 }

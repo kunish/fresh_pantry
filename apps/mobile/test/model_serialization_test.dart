@@ -4,6 +4,7 @@ import 'package:fresh_pantry/models/ingredient.dart';
 import 'package:fresh_pantry/models/recipe.dart';
 import 'package:fresh_pantry/models/shopping_item.dart';
 import 'package:fresh_pantry/models/storage_area.dart';
+import 'package:fresh_pantry/models/sync_metadata.dart';
 
 void main() {
   group('FoodDetails.fromJson', () {
@@ -50,7 +51,10 @@ void main() {
       expect(details.description, '');
       expect(details.imageUrl, isNull);
       expect(details.shelfLifeDays, isNull);
-      expect(details.fetchedAt, DateTime.fromMillisecondsSinceEpoch(0, isUtc: true));
+      expect(
+        details.fetchedAt,
+        DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      );
     });
 
     test('fromJson handles null imageUrl', () {
@@ -97,10 +101,13 @@ void main() {
       expect(ing.storage, IconType.fridge);
     });
 
-    test('fromJson tolerates unknown storage string — falls back to fridge', () {
-      final ing = Ingredient.fromJson({'storage': 'unknown_storage_type'});
-      expect(ing.storage, IconType.fridge);
-    });
+    test(
+      'fromJson tolerates unknown storage string — falls back to fridge',
+      () {
+        final ing = Ingredient.fromJson({'storage': 'unknown_storage_type'});
+        expect(ing.storage, IconType.fridge);
+      },
+    );
 
     test('fromJson tolerates unknown state string — falls back to fresh', () {
       final ing = Ingredient.fromJson({'state': 'badValue'});
@@ -196,5 +203,194 @@ void main() {
       expect(item.name, '苹果');
       expect(item.id, '');
     });
+  });
+
+  test('Ingredient preserves remote sync metadata', () {
+    final item = Ingredient(
+      id: '11111111-1111-1111-1111-111111111111',
+      name: 'Milk',
+      quantity: '1',
+      unit: 'box',
+      imageUrl: '',
+      freshnessPercent: 1,
+      state: FreshnessState.fresh,
+      remoteVersion: 3,
+      clientUpdatedAt: DateTime.utc(2026, 5, 27),
+      deletedAt: DateTime.utc(2026, 5, 28),
+    );
+
+    final decoded = Ingredient.fromJson(item.toJson());
+
+    expect(decoded.id, item.id);
+    expect(decoded.remoteVersion, 3);
+    expect(decoded.clientUpdatedAt, DateTime.utc(2026, 5, 27));
+    expect(decoded.deletedAt, DateTime.utc(2026, 5, 28));
+  });
+
+  test('ShoppingItem preserves remote sync metadata', () {
+    final item = ShoppingItem(
+      id: '22222222-2222-2222-2222-222222222222',
+      name: 'Rice',
+      detail: '5kg',
+      category: '主食',
+      remoteVersion: 4,
+      clientUpdatedAt: DateTime.utc(2026, 5, 27),
+    );
+
+    final decoded = ShoppingItem.fromJson(item.toJson());
+
+    expect(decoded.id, item.id);
+    expect(decoded.remoteVersion, 4);
+    expect(decoded.clientUpdatedAt, DateTime.utc(2026, 5, 27));
+  });
+
+  test('Recipe preserves remote sync metadata', () {
+    final recipe = Recipe(
+      id: '33333333-3333-3333-3333-333333333333',
+      name: 'Soup',
+      category: '晚餐',
+      difficulty: 2,
+      cookingMinutes: 30,
+      description: 'Simple soup',
+      ingredients: const [],
+      steps: const ['Cook'],
+      remoteVersion: 2,
+      clientUpdatedAt: DateTime.utc(2026, 5, 27),
+    );
+
+    final decoded = Recipe.fromJson(recipe.toJson());
+
+    expect(decoded.id, recipe.id);
+    expect(decoded.remoteVersion, 2);
+    expect(decoded.clientUpdatedAt, DateTime.utc(2026, 5, 27));
+  });
+
+  test('Pantry models can clear nullable sync timestamps', () {
+    final updatedAt = DateTime.utc(2026, 5, 27);
+    final deletedAt = DateTime.utc(2026, 5, 28);
+
+    final ingredient = Ingredient(
+      id: '11111111-1111-1111-1111-111111111111',
+      name: 'Milk',
+      quantity: '1',
+      unit: 'box',
+      imageUrl: '',
+      freshnessPercent: 1,
+      state: FreshnessState.fresh,
+      clientUpdatedAt: updatedAt,
+      deletedAt: deletedAt,
+    );
+    final clearedIngredient = ingredient.copyWith(
+      clearClientUpdatedAt: true,
+      clearDeletedAt: true,
+    );
+
+    expect(clearedIngredient.clientUpdatedAt, isNull);
+    expect(clearedIngredient.deletedAt, isNull);
+
+    final shoppingItem = ShoppingItem(
+      id: '22222222-2222-2222-2222-222222222222',
+      name: 'Rice',
+      detail: '5kg',
+      category: '主食',
+      clientUpdatedAt: updatedAt,
+      deletedAt: deletedAt,
+    );
+    final clearedShoppingItem = shoppingItem.copyWith(
+      clearClientUpdatedAt: true,
+      clearDeletedAt: true,
+    );
+
+    expect(clearedShoppingItem.clientUpdatedAt, isNull);
+    expect(clearedShoppingItem.deletedAt, isNull);
+
+    final recipe = Recipe(
+      id: '33333333-3333-3333-3333-333333333333',
+      name: 'Soup',
+      category: '晚餐',
+      difficulty: 2,
+      cookingMinutes: 30,
+      description: 'Simple soup',
+      ingredients: const [],
+      steps: const ['Cook'],
+      clientUpdatedAt: updatedAt,
+      deletedAt: deletedAt,
+    );
+    final clearedRecipe = recipe.copyWith(
+      clearClientUpdatedAt: true,
+      clearDeletedAt: true,
+    );
+
+    expect(clearedRecipe.clientUpdatedAt, isNull);
+    expect(clearedRecipe.deletedAt, isNull);
+  });
+
+  test('Pantry models expose sync metadata value objects', () {
+    final updatedAt = DateTime.utc(2026, 5, 27);
+    final deletedAt = DateTime.utc(2026, 5, 28);
+
+    final ingredient = Ingredient(
+      id: '11111111-1111-1111-1111-111111111111',
+      name: 'Milk',
+      quantity: '1',
+      unit: 'box',
+      imageUrl: '',
+      freshnessPercent: 1,
+      state: FreshnessState.fresh,
+      remoteVersion: 3,
+      clientUpdatedAt: updatedAt,
+      deletedAt: deletedAt,
+    );
+
+    expect(
+      ingredient.syncMetadata,
+      SyncMetadata(
+        remoteVersion: 3,
+        clientUpdatedAt: updatedAt,
+        deletedAt: deletedAt,
+      ),
+    );
+
+    final shoppingItem = ShoppingItem(
+      id: '22222222-2222-2222-2222-222222222222',
+      name: 'Rice',
+      detail: '5kg',
+      category: '主食',
+      remoteVersion: 4,
+      clientUpdatedAt: updatedAt,
+      deletedAt: deletedAt,
+    );
+
+    expect(
+      shoppingItem.syncMetadata,
+      SyncMetadata(
+        remoteVersion: 4,
+        clientUpdatedAt: updatedAt,
+        deletedAt: deletedAt,
+      ),
+    );
+
+    final recipe = Recipe(
+      id: '33333333-3333-3333-3333-333333333333',
+      name: 'Soup',
+      category: '晚餐',
+      difficulty: 2,
+      cookingMinutes: 30,
+      description: 'Simple soup',
+      ingredients: const [],
+      steps: const ['Cook'],
+      remoteVersion: 2,
+      clientUpdatedAt: updatedAt,
+      deletedAt: deletedAt,
+    );
+
+    expect(
+      recipe.syncMetadata,
+      SyncMetadata(
+        remoteVersion: 2,
+        clientUpdatedAt: updatedAt,
+        deletedAt: deletedAt,
+      ),
+    );
   });
 }

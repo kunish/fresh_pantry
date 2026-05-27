@@ -1,3 +1,5 @@
+import 'sync_metadata.dart';
+
 class RecipeIngredient {
   final String name;
   final String quantity;
@@ -52,8 +54,8 @@ class RecipeIngredient {
     String? unit,
     String? amount,
   }) {
-    final preservedAmount = amount ??
-        (quantity == null && unit == null ? this.amount : null);
+    final preservedAmount =
+        amount ?? (quantity == null && unit == null ? this.amount : null);
     return RecipeIngredient(
       name: name ?? this.name,
       quantity: quantity ?? this.quantity,
@@ -63,12 +65,7 @@ class RecipeIngredient {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'quantity': quantity,
-      'unit': unit,
-      'amount': amount,
-    };
+    return {'name': name, 'quantity': quantity, 'unit': unit, 'amount': amount};
   }
 
   factory RecipeIngredient.fromJson(Map<String, dynamic> json) {
@@ -110,6 +107,15 @@ class Recipe {
   final List<String> steps;
   final List<String> tags;
   final String? imageUrl;
+  final int remoteVersion;
+  final DateTime? clientUpdatedAt;
+  final DateTime? deletedAt;
+
+  SyncMetadata get syncMetadata => SyncMetadata(
+    remoteVersion: remoteVersion,
+    clientUpdatedAt: clientUpdatedAt,
+    deletedAt: deletedAt,
+  );
 
   const Recipe({
     required this.id,
@@ -122,6 +128,9 @@ class Recipe {
     required this.steps,
     this.tags = const [],
     this.imageUrl,
+    this.remoteVersion = 0,
+    this.clientUpdatedAt,
+    this.deletedAt,
   });
 
   @override
@@ -143,6 +152,11 @@ class Recipe {
     List<String>? steps,
     List<String>? tags,
     String? imageUrl,
+    int? remoteVersion,
+    DateTime? clientUpdatedAt,
+    DateTime? deletedAt,
+    bool clearClientUpdatedAt = false,
+    bool clearDeletedAt = false,
   }) {
     return Recipe(
       id: id ?? this.id,
@@ -155,6 +169,11 @@ class Recipe {
       steps: steps ?? this.steps,
       tags: tags ?? this.tags,
       imageUrl: imageUrl ?? this.imageUrl,
+      remoteVersion: remoteVersion ?? this.remoteVersion,
+      clientUpdatedAt: clearClientUpdatedAt
+          ? null
+          : clientUpdatedAt ?? this.clientUpdatedAt,
+      deletedAt: clearDeletedAt ? null : deletedAt ?? this.deletedAt,
     );
   }
 
@@ -170,6 +189,9 @@ class Recipe {
       'steps': List<String>.from(steps),
       'tags': List<String>.from(tags),
       'imageUrl': imageUrl,
+      'remoteVersion': remoteVersion,
+      'clientUpdatedAt': dateTimeToJsonValue(clientUpdatedAt),
+      'deletedAt': dateTimeToJsonValue(deletedAt),
     };
   }
 
@@ -194,6 +216,9 @@ class Recipe {
           (json['tags'] as List<dynamic>?)?.whereType<String>().toList() ??
           const [],
       imageUrl: json['imageUrl'] as String?,
+      remoteVersion: (json['remoteVersion'] as num?)?.toInt() ?? 0,
+      clientUpdatedAt: dateTimeFromJsonValue(json['clientUpdatedAt']),
+      deletedAt: dateTimeFromJsonValue(json['deletedAt']),
     );
   }
 }

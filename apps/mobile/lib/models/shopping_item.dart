@@ -1,5 +1,6 @@
 import '../data/food_categories.dart';
 import 'ingredient.dart';
+import 'sync_metadata.dart';
 
 class ShoppingItem {
   final String id;
@@ -8,6 +9,15 @@ class ShoppingItem {
   final String? imageUrl;
   final String category;
   final bool isChecked;
+  final int remoteVersion;
+  final DateTime? clientUpdatedAt;
+  final DateTime? deletedAt;
+
+  SyncMetadata get syncMetadata => SyncMetadata(
+    remoteVersion: remoteVersion,
+    clientUpdatedAt: clientUpdatedAt,
+    deletedAt: deletedAt,
+  );
 
   const ShoppingItem({
     required this.id,
@@ -16,6 +26,9 @@ class ShoppingItem {
     this.imageUrl,
     required this.category,
     this.isChecked = false,
+    this.remoteVersion = 0,
+    this.clientUpdatedAt,
+    this.deletedAt,
   });
 
   /// Generate a fresh shopping item id with the canonical `si_<ms>` format.
@@ -24,10 +37,7 @@ class ShoppingItem {
   /// Build a ShoppingItem from an Ingredient. Uses `id` if provided,
   /// otherwise generates a fresh one. Mirrors the existing `_shoppingItemFor`
   /// implementations in dashboard/inventory/ingredient_detail screens.
-  factory ShoppingItem.fromIngredient(
-    Ingredient ingredient, {
-    String? id,
-  }) {
+  factory ShoppingItem.fromIngredient(Ingredient ingredient, {String? id}) {
     return ShoppingItem(
       id: id ?? ShoppingItem.newId(),
       name: ingredient.name,
@@ -54,6 +64,11 @@ class ShoppingItem {
     String? imageUrl,
     String? category,
     bool? isChecked,
+    int? remoteVersion,
+    DateTime? clientUpdatedAt,
+    DateTime? deletedAt,
+    bool clearClientUpdatedAt = false,
+    bool clearDeletedAt = false,
   }) {
     return ShoppingItem(
       id: id ?? this.id,
@@ -62,6 +77,11 @@ class ShoppingItem {
       imageUrl: imageUrl ?? this.imageUrl,
       category: category ?? this.category,
       isChecked: isChecked ?? this.isChecked,
+      remoteVersion: remoteVersion ?? this.remoteVersion,
+      clientUpdatedAt: clearClientUpdatedAt
+          ? null
+          : clientUpdatedAt ?? this.clientUpdatedAt,
+      deletedAt: clearDeletedAt ? null : deletedAt ?? this.deletedAt,
     );
   }
 
@@ -73,6 +93,9 @@ class ShoppingItem {
       'imageUrl': imageUrl,
       'category': category,
       'isChecked': isChecked,
+      'remoteVersion': remoteVersion,
+      'clientUpdatedAt': dateTimeToJsonValue(clientUpdatedAt),
+      'deletedAt': dateTimeToJsonValue(deletedAt),
     };
   }
 
@@ -84,6 +107,9 @@ class ShoppingItem {
       imageUrl: json['imageUrl'] as String?,
       category: json['category'] as String? ?? FoodCategories.other,
       isChecked: json['isChecked'] as bool? ?? false,
+      remoteVersion: (json['remoteVersion'] as num?)?.toInt() ?? 0,
+      clientUpdatedAt: dateTimeFromJsonValue(json['clientUpdatedAt']),
+      deletedAt: dateTimeFromJsonValue(json['deletedAt']),
     );
   }
 }
