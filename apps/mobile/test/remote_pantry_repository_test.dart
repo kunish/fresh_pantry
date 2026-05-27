@@ -122,6 +122,25 @@ void main() {
     expect(row['client_updated_at'], '2026-05-27T00:00:00.000Z');
   });
 
+  test('shoppingRowFromJson maps Supabase rows to domain maps', () {
+    final mapped = shoppingRowFromJson(const {
+      'id': '11111111-1111-1111-1111-111111111111',
+      'name': 'Milk',
+      'detail': '1 box',
+      'image_url': 'milk.png',
+      'category': '乳制品',
+      'is_checked': true,
+      'version': 3,
+      'client_updated_at': '2026-05-27T00:00:00.000Z',
+    });
+
+    expect(mapped['id'], '11111111-1111-1111-1111-111111111111');
+    expect(mapped['imageUrl'], 'milk.png');
+    expect(mapped['isChecked'], isTrue);
+    expect(mapped['remoteVersion'], 3);
+    expect(mapped['clientUpdatedAt'], '2026-05-27T00:00:00.000Z');
+  });
+
   test('shoppingRowForUpsert omits invalid local ids', () {
     final row = shoppingRowForUpsert('household_1', const {
       'id': 'si_123',
@@ -145,6 +164,20 @@ void main() {
     expect(row['payload'], containsPair('name', 'Tomato Pasta'));
     expect(row['version'], 1);
     expect(row['client_updated_at'], '2026-05-27T00:00:00.000Z');
+  });
+
+  test('customRecipeRowFromJson uses row id and preserves payload', () {
+    final mapped = customRecipeRowFromJson(const {
+      'id': '11111111-1111-1111-1111-111111111111',
+      'payload': {'id': 'legacy_recipe_1', 'name': 'Tomato Pasta'},
+      'version': 4,
+      'client_updated_at': '2026-05-27T00:00:00.000Z',
+    });
+
+    expect(mapped['id'], '11111111-1111-1111-1111-111111111111');
+    expect(mapped['name'], 'Tomato Pasta');
+    expect(mapped['remoteVersion'], 4);
+    expect(mapped['clientUpdatedAt'], '2026-05-27T00:00:00.000Z');
   });
 
   test('customRecipeRowForUpsert omits invalid local ids', () {

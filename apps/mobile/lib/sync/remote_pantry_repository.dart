@@ -25,6 +25,34 @@ Map<String, dynamic> inventoryRowFromJson(Map<String, dynamic> row) {
   };
 }
 
+Map<String, dynamic> shoppingRowFromJson(Map<String, dynamic> row) {
+  return {
+    'id': row['id'],
+    'name': row['name'],
+    'detail': row['detail'] ?? '',
+    'imageUrl': row['image_url'],
+    'category': row['category'] ?? '其他',
+    'isChecked': row['is_checked'] ?? false,
+    'remoteVersion': (row['version'] as num?)?.toInt() ?? 0,
+    'clientUpdatedAt': row['client_updated_at'],
+    'deletedAt': row['deleted_at'],
+  };
+}
+
+Map<String, dynamic> customRecipeRowFromJson(Map<String, dynamic> row) {
+  final payload = row['payload'];
+  final recipe = payload is Map
+      ? Map<String, dynamic>.from(payload)
+      : <String, dynamic>{};
+  return {
+    ...recipe,
+    'id': row['id'] ?? recipe['id'],
+    'remoteVersion': (row['version'] as num?)?.toInt() ?? 0,
+    'clientUpdatedAt': row['client_updated_at'],
+    'deletedAt': row['deleted_at'],
+  };
+}
+
 Map<String, dynamic> inventoryRowForUpsert(
   String householdId,
   Map<String, dynamic> item,
@@ -122,6 +150,9 @@ abstract class RemotePantryRepository {
     String householdId,
     List<Map<String, dynamic>> rows,
   );
+  Stream<List<Map<String, dynamic>>> watchInventory(String householdId);
+  Stream<List<Map<String, dynamic>>> watchShopping(String householdId);
+  Stream<List<Map<String, dynamic>>> watchCustomRecipes(String householdId);
 }
 
 class SupabaseRemotePantryRepository implements RemotePantryRepository {
@@ -229,6 +260,35 @@ class SupabaseRemotePantryRepository implements RemotePantryRepository {
               .map((row) => customRecipeRowForUpsert(householdId, row))
               .toList(),
           ignoreDuplicates: true,
+        );
+  }
+
+  @override
+  Stream<List<Map<String, dynamic>>> watchInventory(String householdId) {
+    return _client
+        .from('inventory_items')
+        .stream(primaryKey: ['id'])
+        .eq('household_id', householdId)
+        .map((rows) => rows.map(inventoryRowFromJson).toList(growable: false));
+  }
+
+  @override
+  Stream<List<Map<String, dynamic>>> watchShopping(String householdId) {
+    return _client
+        .from('shopping_items')
+        .stream(primaryKey: ['id'])
+        .eq('household_id', householdId)
+        .map((rows) => rows.map(shoppingRowFromJson).toList(growable: false));
+  }
+
+  @override
+  Stream<List<Map<String, dynamic>>> watchCustomRecipes(String householdId) {
+    return _client
+        .from('custom_recipes')
+        .stream(primaryKey: ['id'])
+        .eq('household_id', householdId)
+        .map(
+          (rows) => rows.map(customRecipeRowFromJson).toList(growable: false),
         );
   }
 }

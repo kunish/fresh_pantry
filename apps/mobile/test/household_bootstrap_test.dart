@@ -98,6 +98,21 @@ class RecordingRemotePantryRepository implements RemotePantryRepository {
   ) async {
     customRecipeRows.addAll(rows);
   }
+
+  @override
+  Stream<List<Map<String, dynamic>>> watchInventory(String householdId) {
+    return const Stream.empty();
+  }
+
+  @override
+  Stream<List<Map<String, dynamic>>> watchShopping(String householdId) {
+    return const Stream.empty();
+  }
+
+  @override
+  Stream<List<Map<String, dynamic>>> watchCustomRecipes(String householdId) {
+    return const Stream.empty();
+  }
 }
 
 void main() {

@@ -1,6 +1,14 @@
 import 'sync_operation.dart';
 import 'sync_outbox_repo.dart';
 
+List<Map<String, dynamic>> visibleRemoteRows(
+  Iterable<Map<String, dynamic>> rows,
+) {
+  return rows
+      .where((row) => row['deletedAt'] == null && row['deleted_at'] == null)
+      .toList(growable: false);
+}
+
 abstract class RemoteSyncGateway {
   Future<Set<String>> pushOperations(List<SyncOperation> operations);
 }
