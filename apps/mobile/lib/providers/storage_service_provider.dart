@@ -8,6 +8,7 @@ import '../storage/inventory_repo.dart';
 import '../storage/shared_prefs_storage_adapter.dart';
 import '../storage/shopping_repo.dart';
 import '../storage/storage_adapter.dart';
+import '../sync/sync_outbox_repo.dart';
 
 /// Optional startup/test seed for inventory. When overridden, the repo hydrates
 /// from this list instead of reading storage on first load.
@@ -58,6 +59,10 @@ final customRecipeRepoProvider = Provider<CustomRecipeRepo>((ref) {
 
 final aiSettingsRepoProvider = Provider<AiSettingsRepo>((ref) {
   return AiSettingsRepo(ref.read(storageAdapterProvider));
+});
+
+final syncOutboxRepoProvider = Provider<SyncOutboxRepo>((ref) {
+  return SyncOutboxRepo(ref.read(storageAdapterProvider));
 });
 
 /// Provider for SharedPreferences instance.
