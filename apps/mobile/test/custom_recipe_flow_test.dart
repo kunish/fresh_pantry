@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fresh_pantry/household/household_session_controller.dart';
 import 'package:fresh_pantry/models/ingredient.dart';
 import 'package:fresh_pantry/models/recipe.dart';
 import 'package:fresh_pantry/models/storage_area.dart';
@@ -19,6 +20,8 @@ import 'package:fresh_pantry/widgets/recipe_card.dart';
 import 'package:fresh_pantry/widgets/recipe_form/cooking_time_row.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'helpers/household_gateway_stub.dart';
 
 void main() {
   testWidgets('settings 我的食谱 link opens MyRecipesScreen', (tester) async {
@@ -973,6 +976,7 @@ Widget _app(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(prefs),
       notificationServiceProvider.overrideWithValue(NotificationService()),
+      householdGatewayProvider.overrideWithValue(HouseholdGatewayStub()),
       ...overrides,
     ],
     child: MaterialApp(

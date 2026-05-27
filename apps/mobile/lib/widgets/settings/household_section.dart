@@ -12,14 +12,19 @@ class HouseholdSection extends StatelessWidget {
     required this.householdName,
     required this.members,
     this.onInvite,
+    this.onInviteEmail,
   });
 
   final String householdName;
   final List<HouseholdMember> members;
   final VoidCallback? onInvite;
+  final Future<void> Function(String email)? onInviteEmail;
 
   @override
   Widget build(BuildContext context) {
+    final inviteAction = onInviteEmail == null
+        ? onInvite
+        : () => _showInviteDialog(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -72,7 +77,7 @@ class HouseholdSection extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
-                    onPressed: onInvite,
+                    onPressed: inviteAction,
                     icon: const Icon(Icons.person_add_alt_1_rounded),
                     label: const Text('邀请成员'),
                   ),
@@ -82,6 +87,15 @@ class HouseholdSection extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _showInviteDialog(BuildContext context) {
+    final onSubmit = onInviteEmail;
+    if (onSubmit == null) return Future<void>.value();
+    return showDialog<void>(
+      context: context,
+      builder: (_) => _InviteMemberDialog(onSubmit: onSubmit),
     );
   }
 }
@@ -115,6 +129,72 @@ class _MemberRow extends StatelessWidget {
           FkPill(label: label, sm: true),
         ],
       ),
+    );
+  }
+}
+
+class _InviteMemberDialog extends StatefulWidget {
+  const _InviteMemberDialog({required this.onSubmit});
+
+  final Future<void> Function(String email) onSubmit;
+
+  @override
+  State<_InviteMemberDialog> createState() => _InviteMemberDialogState();
+}
+
+class _InviteMemberDialogState extends State<_InviteMemberDialog> {
+  final _controller = TextEditingController();
+  var _isSubmitting = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_controller.text.trim().isEmpty) {
+      setState(() => _error = '请输入成员邮箱');
+      return;
+    }
+    setState(() {
+      _isSubmitting = true;
+      _error = null;
+    });
+    try {
+      await widget.onSubmit(_controller.text);
+      if (!mounted) return;
+      Navigator.of(context).pop();
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _isSubmitting = false;
+        _error = error.toString();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('邀请成员'),
+      content: TextField(
+        controller: _controller,
+        enabled: !_isSubmitting,
+        keyboardType: TextInputType.emailAddress,
+        decoration: InputDecoration(labelText: '成员邮箱', errorText: _error),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: _isSubmitting ? null : _submit,
+          child: const Text('发送邀请'),
+        ),
+      ],
     );
   }
 }

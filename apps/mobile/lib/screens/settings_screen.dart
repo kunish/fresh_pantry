@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../household/household_session_controller.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/notification_service_provider.dart';
 import '../providers/reminder_settings_provider.dart';
@@ -96,6 +97,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _showSimpleDialog('导入完成', '请重启 App 以加载新数据。');
   }
 
+  Future<void> _onInviteEmail(String householdId, String email) async {
+    final inviteUrl = await ref
+        .read(householdSessionControllerProvider.notifier)
+        .createInvite(householdId, email);
+    await Clipboard.setData(ClipboardData(text: inviteUrl));
+    if (!mounted) return;
+    fkToast(context, '邀请链接已复制，可发给家人');
+  }
+
   Future<void> _onReminderToggle(
     bool newValue,
     Future<void> Function() apply,
@@ -180,6 +190,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final shoppingCount = ref.watch(
       shoppingProvider.select((items) => items.length),
     );
+    final householdSession = ref.watch(householdSessionControllerProvider);
+    final household = householdSession.households.isEmpty
+        ? null
+        : householdSession.households.first;
     final reminder = ref.watch(reminderSettingsProvider);
     final reminderN = ref.read(reminderSettingsProvider.notifier);
 
@@ -222,9 +236,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ],
                 ),
               ),
-              const HouseholdSection(
-                householdName: 'Kunish Kitchen',
-                members: [],
+              HouseholdSection(
+                householdName: household?.name ?? '未加入家庭',
+                members: const [],
+                onInviteEmail: household == null
+                    ? null
+                    : (email) => _onInviteEmail(household.id, email),
               ),
               if (permissionMissing)
                 Padding(
