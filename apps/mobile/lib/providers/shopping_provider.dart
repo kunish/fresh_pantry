@@ -1,16 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:uuid/uuid.dart';
 import '../models/ingredient.dart';
 import '../models/shopping_item.dart';
 import '../data/food_categories.dart';
 import '../data/food_knowledge.dart';
 import '../storage/shopping_repo.dart';
+import '../sync/sync_operation.dart';
+import '../sync/sync_providers.dart';
 import '_persistence_queue.dart';
 import 'storage_service_provider.dart';
 
 export 'storage_service_provider.dart' show shoppingSeedProvider;
 
 const shoppingItemsStorageKey = 'shopping_items';
+const _syncOperationIds = Uuid();
 
 enum ShoppingFilter { all, todo, done }
 
@@ -86,15 +90,12 @@ Map<String, List<ShoppingItem>> filterShoppingGroups(
 
   final result = <String, List<ShoppingItem>>{};
   grouped.forEach((category, items) {
-    final filtered =
-        items
-            .where(
-              (item) =>
-                  filter == ShoppingFilter.todo
-                      ? !item.isChecked
-                      : item.isChecked,
-            )
-            .toList();
+    final filtered = items
+        .where(
+          (item) =>
+              filter == ShoppingFilter.todo ? !item.isChecked : item.isChecked,
+        )
+        .toList();
     if (filtered.isNotEmpty) {
       result[category] = filtered;
     }
@@ -134,6 +135,35 @@ class ShoppingNotifier extends Notifier<List<ShoppingItem>>
     _repo.saveItems(items);
   }
 
+  Future<void> _enqueueSync({
+    required SyncEntityType entityType,
+    required String entityId,
+    required SyncOperationType operation,
+    required Map<String, dynamic> patch,
+    int? baseVersion,
+  }) {
+    final householdId = ref.read(selectedHouseholdIdProvider).trim();
+    if (householdId.isEmpty || entityId.trim().isEmpty) {
+      return Future.value();
+    }
+
+    return ref
+        .read(syncOutboxRepoProvider)
+        .enqueue(
+          SyncOperation(
+            id: _syncOperationIds.v4(),
+            householdId: householdId,
+            entityType: entityType,
+            entityId: entityId,
+            operation: operation,
+            patch: patch,
+            baseVersion: baseVersion,
+            clientId: ref.read(syncClientIdProvider),
+            createdAt: DateTime.now().toUtc(),
+          ),
+        );
+  }
+
   Future<bool> add(ShoppingItem item) async {
     final normalizedItem = _withUniqueShoppingItemId(
       _normalizeShoppingItem(item),
@@ -148,10 +178,18 @@ class ShoppingNotifier extends Notifier<List<ShoppingItem>>
     final updated = [...state, normalizedItem];
     state = updated;
     await queuePersistence(() => _save(updated));
+    await _enqueueSync(
+      entityType: SyncEntityType.shoppingItem,
+      entityId: normalizedItem.id,
+      operation: SyncOperationType.create,
+      patch: normalizedItem.toJson(),
+    );
     return true;
   }
 
   Future<void> remove(String id) async {
+    final removedIndex = state.indexWhere((item) => item.id == id);
+    final removed = removedIndex == -1 ? null : state[removedIndex];
     final updated = state.where((item) => item.id != id).toList();
     if (updated.length == state.length) {
       return;
@@ -159,24 +197,42 @@ class ShoppingNotifier extends Notifier<List<ShoppingItem>>
 
     state = updated;
     await queuePersistence(() => _save(updated));
+    final deletedAt = DateTime.now().toUtc();
+    await _enqueueSync(
+      entityType: SyncEntityType.shoppingItem,
+      entityId: id,
+      operation: SyncOperationType.delete,
+      patch: {'deletedAt': deletedAt.toIso8601String()},
+      baseVersion: removed?.remoteVersion,
+    );
   }
 
   Future<void> toggleCheck(String id) async {
     var changed = false;
-    final updated =
-        state.map((item) {
-          if (item.id == id) {
-            changed = true;
-            return item.copyWith(isChecked: !item.isChecked);
-          }
-          return item;
-        }).toList();
+    ShoppingItem? original;
+    ShoppingItem? toggled;
+    final updated = state.map((item) {
+      if (item.id == id) {
+        changed = true;
+        original = item;
+        toggled = item.copyWith(isChecked: !item.isChecked);
+        return toggled!;
+      }
+      return item;
+    }).toList();
     if (!changed) {
       return;
     }
 
     state = updated;
     await queuePersistence(() => _save(updated));
+    await _enqueueSync(
+      entityType: SyncEntityType.shoppingItem,
+      entityId: id,
+      operation: SyncOperationType.toggleChecked,
+      patch: {'isChecked': toggled!.isChecked},
+      baseVersion: original?.remoteVersion,
+    );
   }
 
   Future<bool> addFromIngredient(Ingredient ingredient) {

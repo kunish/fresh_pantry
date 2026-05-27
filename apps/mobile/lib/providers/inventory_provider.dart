@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:uuid/uuid.dart';
 import '../models/frequent_item.dart';
 import '../models/ingredient.dart';
 import '../models/proposal.dart';
@@ -7,6 +8,8 @@ import '../models/storage_area.dart';
 import '../data/food_categories.dart';
 import '../data/food_knowledge.dart';
 import '../storage/inventory_repo.dart';
+import '../sync/sync_operation.dart';
+import '../sync/sync_providers.dart';
 import '../utils/ingredient_normalizer.dart';
 import '_persistence_queue.dart';
 import 'storage_service_provider.dart';
@@ -17,6 +20,7 @@ const inventoryItemsStorageKey = 'inventory_items';
 const addHistoryStorageKey = 'add_history';
 const inventoryFilterAll = '全部';
 const inventoryFilterNotFresh = '不新鲜';
+const _syncOperationIds = Uuid();
 
 bool isNotFreshIngredient(Ingredient item) {
   return item.state == FreshnessState.expiringSoon ||
@@ -66,47 +70,100 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
     _repo.saveItems(items);
   }
 
+  Future<void> _enqueueSync({
+    required String entityId,
+    required SyncOperationType operation,
+    required Map<String, dynamic> patch,
+    int? baseVersion,
+  }) {
+    final householdId = ref.read(selectedHouseholdIdProvider).trim();
+    if (householdId.isEmpty || entityId.trim().isEmpty) {
+      return Future.value();
+    }
+
+    return ref
+        .read(syncOutboxRepoProvider)
+        .enqueue(
+          SyncOperation(
+            id: _syncOperationIds.v4(),
+            householdId: householdId,
+            entityType: SyncEntityType.inventoryItem,
+            entityId: entityId,
+            operation: operation,
+            patch: patch,
+            baseVersion: baseVersion,
+            clientId: ref.read(syncClientIdProvider),
+            createdAt: DateTime.now().toUtc(),
+          ),
+        );
+  }
+
   Future<void> add(Ingredient item) async {
     final normalizedItem = normalizeIngredientCategory(item);
-    final stampedItem =
-        normalizedItem.addedAt == null
-            ? normalizedItem.copyWith(addedAt: DateTime.now())
-            : normalizedItem;
+    final stampedItem = normalizedItem.addedAt == null
+        ? normalizedItem.copyWith(addedAt: DateTime.now())
+        : normalizedItem;
     final itemToAdd = refreshIngredientFreshness(stampedItem);
     final updated = [...state, itemToAdd];
     state = updated;
-    return queuePersistence(() async {
+    await queuePersistence(() async {
       await _save(updated);
       await ref.read(_addHistoryProvider.notifier).record(itemToAdd);
     });
+    await _enqueueSync(
+      entityId: itemToAdd.id,
+      operation: SyncOperationType.create,
+      patch: itemToAdd.toJson(),
+    );
   }
 
   Future<void> remove(int index) async {
     if (index < 0 || index >= state.length) return;
+    final removed = state[index];
     final updated = [...state]..removeAt(index);
     state = updated;
-    return queuePersistence(() => _save(updated));
+    await queuePersistence(() => _save(updated));
+    final deletedAt = DateTime.now().toUtc();
+    await _enqueueSync(
+      entityId: removed.id,
+      operation: SyncOperationType.delete,
+      patch: {'deletedAt': deletedAt.toIso8601String()},
+      baseVersion: removed.remoteVersion,
+    );
   }
 
   Future<void> insertAt(int index, Ingredient item) async {
     final updated = [...state];
     final clampedIndex = index.clamp(0, updated.length).toInt();
-    updated.insert(clampedIndex, normalizeInventoryIngredient(item));
+    final normalizedItem = normalizeInventoryIngredient(item);
+    updated.insert(clampedIndex, normalizedItem);
     state = updated;
-    return queuePersistence(() => _save(updated));
+    await queuePersistence(() => _save(updated));
+    await _enqueueSync(
+      entityId: normalizedItem.id,
+      operation: SyncOperationType.create,
+      patch: normalizedItem.toJson(),
+    );
   }
 
   Future<void> update(int index, Ingredient item) async {
     if (index < 0 || index >= state.length) return;
     final updated = [...state];
+    final original = state[index];
     final normalizedItem = normalizeIngredientCategory(item);
-    final stampedItem =
-        normalizedItem.addedAt == null
-            ? normalizedItem.copyWith(addedAt: state[index].addedAt)
-            : normalizedItem;
-    updated[index] = refreshIngredientFreshness(stampedItem);
+    final stampedItem = normalizedItem.addedAt == null
+        ? normalizedItem.copyWith(addedAt: state[index].addedAt)
+        : normalizedItem;
+    final updatedItem = refreshIngredientFreshness(stampedItem);
+    updated[index] = updatedItem;
     state = updated;
-    return queuePersistence(() => _save(updated));
+    await queuePersistence(() => _save(updated));
+    await _enqueueSync(
+      entityId: updatedItem.id,
+      operation: SyncOperationType.update,
+      patch: updatedItem.toJson(),
+      baseVersion: original.remoteVersion,
+    );
   }
 
   Future<void> applyIntakeProposals(List<IntakeProposal> proposals) async {
@@ -149,18 +206,17 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
       if (remaining <= 0) {
         removalIndices.add(i);
       } else {
-        final newQty =
-            remaining == remaining.roundToDouble()
-                ? remaining.toInt().toString()
-                : remaining.toString();
+        final newQty = remaining == remaining.roundToDouble()
+            ? remaining.toInt().toString()
+            : remaining.toString();
         current[i] = refreshIngredientFreshness(
           existing.copyWith(quantity: newQty),
         );
       }
     }
     if (removalIndices.isNotEmpty) {
-      final sortedDesc =
-          removalIndices.toList()..sort((a, b) => b.compareTo(a));
+      final sortedDesc = removalIndices.toList()
+        ..sort((a, b) => b.compareTo(a));
       for (final idx in sortedDesc) {
         current.removeAt(idx);
       }
@@ -178,8 +234,9 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
   Ingredient _ingredientFromProposal(IntakeProposal p) {
     final shelf = p.shelfLifeDays;
     final addedAt = DateTime.now();
-    final expiryDate =
-        shelf == null ? null : addedAt.add(Duration(days: shelf));
+    final expiryDate = shelf == null
+        ? null
+        : addedAt.add(Duration(days: shelf));
     return refreshIngredientFreshness(
       normalizeIngredientCategory(
         Ingredient(
@@ -224,7 +281,20 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
     updated[targetIndex] = mergedTarget;
     updated.removeAt(sourceIndex);
     state = updated;
-    return queuePersistence(() => _save(updated));
+    await queuePersistence(() => _save(updated));
+    await _enqueueSync(
+      entityId: mergedTarget.id,
+      operation: SyncOperationType.update,
+      patch: mergedTarget.toJson(),
+      baseVersion: target.remoteVersion,
+    );
+    final deletedAt = DateTime.now().toUtc();
+    await _enqueueSync(
+      entityId: source.id,
+      operation: SyncOperationType.delete,
+      patch: {'deletedAt': deletedAt.toIso8601String()},
+      baseVersion: source.remoteVersion,
+    );
   }
 
   DateTime? _earlierExpiry(DateTime? a, DateTime? b) {
@@ -285,8 +355,9 @@ class _AddHistoryNotifier extends Notifier<List<FrequentItem>> {
       final storageName = storageValue is String ? storageValue : 'fridge';
       final defaults = FoodKnowledge.lookup(e.key);
       final storage = iconTypeFromName(storageName);
-      final rememberedCategory =
-          category is String ? category : defaults?.category;
+      final rememberedCategory = category is String
+          ? category
+          : defaults?.category;
 
       return FrequentItem(
         name: e.key,
@@ -384,14 +455,14 @@ final frequentItemsProvider = Provider.autoDispose<List<FrequentItem>>((ref) {
 final lowStockItemsProvider = Provider.autoDispose<List<FrequentItem>>((ref) {
   final all = ref.watch(_addHistoryProvider);
   final inventory = ref.watch(inventoryProvider);
-  final presentNames =
-      inventory.map((i) => i.name.trim().toLowerCase()).toSet();
+  final presentNames = inventory
+      .map((i) => i.name.trim().toLowerCase())
+      .toSet();
 
-  final filtered =
-      all
-          .where((f) => f.count >= 3)
-          .where((f) => !presentNames.contains(f.name.trim().toLowerCase()))
-          .toList();
+  final filtered = all
+      .where((f) => f.count >= 3)
+      .where((f) => !presentNames.contains(f.name.trim().toLowerCase()))
+      .toList();
   filtered.sort((a, b) => b.count.compareTo(a.count));
   return filtered;
 });

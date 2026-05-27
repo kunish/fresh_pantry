@@ -7,6 +7,7 @@ import 'package:fresh_pantry/app.dart';
 import 'package:fresh_pantry/household/household_models.dart';
 import 'package:fresh_pantry/household/household_session_controller.dart';
 import 'package:fresh_pantry/screens/auth_gate_screen.dart';
+import 'package:fresh_pantry/sync/sync_providers.dart';
 
 class FakeHouseholdGateway implements HouseholdGateway {
   FakeHouseholdGateway({this.initialHouseholds = const []});
@@ -93,6 +94,34 @@ void main() {
   );
 
   testWidgets(
+    'AuthGateScreen exposes selected household id to authenticated child',
+    (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          FakeHouseholdGateway(
+            initialHouseholds: const [
+              Household(
+                id: 'household_1',
+                name: 'Home',
+                ownerId: 'owner_1',
+                defaultStorageArea: 'fridge',
+              ),
+            ],
+          ),
+          child: Consumer(
+            builder: (context, ref, _) {
+              return Text(ref.watch(selectedHouseholdIdProvider));
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('household_1'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'AuthGateScreen shows authenticated child after auth state changes',
     (tester) async {
       final gateway = FakeHouseholdGateway();
@@ -135,11 +164,12 @@ void main() {
   });
 }
 
-Widget _wrap(FakeHouseholdGateway gateway) {
+Widget _wrap(
+  FakeHouseholdGateway gateway, {
+  Widget child = const Text('App Shell'),
+}) {
   return ProviderScope(
     overrides: [householdGatewayProvider.overrideWithValue(gateway)],
-    child: const MaterialApp(
-      home: AuthGateScreen(authenticatedChild: Text('App Shell')),
-    ),
+    child: MaterialApp(home: AuthGateScreen(authenticatedChild: child)),
   );
 }

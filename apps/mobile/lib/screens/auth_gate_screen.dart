@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../household/household_session_controller.dart';
+import '../sync/sync_providers.dart';
 import '../theme/app_theme.dart';
 
 class AuthGateScreen extends ConsumerStatefulWidget {
@@ -36,7 +37,14 @@ class _AuthGateScreenState extends ConsumerState<AuthGateScreen> {
     final session = ref.watch(householdSessionControllerProvider);
 
     if (session.households.isNotEmpty) {
-      return widget.authenticatedChild;
+      return ProviderScope(
+        overrides: [
+          selectedHouseholdIdProvider.overrideWithValue(
+            session.households.first.id,
+          ),
+        ],
+        child: widget.authenticatedChild,
+      );
     }
 
     return Scaffold(
