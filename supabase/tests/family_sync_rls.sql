@@ -1,6 +1,6 @@
 begin;
 
-select plan(62);
+select plan(82);
 
 create or replace function pg_temp.authenticate_as(user_id uuid, user_email text)
 returns void
@@ -71,6 +71,40 @@ select lives_ok(
     values ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Milk', '1', 'box', 'fridge')
   $$,
   'owner can write inventory'
+);
+
+-- C4/C43: the BEFORE UPDATE trigger makes `version` server-authoritative.
+select is(
+  (select version from public.inventory_items where name = 'Milk'),
+  1,
+  'inserted inventory row keeps default version 1 (trigger is update-only)'
+);
+
+select lives_ok(
+  $$
+    update public.inventory_items set quantity = '2' where name = 'Milk'
+  $$,
+  'owner can update inventory'
+);
+
+select is(
+  (select version from public.inventory_items where name = 'Milk'),
+  2,
+  'update bumps version to OLD.version + 1'
+);
+
+-- Even when the client sends a stale/lower version, the trigger overrides it.
+select lives_ok(
+  $$
+    update public.inventory_items set quantity = '3', version = 1 where name = 'Milk'
+  $$,
+  'owner can update inventory while sending a stale version'
+);
+
+select is(
+  (select version from public.inventory_items where name = 'Milk'),
+  3,
+  'client-sent stale version is overridden by the server bump'
 );
 
 select pg_temp.authenticate_as('22222222-2222-2222-2222-222222222222', 'member@example.com');
@@ -321,7 +355,7 @@ select throws_ok(
 );
 
 select throws_ok(
-  $$ select public.remove_household_member('22222222-2222-2222-2222-222222222222'::uuid) $$,
+  $$ select public.remove_household_member('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid, '22222222-2222-2222-2222-222222222222'::uuid) $$,
   '28000',
   'Authentication required',
   'remove_household_member requires auth uid'
@@ -477,8 +511,13 @@ select is(
 
 -- Test: anon cannot execute new RPCs
 select ok(
-  not has_function_privilege('anon', 'public.remove_household_member(uuid)', 'execute'),
+  not has_function_privilege('anon', 'public.remove_household_member(uuid, uuid)', 'execute'),
   'anon cannot execute remove_household_member rpc'
+);
+
+select ok(
+  not has_function_privilege('anon', 'public.leave_household(uuid)', 'execute'),
+  'anon cannot execute leave_household rpc'
 );
 
 select ok(
@@ -500,7 +539,7 @@ select ok(
 select pg_temp.authenticate_as('11111111-1111-1111-1111-111111111111', 'owner@example.com');
 
 select lives_ok(
-  $$ select public.remove_household_member('33333333-3333-3333-3333-333333333333'::uuid) $$,
+  $$ select public.remove_household_member('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid, '33333333-3333-3333-3333-333333333333'::uuid) $$,
   'owner can remove a member'
 );
 
@@ -517,19 +556,19 @@ select is(
 
 -- Test: owner cannot remove self
 select throws_ok(
-  $$ select public.remove_household_member('11111111-1111-1111-1111-111111111111'::uuid) $$,
+  $$ select public.remove_household_member('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid, '11111111-1111-1111-1111-111111111111'::uuid) $$,
   'P0001',
   'Cannot remove yourself',
   'owner cannot remove self'
 );
 
--- Test: member cannot remove another member
+-- Test: member cannot remove another member (fails owner authorization)
 select pg_temp.authenticate_as('22222222-2222-2222-2222-222222222222', 'member@example.com');
 
 select throws_ok(
-  $$ select public.remove_household_member('11111111-1111-1111-1111-111111111111'::uuid) $$,
+  $$ select public.remove_household_member('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid, '11111111-1111-1111-1111-111111111111'::uuid) $$,
   '42501',
-  'Not authorized or target is not a member',
+  'Not authorized',
   'member cannot remove another member'
 );
 
@@ -609,6 +648,171 @@ select throws_ok(
   'Not authorized',
   'member cannot list owner pending invites'
 );
+
+-- === Hardening tests: scoped removal, self-leave, owner_id immutability ===
+--
+-- Fresh, isolated fixtures so the primary household flow above is untouched.
+-- owner2 owns two households (H1, H2); dual is a member of BOTH.
+
+reset role;
+
+insert into auth.users (
+  instance_id,
+  id,
+  aud,
+  role,
+  email,
+  encrypted_password,
+  email_confirmed_at,
+  created_at,
+  updated_at
+)
+values
+  ('00000000-0000-0000-0000-000000000000', '44444444-4444-4444-4444-444444444444', 'authenticated', 'authenticated', 'owner2@example.com', extensions.crypt('password', extensions.gen_salt('bf')), now(), now(), now()),
+  ('00000000-0000-0000-0000-000000000000', '55555555-5555-5555-5555-555555555555', 'authenticated', 'authenticated', 'dual@example.com', extensions.crypt('password', extensions.gen_salt('bf')), now(), now(), now()),
+  ('00000000-0000-0000-0000-000000000000', '66666666-6666-6666-6666-666666666666', 'authenticated', 'authenticated', 'leaver@example.com', extensions.crypt('password', extensions.gen_salt('bf')), now(), now(), now())
+on conflict (id) do nothing;
+
+insert into public.households (id, name, owner_id)
+values
+  ('b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1', 'House One', '44444444-4444-4444-4444-444444444444'),
+  ('b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2', 'House Two', '44444444-4444-4444-4444-444444444444')
+on conflict (id) do nothing;
+
+insert into public.household_members (household_id, user_id, role)
+values
+  ('b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1', '44444444-4444-4444-4444-444444444444', 'owner'),
+  ('b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1', '55555555-5555-5555-5555-555555555555', 'member'),
+  ('b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1', '66666666-6666-6666-6666-666666666666', 'member'),
+  ('b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2', '44444444-4444-4444-4444-444444444444', 'owner'),
+  ('b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2', '55555555-5555-5555-5555-555555555555', 'member')
+on conflict (household_id, user_id) do nothing;
+
+set local role authenticated;
+
+-- C22: removal is scoped to the named household only.
+select pg_temp.authenticate_as('44444444-4444-4444-4444-444444444444', 'owner2@example.com');
+
+select lives_ok(
+  $$ select public.remove_household_member('b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1'::uuid, '55555555-5555-5555-5555-555555555555'::uuid) $$,
+  'owner can remove a member from a specified household'
+);
+
+select is(
+  (
+    select count(*) from public.household_members
+    where household_id = 'b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1'
+      and user_id = '55555555-5555-5555-5555-555555555555'
+  ),
+  0::bigint,
+  'member removed from the specified household'
+);
+
+select is(
+  (
+    select count(*) from public.household_members
+    where household_id = 'b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2'
+      and user_id = '55555555-5555-5555-5555-555555555555'
+  ),
+  1::bigint,
+  'member retains membership in the other household'
+);
+
+select throws_ok(
+  $$ select public.remove_household_member('b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1'::uuid, '55555555-5555-5555-5555-555555555555'::uuid) $$,
+  '42501',
+  'Not authorized or target is not a member',
+  'cannot remove a user who is not a member of the named household'
+);
+
+-- C41: owner_id cannot be reassigned via a direct update.
+select lives_ok(
+  $$ update public.households set name = 'House One Renamed' where id = 'b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1' $$,
+  'owner can still update household name'
+);
+
+select throws_ok(
+  $$ update public.households set owner_id = '55555555-5555-5555-5555-555555555555' where id = 'b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1' $$,
+  'P0001',
+  'household owner_id cannot be reassigned',
+  'owner cannot reassign household owner_id'
+);
+
+select is(
+  (select owner_id from public.households where id = 'b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1'),
+  '44444444-4444-4444-4444-444444444444'::uuid,
+  'household owner_id is unchanged after blocked reassignment'
+);
+
+-- C40: a member can leave via the RPC.
+select pg_temp.authenticate_as('55555555-5555-5555-5555-555555555555', 'dual@example.com');
+
+select lives_ok(
+  $$ select public.leave_household('b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2'::uuid) $$,
+  'member can leave a household'
+);
+
+select is(
+  (
+    select count(*) from public.household_members
+    where household_id = 'b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2'
+      and user_id = '55555555-5555-5555-5555-555555555555'
+  ),
+  0::bigint,
+  'member who left is no longer in the household'
+);
+
+-- C40: the self-delete policy lets a member delete their own membership row.
+select pg_temp.authenticate_as('66666666-6666-6666-6666-666666666666', 'leaver@example.com');
+
+select lives_ok(
+  $$ delete from public.household_members
+     where household_id = 'b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1'
+       and user_id = '66666666-6666-6666-6666-666666666666' $$,
+  'member can self-delete their membership row'
+);
+
+select is(
+  (
+    select count(*) from public.household_members
+    where household_id = 'b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1'
+      and user_id = '66666666-6666-6666-6666-666666666666'
+  ),
+  0::bigint,
+  'self-deleted membership row is gone'
+);
+
+-- C40: the sole owner cannot leave and orphan the household.
+select pg_temp.authenticate_as('44444444-4444-4444-4444-444444444444', 'owner2@example.com');
+
+select throws_ok(
+  $$ select public.leave_household('b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1'::uuid) $$,
+  'P0001',
+  'Sole owner cannot leave; transfer or dissolve the household instead',
+  'sole owner cannot leave the household'
+);
+
+-- C40: an owner cannot self-delete their owner row either (no matching policy).
+select lives_ok(
+  $$ delete from public.household_members
+     where household_id = 'b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1'
+       and user_id = '44444444-4444-4444-4444-444444444444' $$,
+  'owner self-delete affects no rows (no policy permits it)'
+);
+
+select is(
+  (
+    select count(*) from public.household_members
+    where household_id = 'b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1'
+      and user_id = '44444444-4444-4444-4444-444444444444'
+      and role = 'owner'
+  ),
+  1::bigint,
+  'owner row survives a blocked self-delete'
+);
+
+-- Restore the member session for the remaining primary-household teardown.
+select pg_temp.authenticate_as('22222222-2222-2222-2222-222222222222', 'member@example.com');
 
 -- Test: member cannot dissolve a household
 select throws_ok(
