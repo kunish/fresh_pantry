@@ -18,6 +18,47 @@ import 'package:fresh_pantry/utils/expiry_calculator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  group('provider rebuilds', () {
+    test(
+      'InventoryNotifier can rebuild without reinitialization errors',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'inventory_items': '[]',
+          'add_history': json.encode({}),
+        });
+        final prefs = await SharedPreferences.getInstance();
+        final container = ProviderContainer(
+          overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        );
+        addTearDown(container.dispose);
+
+        expect(container.read(inventoryProvider), isEmpty);
+
+        container.invalidate(inventoryProvider);
+
+        expect(container.read(inventoryProvider), isEmpty);
+      },
+    );
+
+    test(
+      'ShoppingNotifier can rebuild without reinitialization errors',
+      () async {
+        SharedPreferences.setMockInitialValues({'shopping_items': '[]'});
+        final prefs = await SharedPreferences.getInstance();
+        final container = ProviderContainer(
+          overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        );
+        addTearDown(container.dispose);
+
+        expect(container.read(shoppingProvider), isEmpty);
+
+        container.invalidate(shoppingProvider);
+
+        expect(container.read(shoppingProvider), isEmpty);
+      },
+    );
+  });
+
   group('InventoryNotifier.add', () {
     test(
       'saves inventory when add history contains old numeric counts',

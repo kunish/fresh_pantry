@@ -4,6 +4,9 @@ import 'package:uuid/uuid.dart';
 import '../config/backend_config.dart';
 import '../household/invite_token.dart';
 import '../household/household_models.dart';
+import 'sync_coordinator.dart';
+import 'sync_ids.dart';
+import 'sync_operation.dart';
 
 Map<String, dynamic> inventoryRowFromJson(Map<String, dynamic> row) {
   return {
@@ -79,7 +82,7 @@ Map<String, dynamic> inventoryRowForUpsert(
     'deleted_at': item['deletedAt'],
   };
   final id = item['id'];
-  if (id is String && _isUuid(id)) {
+  if (id is String && isUuid(id)) {
     row['id'] = id;
   }
   return row;
@@ -101,7 +104,7 @@ Map<String, dynamic> shoppingRowForUpsert(
     'deleted_at': item['deletedAt'],
   };
   final id = item['id'];
-  if (id is String && _isUuid(id)) {
+  if (id is String && isUuid(id)) {
     row['id'] = id;
   }
   return row;
@@ -119,7 +122,7 @@ Map<String, dynamic> customRecipeRowForUpsert(
     'deleted_at': recipe['deletedAt'],
   };
   final id = recipe['id'];
-  if (id is String && _isUuid(id)) {
+  if (id is String && isUuid(id)) {
     row['id'] = id;
   }
   return row;
@@ -128,12 +131,6 @@ Map<String, dynamic> customRecipeRowForUpsert(
 int _versionForUpsert(Object? remoteVersion) {
   final version = remoteVersion is num ? remoteVersion.toInt() : 0;
   return version <= 0 ? 1 : version;
-}
-
-bool _isUuid(String value) {
-  return RegExp(
-    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
-  ).hasMatch(value);
 }
 
 abstract class RemotePantryRepository {
@@ -167,12 +164,15 @@ abstract class RemotePantryRepository {
     String householdId,
     List<Map<String, dynamic>> rows,
   );
+  Future<List<Map<String, dynamic>>> loadShopping(String householdId);
+  Future<List<Map<String, dynamic>>> loadCustomRecipes(String householdId);
   Stream<List<Map<String, dynamic>>> watchInventory(String householdId);
   Stream<List<Map<String, dynamic>>> watchShopping(String householdId);
   Stream<List<Map<String, dynamic>>> watchCustomRecipes(String householdId);
 }
 
-class SupabaseRemotePantryRepository implements RemotePantryRepository {
+class SupabaseRemotePantryRepository
+    implements RemotePantryRepository, RemoteSyncGateway {
   SupabaseRemotePantryRepository(
     this._client, {
     String apiBaseUrl = defaultFreshPantryApiBaseUrl,
@@ -323,7 +323,7 @@ class SupabaseRemotePantryRepository implements RemotePantryRepository {
   @override
   Future<void> acceptInviteById(String inviteId) async {
     final trimmedInviteId = inviteId.trim();
-    if (!_isUuid(trimmedInviteId)) {
+    if (!isUuid(trimmedInviteId)) {
       throw ArgumentError.value(inviteId, 'inviteId', 'Invalid invite id');
     }
     if (_client.auth.currentUser == null) {
@@ -339,7 +339,7 @@ class SupabaseRemotePantryRepository implements RemotePantryRepository {
   @override
   Future<void> removeMember(String targetUserId) async {
     final trimmedUserId = targetUserId.trim();
-    if (!_isUuid(trimmedUserId)) {
+    if (!isUuid(trimmedUserId)) {
       throw ArgumentError.value(
         targetUserId,
         'targetUserId',
@@ -359,7 +359,7 @@ class SupabaseRemotePantryRepository implements RemotePantryRepository {
   @override
   Future<void> revokeInvite(String inviteId) async {
     final trimmedInviteId = inviteId.trim();
-    if (!_isUuid(trimmedInviteId)) {
+    if (!isUuid(trimmedInviteId)) {
       throw ArgumentError.value(inviteId, 'inviteId', 'Invalid invite id');
     }
     if (_client.auth.currentUser == null) {
@@ -375,7 +375,7 @@ class SupabaseRemotePantryRepository implements RemotePantryRepository {
   @override
   Future<void> dissolveHousehold(String householdId) async {
     final trimmedHouseholdId = householdId.trim();
-    if (!_isUuid(trimmedHouseholdId)) {
+    if (!isUuid(trimmedHouseholdId)) {
       throw ArgumentError.value(
         householdId,
         'householdId',
@@ -421,7 +421,7 @@ class SupabaseRemotePantryRepository implements RemotePantryRepository {
   @override
   Future<void> updateHouseholdName(String householdId, String name) async {
     final trimmedId = householdId.trim();
-    if (!_isUuid(trimmedId)) {
+    if (!isUuid(trimmedId)) {
       throw ArgumentError.value(
         householdId,
         'householdId',
@@ -448,7 +448,7 @@ class SupabaseRemotePantryRepository implements RemotePantryRepository {
     Map<String, dynamic> preferences,
   ) async {
     final trimmedId = householdId.trim();
-    if (!_isUuid(trimmedId)) {
+    if (!isUuid(trimmedId)) {
       throw ArgumentError.value(
         householdId,
         'householdId',
@@ -473,6 +473,28 @@ class SupabaseRemotePantryRepository implements RemotePantryRepository {
         .eq('household_id', householdId)
         .isFilter('deleted_at', null);
     return rows.map(inventoryRowFromJson).toList();
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> loadShopping(String householdId) async {
+    final rows = await _client
+        .from('shopping_items')
+        .select()
+        .eq('household_id', householdId)
+        .isFilter('deleted_at', null);
+    return rows.map(shoppingRowFromJson).toList();
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> loadCustomRecipes(
+    String householdId,
+  ) async {
+    final rows = await _client
+        .from('custom_recipes')
+        .select()
+        .eq('household_id', householdId)
+        .isFilter('deleted_at', null);
+    return rows.map(customRecipeRowFromJson).toList();
   }
 
   @override
@@ -568,9 +590,140 @@ class SupabaseRemotePantryRepository implements RemotePantryRepository {
           (rows) => rows.map(customRecipeRowFromJson).toList(growable: false),
         );
   }
+
+  @override
+  Future<Set<String>> pushOperations(List<SyncOperation> operations) async {
+    final acknowledged = <String>{};
+    for (final operation in operations) {
+      await _pushOperation(operation);
+      acknowledged.add(operation.id);
+    }
+    return acknowledged;
+  }
+
+  Future<void> _pushOperation(SyncOperation operation) {
+    return switch (operation.entityType) {
+      SyncEntityType.inventoryItem => _pushInventoryOperation(operation),
+      SyncEntityType.shoppingItem => _pushShoppingOperation(operation),
+      SyncEntityType.customRecipe => _pushCustomRecipeOperation(operation),
+      SyncEntityType.householdConfig => Future.value(),
+    };
+  }
+
+  Future<void> _pushInventoryOperation(SyncOperation operation) async {
+    switch (operation.operation) {
+      case SyncOperationType.create:
+      case SyncOperationType.update:
+      case SyncOperationType.intake:
+      case SyncOperationType.deduction:
+        final row = inventoryRowForUpsert(operation.householdId, {
+          ...operation.patch,
+          'id': isUuid(operation.entityId)
+              ? operation.entityId
+              : operation.patch['id'],
+          'remoteVersion': _nextVersion(operation),
+          'clientUpdatedAt': operation.createdAt.toIso8601String(),
+        });
+        row['client_id'] = operation.clientId;
+        await _client.from('inventory_items').upsert(row);
+      case SyncOperationType.delete:
+        await _softDeleteRemoteRow('inventory_items', operation);
+      case SyncOperationType.toggleChecked:
+        return;
+    }
+  }
+
+  Future<void> _pushShoppingOperation(SyncOperation operation) async {
+    switch (operation.operation) {
+      case SyncOperationType.create:
+      case SyncOperationType.update:
+      case SyncOperationType.intake:
+      case SyncOperationType.deduction:
+        final row = shoppingRowForUpsert(operation.householdId, {
+          ...operation.patch,
+          'id': isUuid(operation.entityId)
+              ? operation.entityId
+              : operation.patch['id'],
+          'remoteVersion': _nextVersion(operation),
+          'clientUpdatedAt': operation.createdAt.toIso8601String(),
+        });
+        row['client_id'] = operation.clientId;
+        await _client.from('shopping_items').upsert(row);
+      case SyncOperationType.toggleChecked:
+        await _updateRemoteRow('shopping_items', operation, {
+          'is_checked': operation.patch['isChecked'] == true,
+        });
+      case SyncOperationType.delete:
+        await _softDeleteRemoteRow('shopping_items', operation);
+    }
+  }
+
+  Future<void> _pushCustomRecipeOperation(SyncOperation operation) async {
+    switch (operation.operation) {
+      case SyncOperationType.create:
+      case SyncOperationType.update:
+        final row = customRecipeRowForUpsert(operation.householdId, {
+          ...operation.patch,
+          'id': isUuid(operation.entityId)
+              ? operation.entityId
+              : operation.patch['id'],
+          'remoteVersion': _nextVersion(operation),
+          'clientUpdatedAt': operation.createdAt.toIso8601String(),
+        });
+        row['client_id'] = operation.clientId;
+        await _client.from('custom_recipes').upsert(row);
+      case SyncOperationType.delete:
+        await _softDeleteRemoteRow('custom_recipes', operation);
+      case SyncOperationType.intake:
+      case SyncOperationType.deduction:
+      case SyncOperationType.toggleChecked:
+        return;
+    }
+  }
+
+  Future<void> _softDeleteRemoteRow(
+    String table,
+    SyncOperation operation,
+  ) async {
+    final deletedAt = operation.patch['deletedAt'];
+    await _updateRemoteRow(table, operation, {
+      'deleted_at': deletedAt is String
+          ? deletedAt
+          : operation.createdAt.toIso8601String(),
+    });
+  }
+
+  Future<void> _updateRemoteRow(
+    String table,
+    SyncOperation operation,
+    Map<String, dynamic> patch,
+  ) async {
+    if (!isUuid(operation.entityId)) {
+      throw ArgumentError.value(
+        operation.entityId,
+        'operation.entityId',
+        'Remote updates require a UUID entity id.',
+      );
+    }
+    await _client
+        .from(table)
+        .update({
+          ...patch,
+          'version': _nextVersion(operation),
+          'client_id': operation.clientId,
+          'client_updated_at': operation.createdAt.toIso8601String(),
+        })
+        .eq('household_id', operation.householdId)
+        .eq('id', operation.entityId);
+  }
 }
 
 bool _hasRemoteVersion(Map<String, dynamic> row) {
   final version = row['remoteVersion'];
   return version is num && version.toInt() > 0;
+}
+
+int _nextVersion(SyncOperation operation) {
+  final baseVersion = operation.baseVersion ?? 0;
+  return baseVersion <= 0 ? 1 : baseVersion + 1;
 }

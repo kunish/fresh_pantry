@@ -70,9 +70,10 @@ void main() {
 
     final operation = outbox.loadPending().single;
     expect(operation.entityType, SyncEntityType.inventoryItem);
-    expect(operation.entityId, 'ingredient_1');
+    expect(operation.entityId, matches(_uuidPattern));
     expect(operation.operation, SyncOperationType.create);
     expect(operation.patch, containsPair('name', 'Milk'));
+    expect(operation.patch, containsPair('id', operation.entityId));
   });
 
   test('custom recipe add enqueues create sync operation', () async {
@@ -98,11 +99,16 @@ void main() {
 
     final operation = outbox.loadPending().single;
     expect(operation.entityType, SyncEntityType.customRecipe);
-    expect(operation.entityId, 'recipe_1');
+    expect(operation.entityId, matches(_uuidPattern));
     expect(operation.operation, SyncOperationType.create);
     expect(operation.patch, containsPair('name', 'Tomato Pasta'));
+    expect(operation.patch, containsPair('id', operation.entityId));
   });
 }
+
+final _uuidPattern = RegExp(
+  r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+);
 
 ProviderContainer _container({
   required InMemoryStorageAdapter adapter,
@@ -120,6 +126,7 @@ ProviderContainer _container({
       syncOutboxRepoProvider.overrideWithValue(outbox),
       selectedHouseholdIdProvider.overrideWithValue('household_1'),
       syncClientIdProvider.overrideWithValue('client_1'),
+      syncPushPendingProvider.overrideWithValue(() async {}),
     ],
   );
 }

@@ -6,6 +6,8 @@ void main() {
     const config = SentryConfig(
       dsn: defaultSentryDsn,
       tracesSampleRate: 1,
+      replaySessionSampleRate: 1,
+      replayOnErrorSampleRate: 1,
       environment: '',
     );
 
@@ -16,6 +18,8 @@ void main() {
     const config = SentryConfig(
       dsn: '',
       tracesSampleRate: 0,
+      replaySessionSampleRate: 0,
+      replayOnErrorSampleRate: 0,
       environment: 'local',
     );
 
@@ -27,6 +31,8 @@ void main() {
       () => const SentryConfig(
         dsn: 'not-a-url',
         tracesSampleRate: 1,
+        replaySessionSampleRate: 1,
+        replayOnErrorSampleRate: 1,
         environment: '',
       ).validate(),
       throwsA(isA<SentryConfigException>()),
@@ -39,6 +45,34 @@ void main() {
         () => SentryConfig(
           dsn: defaultSentryDsn,
           tracesSampleRate: sampleRate,
+          replaySessionSampleRate: 1,
+          replayOnErrorSampleRate: 1,
+          environment: '',
+        ).validate(),
+        throwsA(isA<SentryConfigException>()),
+      );
+    }
+  });
+
+  test('SentryConfig rejects invalid replay sample rates', () {
+    for (final sampleRate in const [-0.1, 1.1]) {
+      expect(
+        () => SentryConfig(
+          dsn: defaultSentryDsn,
+          tracesSampleRate: 1,
+          replaySessionSampleRate: sampleRate,
+          replayOnErrorSampleRate: 1,
+          environment: '',
+        ).validate(),
+        throwsA(isA<SentryConfigException>()),
+      );
+
+      expect(
+        () => SentryConfig(
+          dsn: defaultSentryDsn,
+          tracesSampleRate: 1,
+          replaySessionSampleRate: 1,
+          replayOnErrorSampleRate: sampleRate,
           environment: '',
         ).validate(),
         throwsA(isA<SentryConfigException>()),

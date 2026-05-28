@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fresh_pantry/models/recipe.dart';
 import 'package:fresh_pantry/providers/_persistence_queue.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/storage/custom_recipe_repo.dart';
+import 'package:fresh_pantry/sync/sync_ids.dart';
 import 'package:fresh_pantry/sync/sync_operation.dart';
 import 'package:fresh_pantry/sync/sync_providers.dart';
 import 'package:uuid/uuid.dart';
@@ -58,19 +61,31 @@ class CustomRecipeNotifier extends Notifier<List<Recipe>>
             clientId: ref.read(syncClientIdProvider),
             createdAt: DateTime.now().toUtc(),
           ),
-        );
+        )
+        .then((_) => unawaited(ref.read(syncPushPendingProvider)()));
+  }
+
+  Recipe _withSyncId(Recipe recipe) {
+    final householdId = ref.read(selectedHouseholdIdProvider).trim();
+    if (householdId.isEmpty || isUuid(recipe.id)) return recipe;
+    return recipe.copyWith(id: newSyncEntityId());
+  }
+
+  Future<void> replaceFromRemote(List<Recipe> recipes) {
+    return _mutate((_) => recipes);
   }
 
   Future<void> add(Recipe recipe) async {
-    if (recipe.id.isEmpty || recipe.name.isEmpty) {
+    final recipeToAdd = _withSyncId(recipe);
+    if (recipeToAdd.id.isEmpty || recipeToAdd.name.isEmpty) {
       return;
     }
 
-    await _mutate((current) => [...current, recipe]);
+    await _mutate((current) => [...current, recipeToAdd]);
     await _enqueueSync(
-      entityId: recipe.id,
+      entityId: recipeToAdd.id,
       operation: SyncOperationType.create,
-      patch: recipe.toJson(),
+      patch: recipeToAdd.toJson(),
     );
   }
 

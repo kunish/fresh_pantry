@@ -12,8 +12,34 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'helpers/household_gateway_stub.dart';
 
 void main() {
-  testWidgets('tap 导出到剪贴板 copies a JSON envelope to clipboard',
-      (tester) async {
+  testWidgets('debug settings include Sentry verification action', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          notificationServiceProvider.overrideWithValue(NotificationService()),
+          householdGatewayProvider.overrideWithValue(HouseholdGatewayStub()),
+        ],
+        child: const MaterialApp(home: SettingsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('sentry_verify_action')),
+      200,
+    );
+
+    expect(find.byKey(const Key('sentry_verify_action')), findsOneWidget);
+    expect(find.text('验证 Sentry'), findsOneWidget);
+  });
+
+  testWidgets('tap 导出到剪贴板 copies a JSON envelope to clipboard', (tester) async {
     SharedPreferences.setMockInitialValues({
       'inventory_items': '[{"name":"苹果"}]',
     });
@@ -22,11 +48,11 @@ void main() {
     String? capturedClipboard;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
-      if (call.method == 'Clipboard.setData') {
-        capturedClipboard = (call.arguments as Map)['text'] as String;
-      }
-      return null;
-    });
+          if (call.method == 'Clipboard.setData') {
+            capturedClipboard = (call.arguments as Map)['text'] as String;
+          }
+          return null;
+        });
 
     await tester.pumpWidget(
       ProviderScope(
@@ -55,8 +81,9 @@ void main() {
     expect(capturedClipboard, contains('苹果'));
   });
 
-  testWidgets('tap 从剪贴板导入 → confirm overwrites prefs and prompts restart',
-      (tester) async {
+  testWidgets('tap 从剪贴板导入 → confirm overwrites prefs and prompts restart', (
+    tester,
+  ) async {
     final blob = r'''
 {
   "version": 1,
@@ -73,11 +100,11 @@ void main() {
 
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
-      if (call.method == 'Clipboard.getData') {
-        return <String, dynamic>{'text': blob};
-      }
-      return null;
-    });
+          if (call.method == 'Clipboard.getData') {
+            return <String, dynamic>{'text': blob};
+          }
+          return null;
+        });
 
     await tester.pumpWidget(
       ProviderScope(
@@ -100,8 +127,11 @@ void main() {
     await tester.tap(find.byKey(const Key('backup_import_action')));
     await tester.pumpAndSettle();
 
-    expect(find.text('确认导入?'), findsOneWidget,
-        reason: 'confirm dialog must appear before destructive write');
+    expect(
+      find.text('确认导入?'),
+      findsOneWidget,
+      reason: 'confirm dialog must appear before destructive write',
+    );
 
     await tester.tap(find.text('确认覆盖'));
     await tester.pumpAndSettle();

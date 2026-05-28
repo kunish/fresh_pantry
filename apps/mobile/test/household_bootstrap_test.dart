@@ -212,6 +212,18 @@ class RecordingRemotePantryRepository implements RemotePantryRepository {
   }
 
   @override
+  Future<List<Map<String, dynamic>>> loadShopping(String householdId) async {
+    return const [];
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> loadCustomRecipes(
+    String householdId,
+  ) async {
+    return const [];
+  }
+
+  @override
   Future<void> upsertInventory(
     String householdId,
     List<Map<String, dynamic>> rows,
@@ -336,6 +348,22 @@ void main() {
       expect(remoteRepository.inventoryRows.single['name'], 'Milk');
       expect(remoteRepository.shoppingRows.single['name'], 'Eggs');
       expect(remoteRepository.customRecipeRows.single['name'], 'Omelette');
+      expect(
+        remoteRepository.inventoryRows.single['id'],
+        matches(_uuidPattern),
+      );
+      expect(remoteRepository.shoppingRows.single['id'], matches(_uuidPattern));
+      expect(
+        remoteRepository.customRecipeRows.single['id'],
+        matches(_uuidPattern),
+      );
+      expect(inventoryRepo.loadAll().single.id, matches(_uuidPattern));
+      expect(shoppingRepo.loadAll().single.id, matches(_uuidPattern));
+      expect(customRecipeRepo.loadAll().single.id, matches(_uuidPattern));
     },
   );
 }
+
+final _uuidPattern = RegExp(
+  r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+);

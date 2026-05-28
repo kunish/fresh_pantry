@@ -5,13 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../backend/backend_config_provider.dart';
 import '../backend/supabase_client_provider.dart';
 import '../providers/storage_service_provider.dart';
 import '../storage/custom_recipe_repo.dart';
 import '../storage/inventory_repo.dart';
 import '../storage/shopping_repo.dart';
 import '../sync/remote_pantry_repository.dart';
+import '../sync/sync_ids.dart';
+import '../sync/sync_providers.dart';
 import 'household_models.dart';
 
 const supabaseAuthRedirectUrl = 'com.kunish.freshpantry://signin-callback/';
@@ -114,17 +115,42 @@ class SupabaseHouseholdGateway implements HouseholdGateway {
 
   @override
   Future<void> uploadInitialData(String householdId) async {
+    final inventory = _inventoryRepo
+        .loadAll()
+        .map((item) {
+          return isUuid(item.id) ? item : item.copyWith(id: newSyncEntityId());
+        })
+        .toList(growable: false);
+    final shopping = _shoppingRepo
+        .loadAll()
+        .map((item) {
+          return isUuid(item.id) ? item : item.copyWith(id: newSyncEntityId());
+        })
+        .toList(growable: false);
+    final customRecipes = _customRecipeRepo
+        .loadAll()
+        .map((recipe) {
+          return isUuid(recipe.id)
+              ? recipe
+              : recipe.copyWith(id: newSyncEntityId());
+        })
+        .toList(growable: false);
+
+    _inventoryRepo.saveItems(inventory);
+    _shoppingRepo.saveItems(shopping);
+    _customRecipeRepo.saveRecipes(customRecipes);
+
     await _remoteRepository.upsertInventory(
       householdId,
-      _inventoryRepo.loadAll().map((item) => item.toJson()).toList(),
+      inventory.map((item) => item.toJson()).toList(),
     );
     await _remoteRepository.upsertShopping(
       householdId,
-      _shoppingRepo.loadAll().map((item) => item.toJson()).toList(),
+      shopping.map((item) => item.toJson()).toList(),
     );
     await _remoteRepository.upsertCustomRecipes(
       householdId,
-      _customRecipeRepo.loadAll().map((recipe) => recipe.toJson()).toList(),
+      customRecipes.map((recipe) => recipe.toJson()).toList(),
     );
   }
 
@@ -456,11 +482,12 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
       await _gateway.acceptInvite(trimmedToken);
       final households = await _gateway.loadHouseholds();
       final isAuthenticated = _gateway.isAuthenticated;
+      final selectedId = _selectedHouseholdIdAfterJoin(
+        households,
+        preferredHouseholdId: state.invitePreview?.householdId,
+      );
       final members = isAuthenticated
-          ? await _loadMembersForSelectedHousehold(
-              households,
-              state.selectedHouseholdId,
-            )
+          ? await _loadMembersForSelectedHousehold(households, selectedId)
           : const <HouseholdMember>[];
       if (!mounted) return;
       state = state.copyWith(
@@ -469,6 +496,7 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
         isAuthenticated: isAuthenticated,
         households: List.unmodifiable(households),
         householdMembers: List.unmodifiable(members),
+        selectedHouseholdId: selectedId,
         pendingInvitePreviews: isAuthenticated
             ? state.pendingInvitePreviews
             : const <HouseholdInvitePreview>[],
@@ -492,14 +520,22 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
 
     state = state.copyWith(isSubmitting: true, error: null);
     try {
+      String? pendingInviteHouseholdId;
+      for (final invite in state.pendingInvitePreviews) {
+        if (invite.inviteId == trimmedInviteId) {
+          pendingInviteHouseholdId = invite.householdId;
+          break;
+        }
+      }
       await _gateway.acceptInviteById(trimmedInviteId);
       final households = await _gateway.loadHouseholds();
       final isAuthenticated = _gateway.isAuthenticated;
+      final selectedId = _selectedHouseholdIdAfterJoin(
+        households,
+        preferredHouseholdId: pendingInviteHouseholdId,
+      );
       final members = isAuthenticated
-          ? await _loadMembersForSelectedHousehold(
-              households,
-              state.selectedHouseholdId,
-            )
+          ? await _loadMembersForSelectedHousehold(households, selectedId)
           : const <HouseholdMember>[];
       if (!mounted) return;
       state = state.copyWith(
@@ -508,6 +544,7 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
         isAuthenticated: isAuthenticated,
         households: List.unmodifiable(households),
         householdMembers: List.unmodifiable(members),
+        selectedHouseholdId: selectedId,
         pendingInvitePreviews: List.unmodifiable(
           isAuthenticated
               ? state.pendingInvitePreviews.where(
@@ -703,6 +740,24 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
     return households.first.id;
   }
 
+  String _selectedHouseholdIdAfterJoin(
+    List<Household> households, {
+    String? preferredHouseholdId,
+  }) {
+    if (households.isEmpty) return '';
+    final preferredId = preferredHouseholdId?.trim() ?? '';
+    if (preferredId.isNotEmpty &&
+        households.any((household) => household.id == preferredId)) {
+      return preferredId;
+    }
+    final currentSelectedId = state.selectedHouseholdId;
+    if (currentSelectedId.isNotEmpty &&
+        households.any((household) => household.id == currentSelectedId)) {
+      return currentSelectedId;
+    }
+    return households.last.id;
+  }
+
   void _setError(Object error) {
     if (!mounted) return;
     state = state.copyWith(
@@ -721,13 +776,9 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
 
 final householdGatewayProvider = Provider<HouseholdGateway>((ref) {
   final client = ref.read(supabaseClientProvider);
-  final backendConfig = ref.read(backendConfigProvider);
   return SupabaseHouseholdGateway(
     client,
-    SupabaseRemotePantryRepository(
-      client,
-      apiBaseUrl: backendConfig.apiBaseUrl,
-    ),
+    ref.read(remotePantryRepositoryProvider),
     ref.read(inventoryRepoProvider),
     ref.read(shoppingRepoProvider),
     ref.read(customRecipeRepoProvider),

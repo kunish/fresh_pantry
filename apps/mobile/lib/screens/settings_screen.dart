@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -196,6 +197,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     ref
         .read(householdSessionControllerProvider.notifier)
         .switchHousehold(householdId);
+  }
+
+  void _throwSentryTestException() {
+    throw StateError('This is test exception');
   }
 
   void _ensureOwnerPendingInvitesLoaded(String householdId, bool isOwner) {
@@ -590,6 +595,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         icon: Icons.inventory_2_outlined,
                         onTap: () {},
                       ),
+                      if (kDebugMode)
+                        _LinkRow(
+                          key: const Key('sentry_verify_action'),
+                          label: '验证 Sentry',
+                          sub: '创建一条测试异常',
+                          icon: Icons.bug_report_outlined,
+                          onTap: _throwSentryTestException,
+                        ),
                       _LinkRow(
                         label: '关于 FreshKeeper',
                         icon: Icons.info_outline_rounded,
@@ -826,6 +839,7 @@ class _LinkRow extends StatelessWidget {
   final bool isLast;
 
   const _LinkRow({
+    super.key,
     required this.label,
     this.sub,
     required this.icon,

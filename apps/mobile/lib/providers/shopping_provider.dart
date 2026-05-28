@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:uuid/uuid.dart';
@@ -8,6 +10,7 @@ import '../data/food_knowledge.dart';
 import '../storage/shopping_repo.dart';
 import '../sync/sync_operation.dart';
 import '../sync/sync_providers.dart';
+import '../sync/sync_ids.dart';
 import '_persistence_queue.dart';
 import 'storage_service_provider.dart';
 
@@ -123,7 +126,7 @@ ShoppingItem _withUniqueShoppingItemId(
 
 class ShoppingNotifier extends Notifier<List<ShoppingItem>>
     with PersistenceQueue {
-  late final ShoppingRepo _repo;
+  late ShoppingRepo _repo;
 
   @override
   List<ShoppingItem> build() {
@@ -161,12 +164,27 @@ class ShoppingNotifier extends Notifier<List<ShoppingItem>>
             clientId: ref.read(syncClientIdProvider),
             createdAt: DateTime.now().toUtc(),
           ),
-        );
+        )
+        .then((_) => unawaited(ref.read(syncPushPendingProvider)()));
+  }
+
+  ShoppingItem _withSyncId(ShoppingItem item) {
+    final householdId = ref.read(selectedHouseholdIdProvider).trim();
+    if (householdId.isEmpty || isUuid(item.id)) return item;
+    return item.copyWith(id: newSyncEntityId());
+  }
+
+  Future<void> replaceFromRemote(List<ShoppingItem> items) async {
+    final normalized = items
+        .map(_normalizeShoppingItem)
+        .toList(growable: false);
+    state = normalized;
+    await queuePersistence(() => _save(normalized));
   }
 
   Future<bool> add(ShoppingItem item) async {
     final normalizedItem = _withUniqueShoppingItemId(
-      _normalizeShoppingItem(item),
+      _normalizeShoppingItem(_withSyncId(item)),
       state.map((item) => item.id).toSet(),
     );
     final nameKey = _shoppingItemNameKey(normalizedItem.name);

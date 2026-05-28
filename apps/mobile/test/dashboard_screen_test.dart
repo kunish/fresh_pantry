@@ -56,6 +56,29 @@ void main() {
     expect(find.text('食材分类'), findsOneWidget);
     expect(find.text('还没有分类数据'), findsOneWidget);
   });
+
+  testWidgets('dashboard category cards fit compact phone width', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(393, 852));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      await _app(
+        inventory: [
+          _ingredient('牛奶'),
+          _ingredient('酸奶'),
+          _ingredient('奶酪'),
+          _ingredient('黄油'),
+        ],
+        recipes: const [],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('食材分类'), findsOneWidget);
+  });
 }
 
 Future<Widget> _app({

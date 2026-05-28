@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:uuid/uuid.dart';
@@ -10,6 +12,7 @@ import '../data/food_knowledge.dart';
 import '../storage/inventory_repo.dart';
 import '../sync/sync_operation.dart';
 import '../sync/sync_providers.dart';
+import '../sync/sync_ids.dart';
 import '../utils/ingredient_normalizer.dart';
 import '_persistence_queue.dart';
 import 'storage_service_provider.dart';
@@ -58,7 +61,7 @@ int notFreshIngredientCount(Iterable<Ingredient> items) {
 
 class InventoryNotifier extends Notifier<List<Ingredient>>
     with PersistenceQueue {
-  late final InventoryRepo _repo;
+  late InventoryRepo _repo;
 
   @override
   List<Ingredient> build() {
@@ -81,8 +84,8 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
       return Future.value();
     }
 
-    return ref
-        .read(syncOutboxRepoProvider)
+    final outbox = ref.read(syncOutboxRepoProvider);
+    return outbox
         .enqueue(
           SyncOperation(
             id: _syncOperationIds.v4(),
@@ -95,11 +98,27 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
             clientId: ref.read(syncClientIdProvider),
             createdAt: DateTime.now().toUtc(),
           ),
-        );
+        )
+        .then((_) => unawaited(ref.read(syncPushPendingProvider)()));
+  }
+
+  Ingredient _withSyncId(Ingredient item) {
+    final householdId = ref.read(selectedHouseholdIdProvider).trim();
+    if (householdId.isEmpty || isUuid(item.id)) return item;
+    return item.copyWith(id: newSyncEntityId());
+  }
+
+  Future<void> replaceFromRemote(List<Ingredient> items) async {
+    final normalized = items
+        .map(normalizeInventoryIngredient)
+        .map(refreshIngredientFreshness)
+        .toList(growable: false);
+    state = normalized;
+    await queuePersistence(() => _save(normalized));
   }
 
   Future<void> add(Ingredient item) async {
-    final normalizedItem = normalizeIngredientCategory(item);
+    final normalizedItem = normalizeIngredientCategory(_withSyncId(item));
     final stampedItem = normalizedItem.addedAt == null
         ? normalizedItem.copyWith(addedAt: DateTime.now())
         : normalizedItem;
@@ -135,7 +154,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
   Future<void> insertAt(int index, Ingredient item) async {
     final updated = [...state];
     final clampedIndex = index.clamp(0, updated.length).toInt();
-    final normalizedItem = normalizeInventoryIngredient(item);
+    final normalizedItem = normalizeInventoryIngredient(_withSyncId(item));
     updated.insert(clampedIndex, normalizedItem);
     state = updated;
     await queuePersistence(() => _save(updated));
@@ -172,11 +191,11 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
       if (!p.selected) continue;
       switch (p.action) {
         case IntakeAction.newRow:
-          current = [...current, _ingredientFromProposal(p)];
+          current = [...current, _withSyncId(_ingredientFromProposal(p))];
         case IntakeAction.mergeInto:
           final index = int.tryParse(p.mergeTargetId ?? '');
           if (index == null || index < 0 || index >= current.length) {
-            current = [...current, _ingredientFromProposal(p)];
+            current = [...current, _withSyncId(_ingredientFromProposal(p))];
             break;
           }
           final existing = current[index];
@@ -313,7 +332,7 @@ final inventoryProvider = NotifierProvider<InventoryNotifier, List<Ingredient>>(
 );
 
 class _AddHistoryNotifier extends Notifier<List<FrequentItem>> {
-  late final InventoryRepo _repo;
+  late InventoryRepo _repo;
 
   @override
   List<FrequentItem> build() {

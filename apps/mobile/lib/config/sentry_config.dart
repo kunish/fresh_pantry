@@ -14,12 +14,22 @@ class SentryConfig {
   const SentryConfig({
     required this.dsn,
     required this.tracesSampleRate,
+    required this.replaySessionSampleRate,
+    required this.replayOnErrorSampleRate,
     required this.environment,
   });
 
   factory SentryConfig.fromEnvironment() {
-    const sampleRateValue = String.fromEnvironment(
+    const tracesSampleRateValue = String.fromEnvironment(
       'SENTRY_TRACES_SAMPLE_RATE',
+      defaultValue: '1.0',
+    );
+    const replaySessionSampleRateValue = String.fromEnvironment(
+      'SENTRY_REPLAY_SESSION_SAMPLE_RATE',
+      defaultValue: '1.0',
+    );
+    const replayOnErrorSampleRateValue = String.fromEnvironment(
+      'SENTRY_REPLAY_ON_ERROR_SAMPLE_RATE',
       defaultValue: '1.0',
     );
     return SentryConfig(
@@ -27,13 +37,17 @@ class SentryConfig {
         'SENTRY_DSN',
         defaultValue: defaultSentryDsn,
       ),
-      tracesSampleRate: double.tryParse(sampleRateValue) ?? double.nan,
+      tracesSampleRate: _parseSampleRate(tracesSampleRateValue),
+      replaySessionSampleRate: _parseSampleRate(replaySessionSampleRateValue),
+      replayOnErrorSampleRate: _parseSampleRate(replayOnErrorSampleRateValue),
       environment: const String.fromEnvironment('SENTRY_ENVIRONMENT'),
     ).validate();
   }
 
   final String dsn;
   final double tracesSampleRate;
+  final double replaySessionSampleRate;
+  final double replayOnErrorSampleRate;
   final String environment;
 
   SentryConfig validate() {
@@ -41,16 +55,27 @@ class SentryConfig {
       throw SentryConfigException('SENTRY_DSN is invalid: $dsn');
     }
 
-    if (!tracesSampleRate.isFinite ||
-        tracesSampleRate < 0 ||
-        tracesSampleRate > 1) {
-      throw SentryConfigException(
-        'SENTRY_TRACES_SAMPLE_RATE must be between 0 and 1: '
-        '$tracesSampleRate',
-      );
-    }
+    _validateSampleRate('SENTRY_TRACES_SAMPLE_RATE', tracesSampleRate);
+    _validateSampleRate(
+      'SENTRY_REPLAY_SESSION_SAMPLE_RATE',
+      replaySessionSampleRate,
+    );
+    _validateSampleRate(
+      'SENTRY_REPLAY_ON_ERROR_SAMPLE_RATE',
+      replayOnErrorSampleRate,
+    );
 
     return this;
+  }
+
+  static double _parseSampleRate(String value) {
+    return double.tryParse(value) ?? double.nan;
+  }
+
+  static void _validateSampleRate(String name, double value) {
+    if (!value.isFinite || value < 0 || value > 1) {
+      throw SentryConfigException('$name must be between 0 and 1: $value');
+    }
   }
 
   static bool _isHttpUrl(String value) {

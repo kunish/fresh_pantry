@@ -88,8 +88,8 @@ Map<String, int> _countByCategory(List<Ingredient> items) {
 
 String _categoryCountsSignature(List<Ingredient> items) {
   final counts = _countByCategory(items);
-  final entries =
-      counts.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
+  final entries = counts.entries.toList()
+    ..sort((a, b) => a.key.compareTo(b.key));
   return entries.map((entry) => '${entry.key}:${entry.value}').join('|');
 }
 
@@ -135,8 +135,9 @@ class _DashboardHero extends ConsumerWidget {
       expiringItemsProvider.select(
         (items) => (
           urgent: items.where((i) => i.state == FreshnessState.expired).length,
-          soon:
-              items.where((i) => i.state == FreshnessState.expiringSoon).length,
+          soon: items
+              .where((i) => i.state == FreshnessState.expiringSoon)
+              .length,
         ),
       ),
     );
@@ -159,10 +160,9 @@ class _DashboardHero extends ConsumerWidget {
       onUrgentTap: () => openInventory(inventoryFilterNotFresh),
       onSoonTap: () => openInventory(inventoryFilterNotFresh),
       onLowStockTap: () => openInventory(inventoryFilterAll),
-      onSettings:
-          () => Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
+      onSettings: () => Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
     );
   }
 }
@@ -184,10 +184,9 @@ class _ExpiringItemsSection extends ConsumerWidget {
           title: '该用了',
           count: expiringItems.length,
           actionLabel: '全部',
-          onAction:
-              () => Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const ExpiringScreen())),
+          onAction: () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const ExpiringScreen())),
         ),
         SizedBox(
           height: 168,
@@ -228,21 +227,19 @@ class _CategorySection extends ConsumerWidget {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 18),
-          child:
-              categoryCounts.isEmpty
-                  ? const _DashboardEmptyState(
-                    icon: Icons.category_outlined,
-                    label: '还没有分类数据',
-                  )
-                  : _CategoryGrid(
-                    counts: categoryCounts,
-                    onTap: (cat) {
-                      ref
-                          .read(selectedCategoryProvider.notifier)
-                          .state = _inventoryCategoryForFkCategoryId(cat);
-                      ref.navigateToTab(FkTab.fridge);
-                    },
-                  ),
+          child: categoryCounts.isEmpty
+              ? const _DashboardEmptyState(
+                  icon: Icons.category_outlined,
+                  label: '还没有分类数据',
+                )
+              : _CategoryGrid(
+                  counts: categoryCounts,
+                  onTap: (cat) {
+                    ref.read(selectedCategoryProvider.notifier).state =
+                        _inventoryCategoryForFkCategoryId(cat);
+                    ref.navigateToTab(FkTab.fridge);
+                  },
+                ),
         ),
       ],
     );
@@ -283,12 +280,11 @@ class _TodayRecommendationSection extends ConsumerWidget {
               inventoryNames,
               todayRecipe,
             ),
-            onTap:
-                () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => RecipeDetailScreen(recipe: todayRecipe),
-                  ),
-                ),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => RecipeDetailScreen(recipe: todayRecipe),
+              ),
+            ),
           ),
         ),
       ],
@@ -608,7 +604,7 @@ class _CategoryGrid extends StatelessWidget {
         crossAxisCount: 4,
         mainAxisSpacing: 10,
         crossAxisSpacing: 10,
-        childAspectRatio: 0.95,
+        childAspectRatio: 0.88,
       ),
       itemBuilder: (context, index) {
         final entry = entries[index];
@@ -621,7 +617,7 @@ class _CategoryGrid extends StatelessWidget {
               color: palette.tint,
               borderRadius: BorderRadius.circular(16),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -634,6 +630,9 @@ class _CategoryGrid extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: palette.ink,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -642,6 +641,9 @@ class _CategoryGrid extends StatelessWidget {
                     fontSize: 11,
                     color: palette.ink.withValues(alpha: 0.7),
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),

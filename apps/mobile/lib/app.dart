@@ -17,6 +17,7 @@ import 'screens/shopping_list_screen.dart';
 import 'providers/notification_sync_provider.dart';
 import 'services/share_intent_service.dart';
 import 'household/invite_token.dart';
+import 'sync/household_content_sync.dart';
 import 'widgets/common/top_app_bar.dart';
 import 'widgets/common/bottom_nav_bar.dart';
 import 'widgets/common/search_overlay.dart';
@@ -151,7 +152,12 @@ class _AppShellState extends ConsumerState<AppShell> {
               children: [
                 const TopAppBar(),
                 Expanded(
-                  child: IndexedStack(index: currentIndex, children: _screens),
+                  child: HouseholdContentSync(
+                    child: IndexedStack(
+                      index: currentIndex,
+                      children: _screens,
+                    ),
+                  ),
                 ),
               ],
             ),

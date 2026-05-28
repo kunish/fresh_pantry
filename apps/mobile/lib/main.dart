@@ -27,6 +27,10 @@ void main() async {
   await SentryFlutter.init((options) {
     options.dsn = sentryConfig.dsn;
     options.tracesSampleRate = sentryConfig.tracesSampleRate;
+    options.replay.sessionSampleRate = sentryConfig.replaySessionSampleRate;
+    options.replay.onErrorSampleRate = sentryConfig.replayOnErrorSampleRate;
+    options.privacy.maskAllText = true;
+    options.privacy.maskAllImages = true;
     if (sentryConfig.environment.trim().isNotEmpty) {
       options.environment = sentryConfig.environment;
     }
@@ -57,19 +61,23 @@ Future<void> _runFreshPantry() async {
   customRecipeRepo.hydrate(customRecipeRepo.loadAll());
 
   runApp(
-    ProviderScope(
-      overrides: [
-        notificationServiceProvider.overrideWithValue(notificationService),
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        storageAdapterProvider.overrideWithValue(adapter),
-        inventoryRepoProvider.overrideWithValue(inventoryRepo),
-        shoppingRepoProvider.overrideWithValue(shoppingRepo),
-        customRecipeRepoProvider.overrideWithValue(customRecipeRepo),
-        systemShareSourceProvider.overrideWithValue(createSystemShareSource()),
-        inviteLinkSourceProvider.overrideWithValue(createInviteLinkSource()),
-        backendConfigProvider.overrideWithValue(backendConfig),
-      ],
-      child: const FreshPantryApp(),
+    SentryWidget(
+      child: ProviderScope(
+        overrides: [
+          notificationServiceProvider.overrideWithValue(notificationService),
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          storageAdapterProvider.overrideWithValue(adapter),
+          inventoryRepoProvider.overrideWithValue(inventoryRepo),
+          shoppingRepoProvider.overrideWithValue(shoppingRepo),
+          customRecipeRepoProvider.overrideWithValue(customRecipeRepo),
+          systemShareSourceProvider.overrideWithValue(
+            createSystemShareSource(),
+          ),
+          inviteLinkSourceProvider.overrideWithValue(createInviteLinkSource()),
+          backendConfigProvider.overrideWithValue(backendConfig),
+        ],
+        child: const FreshPantryApp(),
+      ),
     ),
   );
 }
