@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:fresh_pantry/household/household_models.dart';
 import 'package:fresh_pantry/models/ingredient.dart';
 import 'package:fresh_pantry/models/recipe.dart';
@@ -96,6 +97,65 @@ void main() {
     await tester.pump();
 
     expect(find.text('Rice|Eggs|Omelette'), findsOneWidget);
+
+    await remote.close();
+  });
+
+  testWidgets('transient realtime channel error is not reported as fatal', (
+    tester,
+  ) async {
+    final adapter = InMemoryStorageAdapter();
+    final remote = FakeRemotePantryRepository(
+      inventoryRows: [_inventoryRow('11111111-1111-1111-1111-111111111111')],
+      shoppingRows: const [],
+      customRecipeRows: const [],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          storageAdapterProvider.overrideWithValue(adapter),
+          inventoryRepoProvider.overrideWithValue(InventoryRepo(adapter)),
+          shoppingRepoProvider.overrideWithValue(ShoppingRepo(adapter)),
+          customRecipeRepoProvider.overrideWithValue(CustomRecipeRepo(adapter)),
+          syncOutboxRepoProvider.overrideWithValue(SyncOutboxRepo(adapter)),
+          selectedHouseholdIdProvider.overrideWithValue('household_1'),
+          remotePantryRepositoryProvider.overrideWithValue(remote),
+          syncPushPendingProvider.overrideWithValue(() async {}),
+        ],
+        child: HouseholdContentSync(
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: Consumer(
+              builder: (context, ref, _) {
+                final inventory = ref.watch(inventoryProvider);
+                return Text(inventory.map((item) => item.name).join(','));
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    // A transient realtime channel error (connectivity drop / channelError)
+    // must NOT surface as a fatal crash — the subscription survives it.
+    remote.inventoryController.addError(
+      RealtimeSubscribeException(RealtimeSubscribeStatus.channelError),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+
+    // The subscription stays alive and still applies later updates.
+    remote.inventoryController.add([
+      _inventoryRow('44444444-4444-4444-4444-444444444444', name: 'Rice'),
+    ]);
+    await tester.pump();
+    await tester.pump();
+    expect(find.textContaining('Rice'), findsOneWidget);
 
     await remote.close();
   });

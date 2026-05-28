@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/ingredient.dart';
 import '../models/recipe.dart';
@@ -274,6 +275,15 @@ class _HouseholdContentSyncState extends ConsumerState<HouseholdContentSync> {
   }
 
   void _reportStreamError(Object error, StackTrace stackTrace) {
+    // Realtime channel errors (connectivity drops, close code 1002,
+    // channelError) are transient: the stream subscription is not cancelled and
+    // resumes once the realtime client reconnects. Surfacing them via
+    // FlutterError.reportError turned every network blip into a *fatal* Sentry
+    // crash (FRESH_PANTRY-7/8). Log and move on instead of reporting.
+    if (error is RealtimeSubscribeException) {
+      debugPrint('Household realtime channel error (transient): $error');
+      return;
+    }
     FlutterError.reportError(
       FlutterErrorDetails(
         exception: error,
