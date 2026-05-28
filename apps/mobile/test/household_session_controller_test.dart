@@ -74,6 +74,32 @@ class FakeHouseholdGateway implements HouseholdGateway {
     throw UnimplementedError('Not needed by these tests.');
   }
 
+  @override
+  String? get currentUserId => 'owner_1';
+
+  var removedUserId = '';
+  var revokedInviteId = '';
+  final ownerPendingInvites = <OwnerPendingInvite>[];
+  Object? removeMemberError;
+  Object? revokeInviteError;
+
+  @override
+  Future<void> removeMember(String targetUserId) async {
+    if (removeMemberError != null) throw removeMemberError!;
+    removedUserId = targetUserId;
+  }
+
+  @override
+  Future<void> revokeInvite(String inviteId) async {
+    if (revokeInviteError != null) throw revokeInviteError!;
+    revokedInviteId = inviteId;
+  }
+
+  @override
+  Future<List<OwnerPendingInvite>> fetchOwnerPendingInvites(String householdId) async {
+    return ownerPendingInvites;
+  }
+
   void emitAuthStateChange() {
     authStateController.add(null);
   }

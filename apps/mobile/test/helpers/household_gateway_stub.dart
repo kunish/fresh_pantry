@@ -90,4 +90,26 @@ class HouseholdGatewayStub implements HouseholdGateway {
   Future<void> acceptInviteById(String inviteId) async {
     acceptedInviteId = inviteId;
   }
+
+  @override
+  String? get currentUserId => 'owner_1';
+
+  var removedUserId = '';
+  var revokedInviteId = '';
+  final ownerPendingInvites = <OwnerPendingInvite>[];
+
+  @override
+  Future<void> removeMember(String targetUserId) async {
+    removedUserId = targetUserId;
+  }
+
+  @override
+  Future<void> revokeInvite(String inviteId) async {
+    revokedInviteId = inviteId;
+  }
+
+  @override
+  Future<List<OwnerPendingInvite>> fetchOwnerPendingInvites(String householdId) async {
+    return ownerPendingInvites;
+  }
 }

@@ -81,6 +81,24 @@ class FakeBootstrapGateway implements HouseholdGateway {
     throw UnimplementedError('Not needed by these tests.');
   }
 
+  @override
+  String? get currentUserId => 'owner_1';
+
+  @override
+  Future<void> removeMember(String targetUserId) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
+  Future<void> revokeInvite(String inviteId) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
+  Future<List<OwnerPendingInvite>> fetchOwnerPendingInvites(String householdId) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
   Future<void> close() {
     return authStateController.close();
   }
@@ -136,6 +154,21 @@ class RecordingRemotePantryRepository implements RemotePantryRepository {
 
   @override
   Future<void> acceptInviteById(String inviteId) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
+  Future<void> removeMember(String targetUserId) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
+  Future<void> revokeInvite(String inviteId) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
+  Future<List<OwnerPendingInvite>> fetchOwnerPendingInvites(String householdId) {
     throw UnimplementedError('Not needed by these tests.');
   }
 
