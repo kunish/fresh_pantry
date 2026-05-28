@@ -1,6 +1,6 @@
 begin;
 
-select plan(34);
+select plan(37);
 
 create or replace function pg_temp.authenticate_as(user_id uuid, user_email text)
 returns void
@@ -81,6 +81,15 @@ select is(
   'member can read shared inventory'
 );
 
+select is(
+  (
+    select string_agg(email || ':' || role, ',' order by email)
+    from public.list_household_members('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+  ),
+  'member@example.com:member,owner@example.com:owner',
+  'member can list household members with emails'
+);
+
 select lives_ok(
   $$
     insert into public.shopping_items (household_id, name, detail, category)
@@ -117,6 +126,13 @@ select is(
   (select count(*) from public.households where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
   0::bigint,
   'non-member cannot read household'
+);
+
+select throws_ok(
+  $$ select * from public.list_household_members('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa') $$,
+  '42501',
+  'Household access denied',
+  'non-member cannot list household members'
 );
 
 select is(
@@ -266,6 +282,11 @@ select ok(
 select ok(
   not has_function_privilege('anon', 'public.accept_household_invite_by_id(uuid)', 'execute'),
   'anon cannot execute invite acceptance by id rpc'
+);
+
+select ok(
+  not has_function_privilege('anon', 'public.list_household_members(uuid)', 'execute'),
+  'anon cannot execute household member list rpc'
 );
 
 select throws_ok(

@@ -14,6 +14,14 @@ class InviteRecordingGateway implements HouseholdGateway {
       defaultStorageArea: 'fridge',
     ),
   ];
+  final members = <HouseholdMember>[
+    const HouseholdMember(
+      householdId: 'household_1',
+      userId: 'owner_1',
+      role: 'owner',
+      email: 'owner@example.com',
+    ),
+  ];
   var acceptedToken = '';
   var inviteHouseholdId = '';
   var inviteEmail = '';
@@ -58,6 +66,13 @@ class InviteRecordingGateway implements HouseholdGateway {
     inviteHouseholdId = householdId;
     inviteEmail = email;
     return 'https://api.fresh-pantry.kunish.eu.org/invite/abcDEF123_-';
+  }
+
+  @override
+  Future<List<HouseholdMember>> loadHouseholdMembers(String householdId) async {
+    return members
+        .where((member) => member.householdId == householdId)
+        .toList(growable: false);
   }
 
   @override
@@ -145,6 +160,7 @@ void main() {
     expect(gateway.acceptedToken, 'abcDEF123_-');
     expect(gateway.loadCount, 1);
     expect(controller.state.households.single.id, 'household_1');
+    expect(controller.state.householdMembers.single.email, 'owner@example.com');
     expect(controller.state.isSubmitting, isFalse);
 
     controller.dispose();
@@ -221,6 +237,10 @@ void main() {
       expect(gateway.pendingLoadCount, 1);
       expect((controller.state as dynamic).pendingInvitePreviews, isEmpty);
       expect(controller.state.households.single.id, 'household_1');
+      expect(
+        controller.state.householdMembers.single.email,
+        'owner@example.com',
+      );
       expect(controller.state.isSubmitting, isFalse);
 
       controller.dispose();

@@ -143,6 +143,7 @@ abstract class RemotePantryRepository {
     required String householdId,
     required String email,
   });
+  Future<List<HouseholdMember>> loadHouseholdMembers(String householdId);
   Future<List<HouseholdInvitePreview>> loadPendingInvites();
   Future<HouseholdInvitePreview> previewInvite(String token);
   Future<void> acceptInvite(String token);
@@ -232,6 +233,28 @@ class SupabaseRemotePantryRepository implements RemotePantryRepository {
         ? _apiBaseUrl.substring(0, _apiBaseUrl.length - 1)
         : _apiBaseUrl;
     return '$baseUrl/invite/$token';
+  }
+
+  @override
+  Future<List<HouseholdMember>> loadHouseholdMembers(String householdId) async {
+    final trimmedHouseholdId = householdId.trim();
+    if (trimmedHouseholdId.isEmpty) return const [];
+    if (_client.auth.currentUser == null) {
+      throw StateError(
+        'Cannot list household members without a signed-in user.',
+      );
+    }
+
+    final rows = await _client.rpc(
+      'list_household_members',
+      params: {'target_household_id': trimmedHouseholdId},
+    );
+    if (rows is! List) return const [];
+
+    return rows
+        .whereType<Map>()
+        .map((row) => HouseholdMember.fromJson(Map<String, dynamic>.from(row)))
+        .toList(growable: false);
   }
 
   @override

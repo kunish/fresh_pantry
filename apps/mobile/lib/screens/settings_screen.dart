@@ -232,7 +232,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               HouseholdSection(
                 householdName: household?.name ?? '未加入家庭',
-                members: const [],
+                members: household == null
+                    ? const []
+                    : householdSession.householdMembers,
                 onInviteEmail: household == null
                     ? null
                     : (email) => _onInviteEmail(household.id, email),

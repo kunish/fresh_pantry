@@ -6,6 +6,7 @@ import 'package:fresh_pantry/household/household_session_controller.dart';
 
 class FakeHouseholdGateway implements HouseholdGateway {
   final households = <Household>[];
+  final members = <HouseholdMember>[];
   final authStateController = StreamController<void>.broadcast();
   @override
   var isAuthenticated = false;
@@ -44,6 +45,13 @@ class FakeHouseholdGateway implements HouseholdGateway {
     required String email,
   }) {
     throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
+  Future<List<HouseholdMember>> loadHouseholdMembers(String householdId) async {
+    return members
+        .where((member) => member.householdId == householdId)
+        .toList(growable: false);
   }
 
   @override
@@ -112,6 +120,41 @@ void main() {
     await controller.refreshHouseholds();
 
     expect(controller.state.households.single.id, 'household_1');
+  });
+
+  test('refreshHouseholds stores members for the loaded household', () async {
+    final gateway = FakeHouseholdGateway()
+      ..isAuthenticated = true
+      ..households.add(
+        const Household(
+          id: 'household_1',
+          name: 'Home',
+          ownerId: 'owner_1',
+          defaultStorageArea: 'fridge',
+        ),
+      )
+      ..members.addAll(const [
+        HouseholdMember(
+          householdId: 'household_1',
+          userId: 'owner_1',
+          role: 'owner',
+          email: 'owner@example.com',
+        ),
+        HouseholdMember(
+          householdId: 'household_1',
+          userId: 'member_1',
+          role: 'member',
+          email: 'member@example.com',
+        ),
+      ]);
+    final controller = HouseholdSessionController(gateway);
+
+    await controller.refreshHouseholds();
+
+    expect(controller.state.householdMembers.map((member) => member.email), [
+      'owner@example.com',
+      'member@example.com',
+    ]);
   });
 
   test('refreshHouseholds stores authentication state', () async {

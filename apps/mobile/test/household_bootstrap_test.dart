@@ -57,6 +57,11 @@ class FakeBootstrapGateway implements HouseholdGateway {
   }
 
   @override
+  Future<List<HouseholdMember>> loadHouseholdMembers(String householdId) async {
+    return const [];
+  }
+
+  @override
   Future<HouseholdInvitePreview> previewInvite(String token) {
     throw UnimplementedError('Not needed by these tests.');
   }
@@ -107,6 +112,11 @@ class RecordingRemotePantryRepository implements RemotePantryRepository {
     required String email,
   }) {
     throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
+  Future<List<HouseholdMember>> loadHouseholdMembers(String householdId) async {
+    return const [];
   }
 
   @override

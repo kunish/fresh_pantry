@@ -279,6 +279,10 @@ class _AuthGateScreenState extends ConsumerState<AuthGateScreen> {
                     _ErrorText(session.error!)
                   else
                     const SizedBox.shrink(),
+                  if (preview != null && session.error != null) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    _ErrorText(session.error!),
+                  ],
                   const SizedBox(height: AppSpacing.xl),
                   FilledButton.icon(
                     onPressed:

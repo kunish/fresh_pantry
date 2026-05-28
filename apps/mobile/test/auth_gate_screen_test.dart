@@ -25,6 +25,7 @@ class FakeHouseholdGateway implements HouseholdGateway {
   var sentEmail = '';
   var createdHouseholdName = '';
   var acceptedInviteId = '';
+  Object? acceptInviteError;
 
   @override
   Stream<void> get authStateChanges => authStateController.stream;
@@ -79,6 +80,7 @@ class FakeHouseholdGateway implements HouseholdGateway {
 
   @override
   Future<void> acceptInvite(String token) async {
+    if (acceptInviteError != null) throw acceptInviteError!;
     initialHouseholds = const [
       Household(
         id: 'household_2',
@@ -87,6 +89,11 @@ class FakeHouseholdGateway implements HouseholdGateway {
         defaultStorageArea: 'fridge',
       ),
     ];
+  }
+
+  @override
+  Future<List<HouseholdMember>> loadHouseholdMembers(String householdId) async {
+    return const [];
   }
 
   @override
@@ -241,6 +248,25 @@ void main() {
     expect(find.text('App Shell'), findsOneWidget);
     expect(find.text('Kunish Shared Kitchen'), findsNothing);
   });
+
+  testWidgets(
+    'AuthGateScreen shows accept errors while keeping invite overview visible',
+    (tester) async {
+      final gateway = FakeHouseholdGateway(isAuthenticated: true)
+        ..acceptInviteError = StateError('Invite is not available');
+      await tester.pumpWidget(
+        _wrap(gateway, initialInviteToken: 'abcDEF123_-'),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, '接受邀请'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Kunish Shared Kitchen'), findsOneWidget);
+      expect(find.textContaining('Invite is not available'), findsOneWidget);
+      expect(find.text('App Shell'), findsNothing);
+    },
+  );
 
   testWidgets('AuthGateScreen shows pending invite reminders after login', (
     tester,

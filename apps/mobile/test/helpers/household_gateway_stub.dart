@@ -7,6 +7,7 @@ const stubInviteUrl =
 class HouseholdGatewayStub implements HouseholdGateway {
   HouseholdGatewayStub({
     this.households = const [],
+    this.members = const [],
     this.inviteUrl = stubInviteUrl,
     this.isAuthenticated = false,
     bool emitInitialAuthState = false,
@@ -15,6 +16,7 @@ class HouseholdGatewayStub implements HouseholdGateway {
            : const Stream<void>.empty();
 
   final List<Household> households;
+  final List<HouseholdMember> members;
   final String inviteUrl;
   @override
   final bool isAuthenticated;
@@ -51,6 +53,13 @@ class HouseholdGatewayStub implements HouseholdGateway {
     inviteHouseholdId = householdId;
     inviteEmail = email;
     return inviteUrl;
+  }
+
+  @override
+  Future<List<HouseholdMember>> loadHouseholdMembers(String householdId) async {
+    return members
+        .where((member) => member.householdId == householdId)
+        .toList(growable: false);
   }
 
   @override

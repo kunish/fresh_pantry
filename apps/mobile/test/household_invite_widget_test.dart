@@ -63,6 +63,59 @@ void main() {
   });
 
   testWidgets(
+    'SettingsScreen renders household members after household loads',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final gateway = HouseholdGatewayStub(
+        households: const [
+          Household(
+            id: 'household_1',
+            name: 'Kunish Kitchen',
+            ownerId: 'owner_1',
+            defaultStorageArea: 'fridge',
+          ),
+        ],
+        members: const [
+          HouseholdMember(
+            householdId: 'household_1',
+            userId: 'owner_1',
+            role: 'owner',
+            email: 'owner@example.com',
+          ),
+          HouseholdMember(
+            householdId: 'household_1',
+            userId: 'member_1',
+            role: 'member',
+            email: 'member@example.com',
+          ),
+        ],
+        isAuthenticated: true,
+        emitInitialAuthState: true,
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            notificationServiceProvider.overrideWithValue(
+              NotificationService(),
+            ),
+            householdGatewayProvider.overrideWithValue(gateway),
+          ],
+          child: const MaterialApp(home: SettingsScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Kunish Kitchen'), findsOneWidget);
+      expect(find.text('owner@example.com'), findsOneWidget);
+      expect(find.text('member@example.com'), findsOneWidget);
+      expect(find.text('登录后会显示家庭成员'), findsNothing);
+    },
+  );
+
+  testWidgets(
     'SettingsScreen creates invite for current household and copies link',
     (tester) async {
       SharedPreferences.setMockInitialValues({});
