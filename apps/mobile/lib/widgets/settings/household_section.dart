@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../household/household_models.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/app_dialog.dart';
 import '../shared/fk_card.dart';
 import '../shared/fk_pill.dart';
 import '../shared/fk_section_head.dart';
@@ -13,12 +14,28 @@ class HouseholdSection extends StatelessWidget {
     required this.members,
     this.onInvite,
     this.onInviteEmail,
+    this.isOwner = false,
+    this.currentUserId = '',
+    this.onRemoveMember,
+    this.ownerPendingInvites = const [],
+    this.onRevokeInvite,
+    this.households = const [],
+    this.selectedHouseholdId = '',
+    this.onSwitchHousehold,
   });
 
   final String householdName;
   final List<HouseholdMember> members;
   final VoidCallback? onInvite;
   final Future<void> Function(String email)? onInviteEmail;
+  final bool isOwner;
+  final String currentUserId;
+  final Future<void> Function(String userId)? onRemoveMember;
+  final List<OwnerPendingInvite> ownerPendingInvites;
+  final Future<void> Function(String inviteId)? onRevokeInvite;
+  final List<Household> households;
+  final String selectedHouseholdId;
+  final ValueChanged<String>? onSwitchHousehold;
 
   @override
   Widget build(BuildContext context) {
@@ -53,13 +70,38 @@ class HouseholdSection extends StatelessWidget {
                     ),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
-                      child: Text(
-                        householdName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
-                      ),
+                      child: households.length > 1 && onSwitchHousehold != null
+                          ? DropdownButton<String>(
+                              value: selectedHouseholdId.isNotEmpty &&
+                                      households.any((h) => h.id == selectedHouseholdId)
+                                  ? selectedHouseholdId
+                                  : households.first.id,
+                              isExpanded: true,
+                              underline: const SizedBox.shrink(),
+                              items: [
+                                for (final h in households)
+                                  DropdownMenuItem(
+                                    value: h.id,
+                                    child: Text(
+                                      h.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context).textTheme.titleMedium
+                                          ?.copyWith(fontWeight: FontWeight.w700),
+                                    ),
+                                  ),
+                              ],
+                              onChanged: (value) {
+                                if (value != null) onSwitchHousehold!(value);
+                              },
+                            )
+                          : Text(
+                              householdName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
                     ),
                   ],
                 ),
@@ -72,7 +114,25 @@ class HouseholdSection extends StatelessWidget {
                     ),
                   )
                 else
-                  for (final member in members) _MemberRow(member: member),
+                  for (final member in members) _buildMemberRow(context, member),
+                if (isOwner && ownerPendingInvites.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    '待处理邀请',
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: AppColors.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  for (final invite in ownerPendingInvites)
+                    _PendingInviteRow(
+                      invite: invite,
+                      onRevoke: onRevokeInvite != null
+                          ? () => onRevokeInvite!(invite.id)
+                          : null,
+                    ),
+                ],
                 const SizedBox(height: AppSpacing.md),
                 SizedBox(
                   width: double.infinity,
@@ -87,6 +147,39 @@ class HouseholdSection extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildMemberRow(BuildContext context, HouseholdMember member) {
+    final canRemove = isOwner &&
+        member.userId != currentUserId &&
+        member.role != 'owner' &&
+        onRemoveMember != null;
+
+    final row = _MemberRow(member: member);
+
+    if (!canRemove) return row;
+
+    return Dismissible(
+      key: ValueKey('member_${member.userId}'),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: AppSpacing.xl),
+        color: AppColors.fkDanger,
+        child: const Icon(Icons.delete_outline, color: Colors.white),
+      ),
+      confirmDismiss: (_) async {
+        return showAppConfirmDialog(
+          context,
+          title: '移除成员',
+          content: '确定移除 ${member.email}？',
+          confirmLabel: '移除',
+          isDestructive: true,
+        );
+      },
+      onDismissed: (_) => onRemoveMember!(member.userId),
+      child: row,
     );
   }
 
@@ -127,6 +220,56 @@ class _MemberRow extends StatelessWidget {
             ),
           ),
           FkPill(label: label, sm: true),
+        ],
+      ),
+    );
+  }
+}
+
+class _PendingInviteRow extends StatelessWidget {
+  const _PendingInviteRow({required this.invite, this.onRevoke});
+
+  final OwnerPendingInvite invite;
+  final VoidCallback? onRevoke;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.mail_outline,
+            color: AppColors.outline,
+            size: 22,
+          ),
+          const SizedBox(width: AppSpacing.sm + 2),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  invite.email,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                Text(
+                  '待接受',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (onRevoke != null)
+            IconButton(
+              icon: const Icon(Icons.close, size: 18),
+              color: AppColors.fkDanger,
+              onPressed: onRevoke,
+              tooltip: '撤销邀请',
+            ),
         ],
       ),
     );

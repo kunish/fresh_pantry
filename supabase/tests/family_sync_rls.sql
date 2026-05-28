@@ -1,6 +1,6 @@
 begin;
 
-select plan(37);
+select plan(52);
 
 create or replace function pg_temp.authenticate_as(user_id uuid, user_email text)
 returns void
@@ -303,6 +303,27 @@ select throws_ok(
   'pending invite list requires auth uid'
 );
 
+select throws_ok(
+  $$ select public.remove_household_member('22222222-2222-2222-2222-222222222222'::uuid) $$,
+  '28000',
+  'Authentication required',
+  'remove_household_member requires auth uid'
+);
+
+select throws_ok(
+  $$ select public.revoke_household_invite('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'::uuid) $$,
+  '28000',
+  'Authentication required',
+  'revoke_household_invite requires auth uid'
+);
+
+select throws_ok(
+  $$ select * from public.list_owner_pending_invites('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid) $$,
+  '28000',
+  'Authentication required',
+  'list_owner_pending_invites requires auth uid'
+);
+
 select pg_temp.authenticate_as('22222222-2222-2222-2222-222222222222', 'member@example.com');
 
 select throws_ok(
@@ -419,6 +440,138 @@ select is(
   (select count(*) from public.households where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
   1::bigint,
   'accepted user can read household'
+);
+
+-- === New RPC tests for household management enhancement ===
+
+-- Test: anon cannot execute new RPCs
+select ok(
+  not has_function_privilege('anon', 'public.remove_household_member(uuid)', 'execute'),
+  'anon cannot execute remove_household_member rpc'
+);
+
+select ok(
+  not has_function_privilege('anon', 'public.revoke_household_invite(uuid)', 'execute'),
+  'anon cannot execute revoke_household_invite rpc'
+);
+
+select ok(
+  not has_function_privilege('anon', 'public.list_owner_pending_invites(uuid)', 'execute'),
+  'anon cannot execute list_owner_pending_invites rpc'
+);
+
+-- Test: owner can remove a member (outsider was added as member earlier)
+select pg_temp.authenticate_as('11111111-1111-1111-1111-111111111111', 'owner@example.com');
+
+select lives_ok(
+  $$ select public.remove_household_member('33333333-3333-3333-3333-333333333333'::uuid) $$,
+  'owner can remove a member'
+);
+
+select is(
+  (
+    select count(*)
+    from public.household_members
+    where household_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+      and user_id = '33333333-3333-3333-3333-333333333333'
+  ),
+  0::bigint,
+  'removed member is no longer in household'
+);
+
+-- Test: owner cannot remove self
+select throws_ok(
+  $$ select public.remove_household_member('11111111-1111-1111-1111-111111111111'::uuid) $$,
+  'P0001',
+  'Cannot remove yourself',
+  'owner cannot remove self'
+);
+
+-- Test: member cannot remove another member
+select pg_temp.authenticate_as('22222222-2222-2222-2222-222222222222', 'member@example.com');
+
+select throws_ok(
+  $$ select public.remove_household_member('11111111-1111-1111-1111-111111111111'::uuid) $$,
+  '42501',
+  'Not authorized or target is not a member',
+  'member cannot remove another member'
+);
+
+-- Test: owner can list pending invites and revoke
+select pg_temp.authenticate_as('11111111-1111-1111-1111-111111111111', 'owner@example.com');
+
+-- Insert a fresh pending invite for testing revoke
+insert into public.household_invites (
+  id,
+  household_id,
+  email,
+  token_hash,
+  expires_at,
+  created_by
+)
+values (
+  'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+  'newinvite@example.com',
+  'revoke-test-token',
+  now() + interval '7 days',
+  '11111111-1111-1111-1111-111111111111'
+);
+
+select is(
+  (select count(*) from public.list_owner_pending_invites('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid)),
+  1::bigint,
+  'owner can list pending invites for household'
+);
+
+select lives_ok(
+  $$ select public.revoke_household_invite('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'::uuid) $$,
+  'owner can revoke pending invite'
+);
+
+select is(
+  (
+    select status from public.household_invites
+    where id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'
+  ),
+  'revoked',
+  'revoked invite has revoked status'
+);
+
+-- Test: member cannot revoke invite
+-- Insert another invite for this test
+insert into public.household_invites (
+  id,
+  household_id,
+  email,
+  token_hash,
+  expires_at,
+  created_by
+)
+values (
+  'ffffffff-ffff-ffff-ffff-ffffffffffff',
+  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+  'another@example.com',
+  'member-revoke-test-token',
+  now() + interval '7 days',
+  '11111111-1111-1111-1111-111111111111'
+);
+
+select pg_temp.authenticate_as('22222222-2222-2222-2222-222222222222', 'member@example.com');
+
+select throws_ok(
+  $$ select public.revoke_household_invite('ffffffff-ffff-ffff-ffff-ffffffffffff'::uuid) $$,
+  '42501',
+  'Not authorized or invite not found',
+  'member cannot revoke invite'
+);
+
+-- Test: member cannot list owner pending invites
+select throws_ok(
+  $$ select * from public.list_owner_pending_invites('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid) $$,
+  '42501',
+  'Not authorized',
+  'member cannot list owner pending invites'
 );
 
 reset role;

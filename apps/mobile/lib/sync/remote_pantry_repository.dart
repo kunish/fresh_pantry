@@ -148,6 +148,9 @@ abstract class RemotePantryRepository {
   Future<HouseholdInvitePreview> previewInvite(String token);
   Future<void> acceptInvite(String token);
   Future<void> acceptInviteById(String inviteId);
+  Future<void> removeMember(String targetUserId);
+  Future<void> revokeInvite(String inviteId);
+  Future<List<OwnerPendingInvite>> fetchOwnerPendingInvites(String householdId);
   Future<List<Map<String, dynamic>>> loadInventory(String householdId);
   Future<void> upsertInventory(
     String householdId,
@@ -328,6 +331,58 @@ class SupabaseRemotePantryRepository implements RemotePantryRepository {
       'accept_household_invite_by_id',
       params: {'target_invite_id': trimmedInviteId},
     );
+  }
+
+  @override
+  Future<void> removeMember(String targetUserId) async {
+    final trimmedUserId = targetUserId.trim();
+    if (!_isUuid(trimmedUserId)) {
+      throw ArgumentError.value(targetUserId, 'targetUserId', 'Invalid user id');
+    }
+    if (_client.auth.currentUser == null) {
+      throw StateError('Cannot remove member without a signed-in user.');
+    }
+
+    await _client.rpc(
+      'remove_household_member',
+      params: {'target_user_id': trimmedUserId},
+    );
+  }
+
+  @override
+  Future<void> revokeInvite(String inviteId) async {
+    final trimmedInviteId = inviteId.trim();
+    if (!_isUuid(trimmedInviteId)) {
+      throw ArgumentError.value(inviteId, 'inviteId', 'Invalid invite id');
+    }
+    if (_client.auth.currentUser == null) {
+      throw StateError('Cannot revoke invite without a signed-in user.');
+    }
+
+    await _client.rpc(
+      'revoke_household_invite',
+      params: {'target_invite_id': trimmedInviteId},
+    );
+  }
+
+  @override
+  Future<List<OwnerPendingInvite>> fetchOwnerPendingInvites(String householdId) async {
+    final trimmedHouseholdId = householdId.trim();
+    if (trimmedHouseholdId.isEmpty) return const [];
+    if (_client.auth.currentUser == null) {
+      throw StateError('Cannot list owner pending invites without a signed-in user.');
+    }
+
+    final rows = await _client.rpc(
+      'list_owner_pending_invites',
+      params: {'target_household_id': trimmedHouseholdId},
+    );
+    if (rows is! List) return const [];
+
+    return rows
+        .whereType<Map>()
+        .map((row) => OwnerPendingInvite.fromJson(Map<String, dynamic>.from(row)))
+        .toList(growable: false);
   }
 
   @override

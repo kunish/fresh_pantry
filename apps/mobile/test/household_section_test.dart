@@ -29,4 +29,153 @@ void main() {
     expect(find.text('owner@example.com'), findsOneWidget);
     expect(find.text('邀请成员'), findsOneWidget);
   });
+
+  testWidgets('HouseholdSection shows dismissible on member rows for owner', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: HouseholdSection(
+            householdName: 'Kunish Kitchen',
+            members: const [
+              HouseholdMember(
+                householdId: 'household_1',
+                userId: 'owner_1',
+                role: 'owner',
+                email: 'owner@example.com',
+              ),
+              HouseholdMember(
+                householdId: 'household_1',
+                userId: 'member_1',
+                role: 'member',
+                email: 'member@example.com',
+              ),
+            ],
+            isOwner: true,
+            currentUserId: 'owner_1',
+            onRemoveMember: (_) async {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(Dismissible), findsOneWidget);
+  });
+
+  testWidgets('HouseholdSection hides dismissible on own row', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: HouseholdSection(
+            householdName: 'Kunish Kitchen',
+            members: const [
+              HouseholdMember(
+                householdId: 'household_1',
+                userId: 'owner_1',
+                role: 'owner',
+                email: 'owner@example.com',
+              ),
+            ],
+            isOwner: true,
+            currentUserId: 'owner_1',
+            onRemoveMember: (_) async {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(Dismissible), findsNothing);
+  });
+
+  testWidgets('HouseholdSection shows pending invites when owner has them', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: HouseholdSection(
+            householdName: 'Kunish Kitchen',
+            members: const [
+              HouseholdMember(
+                householdId: 'household_1',
+                userId: 'owner_1',
+                role: 'owner',
+                email: 'owner@example.com',
+              ),
+            ],
+            isOwner: true,
+            currentUserId: 'owner_1',
+            ownerPendingInvites: [
+              OwnerPendingInvite(
+                id: 'invite_1',
+                email: 'pending@example.com',
+                expiresAt: DateTime.now().add(const Duration(days: 7)),
+                createdAt: DateTime.now(),
+              ),
+            ],
+            onRevokeInvite: (_) async {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('待处理邀请'), findsOneWidget);
+    expect(find.text('pending@example.com'), findsOneWidget);
+  });
+
+  testWidgets('HouseholdSection hides pending invites section when empty', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: HouseholdSection(
+            householdName: 'Kunish Kitchen',
+            members: const [],
+            isOwner: true,
+            currentUserId: 'owner_1',
+            onRevokeInvite: (_) async {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('待处理邀请'), findsNothing);
+  });
+
+  testWidgets('HouseholdSection dropdown renders all households', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: HouseholdSection(
+            householdName: 'Home',
+            members: const [],
+            households: const [
+              Household(id: 'h1', name: 'Home', ownerId: 'o1', defaultStorageArea: 'fridge'),
+              Household(id: 'h2', name: 'Office', ownerId: 'o1', defaultStorageArea: 'pantry'),
+            ],
+            selectedHouseholdId: 'h1',
+            onSwitchHousehold: (id) {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(DropdownButton<String>), findsOneWidget);
+  });
+
+  testWidgets('HouseholdSection shows static name when single household', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: HouseholdSection(
+            householdName: 'Solo Kitchen',
+            members: [],
+            households: [
+              Household(id: 'h1', name: 'Solo Kitchen', ownerId: 'o1', defaultStorageArea: 'fridge'),
+            ],
+            selectedHouseholdId: 'h1',
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(DropdownButton<String>), findsNothing);
+    expect(find.text('Solo Kitchen'), findsOneWidget);
+  });
 }
