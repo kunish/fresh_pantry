@@ -41,11 +41,10 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
 
   bool _canMerge(List<Ingredient> items) {
     if (_selected.length < 2) return false;
-    final rows =
-        _selected
-            .where((i) => i >= 0 && i < items.length)
-            .map((i) => items[i])
-            .toList();
+    final rows = _selected
+        .where((i) => i >= 0 && i < items.length)
+        .map((i) => items[i])
+        .toList();
     if (rows.length < 2) return false;
     final first = rows.first;
     return rows.every(
@@ -109,6 +108,28 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         backgroundColor: AppColors.error,
       );
     }
+  }
+
+  Future<void> _openFilterSheet(
+    List<Ingredient> inventory,
+    String selectedCategory,
+  ) async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      useSafeArea: true,
+      showDragHandle: true,
+      backgroundColor: AppColors.surface,
+      builder: (_) {
+        return _InventoryFilterSheet(
+          options: _inventoryFilterOptions(inventory),
+          selected: selectedCategory,
+        );
+      },
+    );
+
+    if (!mounted || selected == null) return;
+    ref.read(selectedCategoryProvider.notifier).state = selected;
   }
 
   Future<void> _addToShoppingList(Ingredient item) async {
@@ -190,44 +211,46 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 SliverToBoxAdapter(
                   child: SafeArea(
                     bottom: false,
-                    child:
-                        _selectionMode
-                            ? _SelectionTopBar(
-                              selectedCount: _selected.length,
-                              canMerge: canMerge,
-                              onCancel: () => setState(() => _selected.clear()),
-                              onMerge: () => _mergeSelected(items),
-                            )
-                            : FkTopBar(
-                              title: '我的食材',
-                              subtitle: '共 $inventoryCount 件',
-                              actions: [
-                                FkIconButton(
+                    child: _selectionMode
+                        ? _SelectionTopBar(
+                            selectedCount: _selected.length,
+                            canMerge: canMerge,
+                            onCancel: () => setState(() => _selected.clear()),
+                            onMerge: () => _mergeSelected(items),
+                          )
+                        : FkTopBar(
+                            title: '我的食材',
+                            subtitle: '共 $inventoryCount 件',
+                            actions: [
+                              Tooltip(
+                                message: '筛选食材',
+                                child: FkIconButton(
+                                  key: const Key('inventory_filter_button'),
                                   child: const Icon(Icons.tune_rounded),
-                                  onTap: () {},
+                                  onTap: () => _openFilterSheet(
+                                    ref.read(inventoryProvider),
+                                    selectedCategory,
+                                  ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
+                          ),
                   ),
                 ),
                 SliverToBoxAdapter(
                   child: _SearchField(
                     controller: _searchCtrl,
-                    onChanged:
-                        (v) =>
-                            ref
-                                .read(inventorySearchQueryProvider.notifier)
-                                .state = v,
+                    onChanged: (v) =>
+                        ref.read(inventorySearchQueryProvider.notifier).state =
+                            v,
                   ),
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 12)),
                 SliverToBoxAdapter(
                   child: _CategoryChipRow(
                     selected: selectedCategory,
-                    onSelect:
-                        (cat) =>
-                            ref.read(selectedCategoryProvider.notifier).state =
-                                cat,
+                    onSelect: (cat) =>
+                        ref.read(selectedCategoryProvider.notifier).state = cat,
                   ),
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 10)),
@@ -264,38 +287,35 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           onLongPress: () {
                             setState(() => _selected.add(index));
                           },
-                          onTap:
-                              _selectionMode
-                                  ? () {
-                                    setState(() {
-                                      if (isSelected) {
-                                        _selected.remove(index);
-                                      } else {
-                                        _selected.add(index);
-                                      }
-                                    });
-                                  }
-                                  : () => _openItemDetail(item),
+                          onTap: _selectionMode
+                              ? () {
+                                  setState(() {
+                                    if (isSelected) {
+                                      _selected.remove(index);
+                                    } else {
+                                      _selected.add(index);
+                                    }
+                                  });
+                                }
+                              : () => _openItemDetail(item),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 150),
-                            decoration:
-                                isSelected
-                                    ? BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: AppColors.primary,
-                                        width: 2.5,
-                                      ),
-                                    )
-                                    : null,
+                            decoration: isSelected
+                                ? BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: AppColors.primary,
+                                      width: 2.5,
+                                    ),
+                                  )
+                                : null,
                             child: IngredientCard(
                               key: ValueKey('inv_${item.name}_$index'),
                               ingredient: item,
                               onTap: null,
-                              onBuyAgain:
-                                  _selectionMode
-                                      ? null
-                                      : () => _addToShoppingList(item),
+                              onBuyAgain: _selectionMode
+                                  ? null
+                                  : () => _addToShoppingList(item),
                             ),
                           ),
                         );
@@ -457,14 +477,34 @@ String _categoryChipSignature(List<Ingredient> inventory) {
     final cat = FoodCategories.dropdownValue(item.category);
     counts[cat] = (counts[cat] ?? 0) + 1;
   }
-  final entries =
-      counts.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
+  final entries = counts.entries.toList()
+    ..sort((a, b) => a.key.compareTo(b.key));
   final notFresh = notFreshIngredientCount(inventory);
   return [
     'total:${inventory.length}',
     'notFresh:$notFresh',
     ...entries.map((entry) => '${entry.key}:${entry.value}'),
   ].join('|');
+}
+
+List<_Chip> _inventoryFilterOptions(List<Ingredient> inventory) {
+  final categoryCounts = <String, int>{};
+  for (final item in inventory) {
+    final cat = FoodCategories.dropdownValue(item.category);
+    categoryCounts[cat] = (categoryCounts[cat] ?? 0) + 1;
+  }
+
+  return [
+    _Chip(label: '全部', value: inventoryFilterAll, count: inventory.length),
+    _Chip(
+      label: '不新鲜',
+      value: inventoryFilterNotFresh,
+      count: notFreshIngredientCount(inventory),
+    ),
+    ...FoodCategories.values.map(
+      (cat) => _Chip(label: cat, value: cat, count: categoryCounts[cat] ?? 0),
+    ),
+  ];
 }
 
 class _CategoryChipRow extends ConsumerWidget {
@@ -476,30 +516,7 @@ class _CategoryChipRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(inventoryProvider.select(_categoryChipSignature));
     final inventory = ref.read(inventoryProvider);
-    final categoryCounts = <String, int>{};
-    for (final item in inventory) {
-      final cat = FoodCategories.dropdownValue(item.category);
-      categoryCounts[cat] = (categoryCounts[cat] ?? 0) + 1;
-    }
-
-    final chips = <_Chip>[
-      _Chip(label: '全部', value: inventoryFilterAll, count: inventory.length),
-      _Chip(
-        label: '不新鲜',
-        value: inventoryFilterNotFresh,
-        count:
-            inventory
-                .where(
-                  (i) =>
-                      i.state == FreshnessState.expiringSoon ||
-                      i.state == FreshnessState.expired,
-                )
-                .length,
-      ),
-      ...FoodCategories.values.map(
-        (cat) => _Chip(label: cat, value: cat, count: categoryCounts[cat] ?? 0),
-      ),
-    ];
+    final chips = _inventoryFilterOptions(inventory);
 
     return SizedBox(
       height: 36,
@@ -545,4 +562,69 @@ class _Chip {
   final String value;
   final int count;
   _Chip({required this.label, required this.value, required this.count});
+}
+
+class _InventoryFilterSheet extends StatelessWidget {
+  const _InventoryFilterSheet({required this.options, required this.selected});
+
+  final List<_Chip> options;
+  final String selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '筛选食材',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: AppColors.onSurface,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: options.map((option) {
+              final active = option.value == selected;
+              return GestureDetector(
+                key: ValueKey('inventory_filter_option_${option.value}'),
+                onTap: () => Navigator.of(context).pop(option.value),
+                behavior: HitTestBehavior.opaque,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 9,
+                  ),
+                  decoration: BoxDecoration(
+                    color: active ? AppColors.primary : Colors.white,
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                    border: Border.all(
+                      color: active ? AppColors.primary : AppColors.hair,
+                    ),
+                  ),
+                  child: Text(
+                    option.count > 0
+                        ? '${option.label} · ${option.count}'
+                        : option.label,
+                    style: GoogleFonts.manrope(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: active ? Colors.white : AppColors.onSurface,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -64,6 +64,51 @@ void main() {
     expect(find.widgetWithText(IngredientCard, '牛奶'), findsNothing);
   });
 
+  testWidgets('filter button opens sheet and applies a category filter', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      'inventory_items': jsonEncode([
+        _ingredient(name: '番茄', category: FoodCategories.freshProduce).toJson(),
+        _ingredient(name: '牛奶', category: FoodCategories.dairyAndEggs).toJson(),
+      ]),
+    });
+    final prefs = await SharedPreferences.getInstance();
+    late ProviderContainer container;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        child: Builder(
+          builder: (context) {
+            container = ProviderScope.containerOf(context);
+            return const MaterialApp(home: Scaffold(body: InventoryScreen()));
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(container.read(selectedCategoryProvider), inventoryFilterAll);
+
+    await tester.tap(find.byKey(const Key('inventory_filter_button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('筛选食材'), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('inventory_filter_option_乳品蛋类')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      container.read(selectedCategoryProvider),
+      FoodCategories.dairyAndEggs,
+    );
+    expect(find.widgetWithText(IngredientCard, '牛奶'), findsOneWidget);
+    expect(find.widgetWithText(IngredientCard, '番茄'), findsNothing);
+  });
+
   testWidgets('deletes the selected filtered inventory item by original index', (
     tester,
   ) async {
