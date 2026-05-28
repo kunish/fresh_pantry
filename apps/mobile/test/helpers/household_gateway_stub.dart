@@ -22,6 +22,7 @@ class HouseholdGatewayStub implements HouseholdGateway {
   var inviteHouseholdId = '';
   var inviteEmail = '';
   var acceptedToken = '';
+  var acceptedInviteId = '';
 
   @override
   Stream<void> get authStateChanges => _authStateChanges;
@@ -53,7 +54,31 @@ class HouseholdGatewayStub implements HouseholdGateway {
   }
 
   @override
+  Future<HouseholdInvitePreview> previewInvite(String token) async {
+    return const HouseholdInvitePreview(
+      householdId: 'household_1',
+      householdName: 'Kunish Kitchen',
+      ownerEmail: 'owner@example.com',
+      invitedEmail: 'member@example.com',
+      memberCount: 1,
+      inventoryCount: 0,
+      shoppingCount: 0,
+      customRecipeCount: 0,
+    );
+  }
+
+  @override
   Future<void> acceptInvite(String token) async {
     acceptedToken = token;
+  }
+
+  @override
+  Future<List<HouseholdInvitePreview>> loadPendingInvites() async {
+    return const [];
+  }
+
+  @override
+  Future<void> acceptInviteById(String inviteId) async {
+    acceptedInviteId = inviteId;
   }
 }

@@ -18,7 +18,9 @@ describe("fresh-pantry-api", () => {
     );
 
     expect(response.status).toBe(302);
-    expect(response.headers.get("location")).toBe("freshpantry://invite/abcDEF123_-");
+    expect(response.headers.get("location")).toBe(
+      "com.kunish.freshpantry://invite/abcDEF123_-",
+    );
   });
 
   it("returns an HTML invite fallback for browser requests", async () => {
@@ -30,7 +32,9 @@ describe("fresh-pantry-api", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("text/html; charset=utf-8");
-    await expect(response.text()).resolves.toContain('href="freshpantry://invite/abcDEF123_-"');
+    await expect(response.text()).resolves.toContain(
+      'href="com.kunish.freshpantry://invite/abcDEF123_-"',
+    );
   });
 
   it("rejects malformed invite tokens", async () => {

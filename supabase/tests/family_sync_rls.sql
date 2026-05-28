@@ -1,6 +1,6 @@
 begin;
 
-select plan(20);
+select plan(34);
 
 create or replace function pg_temp.authenticate_as(user_id uuid, user_email text)
 returns void
@@ -197,6 +197,23 @@ values (
 );
 
 insert into public.household_invites (
+  id,
+  household_id,
+  email,
+  token_hash,
+  expires_at,
+  created_by
+)
+values (
+  'dddddddd-dddd-dddd-dddd-dddddddddddd',
+  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+  'outsider@example.com',
+  'outsider-app-reminder-token',
+  now() + interval '7 days',
+  '11111111-1111-1111-1111-111111111111'
+);
+
+insert into public.household_invites (
   household_id,
   email,
   token_hash,
@@ -236,7 +253,43 @@ select ok(
   'anon cannot execute invite acceptance rpc'
 );
 
+select ok(
+  not has_function_privilege('anon', 'public.preview_household_invite(text)', 'execute'),
+  'anon cannot execute invite preview rpc'
+);
+
+select ok(
+  not has_function_privilege('anon', 'public.list_pending_household_invites()', 'execute'),
+  'anon cannot execute pending invite list rpc'
+);
+
+select ok(
+  not has_function_privilege('anon', 'public.accept_household_invite_by_id(uuid)', 'execute'),
+  'anon cannot execute invite acceptance by id rpc'
+);
+
+select throws_ok(
+  $$ select public.preview_household_invite('outsider-invite-token') $$,
+  '28000',
+  'Authentication required',
+  'invite preview requires auth uid'
+);
+
+select throws_ok(
+  $$ select * from public.list_pending_household_invites() $$,
+  '28000',
+  'Authentication required',
+  'pending invite list requires auth uid'
+);
+
 select pg_temp.authenticate_as('22222222-2222-2222-2222-222222222222', 'member@example.com');
+
+select throws_ok(
+  $$ select public.preview_household_invite('outsider-invite-token') $$,
+  '42501',
+  'Invite email does not match authenticated user',
+  'wrong email cannot preview invite'
+);
 
 select throws_ok(
   $$ select public.accept_household_invite('outsider-invite-token') $$,
@@ -245,7 +298,27 @@ select throws_ok(
   'wrong email cannot accept invite'
 );
 
+select is(
+  (select count(*) from public.list_pending_household_invites()),
+  0::bigint,
+  'wrong email cannot list pending invite reminders'
+);
+
+select throws_ok(
+  $$ select public.accept_household_invite_by_id('dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid) $$,
+  '42501',
+  'Invite email does not match authenticated user',
+  'wrong email cannot accept invite by id'
+);
+
 select pg_temp.authenticate_as('33333333-3333-3333-3333-333333333333', 'outsider@example.com');
+
+select throws_ok(
+  $$ select public.preview_household_invite('expired-invite-token') $$,
+  'P0001',
+  'Invite is not available',
+  'expired invite cannot be previewed'
+);
 
 select throws_ok(
   $$ select public.accept_household_invite('expired-invite-token') $$,
@@ -259,6 +332,42 @@ select throws_ok(
   'P0001',
   'Invite is not available',
   'revoked invite cannot be accepted'
+);
+
+select is(
+  (select count(*) from public.list_pending_household_invites()),
+  2::bigint,
+  'matching invited email can list pending invite reminders'
+);
+
+select is(
+  (
+    select household_name || ':' || owner_email || ':' || inventory_count || ':' || shopping_count
+    from public.list_pending_household_invites()
+    where invite_id = 'dddddddd-dddd-dddd-dddd-dddddddddddd'
+  ),
+  'Kunish Kitchen:owner@example.com:1:1',
+  'pending invite reminder includes household overview'
+);
+
+select lives_ok(
+  $$ select public.accept_household_invite_by_id('dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid) $$,
+  'matching invited email can accept invite by id'
+);
+
+select is(
+  (select count(*) from public.list_pending_household_invites()),
+  1::bigint,
+  'accepted invite by id is removed from pending reminders'
+);
+
+select is(
+  (
+    select household_name || ':' || owner_email || ':' || inventory_count || ':' || shopping_count
+    from public.preview_household_invite('outsider-invite-token')
+  ),
+  'Kunish Kitchen:owner@example.com:1:1',
+  'matching invited email can preview household overview'
 );
 
 select lives_ok(

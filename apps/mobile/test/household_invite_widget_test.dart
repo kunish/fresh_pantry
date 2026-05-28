@@ -118,7 +118,7 @@ void main() {
       expect(gateway.inviteHouseholdId, 'household_1');
       expect(gateway.inviteEmail, 'member@example.com');
       expect(capturedClipboard, stubInviteUrl);
-      expect(find.textContaining('邀请链接已复制'), findsOneWidget);
+      expect(find.textContaining('对方登录 App 后也会看到提醒'), findsOneWidget);
     },
   );
 }

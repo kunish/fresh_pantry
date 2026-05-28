@@ -1,4 +1,5 @@
 const INVITE_TOKEN_PATTERN = /^[A-Za-z0-9_-]{10,160}$/;
+const APP_DEEP_LINK_SCHEME = "com.kunish.freshpantry";
 
 function json(body: unknown, init: ResponseInit = {}): Response {
   return new Response(JSON.stringify(body), {
@@ -19,7 +20,7 @@ function safeDecodePathSegment(value: string): string | null {
 }
 
 function inviteFallback(token: string): Response {
-  const deepLink = `freshpantry://invite/${encodeURIComponent(token)}`;
+  const deepLink = `${APP_DEEP_LINK_SCHEME}://invite/${encodeURIComponent(token)}`;
   return new Response(
     `<!doctype html>
 <html lang="en">
@@ -62,7 +63,10 @@ export default {
       if (accept.includes("text/html")) {
         return inviteFallback(token);
       }
-      return Response.redirect(`freshpantry://invite/${encodeURIComponent(token)}`, 302);
+      return Response.redirect(
+        `${APP_DEEP_LINK_SCHEME}://invite/${encodeURIComponent(token)}`,
+        302,
+      );
     }
 
     return new Response("Not found", { status: 404 });

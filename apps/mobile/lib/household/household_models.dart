@@ -43,3 +43,44 @@ class HouseholdMember {
     );
   }
 }
+
+class HouseholdInvitePreview {
+  const HouseholdInvitePreview({
+    this.inviteId = '',
+    required this.householdId,
+    required this.householdName,
+    required this.ownerEmail,
+    required this.invitedEmail,
+    required this.memberCount,
+    required this.inventoryCount,
+    required this.shoppingCount,
+    required this.customRecipeCount,
+    this.expiresAt,
+  });
+
+  final String inviteId;
+  final String householdId;
+  final String householdName;
+  final String ownerEmail;
+  final String invitedEmail;
+  final int memberCount;
+  final int inventoryCount;
+  final int shoppingCount;
+  final int customRecipeCount;
+  final DateTime? expiresAt;
+
+  factory HouseholdInvitePreview.fromJson(Map<String, dynamic> json) {
+    return HouseholdInvitePreview(
+      inviteId: json['invite_id'] as String? ?? '',
+      householdId: json['household_id'] as String? ?? '',
+      householdName: json['household_name'] as String? ?? '',
+      ownerEmail: json['owner_email'] as String? ?? '',
+      invitedEmail: json['invited_email'] as String? ?? '',
+      memberCount: (json['member_count'] as num?)?.toInt() ?? 0,
+      inventoryCount: (json['inventory_count'] as num?)?.toInt() ?? 0,
+      shoppingCount: (json['shopping_count'] as num?)?.toInt() ?? 0,
+      customRecipeCount: (json['custom_recipe_count'] as num?)?.toInt() ?? 0,
+      expiresAt: DateTime.tryParse(json['expires_at'] as String? ?? ''),
+    );
+  }
+}

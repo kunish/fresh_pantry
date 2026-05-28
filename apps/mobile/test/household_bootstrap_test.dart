@@ -57,7 +57,22 @@ class FakeBootstrapGateway implements HouseholdGateway {
   }
 
   @override
+  Future<HouseholdInvitePreview> previewInvite(String token) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
   Future<void> acceptInvite(String token) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
+  Future<List<HouseholdInvitePreview>> loadPendingInvites() async {
+    return const [];
+  }
+
+  @override
+  Future<void> acceptInviteById(String inviteId) {
     throw UnimplementedError('Not needed by these tests.');
   }
 
@@ -95,7 +110,22 @@ class RecordingRemotePantryRepository implements RemotePantryRepository {
   }
 
   @override
+  Future<HouseholdInvitePreview> previewInvite(String token) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
   Future<void> acceptInvite(String token) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
+  Future<List<HouseholdInvitePreview>> loadPendingInvites() async {
+    return const [];
+  }
+
+  @override
+  Future<void> acceptInviteById(String inviteId) {
     throw UnimplementedError('Not needed by these tests.');
   }
 

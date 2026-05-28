@@ -16,6 +16,7 @@ import 'screens/recipes_screen.dart';
 import 'screens/shopping_list_screen.dart';
 import 'providers/notification_sync_provider.dart';
 import 'services/share_intent_service.dart';
+import 'household/invite_token.dart';
 import 'widgets/common/top_app_bar.dart';
 import 'widgets/common/bottom_nav_bar.dart';
 import 'widgets/common/search_overlay.dart';
@@ -40,11 +41,25 @@ class FreshPantryApp extends StatelessWidget {
 
   final Widget? home;
 
-  Widget _buildHome() {
-    return home ?? const AuthGateScreen(authenticatedChild: AppShell());
+  Widget _buildHome({String? initialInviteToken}) {
+    return home ??
+        AuthGateScreen(
+          authenticatedChild: const AppShell(),
+          initialInviteToken: initialInviteToken,
+        );
   }
 
   Route<dynamic>? _generateRoute(RouteSettings settings) {
+    final inviteToken = settings.name == null
+        ? null
+        : inviteTokenFromInput(settings.name!);
+    if (inviteToken != null) {
+      return MaterialPageRoute<void>(
+        settings: settings,
+        builder: (_) => _buildHome(initialInviteToken: inviteToken),
+      );
+    }
+
     if (!_isRootAuthCallbackRoute(settings.name)) return null;
 
     return MaterialPageRoute<void>(

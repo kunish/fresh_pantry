@@ -18,8 +18,13 @@ class InviteRecordingGateway implements HouseholdGateway {
   var inviteHouseholdId = '';
   var inviteEmail = '';
   var loadCount = 0;
+  var pendingLoadCount = 0;
+  var previewedToken = '';
+  var acceptedInviteId = '';
+  final pendingInvites = <HouseholdInvitePreview>[];
   Object? acceptInviteError;
   Object? createInviteError;
+  Object? previewInviteError;
 
   @override
   bool get isAuthenticated => true;
@@ -56,9 +61,36 @@ class InviteRecordingGateway implements HouseholdGateway {
   }
 
   @override
+  Future<HouseholdInvitePreview> previewInvite(String token) async {
+    if (previewInviteError != null) throw previewInviteError!;
+    previewedToken = token;
+    return const HouseholdInvitePreview(
+      householdId: 'household_1',
+      householdName: 'Kunish Kitchen',
+      ownerEmail: 'owner@example.com',
+      invitedEmail: 'member@example.com',
+      memberCount: 2,
+      inventoryCount: 3,
+      shoppingCount: 1,
+      customRecipeCount: 4,
+    );
+  }
+
+  @override
   Future<void> acceptInvite(String token) async {
     if (acceptInviteError != null) throw acceptInviteError!;
     acceptedToken = token;
+  }
+
+  @override
+  Future<List<HouseholdInvitePreview>> loadPendingInvites() async {
+    pendingLoadCount += 1;
+    return pendingInvites;
+  }
+
+  @override
+  Future<void> acceptInviteById(String inviteId) async {
+    acceptedInviteId = inviteId;
   }
 
   Future<void> close() {
@@ -83,6 +115,22 @@ void main() {
     expect(gateway.inviteHouseholdId, 'household_1');
     expect(gateway.inviteEmail, 'member@example.com');
     expect(controller.state.isSubmitting, isFalse);
+
+    controller.dispose();
+    await gateway.close();
+  });
+
+  test('previewInvite trims token and stores household overview', () async {
+    final gateway = InviteRecordingGateway();
+    final controller = HouseholdSessionController(gateway);
+
+    final preview = await controller.previewInvite(' abcDEF123_- ');
+
+    expect(gateway.previewedToken, 'abcDEF123_-');
+    expect(preview.householdName, 'Kunish Kitchen');
+    expect(controller.state.invitePreview?.ownerEmail, 'owner@example.com');
+    expect(controller.state.invitePreview?.inventoryCount, 3);
+    expect(controller.state.isPreviewLoading, isFalse);
 
     controller.dispose();
     await gateway.close();
@@ -117,4 +165,66 @@ void main() {
     controller.dispose();
     await gateway.close();
   });
+
+  test('refreshHouseholds loads pending invite reminders', () async {
+    final gateway = InviteRecordingGateway()
+      ..pendingInvites.add(
+        HouseholdInvitePreview.fromJson({
+          'invite_id': 'invite_1',
+          'household_id': 'household_2',
+          'household_name': 'Kunish Shared Kitchen',
+          'owner_email': 'owner@example.com',
+          'invited_email': 'member@example.com',
+          'member_count': 2,
+          'inventory_count': 5,
+          'shopping_count': 3,
+          'custom_recipe_count': 1,
+        }),
+      );
+    final controller = HouseholdSessionController(gateway);
+
+    await controller.refreshHouseholds();
+
+    expect(gateway.pendingLoadCount, 1);
+    final pending =
+        (controller.state as dynamic).pendingInvitePreviews
+            as List<HouseholdInvitePreview>;
+    expect(pending.single.householdName, 'Kunish Shared Kitchen');
+
+    controller.dispose();
+    await gateway.close();
+  });
+
+  test(
+    'acceptInviteById accepts reminder and refreshes household state',
+    () async {
+      final gateway = InviteRecordingGateway()
+        ..pendingInvites.add(
+          HouseholdInvitePreview.fromJson({
+            'invite_id': 'invite_1',
+            'household_id': 'household_2',
+            'household_name': 'Kunish Shared Kitchen',
+            'owner_email': 'owner@example.com',
+            'invited_email': 'member@example.com',
+            'member_count': 2,
+            'inventory_count': 5,
+            'shopping_count': 3,
+            'custom_recipe_count': 1,
+          }),
+        );
+      final controller = HouseholdSessionController(gateway);
+
+      await (controller as dynamic).acceptInviteById(' invite_1 ');
+
+      expect(gateway.acceptedInviteId, 'invite_1');
+      expect(gateway.loadCount, 1);
+      expect(gateway.pendingLoadCount, 1);
+      expect((controller.state as dynamic).pendingInvitePreviews, isEmpty);
+      expect(controller.state.households.single.id, 'household_1');
+      expect(controller.state.isSubmitting, isFalse);
+
+      controller.dispose();
+      await gateway.close();
+    },
+  );
 }

@@ -14,6 +14,21 @@ void main() {
     expect(isInviteTokenShapeValid('abcDEF123_-'), isTrue);
   });
 
+  test('inviteTokenFromInput accepts raw tokens and invite urls', () {
+    expect(inviteTokenFromInput(' abcDEF123_- '), 'abcDEF123_-');
+    expect(
+      inviteTokenFromInput(
+        'https://api.fresh-pantry.kunish.eu.org/invite/abcDEF123_-',
+      ),
+      'abcDEF123_-',
+    );
+    expect(
+      inviteTokenFromInput('com.kunish.freshpantry://invite/abcDEF123_-'),
+      'abcDEF123_-',
+    );
+    expect(inviteTokenFromInput('not a token'), isNull);
+  });
+
   test('generateInviteToken returns url-safe tokens', () {
     final token = generateInviteToken();
 

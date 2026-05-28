@@ -143,7 +143,10 @@ abstract class RemotePantryRepository {
     required String householdId,
     required String email,
   });
+  Future<List<HouseholdInvitePreview>> loadPendingInvites();
+  Future<HouseholdInvitePreview> previewInvite(String token);
   Future<void> acceptInvite(String token);
+  Future<void> acceptInviteById(String inviteId);
   Future<List<Map<String, dynamic>>> loadInventory(String householdId);
   Future<void> upsertInventory(
     String householdId,
@@ -232,6 +235,47 @@ class SupabaseRemotePantryRepository implements RemotePantryRepository {
   }
 
   @override
+  Future<List<HouseholdInvitePreview>> loadPendingInvites() async {
+    if (_client.auth.currentUser == null) {
+      throw StateError('Cannot list pending invites without a signed-in user.');
+    }
+
+    final rows = await _client.rpc('list_pending_household_invites');
+    if (rows is! List) return const [];
+
+    return rows
+        .whereType<Map>()
+        .map(
+          (row) =>
+              HouseholdInvitePreview.fromJson(Map<String, dynamic>.from(row)),
+        )
+        .toList(growable: false);
+  }
+
+  @override
+  Future<HouseholdInvitePreview> previewInvite(String token) async {
+    final trimmedToken = token.trim();
+    if (!isInviteTokenShapeValid(trimmedToken)) {
+      throw ArgumentError.value(token, 'token', 'Invalid invite token');
+    }
+    if (_client.auth.currentUser == null) {
+      throw StateError('Cannot preview invite without a signed-in user.');
+    }
+
+    final rows = await _client.rpc(
+      'preview_household_invite',
+      params: {'invite_token_hash': hashInviteToken(trimmedToken)},
+    );
+    if (rows is! List || rows.isEmpty || rows.first is! Map) {
+      throw StateError('Invite preview is not available.');
+    }
+
+    return HouseholdInvitePreview.fromJson(
+      Map<String, dynamic>.from(rows.first as Map),
+    );
+  }
+
+  @override
   Future<void> acceptInvite(String token) async {
     final trimmedToken = token.trim();
     if (!isInviteTokenShapeValid(trimmedToken)) {
@@ -244,6 +288,22 @@ class SupabaseRemotePantryRepository implements RemotePantryRepository {
     await _client.rpc(
       'accept_household_invite',
       params: {'invite_token_hash': hashInviteToken(trimmedToken)},
+    );
+  }
+
+  @override
+  Future<void> acceptInviteById(String inviteId) async {
+    final trimmedInviteId = inviteId.trim();
+    if (!_isUuid(trimmedInviteId)) {
+      throw ArgumentError.value(inviteId, 'inviteId', 'Invalid invite id');
+    }
+    if (_client.auth.currentUser == null) {
+      throw StateError('Cannot accept invite without a signed-in user.');
+    }
+
+    await _client.rpc(
+      'accept_household_invite_by_id',
+      params: {'target_invite_id': trimmedInviteId},
     );
   }
 

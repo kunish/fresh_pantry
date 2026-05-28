@@ -16,6 +16,7 @@ import 'household_models.dart';
 
 const supabaseAuthRedirectUrl = 'com.kunish.freshpantry://signin-callback/';
 const _preserveError = Object();
+const _preserveInvitePreview = Object();
 
 @visibleForTesting
 String resolveSupabaseAuthRedirectUrl({bool isWeb = kIsWeb, Uri? webBaseUri}) {
@@ -43,7 +44,10 @@ abstract class HouseholdGateway {
     required String householdId,
     required String email,
   });
+  Future<List<HouseholdInvitePreview>> loadPendingInvites();
+  Future<HouseholdInvitePreview> previewInvite(String token);
   Future<void> acceptInvite(String token);
+  Future<void> acceptInviteById(String inviteId);
 }
 
 class SupabaseHouseholdGateway implements HouseholdGateway {
@@ -125,8 +129,23 @@ class SupabaseHouseholdGateway implements HouseholdGateway {
   }
 
   @override
+  Future<List<HouseholdInvitePreview>> loadPendingInvites() {
+    return _remoteRepository.loadPendingInvites();
+  }
+
+  @override
+  Future<HouseholdInvitePreview> previewInvite(String token) {
+    return _remoteRepository.previewInvite(token);
+  }
+
+  @override
   Future<void> acceptInvite(String token) {
     return _remoteRepository.acceptInvite(token);
+  }
+
+  @override
+  Future<void> acceptInviteById(String inviteId) {
+    return _remoteRepository.acceptInviteById(inviteId);
   }
 }
 
@@ -135,33 +154,53 @@ class HouseholdSessionState {
     this.email = '',
     this.isLoading = true,
     this.isSubmitting = false,
+    this.isPreviewLoading = false,
+    this.isPendingInvitesLoading = false,
     this.isAuthenticated = false,
     this.error,
     this.households = const [],
+    this.pendingInvitePreviews = const [],
+    this.invitePreview,
   });
 
   final String email;
   final bool isLoading;
   final bool isSubmitting;
+  final bool isPreviewLoading;
+  final bool isPendingInvitesLoading;
   final bool isAuthenticated;
   final String? error;
   final List<Household> households;
+  final List<HouseholdInvitePreview> pendingInvitePreviews;
+  final HouseholdInvitePreview? invitePreview;
 
   HouseholdSessionState copyWith({
     String? email,
     bool? isLoading,
     bool? isSubmitting,
+    bool? isPreviewLoading,
+    bool? isPendingInvitesLoading,
     bool? isAuthenticated,
     Object? error = _preserveError,
     List<Household>? households,
+    List<HouseholdInvitePreview>? pendingInvitePreviews,
+    Object? invitePreview = _preserveInvitePreview,
   }) {
     return HouseholdSessionState(
       email: email ?? this.email,
       isLoading: isLoading ?? this.isLoading,
       isSubmitting: isSubmitting ?? this.isSubmitting,
+      isPreviewLoading: isPreviewLoading ?? this.isPreviewLoading,
+      isPendingInvitesLoading:
+          isPendingInvitesLoading ?? this.isPendingInvitesLoading,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       error: identical(error, _preserveError) ? this.error : error as String?,
       households: households ?? this.households,
+      pendingInvitePreviews:
+          pendingInvitePreviews ?? this.pendingInvitePreviews,
+      invitePreview: identical(invitePreview, _preserveInvitePreview)
+          ? this.invitePreview
+          : invitePreview as HouseholdInvitePreview?,
     );
   }
 }
@@ -201,13 +240,20 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final households = await _gateway.loadHouseholds();
+      final isAuthenticated = _gateway.isAuthenticated;
       if (!mounted) return;
       state = state.copyWith(
         isLoading: false,
         error: null,
-        isAuthenticated: _gateway.isAuthenticated,
+        isAuthenticated: isAuthenticated,
         households: List.unmodifiable(households),
+        pendingInvitePreviews: isAuthenticated
+            ? state.pendingInvitePreviews
+            : const <HouseholdInvitePreview>[],
       );
+      if (isAuthenticated) {
+        await refreshPendingInvites();
+      }
     } catch (error) {
       _setError(error);
     }
@@ -266,19 +312,123 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
     }
   }
 
+  Future<HouseholdInvitePreview> previewInvite(String token) async {
+    final trimmedToken = token.trim();
+    state = state.copyWith(
+      isPreviewLoading: true,
+      error: null,
+      invitePreview: null,
+    );
+    try {
+      final preview = await _gateway.previewInvite(trimmedToken);
+      if (!mounted) return preview;
+      state = state.copyWith(
+        isPreviewLoading: false,
+        error: null,
+        invitePreview: preview,
+      );
+      return preview;
+    } catch (error) {
+      if (mounted) {
+        state = state.copyWith(
+          isPreviewLoading: false,
+          error: error.toString(),
+          invitePreview: null,
+        );
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> refreshPendingInvites({String? excludeInviteId}) async {
+    if (!_gateway.isAuthenticated) {
+      state = state.copyWith(
+        isPendingInvitesLoading: false,
+        pendingInvitePreviews: const [],
+      );
+      return;
+    }
+
+    state = state.copyWith(isPendingInvitesLoading: true, error: null);
+    try {
+      final pendingInvites = await _gateway.loadPendingInvites();
+      final visibleInvites = excludeInviteId == null
+          ? pendingInvites
+          : pendingInvites
+                .where((invite) => invite.inviteId != excludeInviteId)
+                .toList(growable: false);
+      if (!mounted) return;
+      state = state.copyWith(
+        isPendingInvitesLoading: false,
+        error: null,
+        pendingInvitePreviews: List.unmodifiable(visibleInvites),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      state = state.copyWith(
+        isPendingInvitesLoading: false,
+        error: error.toString(),
+      );
+    }
+  }
+
   Future<void> acceptInvite(String token) async {
     final trimmedToken = token.trim();
     state = state.copyWith(isSubmitting: true, error: null);
     try {
       await _gateway.acceptInvite(trimmedToken);
       final households = await _gateway.loadHouseholds();
+      final isAuthenticated = _gateway.isAuthenticated;
       if (!mounted) return;
       state = state.copyWith(
         isSubmitting: false,
         error: null,
-        isAuthenticated: _gateway.isAuthenticated,
+        isAuthenticated: isAuthenticated,
         households: List.unmodifiable(households),
+        pendingInvitePreviews: isAuthenticated
+            ? state.pendingInvitePreviews
+            : const <HouseholdInvitePreview>[],
+        invitePreview: null,
       );
+      if (isAuthenticated) {
+        await refreshPendingInvites();
+      }
+    } catch (error) {
+      if (!mounted) return;
+      state = state.copyWith(isSubmitting: false, error: error.toString());
+    }
+  }
+
+  Future<void> acceptInviteById(String inviteId) async {
+    final trimmedInviteId = inviteId.trim();
+    if (trimmedInviteId.isEmpty) {
+      state = state.copyWith(error: '邀请不存在');
+      return;
+    }
+
+    state = state.copyWith(isSubmitting: true, error: null);
+    try {
+      await _gateway.acceptInviteById(trimmedInviteId);
+      final households = await _gateway.loadHouseholds();
+      final isAuthenticated = _gateway.isAuthenticated;
+      if (!mounted) return;
+      state = state.copyWith(
+        isSubmitting: false,
+        error: null,
+        isAuthenticated: isAuthenticated,
+        households: List.unmodifiable(households),
+        pendingInvitePreviews: List.unmodifiable(
+          isAuthenticated
+              ? state.pendingInvitePreviews.where(
+                  (invite) => invite.inviteId != trimmedInviteId,
+                )
+              : const <HouseholdInvitePreview>[],
+        ),
+        invitePreview: null,
+      );
+      if (isAuthenticated) {
+        await refreshPendingInvites(excludeInviteId: trimmedInviteId);
+      }
     } catch (error) {
       if (!mounted) return;
       state = state.copyWith(isSubmitting: false, error: error.toString());
@@ -287,7 +437,11 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
 
   void _setError(Object error) {
     if (!mounted) return;
-    state = state.copyWith(isLoading: false, error: error.toString());
+    state = state.copyWith(
+      isLoading: false,
+      isPendingInvitesLoading: false,
+      error: error.toString(),
+    );
   }
 
   @override

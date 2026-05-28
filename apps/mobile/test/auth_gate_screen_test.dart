@@ -18,11 +18,13 @@ class FakeHouseholdGateway implements HouseholdGateway {
 
   final authStateController = StreamController<void>.broadcast();
   List<Household> initialHouseholds;
+  List<HouseholdInvitePreview> pendingInvites = const [];
   Completer<List<Household>>? loadHouseholdsCompleter;
   @override
   bool isAuthenticated;
   var sentEmail = '';
   var createdHouseholdName = '';
+  var acceptedInviteId = '';
 
   @override
   Stream<void> get authStateChanges => authStateController.stream;
@@ -62,8 +64,48 @@ class FakeHouseholdGateway implements HouseholdGateway {
   }
 
   @override
-  Future<void> acceptInvite(String token) {
-    throw UnimplementedError('Not needed by these tests.');
+  Future<HouseholdInvitePreview> previewInvite(String token) async {
+    return const HouseholdInvitePreview(
+      householdId: 'household_2',
+      householdName: 'Kunish Shared Kitchen',
+      ownerEmail: 'owner@example.com',
+      invitedEmail: 'member@example.com',
+      memberCount: 2,
+      inventoryCount: 5,
+      shoppingCount: 3,
+      customRecipeCount: 1,
+    );
+  }
+
+  @override
+  Future<void> acceptInvite(String token) async {
+    initialHouseholds = const [
+      Household(
+        id: 'household_2',
+        name: 'Kunish Shared Kitchen',
+        ownerId: 'owner_1',
+        defaultStorageArea: 'fridge',
+      ),
+    ];
+  }
+
+  @override
+  Future<List<HouseholdInvitePreview>> loadPendingInvites() async {
+    return pendingInvites;
+  }
+
+  @override
+  Future<void> acceptInviteById(String inviteId) async {
+    acceptedInviteId = inviteId;
+    initialHouseholds = const [
+      Household(
+        id: 'household_2',
+        name: 'Kunish Shared Kitchen',
+        ownerId: 'owner_1',
+        defaultStorageArea: 'fridge',
+      ),
+    ];
+    pendingInvites = const [];
   }
 
   void emitAuthStateChange() {
@@ -110,7 +152,10 @@ void main() {
     await tester.pumpWidget(_wrap(gateway));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField), ' owner@example.com ');
+    await tester.enterText(
+      find.widgetWithText(TextField, '邮箱'),
+      ' owner@example.com ',
+    );
     await tester.tap(find.widgetWithText(FilledButton, '发送登录链接'));
     await tester.pumpAndSettle();
 
@@ -166,13 +211,85 @@ void main() {
     await tester.pumpWidget(_wrap(gateway));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField), ' Kunish Kitchen ');
+    await tester.enterText(
+      find.widgetWithText(TextField, '家庭名称'),
+      ' Kunish Kitchen ',
+    );
     await tester.tap(find.widgetWithText(FilledButton, '创建家庭'));
     await tester.pumpAndSettle();
 
     expect(gateway.createdHouseholdName, 'Kunish Kitchen');
     expect(find.text('App Shell'), findsOneWidget);
     expect(find.text('创建家庭配置'), findsNothing);
+  });
+
+  testWidgets('AuthGateScreen previews invite before accepting it', (
+    tester,
+  ) async {
+    final gateway = FakeHouseholdGateway(isAuthenticated: true);
+    await tester.pumpWidget(_wrap(gateway, initialInviteToken: 'abcDEF123_-'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Kunish Shared Kitchen'), findsOneWidget);
+    expect(find.text('owner@example.com'), findsOneWidget);
+    expect(find.text('5 个食材'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, '接受邀请'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, '接受邀请'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('App Shell'), findsOneWidget);
+    expect(find.text('Kunish Shared Kitchen'), findsNothing);
+  });
+
+  testWidgets('AuthGateScreen shows pending invite reminders after login', (
+    tester,
+  ) async {
+    final gateway = FakeHouseholdGateway(isAuthenticated: true)
+      ..pendingInvites = [
+        HouseholdInvitePreview.fromJson({
+          'invite_id': 'invite_1',
+          'household_id': 'household_2',
+          'household_name': 'Kunish Shared Kitchen',
+          'owner_email': 'owner@example.com',
+          'invited_email': 'member@example.com',
+          'member_count': 2,
+          'inventory_count': 5,
+          'shopping_count': 3,
+          'custom_recipe_count': 1,
+        }),
+      ];
+    await tester.pumpWidget(_wrap(gateway));
+    await tester.pumpAndSettle();
+
+    expect(find.text('收到家庭邀请'), findsOneWidget);
+    expect(find.text('Kunish Shared Kitchen'), findsOneWidget);
+    expect(find.text('5 个食材'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, '接受邀请'));
+    await tester.pumpAndSettle();
+
+    expect(gateway.acceptedInviteId, 'invite_1');
+    expect(find.text('App Shell'), findsOneWidget);
+    expect(find.text('收到家庭邀请'), findsNothing);
+  });
+
+  testWidgets('AuthGateScreen previews a manually entered invite url', (
+    tester,
+  ) async {
+    final gateway = FakeHouseholdGateway(isAuthenticated: true);
+    await tester.pumpWidget(_wrap(gateway));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.widgetWithText(TextField, '邀请链接或邀请码'),
+      'https://api.fresh-pantry.kunish.eu.org/invite/abcDEF123_-',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, '查看邀请'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Kunish Shared Kitchen'), findsOneWidget);
+    expect(find.text('3 个采购'), findsOneWidget);
   });
 
   testWidgets(
@@ -273,9 +390,15 @@ void main() {
 Widget _wrap(
   FakeHouseholdGateway gateway, {
   Widget child = const Text('App Shell'),
+  String? initialInviteToken,
 }) {
   return ProviderScope(
     overrides: [householdGatewayProvider.overrideWithValue(gateway)],
-    child: MaterialApp(home: AuthGateScreen(authenticatedChild: child)),
+    child: MaterialApp(
+      home: AuthGateScreen(
+        authenticatedChild: child,
+        initialInviteToken: initialInviteToken,
+      ),
+    ),
   );
 }

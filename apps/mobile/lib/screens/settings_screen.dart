@@ -68,24 +68,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: const Text('确认导入?'),
-            content: const Text('将覆盖当前的所有食材、购物清单、菜谱与 AI 设置。此操作不可撤销。'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('取消'),
-              ),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.fkDanger,
-                ),
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('确认覆盖'),
-              ),
-            ],
+      builder: (ctx) => AlertDialog(
+        title: const Text('确认导入?'),
+        content: const Text('将覆盖当前的所有食材、购物清单、菜谱与 AI 设置。此操作不可撤销。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('取消'),
           ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.fkDanger),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('确认覆盖'),
+          ),
+        ],
+      ),
     );
     if (confirmed != true || !mounted) return;
 
@@ -103,7 +100,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         .createInvite(householdId, email);
     await Clipboard.setData(ClipboardData(text: inviteUrl));
     if (!mounted) return;
-    fkToast(context, '邀请链接已复制，可发给家人');
+    fkToast(context, '邀请链接已复制，对方登录 App 后也会看到提醒');
   }
 
   Future<void> _onReminderToggle(
@@ -118,17 +115,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         if (!granted) {
           await showDialog(
             context: context,
-            builder:
-                (_) => AlertDialog(
-                  title: const Text('未开启通知权限'),
-                  content: const Text('系统通知权限未开启,无法发送临期提醒。请在 系统设置 → 通知 中允许。'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('好'),
-                    ),
-                  ],
+            builder: (_) => AlertDialog(
+              title: const Text('未开启通知权限'),
+              content: const Text('系统通知权限未开启,无法发送临期提醒。请在 系统设置 → 通知 中允许。'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('好'),
                 ),
+              ],
+            ),
           );
           return; // don't apply
         }
@@ -140,17 +136,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _showSimpleDialog(String title, String body) {
     return showDialog(
       context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text(title),
-            content: Text(body),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('好'),
-              ),
-            ],
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Text(body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('好'),
           ),
+        ],
+      ),
     );
   }
 
@@ -158,20 +153,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder:
-          (ctx) => AlertDialog(
-            content: Row(
-              children: [
-                const SizedBox(
-                  width: AppSize.iconMd,
-                  height: AppSize.iconMd,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(child: Text(message)),
-              ],
+      builder: (ctx) => AlertDialog(
+        content: Row(
+          children: [
+            const SizedBox(
+              width: AppSize.iconMd,
+              height: AppSize.iconMd,
+              child: CircularProgressIndicator(strokeWidth: 2),
             ),
-          ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(child: Text(message)),
+          ],
+        ),
+      ),
     );
     try {
       await run();
@@ -280,41 +274,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         label: '提前 1 天提醒',
                         sub: '高优先级 · 推送 + 角标',
                         value: reminder.remindD1,
-                        onChanged:
-                            (v) => _onReminderToggle(
-                              v,
-                              () => reminderN.update(remindD1: v),
-                            ),
+                        onChanged: (v) => _onReminderToggle(
+                          v,
+                          () => reminderN.update(remindD1: v),
+                        ),
                       ),
                       _ToggleRow(
                         label: '提前 3 天提醒',
                         sub: '标准 · 仅推送',
                         value: reminder.remindD3,
-                        onChanged:
-                            (v) => _onReminderToggle(
-                              v,
-                              () => reminderN.update(remindD3: v),
-                            ),
+                        onChanged: (v) => _onReminderToggle(
+                          v,
+                          () => reminderN.update(remindD3: v),
+                        ),
                       ),
                       _ToggleRow(
                         label: '提前 7 天提醒',
                         sub: '轻量 · 仅角标',
                         value: reminder.remindD7,
-                        onChanged:
-                            (v) => _onReminderToggle(
-                              v,
-                              () => reminderN.update(remindD7: v),
-                            ),
+                        onChanged: (v) => _onReminderToggle(
+                          v,
+                          () => reminderN.update(remindD7: v),
+                        ),
                       ),
                       _ToggleRow(
                         label: '每日 9:00 汇总',
                         sub: '包含临期 + 库存不足',
                         value: reminder.remindDaily,
-                        onChanged:
-                            (v) => _onReminderToggle(
-                              v,
-                              () => reminderN.update(remindDaily: v),
-                            ),
+                        onChanged: (v) => _onReminderToggle(
+                          v,
+                          () => reminderN.update(remindDaily: v),
+                        ),
                         isLast: true,
                       ),
                     ],
@@ -379,14 +369,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             _PrefChip(
                               label: tag,
                               selected: _selectedPrefs.contains(tag),
-                              onTap:
-                                  () => setState(() {
-                                    if (_selectedPrefs.contains(tag)) {
-                                      _selectedPrefs.remove(tag);
-                                    } else {
-                                      _selectedPrefs.add(tag);
-                                    }
-                                  }),
+                              onTap: () => setState(() {
+                                if (_selectedPrefs.contains(tag)) {
+                                  _selectedPrefs.remove(tag);
+                                } else {
+                                  _selectedPrefs.add(tag);
+                                }
+                              }),
                             ),
                         ],
                       ),
@@ -405,23 +394,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         label: '我的食谱',
                         sub: '添加和管理私房菜单',
                         icon: Icons.menu_book_rounded,
-                        onTap:
-                            () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const MyRecipesScreen(),
-                              ),
-                            ),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const MyRecipesScreen(),
+                          ),
+                        ),
                       ),
                       _LinkRow(
                         label: 'AI 助手',
                         sub: '配置模型与连接',
                         icon: Icons.auto_awesome_outlined,
-                        onTap:
-                            () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const AiSettingsScreen(),
-                              ),
-                            ),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const AiSettingsScreen(),
+                          ),
+                        ),
                       ),
                       _LinkRow(
                         label: '冰箱布局',
@@ -588,12 +575,11 @@ class _ToggleRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        border:
-            isLast
-                ? null
-                : const Border(
-                  bottom: BorderSide(color: AppColors.hair, width: 0.5),
-                ),
+        border: isLast
+            ? null
+            : const Border(
+                bottom: BorderSide(color: AppColors.hair, width: 0.5),
+              ),
       ),
       child: Row(
         children: [
@@ -646,8 +632,9 @@ class _PrefChip extends StatelessWidget {
     return FkPill(
       label: label,
       onTap: onTap,
-      backgroundColor:
-          selected ? AppColors.primary : AppColors.surfaceContainer,
+      backgroundColor: selected
+          ? AppColors.primary
+          : AppColors.surfaceContainer,
       foregroundColor: selected ? Colors.white : AppColors.onSurface,
     );
   }
@@ -679,12 +666,11 @@ class _LinkRow extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            border:
-                isLast
-                    ? null
-                    : const Border(
-                      bottom: BorderSide(color: AppColors.hair, width: 0.5),
-                    ),
+            border: isLast
+                ? null
+                : const Border(
+                    bottom: BorderSide(color: AppColors.hair, width: 0.5),
+                  ),
           ),
           child: Row(
             children: [
