@@ -1,6 +1,6 @@
 begin;
 
-select plan(50);
+select plan(49);
 
 create or replace function pg_temp.authenticate_as(user_id uuid, user_email text)
 returns void
