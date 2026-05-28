@@ -196,6 +196,52 @@ void main() {
     expect(find.text('待处理邀请'), findsNothing);
   });
 
+  testWidgets('HouseholdSection shows dissolve action for owner', (
+    tester,
+  ) async {
+    var dissolved = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: HouseholdSection(
+            householdName: 'Kunish Kitchen',
+            members: const [],
+            isOwner: true,
+            currentUserId: 'owner_1',
+            onDissolveHousehold: () async {
+              dissolved = true;
+            },
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.widgetWithText(TextButton, '解散家庭'));
+    await tester.pump();
+
+    expect(dissolved, isTrue);
+  });
+
+  testWidgets('HouseholdSection hides dissolve action for non-owner', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: HouseholdSection(
+            householdName: 'Kunish Kitchen',
+            members: const [],
+            isOwner: false,
+            currentUserId: 'member_1',
+            onDissolveHousehold: () async {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('解散家庭'), findsNothing);
+  });
+
   testWidgets('HouseholdSection dropdown renders all households', (
     tester,
   ) async {

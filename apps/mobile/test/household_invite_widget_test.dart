@@ -212,4 +212,107 @@ void main() {
       expect(find.text('复制链接'), findsOneWidget);
     },
   );
+
+  testWidgets('SettingsScreen lets owner confirm household dissolution', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final gateway = HouseholdGatewayStub(
+      households: const [
+        Household(
+          id: 'household_1',
+          name: 'Kunish Kitchen',
+          ownerId: 'owner_1',
+          defaultStorageArea: 'fridge',
+        ),
+      ],
+      members: const [
+        HouseholdMember(
+          householdId: 'household_1',
+          userId: 'owner_1',
+          role: 'owner',
+          email: 'owner@example.com',
+        ),
+      ],
+      isAuthenticated: true,
+      emitInitialAuthState: true,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          notificationServiceProvider.overrideWithValue(NotificationService()),
+          householdGatewayProvider.overrideWithValue(gateway),
+        ],
+        child: const MaterialApp(home: SettingsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '解散家庭'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('确定解散「Kunish Kitchen」？这会删除家庭、成员、邀请以及所有共享食材、采购和菜谱数据，无法撤销。'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.widgetWithText(TextButton, '解散'));
+    await tester.pumpAndSettle();
+
+    expect(gateway.dissolvedHouseholdId, 'household_1');
+    expect(find.text('已解散「Kunish Kitchen」'), findsOneWidget);
+    expect(find.text('未加入家庭'), findsWidgets);
+    expect(find.text('解散家庭'), findsNothing);
+  });
+
+  testWidgets('SettingsScreen shows an error when dissolution fails', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final gateway = HouseholdGatewayStub(
+      households: const [
+        Household(
+          id: 'household_1',
+          name: 'Kunish Kitchen',
+          ownerId: 'owner_1',
+          defaultStorageArea: 'fridge',
+        ),
+      ],
+      members: const [
+        HouseholdMember(
+          householdId: 'household_1',
+          userId: 'owner_1',
+          role: 'owner',
+          email: 'owner@example.com',
+        ),
+      ],
+      isAuthenticated: true,
+      emitInitialAuthState: true,
+    )..dissolveHouseholdError = StateError('rpc missing');
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          notificationServiceProvider.overrideWithValue(NotificationService()),
+          householdGatewayProvider.overrideWithValue(gateway),
+        ],
+        child: const MaterialApp(home: SettingsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '解散家庭'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, '解散'));
+    await tester.pumpAndSettle();
+
+    expect(gateway.dissolvedHouseholdId, isEmpty);
+    expect(find.textContaining('rpc missing'), findsOneWidget);
+    expect(find.text('Kunish Kitchen'), findsNWidgets(2));
+  });
 }

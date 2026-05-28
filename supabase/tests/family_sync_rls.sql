@@ -1,6 +1,6 @@
 begin;
 
-select plan(54);
+select plan(62);
 
 create or replace function pg_temp.authenticate_as(user_id uuid, user_email text)
 returns void
@@ -491,6 +491,11 @@ select ok(
   'anon cannot execute list_owner_pending_invites rpc'
 );
 
+select ok(
+  not has_function_privilege('anon', 'public.dissolve_household(uuid)', 'execute'),
+  'anon cannot execute dissolve_household rpc'
+);
+
 -- Test: owner can remove a member (outsider was added as member earlier)
 select pg_temp.authenticate_as('11111111-1111-1111-1111-111111111111', 'owner@example.com');
 
@@ -605,7 +610,53 @@ select throws_ok(
   'member cannot list owner pending invites'
 );
 
+-- Test: member cannot dissolve a household
+select throws_ok(
+  $$ select public.dissolve_household('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid) $$,
+  '42501',
+  'Not authorized or household not found',
+  'member cannot dissolve household'
+);
+
+-- Test: owner can dissolve a household and cascade shared data
+select pg_temp.authenticate_as('11111111-1111-1111-1111-111111111111', 'owner@example.com');
+
+select lives_ok(
+  $$ select public.dissolve_household('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid) $$,
+  'owner can dissolve household'
+);
+
 reset role;
+
+select is(
+  (select count(*) from public.households where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  0::bigint,
+  'dissolved household is deleted'
+);
+
+select is(
+  (select count(*) from public.household_members where household_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  0::bigint,
+  'dissolved household members are deleted'
+);
+
+select is(
+  (select count(*) from public.household_invites where household_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  0::bigint,
+  'dissolved household invites are deleted'
+);
+
+select is(
+  (select count(*) from public.inventory_items where household_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  0::bigint,
+  'dissolved household inventory is deleted'
+);
+
+select is(
+  (select count(*) from public.shopping_items where household_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  0::bigint,
+  'dissolved household shopping list is deleted'
+);
 
 select * from finish();
 

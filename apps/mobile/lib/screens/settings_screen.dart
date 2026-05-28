@@ -11,6 +11,7 @@ import '../providers/shopping_provider.dart';
 import '../providers/storage_service_provider.dart';
 import '../services/backup_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/app_snackbar.dart';
 import '../utils/fk_toast.dart';
 import '../widgets/shared/fk_card.dart';
 import '../widgets/shared/fk_pill.dart';
@@ -156,6 +157,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         .revokeInvite(householdId, inviteId);
   }
 
+  Future<void> _onDissolveHousehold(String householdId, String name) async {
+    final confirmed = await showAppConfirmDialog(
+      context,
+      title: '解散家庭',
+      content: '确定解散「$name」？这会删除家庭、成员、邀请以及所有共享食材、采购和菜谱数据，无法撤销。',
+      confirmLabel: '解散',
+      isDestructive: true,
+    );
+    if (!confirmed || !mounted) return;
+    _ownerInviteRefreshHouseholdId = null;
+    final dissolved = await _withLoading(
+      '正在解散家庭...',
+      () => ref
+          .read(householdSessionControllerProvider.notifier)
+          .dissolveHousehold(householdId),
+    );
+    if (!mounted) return;
+
+    final session = ref.read(householdSessionControllerProvider);
+    if (!dissolved) {
+      showAppSnackBar(
+        context,
+        session.error ?? '解散家庭失败，请重试',
+        backgroundColor: AppColors.error,
+      );
+      return;
+    }
+
+    fkToast(context, '已解散「$name」');
+    if (session.households.isEmpty && Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
+  }
+
   void _onSwitchHousehold(String householdId) {
     _ownerInviteRefreshHouseholdId = null;
     ref
@@ -224,7 +259,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Future<void> _withLoading(String message, Future<void> Function() run) async {
+  Future<T> _withLoading<T>(String message, Future<T> Function() run) async {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -243,7 +278,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
     );
     try {
-      await run();
+      return await run();
     } finally {
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
@@ -346,6 +381,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 onRevokeInvite: household == null
                     ? null
                     : (inviteId) => _onRevokeInvite(household.id, inviteId),
+                onDissolveHousehold: household == null || !isOwner
+                    ? null
+                    : () => _onDissolveHousehold(household.id, household.name),
                 households: householdSession.households,
                 selectedHouseholdId: householdSession.selectedHouseholdId,
                 onSwitchHousehold: (id) => _onSwitchHousehold(id),

@@ -20,6 +20,7 @@ class HouseholdSection extends StatelessWidget {
     this.onRemoveMember,
     this.ownerPendingInvites = const [],
     this.onRevokeInvite,
+    this.onDissolveHousehold,
     this.households = const [],
     this.selectedHouseholdId = '',
     this.onSwitchHousehold,
@@ -36,6 +37,7 @@ class HouseholdSection extends StatelessWidget {
   final Future<void> Function(String userId)? onRemoveMember;
   final List<OwnerPendingInvite> ownerPendingInvites;
   final Future<void> Function(String inviteId)? onRevokeInvite;
+  final Future<void> Function()? onDissolveHousehold;
   final List<Household> households;
   final String selectedHouseholdId;
   final ValueChanged<String>? onSwitchHousehold;
@@ -46,6 +48,7 @@ class HouseholdSection extends StatelessWidget {
     final canInvite =
         isOwner &&
         (onInviteLink != null || onInviteEmail != null || onInvite != null);
+    final canDissolve = isOwner && onDissolveHousehold != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -161,6 +164,20 @@ class HouseholdSection extends StatelessWidget {
                     onInviteEmail: onInviteEmail == null
                         ? null
                         : () => _showInviteDialog(context),
+                  ),
+                ],
+                if (canDissolve) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  const Divider(height: 1),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.fkDanger,
+                      alignment: Alignment.centerLeft,
+                    ),
+                    onPressed: onDissolveHousehold,
+                    icon: const Icon(Icons.delete_forever_outlined),
+                    label: const Text('解散家庭'),
                   ),
                 ],
               ],

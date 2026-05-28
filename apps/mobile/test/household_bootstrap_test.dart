@@ -92,6 +92,11 @@ class FakeBootstrapGateway implements HouseholdGateway {
   }
 
   @override
+  Future<void> dissolveHousehold(String householdId) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
   Future<List<OwnerPendingInvite>> fetchOwnerPendingInvites(
     String householdId,
   ) {
@@ -173,6 +178,11 @@ class RecordingRemotePantryRepository implements RemotePantryRepository {
 
   @override
   Future<void> revokeInvite(String inviteId) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
+  Future<void> dissolveHousehold(String householdId) {
     throw UnimplementedError('Not needed by these tests.');
   }
 

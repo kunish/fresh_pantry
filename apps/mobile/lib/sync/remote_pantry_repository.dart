@@ -147,6 +147,7 @@ abstract class RemotePantryRepository {
   Future<void> acceptInviteById(String inviteId);
   Future<void> removeMember(String targetUserId);
   Future<void> revokeInvite(String inviteId);
+  Future<void> dissolveHousehold(String householdId);
   Future<List<OwnerPendingInvite>> fetchOwnerPendingInvites(String householdId);
   Future<void> updateHouseholdName(String householdId, String name);
   Future<void> updateCategoryPreferences(
@@ -368,6 +369,26 @@ class SupabaseRemotePantryRepository implements RemotePantryRepository {
     await _client.rpc(
       'revoke_household_invite',
       params: {'target_invite_id': trimmedInviteId},
+    );
+  }
+
+  @override
+  Future<void> dissolveHousehold(String householdId) async {
+    final trimmedHouseholdId = householdId.trim();
+    if (!_isUuid(trimmedHouseholdId)) {
+      throw ArgumentError.value(
+        householdId,
+        'householdId',
+        'Invalid household id',
+      );
+    }
+    if (_client.auth.currentUser == null) {
+      throw StateError('Cannot dissolve household without a signed-in user.');
+    }
+
+    await _client.rpc(
+      'dissolve_household',
+      params: {'target_household_id': trimmedHouseholdId},
     );
   }
 

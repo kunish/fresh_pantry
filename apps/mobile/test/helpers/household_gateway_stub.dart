@@ -6,12 +6,14 @@ const stubInviteUrl =
 
 class HouseholdGatewayStub implements HouseholdGateway {
   HouseholdGatewayStub({
-    this.households = const [],
-    this.members = const [],
+    List<Household> households = const [],
+    List<HouseholdMember> members = const [],
     this.inviteUrl = stubInviteUrl,
     this.isAuthenticated = false,
     bool emitInitialAuthState = false,
-  }) : _authStateChanges = emitInitialAuthState
+  }) : households = List<Household>.of(households),
+       members = List<HouseholdMember>.of(members),
+       _authStateChanges = emitInitialAuthState
            ? Stream<void>.value(null)
            : const Stream<void>.empty();
 
@@ -96,6 +98,8 @@ class HouseholdGatewayStub implements HouseholdGateway {
 
   var removedUserId = '';
   var revokedInviteId = '';
+  var dissolvedHouseholdId = '';
+  Object? dissolveHouseholdError;
   final ownerPendingInvites = <OwnerPendingInvite>[];
 
   @override
@@ -106,6 +110,14 @@ class HouseholdGatewayStub implements HouseholdGateway {
   @override
   Future<void> revokeInvite(String inviteId) async {
     revokedInviteId = inviteId;
+  }
+
+  @override
+  Future<void> dissolveHousehold(String householdId) async {
+    if (dissolveHouseholdError != null) throw dissolveHouseholdError!;
+    dissolvedHouseholdId = householdId;
+    households.removeWhere((household) => household.id == householdId);
+    members.removeWhere((member) => member.householdId == householdId);
   }
 
   @override
