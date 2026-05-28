@@ -1,8 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fresh_pantry/data/food_categories.dart';
 import 'package:fresh_pantry/models/ingredient.dart';
+import 'package:fresh_pantry/models/proposal.dart';
 import 'package:fresh_pantry/models/recipe.dart';
 import 'package:fresh_pantry/models/shopping_item.dart';
+import 'package:fresh_pantry/models/storage_area.dart';
 import 'package:fresh_pantry/providers/custom_recipe_provider.dart';
 import 'package:fresh_pantry/providers/inventory_provider.dart';
 import 'package:fresh_pantry/providers/shopping_provider.dart';
@@ -76,6 +79,164 @@ void main() {
     expect(operation.patch, containsPair('id', operation.entityId));
   });
 
+  test('inventory intake new row enqueues create sync operation', () async {
+    final adapter = InMemoryStorageAdapter();
+    final outbox = SyncOutboxRepo(adapter);
+    final container = _container(adapter: adapter, outbox: outbox);
+    addTearDown(container.dispose);
+
+    await container.read(inventoryProvider.notifier).applyIntakeProposals([
+      IntakeProposal(
+        id: 'proposal_1',
+        name: '西瓜',
+        quantity: '1',
+        unit: '个',
+        category: FoodCategories.freshProduce,
+        storage: IconType.fridge,
+        shelfLifeDays: 7,
+      ),
+    ]);
+
+    final operation = outbox.loadPending().single;
+    expect(operation.entityType, SyncEntityType.inventoryItem);
+    expect(operation.entityId, matches(_uuidPattern));
+    expect(operation.operation, SyncOperationType.create);
+    expect(operation.patch, containsPair('name', '西瓜'));
+    expect(operation.patch, containsPair('id', operation.entityId));
+  });
+
+  test('inventory intake merge enqueues intake sync operation', () async {
+    final adapter = InMemoryStorageAdapter();
+    final outbox = SyncOutboxRepo(adapter);
+    final inventoryRepo = InventoryRepo(adapter)
+      ..saveItems([
+        const Ingredient(
+          id: _inventoryId,
+          name: '米',
+          quantity: '1',
+          unit: 'kg',
+          imageUrl: '',
+          freshnessPercent: 1,
+          state: FreshnessState.fresh,
+          category: FoodCategories.other,
+          storage: IconType.pantry,
+          remoteVersion: 4,
+        ),
+      ]);
+    final container = _container(
+      adapter: adapter,
+      outbox: outbox,
+      inventoryRepo: inventoryRepo,
+    );
+    addTearDown(container.dispose);
+
+    await container.read(inventoryProvider.notifier).applyIntakeProposals([
+      IntakeProposal(
+        id: 'proposal_2',
+        name: '米',
+        quantity: '2',
+        unit: 'kg',
+        category: FoodCategories.other,
+        storage: IconType.pantry,
+        shelfLifeDays: null,
+        action: IntakeAction.mergeInto,
+        mergeTargetId: '0',
+      ),
+    ]);
+
+    final operation = outbox.loadPending().single;
+    expect(operation.entityId, _inventoryId);
+    expect(operation.operation, SyncOperationType.intake);
+    expect(operation.patch, containsPair('quantity', '3'));
+    expect(operation.baseVersion, 4);
+  });
+
+  test('inventory deduction enqueues deduction sync operation', () async {
+    final adapter = InMemoryStorageAdapter();
+    final outbox = SyncOutboxRepo(adapter);
+    final inventoryRepo = InventoryRepo(adapter)
+      ..saveItems([
+        const Ingredient(
+          id: _inventoryId,
+          name: '葱',
+          quantity: '5',
+          unit: '个',
+          imageUrl: '',
+          freshnessPercent: 1,
+          state: FreshnessState.fresh,
+          remoteVersion: 2,
+        ),
+      ]);
+    final container = _container(
+      adapter: adapter,
+      outbox: outbox,
+      inventoryRepo: inventoryRepo,
+    );
+    addTearDown(container.dispose);
+
+    await container.read(inventoryProvider.notifier).applyDeductionProposals([
+      DeductionProposal(
+        id: 'deduct_1',
+        recipeIngredientName: '葱',
+        requiredQty: '2个',
+        candidates: const [
+          DeductionCandidate(inventoryRowIndex: 0, displayLabel: '葱 5 个'),
+        ],
+        chosenIndex: 0,
+        deductAmount: '2',
+      ),
+    ]);
+
+    final operation = outbox.loadPending().single;
+    expect(operation.entityId, _inventoryId);
+    expect(operation.operation, SyncOperationType.deduction);
+    expect(operation.patch, containsPair('quantity', '3'));
+    expect(operation.baseVersion, 2);
+  });
+
+  test('inventory deduction removal enqueues delete sync operation', () async {
+    final adapter = InMemoryStorageAdapter();
+    final outbox = SyncOutboxRepo(adapter);
+    final inventoryRepo = InventoryRepo(adapter)
+      ..saveItems([
+        const Ingredient(
+          id: _inventoryId,
+          name: '蒜',
+          quantity: '1',
+          unit: '个',
+          imageUrl: '',
+          freshnessPercent: 1,
+          state: FreshnessState.fresh,
+          remoteVersion: 6,
+        ),
+      ]);
+    final container = _container(
+      adapter: adapter,
+      outbox: outbox,
+      inventoryRepo: inventoryRepo,
+    );
+    addTearDown(container.dispose);
+
+    await container.read(inventoryProvider.notifier).applyDeductionProposals([
+      DeductionProposal(
+        id: 'deduct_2',
+        recipeIngredientName: '蒜',
+        requiredQty: '1个',
+        candidates: const [
+          DeductionCandidate(inventoryRowIndex: 0, displayLabel: '蒜 1 个'),
+        ],
+        chosenIndex: 0,
+        deductAmount: '1',
+      ),
+    ]);
+
+    final operation = outbox.loadPending().single;
+    expect(operation.entityId, _inventoryId);
+    expect(operation.operation, SyncOperationType.delete);
+    expect(operation.patch['deletedAt'], isA<String>());
+    expect(operation.baseVersion, 6);
+  });
+
   test('custom recipe add enqueues create sync operation', () async {
     final adapter = InMemoryStorageAdapter();
     final outbox = SyncOutboxRepo(adapter);
@@ -109,16 +270,20 @@ void main() {
 final _uuidPattern = RegExp(
   r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
 );
+const _inventoryId = '00000000-0000-4000-8000-000000000001';
 
 ProviderContainer _container({
   required InMemoryStorageAdapter adapter,
   required SyncOutboxRepo outbox,
+  InventoryRepo? inventoryRepo,
   ShoppingRepo? shoppingRepo,
 }) {
   return ProviderContainer(
     overrides: [
       storageAdapterProvider.overrideWithValue(adapter),
-      inventoryRepoProvider.overrideWithValue(InventoryRepo(adapter)),
+      inventoryRepoProvider.overrideWithValue(
+        inventoryRepo ?? InventoryRepo(adapter),
+      ),
       shoppingRepoProvider.overrideWithValue(
         shoppingRepo ?? ShoppingRepo(adapter),
       ),

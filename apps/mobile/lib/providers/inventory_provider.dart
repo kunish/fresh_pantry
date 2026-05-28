@@ -102,6 +102,17 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
         .then((_) => unawaited(ref.read(syncPushPendingProvider)()));
   }
 
+  Future<void> _enqueueSyncBatch(List<_PendingInventorySync> operations) async {
+    for (final operation in operations) {
+      await _enqueueSync(
+        entityId: operation.entityId,
+        operation: operation.operation,
+        patch: operation.patch,
+        baseVersion: operation.baseVersion,
+      );
+    }
+  }
+
   Ingredient _withSyncId(Ingredient item) {
     final householdId = ref.read(selectedHouseholdIdProvider).trim();
     if (householdId.isEmpty || isUuid(item.id)) return item;
@@ -187,33 +198,60 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
 
   Future<void> applyIntakeProposals(List<IntakeProposal> proposals) async {
     var current = [...state];
+    final syncOperations = <_PendingInventorySync>[];
     for (final p in proposals) {
       if (!p.selected) continue;
       switch (p.action) {
         case IntakeAction.newRow:
-          current = [...current, _withSyncId(_ingredientFromProposal(p))];
+          final item = _withSyncId(_ingredientFromProposal(p));
+          current = [...current, item];
+          syncOperations.add(
+            _PendingInventorySync(
+              entityId: item.id,
+              operation: SyncOperationType.create,
+              patch: item.toJson(),
+            ),
+          );
         case IntakeAction.mergeInto:
           final index = int.tryParse(p.mergeTargetId ?? '');
           if (index == null || index < 0 || index >= current.length) {
-            current = [...current, _withSyncId(_ingredientFromProposal(p))];
+            final item = _withSyncId(_ingredientFromProposal(p));
+            current = [...current, item];
+            syncOperations.add(
+              _PendingInventorySync(
+                entityId: item.id,
+                operation: SyncOperationType.create,
+                patch: item.toJson(),
+              ),
+            );
             break;
           }
           final existing = current[index];
           final summed = _sumQuantity(existing.quantity, p.quantity);
-          current = [...current]
-            ..[index] = refreshIngredientFreshness(
-              existing.copyWith(quantity: summed),
-            );
+          final updatedItem = refreshIngredientFreshness(
+            existing.copyWith(quantity: summed),
+          );
+          current = [...current]..[index] = updatedItem;
+          syncOperations.add(
+            _PendingInventorySync(
+              entityId: updatedItem.id,
+              operation: SyncOperationType.intake,
+              patch: updatedItem.toJson(),
+              baseVersion: existing.remoteVersion,
+            ),
+          );
       }
     }
     state = current;
-    return queuePersistence(() => _save(current));
+    await queuePersistence(() => _save(current));
+    await _enqueueSyncBatch(syncOperations);
   }
 
   Future<void> applyDeductionProposals(
     List<DeductionProposal> proposals,
   ) async {
     final removalIndices = <int>{};
+    final syncOperations = <_PendingInventorySync>[];
     var current = [...state];
     for (final p in proposals) {
       if (!p.selected) continue;
@@ -224,12 +262,30 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
       final remaining = _subtractQuantity(existing.quantity, p.deductAmount);
       if (remaining <= 0) {
         removalIndices.add(i);
+        final deletedAt = DateTime.now().toUtc();
+        syncOperations.add(
+          _PendingInventorySync(
+            entityId: existing.id,
+            operation: SyncOperationType.delete,
+            patch: {'deletedAt': deletedAt.toIso8601String()},
+            baseVersion: existing.remoteVersion,
+          ),
+        );
       } else {
         final newQty = remaining == remaining.roundToDouble()
             ? remaining.toInt().toString()
             : remaining.toString();
-        current[i] = refreshIngredientFreshness(
+        final updatedItem = refreshIngredientFreshness(
           existing.copyWith(quantity: newQty),
+        );
+        current[i] = updatedItem;
+        syncOperations.add(
+          _PendingInventorySync(
+            entityId: updatedItem.id,
+            operation: SyncOperationType.deduction,
+            patch: updatedItem.toJson(),
+            baseVersion: existing.remoteVersion,
+          ),
         );
       }
     }
@@ -241,7 +297,8 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
       }
     }
     state = List<Ingredient>.from(current);
-    return queuePersistence(() => _save(state));
+    await queuePersistence(() => _save(state));
+    await _enqueueSyncBatch(syncOperations);
   }
 
   double _subtractQuantity(String existing, String deduct) {
@@ -330,6 +387,20 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
 final inventoryProvider = NotifierProvider<InventoryNotifier, List<Ingredient>>(
   InventoryNotifier.new,
 );
+
+class _PendingInventorySync {
+  const _PendingInventorySync({
+    required this.entityId,
+    required this.operation,
+    required this.patch,
+    this.baseVersion,
+  });
+
+  final String entityId;
+  final SyncOperationType operation;
+  final Map<String, dynamic> patch;
+  final int? baseVersion;
+}
 
 class _AddHistoryNotifier extends Notifier<List<FrequentItem>> {
   late InventoryRepo _repo;
