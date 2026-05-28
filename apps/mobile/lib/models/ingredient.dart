@@ -1,7 +1,10 @@
 import '../models/storage_area.dart';
 import 'sync_metadata.dart';
 
-enum FreshnessState { fresh, expiringSoon, expired }
+/// Urgency tiers, least → most severe. `urgent` is a near-expiry (today /
+/// next couple of days) refinement of `expiringSoon`: it is still "not fresh /
+/// expiring" everywhere counts and filters apply, but drives a hotter badge.
+enum FreshnessState { fresh, expiringSoon, urgent, expired }
 
 class Ingredient {
   final String id;

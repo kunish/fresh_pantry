@@ -27,6 +27,7 @@ const _syncOperationIds = Uuid();
 
 bool isNotFreshIngredient(Ingredient item) {
   return item.state == FreshnessState.expiringSoon ||
+      item.state == FreshnessState.urgent ||
       item.state == FreshnessState.expired;
 }
 
@@ -196,72 +197,130 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
     );
   }
 
-  Future<void> applyIntakeProposals(List<IntakeProposal> proposals) async {
+  /// Applies the selected Intake proposals and returns the set of proposal ids
+  /// that were actually applied, so callers (e.g. the shopping list) only clean
+  /// up the source rows whose intake really landed.
+  Future<Set<String>> applyIntakeProposals(
+    List<IntakeProposal> proposals,
+  ) async {
     var current = [...state];
     final syncOperations = <_PendingInventorySync>[];
+    final appliedIds = <String>{};
     for (final p in proposals) {
       if (!p.selected) continue;
-      switch (p.action) {
-        case IntakeAction.newRow:
-          final item = _withSyncId(_ingredientFromProposal(p));
-          current = [...current, item];
-          syncOperations.add(
-            _PendingInventorySync(
-              entityId: item.id,
-              operation: SyncOperationType.create,
-              patch: item.toJson(),
-            ),
-          );
-        case IntakeAction.mergeInto:
-          final index = int.tryParse(p.mergeTargetId ?? '');
-          if (index == null || index < 0 || index >= current.length) {
-            final item = _withSyncId(_ingredientFromProposal(p));
-            current = [...current, item];
-            syncOperations.add(
-              _PendingInventorySync(
-                entityId: item.id,
-                operation: SyncOperationType.create,
-                patch: item.toJson(),
-              ),
-            );
-            break;
-          }
-          final existing = current[index];
-          final summed = _sumQuantity(existing.quantity, p.quantity);
-          final updatedItem = refreshIngredientFreshness(
-            existing.copyWith(quantity: summed),
-          );
-          current = [...current]..[index] = updatedItem;
-          syncOperations.add(
-            _PendingInventorySync(
-              entityId: updatedItem.id,
-              operation: SyncOperationType.intake,
-              patch: updatedItem.toJson(),
-              baseVersion: existing.remoteVersion,
-            ),
-          );
+
+      // Re-resolve the merge target against the LIVE inventory by the domain
+      // identity rule — never a stale positional index captured at proposal
+      // time (the list can reorder, shrink, or be restored from a persisted
+      // draft across launches). A perishable / non-matching item falls back to
+      // a new row, which can never corrupt an unrelated row.
+      final mergeIndex = p.action == IntakeAction.mergeInto
+          ? _findMergeTarget(current, p)
+          : -1;
+
+      if (mergeIndex < 0) {
+        final item = _withSyncId(_ingredientFromProposal(p));
+        current = [...current, item];
+        syncOperations.add(
+          _PendingInventorySync(
+            entityId: item.id,
+            operation: SyncOperationType.create,
+            patch: item.toJson(),
+          ),
+        );
+        appliedIds.add(p.id);
+        continue;
       }
+
+      final existing = current[mergeIndex];
+      final summed = _sumQuantity(existing.quantity, p.quantity);
+      final updatedItem = refreshIngredientFreshness(
+        existing.copyWith(quantity: summed),
+      );
+      current = [...current]..[mergeIndex] = updatedItem;
+      syncOperations.add(
+        _PendingInventorySync(
+          entityId: updatedItem.id,
+          operation: SyncOperationType.intake,
+          patch: updatedItem.toJson(),
+          baseVersion: existing.remoteVersion,
+        ),
+      );
+      appliedIds.add(p.id);
     }
+    // Apply optimistically, then roll back if the local save fails so state and
+    // disk never diverge and the Review can keep the draft for a retry.
+    final prior = state;
     state = current;
-    await queuePersistence(() => _save(current));
+    try {
+      await queuePersistence(() => _save(current), rethrowError: true);
+    } catch (_) {
+      state = prior;
+      rethrow;
+    }
     await _enqueueSyncBatch(syncOperations);
+    return appliedIds;
+  }
+
+  /// Resolves the row a `mergeInto` proposal should merge into, by the domain
+  /// merge rule (name+unit+storage) against the CURRENT inventory. Returns -1
+  /// — meaning "create a new row instead" — when the item is Perishable (every
+  /// intake is a new Batch), when no current row matches, or when the matching
+  /// row's quantity is non-numeric (merging would silently discard its stock).
+  int _findMergeTarget(List<Ingredient> current, IntakeProposal p) {
+    if (_isPerishableProposal(p)) return -1;
+    final name = p.name.trim().toLowerCase();
+    final unit = p.unit.trim();
+    if (name.isEmpty || unit.isEmpty) return -1;
+    for (var i = 0; i < current.length; i++) {
+      final row = current[i];
+      if (row.name.trim().toLowerCase() != name) continue;
+      if (row.unit.trim() != unit) continue;
+      if (row.storage != p.storage) continue;
+      if (double.tryParse(row.quantity.trim()) == null) return -1;
+      return i;
+    }
+    return -1;
+  }
+
+  bool _isPerishableProposal(IntakeProposal p) {
+    return FoodCategories.isPerishable(p.category) ||
+        FoodKnowledge.isPerishableName(p.name);
   }
 
   Future<void> applyDeductionProposals(
     List<DeductionProposal> proposals,
   ) async {
-    final removalIndices = <int>{};
-    final syncOperations = <_PendingInventorySync>[];
     var current = [...state];
+
+    // Resolve every selected deduction to a LIVE row index by stable identity,
+    // and aggregate per row so two proposals that resolve to the same row net
+    // into one deduction (and one sync op) instead of double-deducting /
+    // double-deleting against a stale snapshot.
+    final deductByIndex = <int, double>{};
     for (final p in proposals) {
       if (!p.selected) continue;
       if (p.action == DeductionAction.skip) continue;
-      final i = p.chosenIndex;
-      if (i < 0 || i >= current.length) continue;
-      final existing = current[i];
-      final remaining = _subtractQuantity(existing.quantity, p.deductAmount);
+      final chosen = _chosenCandidate(p);
+      if (chosen == null) continue;
+      final amount = double.tryParse(p.deductAmount.trim());
+      if (amount == null || amount <= 0) continue; // never silently deduct 0
+      final index = _resolveDeductionRow(current, chosen);
+      if (index < 0) continue; // row gone / ambiguous -> skip the wrong-row risk
+      deductByIndex.update(index, (v) => v + amount, ifAbsent: () => amount);
+    }
+
+    final removalIndices = <int>{};
+    final syncOperations = <_PendingInventorySync>[];
+    deductByIndex.forEach((index, totalDeduct) {
+      final existing = current[index];
+      final existingQty = double.tryParse(existing.quantity.trim());
+      // Non-numeric stock (e.g. "适量", "半盒") must not be coerced to 0 and
+      // deleted — leave the row untouched rather than wiping real inventory.
+      if (existingQty == null) return;
+      final remaining = existingQty - totalDeduct;
       if (remaining <= 0) {
-        removalIndices.add(i);
+        removalIndices.add(index);
         final deletedAt = DateTime.now().toUtc();
         syncOperations.add(
           _PendingInventorySync(
@@ -272,13 +331,10 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
           ),
         );
       } else {
-        final newQty = remaining == remaining.roundToDouble()
-            ? remaining.toInt().toString()
-            : remaining.toString();
         final updatedItem = refreshIngredientFreshness(
-          existing.copyWith(quantity: newQty),
+          existing.copyWith(quantity: _formatQuantity(remaining)),
         );
-        current[i] = updatedItem;
+        current[index] = updatedItem;
         syncOperations.add(
           _PendingInventorySync(
             entityId: updatedItem.id,
@@ -288,7 +344,8 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
           ),
         );
       }
-    }
+    });
+
     if (removalIndices.isNotEmpty) {
       final sortedDesc = removalIndices.toList()
         ..sort((a, b) => b.compareTo(a));
@@ -296,16 +353,55 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
         current.removeAt(idx);
       }
     }
+    final prior = state;
     state = List<Ingredient>.from(current);
-    await queuePersistence(() => _save(state));
+    try {
+      await queuePersistence(() => _save(state), rethrowError: true);
+    } catch (_) {
+      state = prior;
+      rethrow;
+    }
     await _enqueueSyncBatch(syncOperations);
   }
 
-  double _subtractQuantity(String existing, String deduct) {
-    final ne = double.tryParse(existing) ?? 0;
-    final nd = double.tryParse(deduct) ?? 0;
-    return ne - nd;
+  DeductionCandidate? _chosenCandidate(DeductionProposal p) {
+    for (final candidate in p.candidates) {
+      if (candidate.inventoryRowIndex == p.chosenIndex) return candidate;
+    }
+    return null;
   }
+
+  /// Resolves the live inventory index for a chosen deduction candidate by
+  /// stable identity, defending against list reordering between proposal
+  /// creation and apply. Prefers the row id (household-synced rows); for
+  /// local-only rows whose id is empty, falls back to the recorded positional
+  /// index guarded by the captured row name, so a deduction never lands on an
+  /// unrelated row. Returns -1 when the target can no longer be identified.
+  int _resolveDeductionRow(List<Ingredient> current, DeductionCandidate chosen) {
+    final id = chosen.inventoryRowId.trim();
+    if (id.isNotEmpty) {
+      final matches = <int>[];
+      for (var i = 0; i < current.length; i++) {
+        if (current[i].id == id) matches.add(i);
+      }
+      if (matches.length == 1) return matches.first;
+      // 0 or ambiguous by id -> fall through to the name-guarded index path.
+    }
+    final index = chosen.inventoryRowIndex;
+    if (index < 0 || index >= current.length) return -1;
+    final expectedName = chosen.inventoryRowName.trim().toLowerCase();
+    if (expectedName.isEmpty) return index; // no captured identity -> trust index
+    if (current[index].name.trim().toLowerCase() == expectedName) return index;
+    // Index drifted; recover only if exactly one row still carries the name.
+    final byName = <int>[];
+    for (var j = 0; j < current.length; j++) {
+      if (current[j].name.trim().toLowerCase() == expectedName) byName.add(j);
+    }
+    return byName.length == 1 ? byName.first : -1;
+  }
+
+  String _formatQuantity(double n) =>
+      n == n.roundToDouble() ? n.toInt().toString() : n.toString();
 
   Ingredient _ingredientFromProposal(IntakeProposal p) {
     final shelf = p.shelfLifeDays;
@@ -489,8 +585,16 @@ final categoriesProvider = Provider.autoDispose<List<String>>((ref) {
 
 final storageAreasProvider = Provider.autoDispose<List<StorageArea>>((ref) {
   final items = ref.watch(inventoryProvider);
-  const maxCapacity = {IconType.fridge: 20, IconType.pantry: 50};
-  const names = {IconType.fridge: '冰箱', IconType.pantry: '食品柜'};
+  const maxCapacity = {
+    IconType.fridge: 20,
+    IconType.freezer: 20,
+    IconType.pantry: 50,
+  };
+  const names = {
+    IconType.fridge: '冰箱',
+    IconType.freezer: '冷冻室',
+    IconType.pantry: '食品柜',
+  };
   final counts = {for (final type in IconType.values) type: 0};
 
   for (final item in items) {

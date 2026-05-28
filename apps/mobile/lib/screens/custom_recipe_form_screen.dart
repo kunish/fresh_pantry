@@ -700,13 +700,20 @@ class _CustomRecipeFormScreenState
   }
 
   Future<void> _onParseUrl() async {
-    final url = normalizePastedRecipeUrl(_urlController.text.trim());
-    if (url != _urlController.text) {
-      _urlController.text = url;
-    }
-    if (!url.startsWith('http')) {
+    final raw = _urlController.text.trim();
+    final normalized = normalizePastedRecipeUrl(raw);
+    final parsed = Uri.tryParse(normalized);
+    if (parsed == null ||
+        !parsed.hasScheme ||
+        !parsed.scheme.startsWith('http') ||
+        parsed.host.isEmpty ||
+        !parsed.host.contains('.')) {
       _showError('请填入合法的 http(s) 链接');
       return;
+    }
+    final url = normalized;
+    if (url != _urlController.text) {
+      _urlController.text = url;
     }
     final notifier = ref.read(aiDraftProvider.notifier);
     await notifier.runRecipeFromUrl(url, parser: _buildUrlParser());

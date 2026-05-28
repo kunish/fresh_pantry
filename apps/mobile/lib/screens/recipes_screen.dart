@@ -211,11 +211,7 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
   /// 名称小写归一化后的 expiring/expired 食材集合 — 用作"用临期"tab 的匹配键。
   Set<String> _expiringIngredientNames(List<Ingredient> inventory) {
     return inventory
-        .where(
-          (i) =>
-              i.state == FreshnessState.expiringSoon ||
-              i.state == FreshnessState.expired,
-        )
+        .where(isNotFreshIngredient)
         .map((i) => i.name.trim().toLowerCase())
         .where((name) => name.isNotEmpty)
         .toSet();

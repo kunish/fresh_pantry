@@ -1,4 +1,5 @@
 import '../data/food_categories.dart';
+import '../data/food_knowledge.dart';
 import '../models/ingredient.dart';
 import '../models/proposal.dart';
 import '../models/storage_area.dart';
@@ -37,7 +38,11 @@ class ProposalPlanner {
     for (var i = 0; i < inventory.length; i++) {
       final n = inventory[i].name.trim().toLowerCase();
       if (n.isEmpty) continue;
-      if (n == query || n.contains(query) || query.contains(n)) {
+      // Bidirectional substring fuzzy match, but never let a length-1 inventory
+      // name be a substring of a longer recipe ingredient (e.g. row "蛋" must
+      // not match recipe "蛋糕"). The reverse direction (recipe term inside a
+      // longer inventory name, e.g. "肉"→"猪肉末") stays intentionally loose.
+      if (n == query || n.contains(query) || (query.contains(n) && n.length >= 2)) {
         matches.add((i, inventory[i]));
       }
     }
@@ -53,6 +58,9 @@ class ProposalPlanner {
         .map(
           (m) => DeductionCandidate(
             inventoryRowIndex: m.$1,
+            inventoryRowId: m.$2.id,
+            inventoryRowName: m.$2.name,
+            inventoryRowUnit: m.$2.unit,
             displayLabel:
                 '${m.$2.name} ${m.$2.quantity}${m.$2.unit}${m.$2.expiryLabel == null ? '' : ' · ${m.$2.expiryLabel}'}',
           ),
@@ -66,7 +74,11 @@ class ProposalPlanner {
     required IntakeCandidate candidate,
     required List<Ingredient> inventory,
   }) {
-    if (FoodCategories.isPerishable(candidate.category)) {
+    // A Perishable always creates a new Batch. Consult the knowledge base by
+    // name too, so a perishable purchase whose category is missing or defaulted
+    // to "其他" is not silently merged into an aging row.
+    if (FoodCategories.isPerishable(candidate.category) ||
+        FoodKnowledge.isPerishableName(candidate.name)) {
       return const IntakeDefaultAction.newRow();
     }
     final candidateName = candidate.name.trim().toLowerCase();

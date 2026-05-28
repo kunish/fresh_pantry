@@ -161,5 +161,121 @@ void main() {
       expect(target.getString('shopping_items'), '[{"id":"si_1"}]');
       expect(target.getString('add_history'), '{"葱":{"count":3}}');
     });
+
+    test(
+      'atomic: a corrupted inner payload throws and writes NOTHING',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'inventory_items': '[{"name":"现有食材"}]',
+          'shopping_items': '[{"id":"si_keep"}]',
+        });
+        final prefs = await SharedPreferences.getInstance();
+
+        // shopping_items is a valid list but inventory_items is truncated
+        // (no longer decodes to a JSON list).
+        expect(
+          () => BackupService.importFromMap(prefs, {
+            'version': 1,
+            'data': {
+              'shopping_items': '[{"id":"si_new"}]',
+              'inventory_items': '[{"name":"苹果"', // truncated
+            },
+          }),
+          throwsA(isA<FormatException>()),
+        );
+
+        // Nothing was written: existing good data is fully intact.
+        expect(prefs.getString('inventory_items'), '[{"name":"现有食材"}]');
+        expect(prefs.getString('shopping_items'), '[{"id":"si_keep"}]');
+      },
+    );
+
+    test('atomic: a list payload that decodes to a non-list throws', () async {
+      SharedPreferences.setMockInitialValues({
+        'inventory_items': '[{"name":"现有食材"}]',
+      });
+      final prefs = await SharedPreferences.getInstance();
+
+      expect(
+        () => BackupService.importFromMap(prefs, {
+          'version': 1,
+          'data': {'inventory_items': '{"not":"a list"}'},
+        }),
+        throwsA(isA<FormatException>()),
+      );
+
+      expect(prefs.getString('inventory_items'), '[{"name":"现有食材"}]');
+    });
+
+    test('atomic: a map payload that decodes to a non-map throws', () async {
+      SharedPreferences.setMockInitialValues({
+        'add_history': '{"葱":{"count":3}}',
+      });
+      final prefs = await SharedPreferences.getInstance();
+
+      expect(
+        () => BackupService.importFromMap(prefs, {
+          'version': 1,
+          'data': {'add_history': '[1,2,3]'},
+        }),
+        throwsA(isA<FormatException>()),
+      );
+
+      expect(prefs.getString('add_history'), '{"葱":{"count":3}}');
+    });
+
+    test('atomic: a non-string payload throws and writes nothing', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      expect(
+        () => BackupService.importFromMap(prefs, {
+          'version': 1,
+          'data': {'shopping_items': 42},
+        }),
+        throwsA(isA<FormatException>()),
+      );
+
+      expect(prefs.getString('shopping_items'), isNull);
+    });
+
+    test('onImported runs only after a successful import', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      var imported = 0;
+
+      await BackupService.importFromMap(
+        prefs,
+        {
+          'version': 1,
+          'data': {'shopping_items': '[]'},
+        },
+        onImported: () async => imported++,
+      );
+
+      expect(imported, 1);
+      expect(prefs.getString('shopping_items'), '[]');
+    });
+
+    test('onImported does NOT run when the import throws', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      var imported = 0;
+
+      await expectLater(
+        BackupService.importFromMap(
+          prefs,
+          {
+            'version': 1,
+            'data': {'inventory_items': '[truncated'},
+          },
+          onImported: () async => imported++,
+        ),
+        throwsA(isA<FormatException>()),
+      );
+
+      expect(imported, 0);
+      expect(prefs.getString('inventory_items'), isNull);
+    });
   });
 }

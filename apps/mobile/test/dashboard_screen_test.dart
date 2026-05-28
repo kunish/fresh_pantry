@@ -46,6 +46,28 @@ void main() {
     },
   );
 
+  testWidgets('hero shows 已过期 label for expired items', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(412, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      await _app(
+        inventory: [
+          _ingredient('牛奶', state: FreshnessState.expired),
+          _ingredient('鸡蛋', state: FreshnessState.expiringSoon),
+        ],
+        recipes: const [],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('已过期'), findsAtLeastNWidgets(1));
+    // '即将过期' is also used as a pill label on expiring cards, so it can
+    // legitimately appear more than once.
+    expect(find.text('即将过期'), findsAtLeastNWidgets(1));
+    expect(find.text('快过期'), findsNothing);
+  });
+
   testWidgets('dashboard shows category empty state', (tester) async {
     await tester.binding.setSurfaceSize(const Size(412, 1000));
     addTearDown(() => tester.binding.setSurfaceSize(null));

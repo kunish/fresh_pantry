@@ -748,6 +748,7 @@ class _InventoryResultTile extends StatelessWidget {
     final statusColor = switch (item.state) {
       FreshnessState.fresh => AppColors.primary,
       FreshnessState.expiringSoon => AppColors.secondary,
+      FreshnessState.urgent => AppColors.error,
       FreshnessState.expired => AppColors.error,
     };
 

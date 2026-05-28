@@ -114,10 +114,11 @@ void main() {
       expect(ing.state, FreshnessState.fresh);
     });
 
-    test('fromJson maps freezer string to fridge (fallback behavior)', () {
-      // IconType only has fridge/pantry; freezer maps to fridge by design
+    test('fromJson maps freezer string to the freezer storage area', () {
+      // freezer is a first-class StorageArea; it must round-trip, not collapse
+      // into fridge (which previously lost the frozen-vs-fridge distinction).
       final ing = Ingredient.fromJson({'storage': 'freezer'});
-      expect(ing.storage, IconType.fridge);
+      expect(ing.storage, IconType.freezer);
     });
   });
 

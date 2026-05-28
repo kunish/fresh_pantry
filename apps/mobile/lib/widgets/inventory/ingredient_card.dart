@@ -17,6 +17,8 @@ import '../shared/zone_icon.dart';
       return (bg: AppColors.primarySoft, text: AppColors.primaryContainer);
     case FreshnessState.expiringSoon:
       return (bg: AppColors.fkWarnSoft, text: AppColors.onSecondaryContainer);
+    case FreshnessState.urgent:
+      return (bg: AppColors.fkDangerSoft, text: AppColors.onTertiaryContainer);
     case FreshnessState.expired:
       return (bg: AppColors.fkDanger, text: Colors.white);
   }
@@ -47,7 +49,7 @@ class IngredientCard extends StatelessWidget {
     final palette = FkCategoryPalette.of(catId);
     final statusBadge = _statusBadgeFor(state, ingredient.expiryLabel);
     final progress = ingredient.freshnessPercent.clamp(0.0, 1.0);
-    final progressColor = isExpired
+    final progressColor = (isExpired || state == FreshnessState.urgent)
         ? AppColors.fkDanger
         : (state == FreshnessState.expiringSoon
               ? AppColors.fkWarn
@@ -196,6 +198,7 @@ class IngredientCard extends StatelessWidget {
 
   String _defaultLabel(FreshnessState state) => switch (state) {
     FreshnessState.expiringSoon => '即将过期',
+    FreshnessState.urgent => '快过期',
     FreshnessState.expired => '已过期',
     FreshnessState.fresh => '新鲜',
   };

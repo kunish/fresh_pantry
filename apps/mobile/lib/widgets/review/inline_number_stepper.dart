@@ -65,10 +65,14 @@ class InlineNumberStepper extends StatelessWidget {
 
   void _bump(double current, int delta) {
     final next = (current + delta).clamp(min.toDouble(), max.toDouble());
-    final s = next == next.roundToDouble()
-        ? next.toInt().toString()
-        : next.toString();
-    onChanged(s);
+    onChanged(_format(next));
+  }
+
+  String _format(double n) {
+    if (n == n.roundToDouble()) return n.toInt().toString();
+    // Round to 2 decimals so stepping a fractional quantity never emits binary
+    // float artifacts like "1.2000000000000002" into the stored quantity.
+    return double.parse(n.toStringAsFixed(2)).toString();
   }
 
   Widget _btn({required Key key, required IconData icon, VoidCallback? onTap}) {

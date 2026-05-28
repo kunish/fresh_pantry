@@ -66,5 +66,48 @@ void main() {
       expect(applied.ingredients.single.quantity, '少许');
       expect(applied.ingredients.single.unit, isEmpty);
     });
+
+    test('keeps fractional amount intact without splitting on slash', () {
+      RecipeIngredientDraft buildIngredient(String amount) => RecipeIngredientDraft(
+            name: DraftField.ai('面粉'),
+            amount: DraftField.ai(amount),
+          );
+
+      RecipeDraft buildDraft(String amount) => RecipeDraft(
+            sourceUrl: 'https://x',
+            name: DraftField.ai(''),
+            category: DraftField.ai(''),
+            cookingMinutes: DraftField.ai(30),
+            difficulty: DraftField.ai(1),
+            description: DraftField.ai(''),
+            imageUrl: const DraftField(value: null, source: DraftSource.ai),
+            ingredients: [buildIngredient(amount)],
+            steps: const [],
+          );
+
+      // '1/2个' — '个' is a known unit, so quantity='1/2', unit='个'
+      final half = recipeDraftToApplyResult(
+        buildDraft('1/2个'),
+        isSupportedImageSource: (_) => false,
+      );
+      expect(half.ingredients.single.quantity, '1/2');
+      expect(half.ingredients.single.unit, '个');
+
+      // '2-3根' — '根' is a known unit, so quantity='2-3', unit='根'
+      final range = recipeDraftToApplyResult(
+        buildDraft('2-3根'),
+        isSupportedImageSource: (_) => false,
+      );
+      expect(range.ingredients.single.quantity, '2-3');
+      expect(range.ingredients.single.unit, '根');
+
+      // '1/2碗' — '碗' is NOT a known unit, so whole thing stays in quantity
+      final halfBowl = recipeDraftToApplyResult(
+        buildDraft('1/2碗'),
+        isSupportedImageSource: (_) => false,
+      );
+      expect(halfBowl.ingredients.single.quantity, '1/2碗');
+      expect(halfBowl.ingredients.single.unit, isEmpty);
+    });
   });
 }

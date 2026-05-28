@@ -29,9 +29,12 @@ class _SwipeRevealDeleteActionState extends State<SwipeRevealDeleteAction> {
 
   double _dragOffset = 0;
   bool _isDragging = false;
+  // Stays true during the closing animation so the panel isn't removed while
+  // the AnimatedContainer is still sliding back to zero.
+  bool _isAnimatingClosed = false;
 
   bool get _isOpen => _dragOffset <= -widget.actionExtent + 0.5;
-  bool get _isRevealing => _dragOffset < 0;
+  bool get _isRevealing => _dragOffset < 0 || _isAnimatingClosed;
 
   void _handleDragStart(DragStartDetails details) {
     setState(() {
@@ -55,20 +58,22 @@ class _SwipeRevealDeleteActionState extends State<SwipeRevealDeleteAction> {
     final shouldOpen =
         velocity < -350 || (_dragOffset.abs() > widget.actionExtent * 0.4);
     final shouldClose = velocity > 350;
+    final closing = shouldClose || !shouldOpen;
 
     setState(() {
       _isDragging = false;
-      _dragOffset = shouldClose || !shouldOpen ? 0 : -widget.actionExtent;
+      _isAnimatingClosed = closing && _dragOffset < 0;
+      _dragOffset = closing ? 0 : -widget.actionExtent;
     });
   }
 
   void _handleDragCancel() {
+    // Always snap closed — an interrupted gesture (e.g. parent scroll steal)
+    // should never leave the delete button exposed.
     setState(() {
       _isDragging = false;
-      _dragOffset =
-          _dragOffset.abs() > widget.actionExtent * 0.4
-              ? -widget.actionExtent
-              : 0;
+      _isAnimatingClosed = _dragOffset < 0;
+      _dragOffset = 0;
     });
   }
 
@@ -81,6 +86,7 @@ class _SwipeRevealDeleteActionState extends State<SwipeRevealDeleteAction> {
         children: [
           if (_isRevealing)
             Positioned.fill(
+              key: const Key('delete_panel'),
               child: Align(
                 alignment: Alignment.centerRight,
                 child: IgnorePointer(
@@ -124,6 +130,13 @@ class _SwipeRevealDeleteActionState extends State<SwipeRevealDeleteAction> {
             duration: _isDragging ? Duration.zero : _animationDuration,
             curve: Curves.easeOutCubic,
             transform: Matrix4.translationValues(_dragOffset, 0, 0),
+            onEnd: () {
+              if (_isAnimatingClosed) {
+                setState(() {
+                  _isAnimatingClosed = false;
+                });
+              }
+            },
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onHorizontalDragStart: _handleDragStart,

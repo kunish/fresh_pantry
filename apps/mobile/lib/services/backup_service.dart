@@ -53,19 +53,76 @@ class BackupService {
     return decoded;
   }
 
+  /// Keys whose payload must decode to a JSON list (matches what the
+  /// inventory/shopping/custom-recipe repos expect on load).
+  static const Set<String> _listPayloadKeys = {
+    inventoryItemsStorageKey,
+    shoppingItemsStorageKey,
+    customRecipesStorageKey,
+  };
+
+  /// Keys whose payload must decode to a JSON object (add-history map and the
+  /// AI-settings map).
+  static const Set<String> _mapPayloadKeys = {
+    addHistoryStorageKey,
+    aiSettingsStorageKey,
+  };
+
+  /// Imports a decoded backup [envelope] into [prefs] atomically.
+  ///
+  /// Every known payload is parse-validated BEFORE any key is written; if any
+  /// payload is present but structurally invalid (e.g. a truncated
+  /// `inventory_items` blob that no longer decodes to a list) this throws a
+  /// [FormatException] and writes NOTHING, so a version-valid backup with a
+  /// corrupted inner payload can never silently wipe the existing data.
+  ///
+  /// [onImported] is awaited only after a successful, complete write. The
+  /// caller uses it to make the import authoritative against IN-MEMORY state
+  /// (e.g. reload the affected Riverpod notifiers from the freshly written
+  /// prefs) before stale notifier/sync state can persist old data back over
+  /// the import. It is never invoked when the import throws.
   static Future<void> importFromMap(
     SharedPreferences prefs,
-    Map<String, dynamic> envelope,
-  ) async {
+    Map<String, dynamic> envelope, {
+    Future<void> Function()? onImported,
+  }) async {
     final data = envelope['data'];
     if (data is! Map<String, dynamic>) {
       throw const FormatException('Backup data is not a JSON object');
     }
+
+    // Phase 1 — validate everything; collect the writes but apply none yet.
+    final writes = <String, String>{};
     for (final key in userDataKeys) {
       final value = data[key];
-      if (value is String) {
-        await prefs.setString(key, value);
+      if (value == null) continue;
+      if (value is! String) {
+        throw FormatException('Backup payload for "$key" is not a string');
       }
+      _validatePayload(key, value);
+      writes[key] = value;
+    }
+
+    // Phase 2 — all payloads valid; persist them.
+    for (final entry in writes.entries) {
+      await prefs.setString(entry.key, entry.value);
+    }
+
+    if (onImported != null) await onImported();
+  }
+
+  static void _validatePayload(String key, String value) {
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(value);
+    } on FormatException {
+      throw FormatException('Backup payload for "$key" is not valid JSON');
+    }
+    if (_listPayloadKeys.contains(key) && decoded is! List) {
+      throw FormatException('Backup payload for "$key" must be a JSON list');
+    }
+    if (_mapPayloadKeys.contains(key) && decoded is! Map) {
+      throw FormatException('Backup payload for "$key" must be a JSON object');
     }
   }
 

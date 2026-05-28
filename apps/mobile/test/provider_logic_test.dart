@@ -255,7 +255,8 @@ void main() {
       final item = container.read(inventoryProvider).single;
 
       expect(item.freshnessPercent, closeTo(1 / 3, 0.001));
-      expect(item.state, FreshnessState.expiringSoon);
+      // Expiring tomorrow is within the urgent window.
+      expect(item.state, FreshnessState.urgent);
       expect(item.expiryLabel, '明天过期');
     });
 
@@ -290,7 +291,8 @@ void main() {
         final item = container.read(inventoryProvider).single;
 
         expect(item.freshnessPercent, closeTo(1 / 7, 0.001));
-        expect(item.state, FreshnessState.expiringSoon);
+        // Expiring tomorrow is within the urgent window.
+        expect(item.state, FreshnessState.urgent);
         expect(item.expiryLabel, '明天过期');
       },
     );
@@ -730,7 +732,7 @@ void main() {
   });
 
   group('storage areas', () {
-    test('exposes only fridge and pantry storage areas', () async {
+    test('exposes fridge, freezer and pantry storage areas', () async {
       final container = await _containerWithInventory([]);
       addTearDown(container.dispose);
 
@@ -738,12 +740,13 @@ void main() {
 
       expect(areas.map((area) => area.icon), [
         IconType.fridge,
+        IconType.freezer,
         IconType.pantry,
       ]);
-      expect(areas.map((area) => area.name), isNot(contains('冷冻室')));
+      expect(areas.map((area) => area.name), contains('冷冻室'));
     });
 
-    test('migrates legacy freezer storage to fridge', () async {
+    test('preserves legacy freezer storage as a freezer area', () async {
       SharedPreferences.setMockInitialValues({
         'inventory_items': json.encode([
           {
@@ -765,7 +768,7 @@ void main() {
 
       final item = container.read(inventoryProvider).single;
 
-      expect(item.storage, IconType.fridge);
+      expect(item.storage, IconType.freezer);
     });
   });
 

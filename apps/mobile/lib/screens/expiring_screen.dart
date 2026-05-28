@@ -26,6 +26,11 @@ class ExpiringScreen extends ConsumerWidget {
         (items) => items.where((i) => i.state == FreshnessState.expired).length,
       ),
     );
+    final urgentCount = ref.watch(
+      expiringItemsProvider.select(
+        (items) => items.where((i) => i.state == FreshnessState.urgent).length,
+      ),
+    );
     final soonCount = ref.watch(
       expiringItemsProvider.select(
         (items) =>
@@ -58,13 +63,19 @@ class ExpiringScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
-            if (expiredCount == 0 && soonCount == 0)
+            if (expiredCount == 0 && urgentCount == 0 && soonCount == 0)
               const _EmptyState()
             else ...[
               if (expiredCount > 0)
                 const _Group(
                   title: '已过期 / 今天到期',
                   filter: FreshnessState.expired,
+                  dotColor: AppColors.fkDanger,
+                ),
+              if (urgentCount > 0)
+                const _Group(
+                  title: '快过期',
+                  filter: FreshnessState.urgent,
                   dotColor: AppColors.fkDanger,
                 ),
               if (soonCount > 0)

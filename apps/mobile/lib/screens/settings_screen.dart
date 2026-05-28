@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../household/household_session_controller.dart';
+import '../providers/ai_settings_provider.dart';
 import '../providers/custom_recipe_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/notification_service_provider.dart';
@@ -11,6 +14,7 @@ import '../providers/reminder_settings_provider.dart';
 import '../providers/shopping_provider.dart';
 import '../providers/storage_service_provider.dart';
 import '../services/backup_service.dart';
+import '../sync/sync_providers.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_snackbar.dart';
 import '../utils/fk_toast.dart';
@@ -60,7 +64,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await Clipboard.setData(ClipboardData(text: json));
     });
     if (!mounted) return;
-    final bytes = json.length;
+    final bytes = utf8.encode(json).length;
     fkToast(context, '已复制 $bytes 字节,粘贴到 Notes/邮箱保存');
   }
 
@@ -84,11 +88,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       return;
     }
 
+    final inHousehold = ref.read(selectedHouseholdIdProvider).trim().isNotEmpty;
+    final confirmMessage = inHousehold
+        ? '将覆盖当前的所有食材、购物清单、菜谱与 AI 设置。此操作不可撤销。\n\n'
+              '当前已加入家庭共享，导入后云端同步可能用其他成员的数据覆盖刚导入的内容；'
+              '如需完整恢复，建议先退出家庭共享再导入。'
+        : '将覆盖当前的所有食材、购物清单、菜谱与 AI 设置。此操作不可撤销。';
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('确认导入?'),
-        content: const Text('将覆盖当前的所有食材、购物清单、菜谱与 AI 设置。此操作不可撤销。'),
+        content: Text(confirmMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -106,10 +116,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     await _withLoading('正在导入数据...', () async {
       final prefs = ref.read(sharedPreferencesProvider);
-      await BackupService.importFromMap(prefs, decoded);
+      await BackupService.importFromMap(
+        prefs,
+        decoded,
+        onImported: () async {
+          // Reload the notifiers from the freshly written prefs so stale
+          // in-memory state (and the sync engine that reads it) cannot persist
+          // the pre-import data back over the restored backup.
+          ref.invalidate(inventoryProvider);
+          ref.invalidate(shoppingProvider);
+          ref.invalidate(customRecipesProvider);
+          ref.invalidate(aiSettingsProvider);
+        },
+      );
     });
     if (!mounted) return;
-    _showSimpleDialog('导入完成', '请重启 App 以加载新数据。');
+    _showSimpleDialog('导入完成', '数据已恢复。如未刷新，请重启 App。');
   }
 
   Future<void> _onInviteLink(String householdId) async {

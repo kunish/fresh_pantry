@@ -20,6 +20,8 @@ class FreshnessMeter extends StatelessWidget {
         return AppColors.primary;
       case FreshnessState.expiringSoon:
         return AppColors.secondary;
+      case FreshnessState.urgent:
+        return AppColors.error;
       case FreshnessState.expired:
         return AppColors.error;
     }
@@ -30,6 +32,7 @@ class FreshnessMeter extends StatelessWidget {
       case FreshnessState.fresh:
         return '新鲜度 ${(percent * 100).round()}%';
       case FreshnessState.expiringSoon:
+      case FreshnessState.urgent:
         return '剩余 ${(percent * 100).round()}%';
       case FreshnessState.expired:
         return '新鲜度 0%';
@@ -43,7 +46,7 @@ class FreshnessMeter extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(AppRadius.pill),
           child: LinearProgressIndicator(
-            value: percent,
+            value: state == FreshnessState.expired ? 0.0 : percent.clamp(0.0, 1.0),
             minHeight: 6,
             backgroundColor: AppColors.surfaceContainerHigh,
             valueColor: AlwaysStoppedAnimation(_barColor),

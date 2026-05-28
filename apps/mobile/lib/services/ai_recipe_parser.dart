@@ -84,8 +84,16 @@ class AiRecipeParser {
 
   static int _requireInt(Map<String, dynamic> m, String key) {
     final v = m[key];
-    if (v is int) return v;
-    if (v is num) return v.round();
-    throw AiParseException('字段 $key 缺失或非整数');
+    final int raw;
+    if (v is int) {
+      raw = v;
+    } else if (v is num) {
+      raw = v.round();
+    } else {
+      throw AiParseException('字段 $key 缺失或非整数');
+    }
+    if (key == 'difficulty') return raw.clamp(1, 5);
+    if (key == 'cookingMinutes') return raw <= 0 ? 30 : raw;
+    return raw;
   }
 }

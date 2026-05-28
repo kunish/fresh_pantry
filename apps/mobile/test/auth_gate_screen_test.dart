@@ -118,7 +118,10 @@ class FakeHouseholdGateway implements HouseholdGateway {
   String? get currentUserId => 'owner_1';
 
   @override
-  Future<void> removeMember(String targetUserId) {
+  Future<void> removeMember({
+    required String householdId,
+    required String userId,
+  }) {
     throw UnimplementedError('Not needed by these tests.');
   }
 
@@ -204,6 +207,21 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(gateway.sentEmail, 'owner@example.com');
+  });
+
+  testWidgets('AuthGateScreen confirms the OTP email was sent', (tester) async {
+    final gateway = FakeHouseholdGateway();
+    await tester.pumpWidget(_wrap(gateway));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.widgetWithText(TextField, '邮箱'),
+      'owner@example.com',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, '发送登录链接'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('登录链接已发送至 owner@example.com，请查收邮件'), findsOneWidget);
   });
 
   testWidgets(

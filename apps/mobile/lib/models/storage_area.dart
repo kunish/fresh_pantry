@@ -1,9 +1,10 @@
-enum IconType { fridge, pantry }
+enum IconType { fridge, freezer, pantry }
 
 IconType iconTypeFromName(String? name) {
   return switch (name) {
     'pantry' => IconType.pantry,
-    'fridge' || 'freezer' || null => IconType.fridge,
+    'freezer' => IconType.freezer,
+    'fridge' || null => IconType.fridge,
     _ => IconType.fridge,
   };
 }

@@ -23,6 +23,7 @@ import '../utils/storage_labels.dart';
 import '../widgets/shared/expiry_range_picker.dart';
 import '../widgets/shared/freshness_meter.dart';
 import '../widgets/shared/pill_chip.dart';
+import '../models/proposal.dart';
 import '../services/intake_proposal_factory.dart';
 import '../services/open_food_facts_service.dart';
 import 'ai_settings_screen.dart';
@@ -313,12 +314,16 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     if (_selectedExpiryDate == null) {
       return widget.initialIngredient?.freshnessPercent ?? 0.85;
     }
-    final days = daysUntilExpiry(_selectedExpiryDate!);
     return expiryFreshness(
       expiryDate: _selectedExpiryDate!,
-      totalShelfLifeDays: _freshnessShelfLifeDays ?? days.abs(),
+      // When the shelf life is unknown, use a sensible default window instead
+      // of daysUntilExpiry itself — the latter makes the ratio exactly 1.0 for
+      // every future date, rendering a meaningless always-full freshness bar.
+      totalShelfLifeDays: _freshnessShelfLifeDays ?? _defaultFreshnessWindowDays,
     );
   }
+
+  static const _defaultFreshnessWindowDays = 14;
 
   String get _expiryLabel {
     if (_selectedExpiryDate == null) {
@@ -1144,7 +1149,14 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
         ).showSnackBar(const SnackBar(content: Text('未识别到食材')));
         return;
       }
-      if (drafts.length == 1) {
+      final inventory = ref.read(inventoryProvider);
+      final proposals = IntakeProposalFactory.fromDrafts(drafts, inventory);
+      // A single draft that would merge into an existing row must go through
+      // the review pipeline so the merge actually happens; the append-only
+      // prefill add form would otherwise create a duplicate row. A single
+      // brand-new item keeps the richer prefill form.
+      if (proposals.length == 1 &&
+          proposals.first.action == IntakeAction.newRow) {
         final ingredient = drafts.first.toIngredient();
         await Navigator.of(context).push(
           MaterialPageRoute(
@@ -1157,8 +1169,6 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
         );
         return;
       }
-      final inventory = ref.read(inventoryProvider);
-      final proposals = IntakeProposalFactory.fromDrafts(drafts, inventory);
       ref.read(intakeReviewProvider.notifier).seed(proposals);
       await Navigator.of(
         context,

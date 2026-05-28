@@ -26,12 +26,14 @@ class _IntakeReviewScreenState extends ConsumerState<IntakeReviewScreen> {
     try {
       final n = ref.read(intakeReviewProvider.notifier);
       final inventoryN = ref.read(inventoryProvider.notifier);
-      await n.applyToInventory(inventoryN);
+      final appliedIds = await n.applyToInventory(inventoryN);
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('已入库')));
-      Navigator.of(context).maybePop();
+      // Return the applied proposal ids so callers (e.g. the shopping list)
+      // only remove the source rows whose intake actually landed.
+      Navigator.of(context).maybePop(appliedIds);
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(

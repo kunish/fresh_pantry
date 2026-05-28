@@ -108,6 +108,10 @@ void main() {
       expect(details.shelfLifeDays, 30);
       expect(details.source, '本地食材知识库');
       expect(details.imageUrl, contains('/images/ingredients/egg.png'));
+
+      // A local fallback must NOT be persisted (no cache churn, and the next
+      // lookup should still retry online).
+      expect(prefs.getString(foodDetailsCacheStorageKey), isNull);
     },
   );
 

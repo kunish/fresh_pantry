@@ -115,12 +115,24 @@ void main() {
       );
     });
 
-    test('keeps same-day expiry in the expiring soon state', () {
+    test('marks same-day expiry as urgent', () {
       final now = DateTime(2026, 4, 24, 12);
       final today = DateTime(2026, 4, 24);
 
+      // Expiring today is within the urgent window (<= urgentWithinDays).
       expect(
         freshnessStateForExpiry(freshness: 0.0, expiryDate: today, now: now),
+        FreshnessState.urgent,
+      );
+    });
+
+    test('keeps a comfortably-far low-freshness item as expiring soon', () {
+      final now = DateTime(2026, 4, 24, 12);
+      final far = DateTime(2026, 4, 24).add(const Duration(days: 10));
+
+      // Beyond the urgent window, a low freshness ratio is still "expiring soon".
+      expect(
+        freshnessStateForExpiry(freshness: 0.2, expiryDate: far, now: now),
         FreshnessState.expiringSoon,
       );
     });

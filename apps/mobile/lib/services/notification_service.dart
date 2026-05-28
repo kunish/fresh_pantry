@@ -37,6 +37,9 @@ class NotificationService {
       },
     );
     _initialized = true;
+    // Refresh permission state from the OS so that a previously-granted
+    // permission re-enables scheduling without a settings toggle.
+    await checkPermission();
   }
 
   /// Asks the OS for permission. Returns whether permission is granted after
@@ -69,11 +72,41 @@ class NotificationService {
     return _permissionGranted;
   }
 
+  /// Queries the OS for the current notification permission state without
+  /// prompting the user. Updates [permissionGranted] and returns the result.
+  /// Should be invoked only after [init].
+  Future<bool> checkPermission() async {
+    if (!_initialized) return false;
+    final iosImpl = _plugin
+        .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
+    final macImpl = _plugin
+        .resolvePlatformSpecificImplementation<
+            MacOSFlutterLocalNotificationsPlugin>();
+    final androidImpl = _plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    final iosPerms = await iosImpl?.checkPermissions();
+    final macPerms = await macImpl?.checkPermissions();
+    final androidEnabled = await androidImpl?.areNotificationsEnabled();
+
+    final granted =
+        iosPerms?.isEnabled ?? macPerms?.isEnabled ?? androidEnabled ?? false;
+    _permissionGranted = granted;
+    return _permissionGranted;
+  }
+
   /// Schedules a single notification at the given local DateTime.
+  /// Daily-summary notifications (kind == dailySummary) are scheduled as
+  /// recurring at the same time-of-day using [DateTimeComponents.time].
   Future<void> schedule(ScheduledNotification n) async {
     if (!_initialized || !_permissionGranted) return;
     final scheduledTz = tz.TZDateTime.from(n.scheduledAt, tz.local);
     if (scheduledTz.isBefore(tz.TZDateTime.now(tz.local))) return; // past
+    final recurring = n.kind == ScheduledNotificationKind.dailySummary
+        ? DateTimeComponents.time
+        : null;
     await _plugin.zonedSchedule(
       id: n.id,
       title: n.title,
@@ -81,6 +114,7 @@ class NotificationService {
       scheduledDate: scheduledTz,
       notificationDetails: _notifDetails(),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      matchDateTimeComponents: recurring,
     );
   }
 

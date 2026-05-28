@@ -110,5 +110,34 @@ void main() {
       );
       expect(r1.first.id, r2.first.id);
     });
+
+    test('two batches with same name+storage+addedAt but different expiry get distinct IDs', () {
+      final now = DateTime(2026, 5, 15);
+      final addedAt = DateTime(2026, 5, 1);
+      // Same millisecond addedAt, same name+storage, only expiryDate differs.
+      final ing1 = _ing(name: '牛奶', expiry: DateTime(2026, 5, 20), addedAt: addedAt);
+      final ing2 = _ing(name: '牛奶', expiry: DateTime(2026, 5, 25), addedAt: addedAt);
+      const settings = ReminderSettings(remindD1: true, remindDaily: false);
+      final r1 = ExpiryScheduler.compute(
+        inventory: [ing1], settings: settings, now: now,
+      );
+      final r2 = ExpiryScheduler.compute(
+        inventory: [ing2], settings: settings, now: now,
+      );
+      expect(r1.first.id, isNot(r2.first.id),
+          reason: 'different expiry dates must produce different notification ids');
+    });
+
+    test('daily summary notification has dailySummary kind', () {
+      final now = DateTime(2026, 5, 15, 8, 0);
+      const settings = ReminderSettings(
+        remindD1: false, remindD3: false, remindD7: false, remindDaily: true,
+      );
+      final result = ExpiryScheduler.compute(
+        inventory: [], settings: settings, now: now,
+      );
+      expect(result, hasLength(1));
+      expect(result.first.kind, ScheduledNotificationKind.dailySummary);
+    });
   });
 }

@@ -7,6 +7,7 @@ import '../data/food_knowledge.dart';
 import '../models/recipe.dart';
 import '../models/shopping_item.dart';
 import '../providers/deduction_review_provider.dart';
+import '../providers/favorite_recipes_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/recipe_provider.dart';
 import '../providers/shopping_provider.dart';
@@ -44,7 +45,6 @@ class RecipeDetailScreen extends ConsumerStatefulWidget {
 
 class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
   final Set<int> _completedSteps = <int>{};
-  bool _isFavorite = false;
 
   @override
   void didUpdateWidget(covariant RecipeDetailScreen oldWidget) {
@@ -111,6 +111,10 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             ? 0.0
             : _completedSteps.length / widget.recipe.steps.length;
 
+    final isFavorite = ref.watch(
+      isRecipeFavoriteProvider(widget.recipe.id),
+    );
+
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: ListView(
@@ -118,10 +122,12 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         children: [
           _HeroSection(
             recipe: widget.recipe,
-            isFavorite: _isFavorite,
+            isFavorite: isFavorite,
             isCustom: widget.isCustomRecipe,
             onBack: () => Navigator.of(context).maybePop(),
-            onToggleFavorite: () => setState(() => _isFavorite = !_isFavorite),
+            onToggleFavorite: () => ref
+                .read(favoriteRecipesProvider.notifier)
+                .toggle(widget.recipe.id),
             onEdit: widget.onEdit,
             onDelete: widget.onDelete,
           ),

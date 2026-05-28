@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:uuid/uuid.dart';
 import '../models/ingredient.dart';
 import '../models/shopping_item.dart';
-import '../data/food_categories.dart';
 import '../data/food_knowledge.dart';
+import '../storage/shopping_item_normalizer.dart';
 import '../storage/shopping_repo.dart';
 import '../sync/sync_operation.dart';
 import '../sync/sync_providers.dart';
@@ -41,26 +41,6 @@ class ShoppingListViewState {
   int get total => items.length;
   double get progress => total == 0 ? 0.0 : checkedCount / total;
 }
-
-ShoppingItem _normalizeShoppingItemCategory(ShoppingItem item) {
-  final category =
-      FoodCategories.normalize(item.category) ?? FoodCategories.other;
-  if (category == item.category) return item;
-  return item.copyWith(category: category);
-}
-
-ShoppingItem _normalizeShoppingItem(ShoppingItem item) {
-  final normalizedCategory = _normalizeShoppingItemCategory(item);
-  final trimmedName = normalizedCategory.name.trim();
-  final trimmedDetail = normalizedCategory.detail.trim();
-  if (trimmedName == normalizedCategory.name &&
-      trimmedDetail == normalizedCategory.detail) {
-    return normalizedCategory;
-  }
-  return normalizedCategory.copyWith(name: trimmedName, detail: trimmedDetail);
-}
-
-String _shoppingItemNameKey(String name) => name.trim().toLowerCase();
 
 ({int checked, int unchecked}) shoppingCountsFor(Iterable<ShoppingItem> items) {
   var checked = 0;
@@ -104,24 +84,6 @@ Map<String, List<ShoppingItem>> filterShoppingGroups(
     }
   });
   return result;
-}
-
-ShoppingItem _withUniqueShoppingItemId(
-  ShoppingItem item,
-  Set<String> existingIds,
-) {
-  final trimmedId = item.id.trim();
-  final baseId = trimmedId.isEmpty ? ShoppingItem.newId() : trimmedId;
-  var candidateId = baseId;
-  var suffix = 2;
-
-  while (existingIds.contains(candidateId)) {
-    candidateId = '${baseId}_$suffix';
-    suffix += 1;
-  }
-
-  existingIds.add(candidateId);
-  return candidateId == item.id ? item : item.copyWith(id: candidateId);
 }
 
 class ShoppingNotifier extends Notifier<List<ShoppingItem>>
@@ -175,21 +137,23 @@ class ShoppingNotifier extends Notifier<List<ShoppingItem>>
   }
 
   Future<void> replaceFromRemote(List<ShoppingItem> items) async {
-    final normalized = items
-        .map(_normalizeShoppingItem)
-        .toList(growable: false);
+    // Dedup by id (same identity rule the repo applies on load) so the
+    // in-memory list cannot diverge from the persisted/reloaded list.
+    final normalized = deduplicateShoppingItems(
+      items.map(normalizeShoppingItem),
+    );
     state = normalized;
     await queuePersistence(() => _save(normalized));
   }
 
   Future<bool> add(ShoppingItem item) async {
-    final normalizedItem = _withUniqueShoppingItemId(
-      _normalizeShoppingItem(_withSyncId(item)),
+    final normalizedItem = withUniqueShoppingItemId(
+      normalizeShoppingItem(_withSyncId(item)),
       state.map((item) => item.id).toSet(),
     );
-    final nameKey = _shoppingItemNameKey(normalizedItem.name);
+    final nameKey = shoppingItemNameKey(normalizedItem.name);
     if (nameKey.isEmpty ||
-        state.any((item) => _shoppingItemNameKey(item.name) == nameKey)) {
+        state.any((item) => shoppingItemNameKey(item.name) == nameKey)) {
       return false;
     }
 

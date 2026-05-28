@@ -1,7 +1,6 @@
 import 'dart:convert';
-import '../data/food_categories.dart';
 import '../models/shopping_item.dart';
-import '../utils/json_object_list.dart';
+import 'shopping_item_normalizer.dart';
 import 'storage_adapter.dart';
 
 class ShoppingRepo {
@@ -24,61 +23,40 @@ class ShoppingRepo {
     }
     final json = _adapter.read(_shoppingKey);
     if (json == null) return [];
+
+    final decoded = _decodeListOrNull(json);
+    // Top-level blob present but not a list: salvage nothing, but signal
+    // failure so an empty result never auto-overwrites the good blob.
+    if (decoded == null) return [];
+
+    // Parse item-by-item: skip only individual bad entries, keep the rest.
+    final items = <ShoppingItem>[];
+    for (final entry in decoded) {
+      if (entry is! Map) continue;
+      try {
+        items.add(
+          normalizeShoppingItemCategory(
+            ShoppingItem.fromJson(Map<String, dynamic>.from(entry)),
+          ),
+        );
+      } catch (_) {
+        // Skip this malformed entry only; keep already-parsed items.
+      }
+    }
+    return deduplicateShoppingItems(items);
+  }
+
+  List<dynamic>? _decodeListOrNull(String source) {
     try {
-      final items =
-          decodeJsonObjectList(json)
-              .map(ShoppingItem.fromJson)
-              .map(_normalizeShoppingItemCategory);
-      return _deduplicateShoppingItems(items);
+      final decoded = json.decode(source);
+      return decoded is List ? decoded : null;
     } catch (_) {
-      return [];
+      return null;
     }
   }
 
   void saveItems(List<ShoppingItem> items) {
     final jsonStr = json.encode(items.map((e) => e.toJson()).toList());
     _adapter.write(_shoppingKey, jsonStr);
-  }
-
-  ShoppingItem _normalizeShoppingItemCategory(ShoppingItem item) {
-    final category =
-        FoodCategories.normalize(item.category) ?? FoodCategories.other;
-    if (category == item.category) return item;
-    return item.copyWith(category: category);
-  }
-
-  String _shoppingItemNameKey(String name) => name.trim().toLowerCase();
-
-  ShoppingItem _withUniqueShoppingItemId(
-    ShoppingItem item,
-    Set<String> existingIds,
-  ) {
-    final trimmedId = item.id.trim();
-    final baseId = trimmedId.isEmpty ? ShoppingItem.newId() : trimmedId;
-    var candidateId = baseId;
-    var suffix = 2;
-
-    while (existingIds.contains(candidateId)) {
-      candidateId = '${baseId}_$suffix';
-      suffix += 1;
-    }
-
-    existingIds.add(candidateId);
-    return candidateId == item.id ? item : item.copyWith(id: candidateId);
-  }
-
-  List<ShoppingItem> _deduplicateShoppingItems(Iterable<ShoppingItem> items) {
-    final seenNames = <String>{};
-    final seenIds = <String>{};
-    final deduplicated = <ShoppingItem>[];
-
-    for (final item in items) {
-      final nameKey = _shoppingItemNameKey(item.name);
-      if (nameKey.isEmpty || seenNames.contains(nameKey)) continue;
-      seenNames.add(nameKey);
-      deduplicated.add(_withUniqueShoppingItemId(item, seenIds));
-    }
-
-    return deduplicated;
   }
 }

@@ -48,7 +48,7 @@ class TheMealDbService implements MealDbApi {
 
       if (response.statusCode != 200) return [];
 
-      final json = asJsonMap(jsonDecode(response.body));
+      final json = asJsonMap(jsonDecode(utf8.decode(response.bodyBytes)));
       if (json == null) return [];
 
       final meals = asJsonList(json['meals']);

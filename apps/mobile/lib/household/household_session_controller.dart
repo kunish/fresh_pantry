@@ -48,7 +48,10 @@ abstract class HouseholdGateway {
   Future<HouseholdInvitePreview> previewInvite(String token);
   Future<void> acceptInvite(String token);
   Future<void> acceptInviteById(String inviteId);
-  Future<void> removeMember(String targetUserId);
+  Future<void> removeMember({
+    required String householdId,
+    required String userId,
+  });
   Future<void> revokeInvite(String inviteId);
   Future<void> dissolveHousehold(String householdId);
   Future<List<OwnerPendingInvite>> fetchOwnerPendingInvites(String householdId);
@@ -189,8 +192,14 @@ class SupabaseHouseholdGateway implements HouseholdGateway {
   }
 
   @override
-  Future<void> removeMember(String targetUserId) {
-    return _remoteRepository.removeMember(targetUserId);
+  Future<void> removeMember({
+    required String householdId,
+    required String userId,
+  }) {
+    return _remoteRepository.removeMember(
+      householdId: householdId,
+      userId: userId,
+    );
   }
 
   @override
@@ -232,6 +241,7 @@ class HouseholdSessionState {
     this.email = '',
     this.currentUserId = '',
     this.selectedHouseholdId = '',
+    this.sentOtpToEmail = '',
     this.isLoading = true,
     this.isSubmitting = false,
     this.isPreviewLoading = false,
@@ -248,6 +258,7 @@ class HouseholdSessionState {
   final String email;
   final String currentUserId;
   final String selectedHouseholdId;
+  final String sentOtpToEmail;
   final bool isLoading;
   final bool isSubmitting;
   final bool isPreviewLoading;
@@ -264,6 +275,7 @@ class HouseholdSessionState {
     String? email,
     String? currentUserId,
     String? selectedHouseholdId,
+    String? sentOtpToEmail,
     bool? isLoading,
     bool? isSubmitting,
     bool? isPreviewLoading,
@@ -280,6 +292,7 @@ class HouseholdSessionState {
       email: email ?? this.email,
       currentUserId: currentUserId ?? this.currentUserId,
       selectedHouseholdId: selectedHouseholdId ?? this.selectedHouseholdId,
+      sentOtpToEmail: sentOtpToEmail ?? this.sentOtpToEmail,
       isLoading: isLoading ?? this.isLoading,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       isPreviewLoading: isPreviewLoading ?? this.isPreviewLoading,
@@ -312,25 +325,38 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
 
   final HouseholdGateway _gateway;
   StreamSubscription<void>? _authSubscription;
+  int _refreshHouseholdsGeneration = 0;
 
   Future<void> sendOtp(String email) async {
     final trimmed = email.trim();
-    state = state.copyWith(email: trimmed, isSubmitting: true, error: null);
+    state = state.copyWith(
+      email: trimmed,
+      isSubmitting: true,
+      error: null,
+      sentOtpToEmail: '',
+    );
     try {
       await _gateway.sendOtp(trimmed);
       if (!mounted) return;
-      state = state.copyWith(email: trimmed, isSubmitting: false, error: null);
+      state = state.copyWith(
+        email: trimmed,
+        isSubmitting: false,
+        error: null,
+        sentOtpToEmail: trimmed,
+      );
     } catch (error) {
       if (!mounted) return;
       state = state.copyWith(
         email: trimmed,
         isSubmitting: false,
         error: error.toString(),
+        sentOtpToEmail: '',
       );
     }
   }
 
   Future<void> refreshHouseholds() async {
+    final generation = ++_refreshHouseholdsGeneration;
     state = state.copyWith(isLoading: true, error: null);
     try {
       final households = await _gateway.loadHouseholds();
@@ -344,7 +370,7 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
       final members = isAuthenticated
           ? await _loadMembersForSelectedHousehold(households, selectedId)
           : const <HouseholdMember>[];
-      if (!mounted) return;
+      if (!mounted || generation != _refreshHouseholdsGeneration) return;
       state = state.copyWith(
         isLoading: false,
         error: null,
@@ -361,6 +387,7 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
         await refreshPendingInvites();
       }
     } catch (error) {
+      if (generation != _refreshHouseholdsGeneration) return;
       _setError(error);
     }
   }
@@ -479,6 +506,7 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
     final trimmedToken = token.trim();
     state = state.copyWith(isSubmitting: true, error: null);
     try {
+      final acceptedInviteId = state.invitePreview?.inviteId;
       await _gateway.acceptInvite(trimmedToken);
       final households = await _gateway.loadHouseholds();
       final isAuthenticated = _gateway.isAuthenticated;
@@ -497,13 +525,17 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
         households: List.unmodifiable(households),
         householdMembers: List.unmodifiable(members),
         selectedHouseholdId: selectedId,
-        pendingInvitePreviews: isAuthenticated
-            ? state.pendingInvitePreviews
-            : const <HouseholdInvitePreview>[],
+        pendingInvitePreviews: List.unmodifiable(
+          isAuthenticated
+              ? state.pendingInvitePreviews.where(
+                  (invite) => invite.inviteId != acceptedInviteId,
+                )
+              : const <HouseholdInvitePreview>[],
+        ),
         invitePreview: null,
       );
       if (isAuthenticated) {
-        await refreshPendingInvites();
+        await refreshPendingInvites(excludeInviteId: acceptedInviteId);
       }
     } catch (error) {
       if (!mounted) return;
@@ -566,7 +598,10 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
   Future<void> removeMember(String householdId, String targetUserId) async {
     state = state.copyWith(isSubmitting: true, error: null);
     try {
-      await _gateway.removeMember(targetUserId);
+      await _gateway.removeMember(
+        householdId: householdId,
+        userId: targetUserId,
+      );
       final members = await _gateway.loadHouseholdMembers(householdId);
       if (!mounted) return;
       state = state.copyWith(
@@ -639,6 +674,11 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
   }
 
   Future<void> refreshOwnerPendingInvites(String householdId) async {
+    if (!_gateway.isAuthenticated) {
+      state = state.copyWith(ownerPendingInvites: const []);
+      return;
+    }
+
     try {
       final invites = await _gateway.fetchOwnerPendingInvites(householdId);
       if (!mounted) return;
@@ -650,6 +690,7 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
   }
 
   Future<void> switchHousehold(String householdId) async {
+    final previousSelectedId = state.selectedHouseholdId;
     state = state.copyWith(
       isLoading: true,
       error: null,
@@ -666,7 +707,11 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
       await refreshOwnerPendingInvites(householdId);
     } catch (error) {
       if (!mounted) return;
-      state = state.copyWith(isLoading: false, error: error.toString());
+      state = state.copyWith(
+        isLoading: false,
+        error: error.toString(),
+        selectedHouseholdId: previousSelectedId,
+      );
     }
   }
 

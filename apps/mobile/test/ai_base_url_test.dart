@@ -34,5 +34,12 @@ void main() {
     test('returns empty string unchanged', () {
       expect(normalizeAiBaseUrl('   '), '');
     });
+
+    test('does not append /v1 when /v1/ already appears mid-path', () {
+      expect(
+        normalizeAiBaseUrl('https://host/v1/openai'),
+        'https://host/v1/openai',
+      );
+    });
   });
 }

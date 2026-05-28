@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/food_categories.dart';
+import '../data/food_knowledge.dart';
 import '../models/proposal.dart';
 import '../models/storage_area.dart';
 import 'inventory_provider.dart';
@@ -75,6 +77,11 @@ class IntakeReviewNotifier extends Notifier<IntakeReviewState>
             if (p.mergeTargetId == null) {
               return p; // no merge target -> can't toggle
             }
+            // Perishables always create a new Batch; never let the user toggle
+            // one into a merge.
+            if (p.action == IntakeAction.newRow && _isPerishable(p)) {
+              return p;
+            }
             final next =
                 p.action == IntakeAction.newRow
                     ? IntakeAction.mergeInto
@@ -87,12 +94,27 @@ class IntakeReviewNotifier extends Notifier<IntakeReviewState>
   }
 
   void updateProposal(IntakeProposal updated) {
+    final coerced = _coerceActionForRules(updated);
     state = state.copyWith(
       proposals:
-          state.proposals.map((p) => p.id == updated.id ? updated : p).toList(),
+          state.proposals.map((p) => p.id == coerced.id ? coerced : p).toList(),
       clearPersistError: true,
     );
     _schedulePersistDraft();
+  }
+
+  bool _isPerishable(IntakeProposal p) =>
+      FoodCategories.isPerishable(p.category) ||
+      FoodKnowledge.isPerishableName(p.name);
+
+  /// Keeps the Review action consistent with the domain rule after an edit:
+  /// if a change makes the proposal Perishable, drop any stale `mergeInto` so
+  /// the UI reflects that perishables always create a new Batch.
+  IntakeProposal _coerceActionForRules(IntakeProposal p) {
+    if (p.action == IntakeAction.mergeInto && _isPerishable(p)) {
+      return p.copyWith(action: IntakeAction.newRow);
+    }
+    return p;
   }
 
   void toggleSelectAll() {
@@ -107,8 +129,10 @@ class IntakeReviewNotifier extends Notifier<IntakeReviewState>
     _schedulePersistDraft();
   }
 
-  Future<void> applyToInventory(InventoryNotifier inventory) async {
-    await applyAndClear(() => inventory.applyIntakeProposals(state.proposals));
+  /// Applies the reviewed proposals and returns the ids of the proposals that
+  /// were actually applied, so the caller can clean up only those source rows.
+  Future<Set<String>> applyToInventory(InventoryNotifier inventory) async {
+    return applyAndClear(() => inventory.applyIntakeProposals(state.proposals));
   }
 
   void _schedulePersistDraft() {

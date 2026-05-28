@@ -152,11 +152,7 @@ final recommendedRecipesProvider = Provider<List<Recipe>>((ref) {
   // that recipes using them can receive a ranking boost.
   final expiringNameSet = ref
       .read(inventoryProvider)
-      .where(
-        (i) =>
-            i.state == FreshnessState.expiringSoon ||
-            i.state == FreshnessState.expired,
-      )
+      .where(isNotFreshIngredient)
       .map((i) => i.name.trim().toLowerCase())
       .toSet();
 
@@ -198,11 +194,7 @@ final expiringFallbackRecipeProvider =
     Provider<({Recipe recipe, Set<String> coveredExpiringNames})?>((ref) {
       final inventory = ref.watch(inventoryProvider);
       final expiringNameSet = inventory
-          .where(
-            (i) =>
-                i.state == FreshnessState.expiringSoon ||
-                i.state == FreshnessState.expired,
-          )
+          .where(isNotFreshIngredient)
           .map((i) => i.name.trim().toLowerCase())
           .toSet();
       if (expiringNameSet.isEmpty) return null;

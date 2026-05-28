@@ -38,11 +38,46 @@ class DeductionProposalFactory {
             requiredQty: ri.amount,
             candidates: candidates,
             chosenIndex: candidates.first.inventoryRowIndex,
-            deductAmount: ri.quantity.trim().isEmpty ? '1' : ri.quantity,
+            deductAmount: _initialDeductAmount(ri, candidates.first),
           ),
         );
       }
     }
     return list;
   }
+
+  /// Picks the default deduct amount for a matched recipe ingredient.
+  ///
+  /// Uses the recipe's real numeric magnitude only when it can be reconciled
+  /// with the chosen inventory row's unit; otherwise falls back to 1 (a safe
+  /// "used one" default) instead of blindly deducting the raw recipe number
+  /// against a different unit. Always returns a parseable number so the Review
+  /// stepper stays usable and a deduction can never silently apply zero.
+  static String _initialDeductAmount(
+    RecipeIngredient ri,
+    DeductionCandidate chosen,
+  ) {
+    final (magnitude, recipeUnit) = _parseMagnitudeUnit(ri);
+    if (magnitude == null || magnitude <= 0) return '1';
+    final rowUnit = chosen.inventoryRowUnit.trim();
+    final unitsCompatible =
+        recipeUnit.isEmpty || rowUnit.isEmpty || recipeUnit == rowUnit;
+    if (!unitsCompatible) return '1';
+    return _formatNumber(magnitude);
+  }
+
+  static (double?, String) _parseMagnitudeUnit(RecipeIngredient ri) {
+    final structured = double.tryParse(ri.quantity.trim());
+    if (structured != null) return (structured, ri.unit.trim());
+    final match = RegExp(
+      r'^(\d+(?:\.\d+)?)\s*(.*)$',
+    ).firstMatch(ri.amount.trim());
+    if (match == null) return (null, ri.unit.trim());
+    final magnitude = double.tryParse(match.group(1) ?? '');
+    final parsedUnit = (match.group(2) ?? '').trim();
+    return (magnitude, parsedUnit.isEmpty ? ri.unit.trim() : parsedUnit);
+  }
+
+  static String _formatNumber(double n) =>
+      n == n.roundToDouble() ? n.toInt().toString() : n.toString();
 }

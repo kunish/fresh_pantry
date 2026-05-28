@@ -7,13 +7,16 @@ import 'package:fresh_pantry/household/household_session_controller.dart';
 class FakeHouseholdGateway implements HouseholdGateway {
   final households = <Household>[];
   final members = <HouseholdMember>[];
+  final pendingInvites = <HouseholdInvitePreview>[];
   final authStateController = StreamController<void>.broadcast();
   @override
   var isAuthenticated = false;
   var sentEmail = '';
   Object? sendOtpError;
   Object? loadHouseholdsError;
+  Object? loadHouseholdMembersError;
   Completer<void>? sendOtpCompleter;
+  var acceptedInviteToken = '';
 
   @override
   Stream<void> get authStateChanges => authStateController.stream;
@@ -46,24 +49,31 @@ class FakeHouseholdGateway implements HouseholdGateway {
 
   @override
   Future<List<HouseholdMember>> loadHouseholdMembers(String householdId) async {
+    if (loadHouseholdMembersError != null) throw loadHouseholdMembersError!;
     return members
         .where((member) => member.householdId == householdId)
         .toList(growable: false);
   }
 
+  HouseholdInvitePreview? invitePreviewResult;
+
   @override
-  Future<HouseholdInvitePreview> previewInvite(String token) {
-    throw UnimplementedError('Not needed by these tests.');
+  Future<HouseholdInvitePreview> previewInvite(String token) async {
+    final result = invitePreviewResult;
+    if (result == null) {
+      throw UnimplementedError('Not needed by these tests.');
+    }
+    return result;
   }
 
   @override
-  Future<void> acceptInvite(String token) {
-    throw UnimplementedError('Not needed by these tests.');
+  Future<void> acceptInvite(String token) async {
+    acceptedInviteToken = token;
   }
 
   @override
   Future<List<HouseholdInvitePreview>> loadPendingInvites() async {
-    return const [];
+    return pendingInvites;
   }
 
   @override
@@ -75,6 +85,7 @@ class FakeHouseholdGateway implements HouseholdGateway {
   String? get currentUserId => 'owner_1';
 
   var removedUserId = '';
+  var removedFromHouseholdId = '';
   var revokedInviteId = '';
   var dissolvedHouseholdId = '';
   final ownerPendingInvites = <OwnerPendingInvite>[];
@@ -83,9 +94,13 @@ class FakeHouseholdGateway implements HouseholdGateway {
   Object? dissolveHouseholdError;
 
   @override
-  Future<void> removeMember(String targetUserId) async {
+  Future<void> removeMember({
+    required String householdId,
+    required String userId,
+  }) async {
     if (removeMemberError != null) throw removeMemberError!;
-    removedUserId = targetUserId;
+    removedFromHouseholdId = householdId;
+    removedUserId = userId;
   }
 
   @override
@@ -316,6 +331,7 @@ void main() {
 
     await controller.removeMember('household_1', 'member_1');
 
+    expect(gateway.removedFromHouseholdId, 'household_1');
     expect(gateway.removedUserId, 'member_1');
   });
 
@@ -550,6 +566,129 @@ void main() {
         'owner@example.com',
         'colleague@example.com',
       ]);
+    },
+  );
+
+  test(
+    'switchHousehold restores previous selection when loading members fails',
+    () async {
+      final gateway = FakeHouseholdGateway()
+        ..isAuthenticated = true
+        ..households.addAll(const [
+          Household(
+            id: 'household_1',
+            name: 'Home',
+            ownerId: 'owner_1',
+            defaultStorageArea: 'fridge',
+          ),
+          Household(
+            id: 'household_2',
+            name: 'Office',
+            ownerId: 'owner_1',
+            defaultStorageArea: 'pantry',
+          ),
+        ])
+        ..members.add(
+          const HouseholdMember(
+            householdId: 'household_1',
+            userId: 'owner_1',
+            role: 'owner',
+            email: 'owner@example.com',
+          ),
+        );
+      final controller = HouseholdSessionController(gateway);
+      await controller.refreshHouseholds();
+
+      expect(controller.state.selectedHouseholdId, 'household_1');
+
+      gateway.loadHouseholdMembersError = StateError('offline');
+      await controller.switchHousehold('household_2');
+
+      expect(controller.state.error, contains('offline'));
+      expect(controller.state.selectedHouseholdId, 'household_1');
+      expect(controller.state.isLoading, isFalse);
+    },
+  );
+
+  test(
+    'acceptInvite excludes the accepted invite despite replication lag',
+    () async {
+      const joinedHousehold = Household(
+        id: 'household_2',
+        name: 'Office',
+        ownerId: 'owner_2',
+        defaultStorageArea: 'pantry',
+      );
+      const accepted = HouseholdInvitePreview(
+        inviteId: 'invite_2',
+        householdId: 'household_2',
+        householdName: 'Office',
+        ownerEmail: 'owner2@example.com',
+        invitedEmail: '',
+        memberCount: 1,
+        inventoryCount: 0,
+        shoppingCount: 0,
+        customRecipeCount: 0,
+      );
+      final gateway = FakeHouseholdGateway()
+        ..isAuthenticated = true
+        ..households.add(joinedHousehold)
+        ..invitePreviewResult = accepted
+        // Read-after-write lag: backend still lists the accepted invite.
+        ..pendingInvites.add(accepted);
+      final controller = HouseholdSessionController(gateway);
+
+      await controller.previewInvite('token-2');
+      expect(controller.state.invitePreview?.inviteId, 'invite_2');
+
+      await controller.acceptInvite('token-2');
+
+      expect(gateway.acceptedInviteToken, 'token-2');
+      expect(controller.state.selectedHouseholdId, 'household_2');
+      expect(
+        controller.state.pendingInvitePreviews.map((invite) => invite.inviteId),
+        isNot(contains('invite_2')),
+      );
+    },
+  );
+
+  test('sendOtp records the sent email on success', () async {
+    final gateway = FakeHouseholdGateway();
+    final controller = HouseholdSessionController(gateway);
+
+    await controller.sendOtp(' owner@example.com ');
+
+    expect(controller.state.sentOtpToEmail, 'owner@example.com');
+  });
+
+  test('sendOtp clears sent email on failure', () async {
+    final gateway = FakeHouseholdGateway()..sendOtpError = StateError('boom');
+    final controller = HouseholdSessionController(gateway);
+
+    await controller.sendOtp('owner@example.com');
+
+    expect(controller.state.sentOtpToEmail, isEmpty);
+  });
+
+  test(
+    'refreshOwnerPendingInvites clears invites and skips gateway when signed out',
+    () async {
+      final gateway = FakeHouseholdGateway()
+        ..isAuthenticated = false
+        ..ownerPendingInvites.add(
+          OwnerPendingInvite(
+            id: 'invite_1',
+            email: 'pending@example.com',
+            expiresAt: DateTime.now().add(const Duration(days: 7)),
+            createdAt: DateTime.now(),
+          ),
+        );
+      final controller = HouseholdSessionController(gateway);
+
+      await controller.refreshOwnerPendingInvites('household_1');
+
+      expect(controller.state.ownerPendingInvites, isEmpty);
+      expect(controller.state.error, isNull);
     },
   );
 

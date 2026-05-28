@@ -226,6 +226,7 @@ class _IngredientDetailScreenState
     return switch (state) {
       FreshnessState.fresh => null,
       FreshnessState.expiringSoon => FkPill.status(FkStatus.soon),
+      FreshnessState.urgent => FkPill.status(FkStatus.urgent),
       FreshnessState.expired => FkPill.status(FkStatus.expired),
     };
   }
@@ -465,6 +466,7 @@ class _QtyAndFreshnessCard extends StatelessWidget {
     final percentColor = switch (state) {
       FreshnessState.fresh => AppColors.primary,
       FreshnessState.expiringSoon => AppColors.fkWarn,
+      FreshnessState.urgent => AppColors.fkDanger,
       FreshnessState.expired => AppColors.fkDanger,
     };
     return FkCard(

@@ -79,7 +79,9 @@ class AiIngredientParser {
               (entry['category'] as String?) ?? FoodCategories.other,
             ),
             storage: DraftField.ai(_parseStorage(entry['storage'] as String?)),
-            shelfLifeDays: DraftField.ai(_parseInt(entry['shelfLifeDays'])),
+            shelfLifeDays: DraftField.ai(
+              _parsePositiveInt(entry['shelfLifeDays']),
+            ),
           ),
         );
       } catch (_) {
@@ -89,13 +91,14 @@ class AiIngredientParser {
     return items;
   }
 
-  // IconType only has {fridge, pantry}. Map raw input following storage_area.dart convention.
+  // Map raw AI/legacy storage strings to IconType {fridge, freezer, pantry}.
   static IconType? _parseStorage(String? raw) {
     switch (raw) {
       case 'pantry':
         return IconType.pantry;
+      case 'freezer':
+        return IconType.freezer;
       case 'fridge':
-      case 'freezer': // legacy/AI may say freezer; treat as fridge per IconType.from convention
         return IconType.fridge;
       default:
         return null;
@@ -107,5 +110,13 @@ class AiIngredientParser {
     if (v is num) return v.round();
     if (v is String) return int.tryParse(v);
     return null;
+  }
+
+  /// Shelf life must be a positive day count. A hallucinated negative/zero
+  /// value would make the intake row expire on (or before) the day it is added,
+  /// so treat <= 0 as unknown (null) and let the row default to no expiry.
+  static int? _parsePositiveInt(dynamic v) {
+    final parsed = _parseInt(v);
+    return (parsed != null && parsed > 0) ? parsed : null;
   }
 }

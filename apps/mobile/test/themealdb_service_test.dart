@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fresh_pantry/services/themealdb_service.dart';
@@ -73,5 +74,22 @@ void main() {
     ).searchByName('slow');
 
     expect(recipes, isEmpty);
+  });
+
+  test('searchByName decodes UTF-8 non-ASCII meal names correctly', () async {
+    // Simulate a server that sends raw UTF-8 bytes (no charset in header).
+    final body = '{"meals":[{"idMeal":"1","strMeal":"照り焼きチキン",'
+        '"strCategory":"Chicken","strMealThumb":null,'
+        '"strInstructions":"Cook"}]}';
+    final bodyBytes = utf8.encode(body);
+
+    final client = MockClient(
+      (_) async => http.Response.bytes(bodyBytes, 200),
+    );
+
+    final recipes = await TheMealDbService(client: client).searchByName('test');
+
+    expect(recipes, hasLength(1));
+    expect(recipes.single.name, '照り焼きチキン');
   });
 }

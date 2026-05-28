@@ -89,9 +89,25 @@ class DeductionCandidate {
   const DeductionCandidate({
     required this.inventoryRowIndex,
     required this.displayLabel,
+    this.inventoryRowId = '',
+    this.inventoryRowName = '',
+    this.inventoryRowUnit = '',
   });
+
+  /// Positional index into the inventory snapshot taken when the candidate was
+  /// computed. Used as a selection key in the Review UI, NOT as the source of
+  /// truth at apply time (the list can reorder/shrink before the user confirms).
   final int inventoryRowIndex;
   final String displayLabel;
+
+  /// Stable identity captured at match time so the deduction can be re-resolved
+  /// against the live inventory at apply time and never land on an unrelated
+  /// row after a reorder/sync. [inventoryRowId] is preferred when non-empty
+  /// (household-synced rows); [inventoryRowName]/[inventoryRowUnit] act as a
+  /// guard for local-only rows whose id is empty.
+  final String inventoryRowId;
+  final String inventoryRowName;
+  final String inventoryRowUnit;
 }
 
 class DeductionProposal extends Proposal {

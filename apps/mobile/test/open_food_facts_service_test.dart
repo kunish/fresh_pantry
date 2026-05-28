@@ -198,6 +198,30 @@ void main() {
     expect(details, isNull);
   });
 
+  test('lookupDetails decodes UTF-8 product names from raw bytes', () async {
+    // Body sent as raw UTF-8 bytes with no charset header to confirm explicit
+    // utf8.decode is used rather than relying on response.body defaulting to
+    // latin-1.
+    final body = '{"products":[{"product_name":"伊利纯牛奶",'
+        '"categories_tags":["en:milks"]}]}';
+    final client = _FakeHttpClient(
+      http.Response.bytes(
+        utf8.encode(body),
+        200,
+        headers: const {'content-type': 'application/json'},
+      ),
+    );
+
+    final details = await OpenFoodFactsService.lookupDetails(
+      name: '牛奶',
+      client: client,
+    );
+
+    expect(details, isNotNull);
+    // Product name is non-ASCII; it would be mojibaked if latin-1 were used.
+    expect(details!.description, contains('乳品'));
+  });
+
   test(
     'lookupDetails does not expose package quantity in descriptions',
     () async {

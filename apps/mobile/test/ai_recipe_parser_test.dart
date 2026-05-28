@@ -54,5 +54,17 @@ void main() {
         throwsA(isA<AiAuthException>()),
       );
     });
+
+    test('clamps out-of-range difficulty and rejects zero cookingMinutes', () async {
+      const payload = '{"name":"Test","category":"家常","cookingMinutes":0,'
+          '"difficulty":8,"description":"desc","ingredients":[],"steps":[]}';
+      final draft = await AiRecipeParser.fromUrl(
+        'https://x',
+        chatFn: (_) async => payload,
+        pageContentFetcher: (_) async => 'mock page content',
+      );
+      expect(draft.difficulty.value, 5); // clamped from 8
+      expect(draft.cookingMinutes.value, 30); // defaulted from 0
+    });
   });
 }

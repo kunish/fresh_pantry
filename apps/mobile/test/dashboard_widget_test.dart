@@ -170,7 +170,7 @@ void main() {
     expect(find.text('你的冰箱状态'), findsOneWidget);
     // The 3 mini-stat labels live on the hero; same words can repeat as
     // pill labels on ExpiringCard rows, so use findsAtLeastNWidgets.
-    expect(find.text('快过期'), findsAtLeastNWidgets(1));
+    expect(find.text('已过期'), findsAtLeastNWidgets(1));
     expect(find.text('即将过期'), findsAtLeastNWidgets(1));
     expect(find.text('库存不足'), findsOneWidget);
   });

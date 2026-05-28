@@ -34,4 +34,15 @@ void main() {
       throwsArgumentError,
     );
   });
+
+  test('fromText clamps a non-positive shelfLifeDays to null', () async {
+    final list = await AiIngredientParser.fromText(
+      '牛奶 1 盒',
+      chatFn: (_) async =>
+          '[{"name":"牛奶","quantity":"1","unit":"盒","category":"乳品蛋类","storage":"fridge","shelfLifeDays":-3}]',
+    );
+    // A negative/zero shelf life would make the row expire the instant it is
+    // added; it must be treated as unknown instead.
+    expect(list.single.shelfLifeDays.value, isNull);
+  });
 }

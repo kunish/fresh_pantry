@@ -48,6 +48,12 @@ class FoodDetailsRepository {
 
     final details =
         fetched ?? cachedDetails ?? fallbackFoodDetailsFor(ingredient);
+    // Only persist real/online details. A local fallback (offline/failed
+    // lookup) is not worth a full cache-map rewrite on every read, and
+    // caching it would mask the missing online data on the next lookup.
+    if (_isLocalFallback(details)) {
+      return details;
+    }
     cache[key] = details.toJson();
     final encoded = jsonEncode(cache);
     await storage.write(foodDetailsCacheStorageKey, encoded);

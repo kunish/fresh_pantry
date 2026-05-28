@@ -116,7 +116,7 @@ class OpenFoodFactsService {
 
       if (response.statusCode != 200) return null;
 
-      final json = asJsonMap(jsonDecode(response.body));
+      final json = asJsonMap(jsonDecode(utf8.decode(response.bodyBytes)));
       if (json == null) return null;
 
       final products = asJsonList(json['products']);
@@ -207,7 +207,7 @@ class OpenFoodFactsService {
     final response = await _fetch(uri, client: client);
     if (response.statusCode != 200) return null;
 
-    final json = asJsonMap(jsonDecode(response.body));
+    final json = asJsonMap(jsonDecode(utf8.decode(response.bodyBytes)));
     final product = json == null ? null : asJsonMap(json['product']);
     if (product == null) return null;
 
@@ -234,7 +234,7 @@ class OpenFoodFactsService {
     );
     final legacyResponse = await _fetch(legacyUri, client: client);
     if (legacyResponse.statusCode == 200) {
-      final json = asJsonMap(jsonDecode(legacyResponse.body));
+      final json = asJsonMap(jsonDecode(utf8.decode(legacyResponse.bodyBytes)));
       final product =
           json == null ? null : _bestProduct(json['products'], fallbackName);
       if (product != null) {
@@ -255,7 +255,7 @@ class OpenFoodFactsService {
     final response = await _fetch(searchALiciousUri, client: client);
     if (response.statusCode != 200) return null;
 
-    final json = asJsonMap(jsonDecode(response.body));
+    final json = asJsonMap(jsonDecode(utf8.decode(response.bodyBytes)));
     final product =
         json == null ? null : _bestProduct(json['hits'], fallbackName);
     if (product == null) return null;

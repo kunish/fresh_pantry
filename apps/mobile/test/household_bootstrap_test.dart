@@ -82,7 +82,10 @@ class FakeBootstrapGateway implements HouseholdGateway {
   String? get currentUserId => 'owner_1';
 
   @override
-  Future<void> removeMember(String targetUserId) {
+  Future<void> removeMember({
+    required String householdId,
+    required String userId,
+  }) {
     throw UnimplementedError('Not needed by these tests.');
   }
 
@@ -172,7 +175,10 @@ class RecordingRemotePantryRepository implements RemotePantryRepository {
   }
 
   @override
-  Future<void> removeMember(String targetUserId) {
+  Future<void> removeMember({
+    required String householdId,
+    required String userId,
+  }) {
     throw UnimplementedError('Not needed by these tests.');
   }
 

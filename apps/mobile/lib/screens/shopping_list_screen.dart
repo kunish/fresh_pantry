@@ -278,20 +278,21 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
     );
     ref.read(intakeReviewProvider.notifier).seed(proposals);
 
-    await Navigator.of(context).push(
+    final appliedIds = await Navigator.of(context).push<Set<String>>(
       MaterialPageRoute(
         builder: (_) => const IntakeReviewScreen(title: '已购买项入库'),
       ),
     );
 
-    // After review (whether confirmed or cancelled), remove only items whose
-    // proposals were actually applied. We approximate "applied" as: the
-    // intakeReviewProvider has cleared (clear() runs only after apply).
+    // Remove ONLY the checked items whose intake proposal was actually applied
+    // (proposal id is `ix_<itemId>`). A cancelled review or a deselected
+    // proposal returns no id for that item, so it stays on the list instead of
+    // being silently discarded without ever entering inventory.
     if (!context.mounted) return;
-    final remaining = ref.read(intakeReviewProvider).proposals;
-    if (remaining.isEmpty) {
-      final shopping = ref.read(shoppingProvider.notifier);
-      for (final item in checked) {
+    if (appliedIds == null || appliedIds.isEmpty) return;
+    final shopping = ref.read(shoppingProvider.notifier);
+    for (final item in checked) {
+      if (appliedIds.contains('ix_${item.id}')) {
         await shopping.remove(item.id);
       }
     }

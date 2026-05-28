@@ -23,13 +23,20 @@ double expiryFreshness({
   );
 }
 
+/// Items within this many calendar days of expiry are [FreshnessState.urgent]
+/// regardless of their freshness ratio (a short-shelf item can read "fresh" by
+/// ratio while expiring tomorrow).
+const urgentWithinDays = 2;
+
 FreshnessState freshnessStateForExpiry({
   required double freshness,
   DateTime? expiryDate,
   DateTime? now,
 }) {
-  if (expiryDate != null && daysUntilExpiry(expiryDate, now: now) < 0) {
-    return FreshnessState.expired;
+  if (expiryDate != null) {
+    final days = daysUntilExpiry(expiryDate, now: now);
+    if (days < 0) return FreshnessState.expired;
+    if (days <= urgentWithinDays) return FreshnessState.urgent;
   }
   if (freshness > 0.5) return FreshnessState.fresh;
   return FreshnessState.expiringSoon;

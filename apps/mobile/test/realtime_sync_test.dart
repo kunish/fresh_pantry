@@ -492,7 +492,10 @@ class FakeRemotePantryRepository implements RemotePantryRepository {
   }
 
   @override
-  Future<void> removeMember(String targetUserId) {
+  Future<void> removeMember({
+    required String householdId,
+    required String userId,
+  }) {
     throw UnimplementedError();
   }
 

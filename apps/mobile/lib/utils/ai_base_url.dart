@@ -18,7 +18,7 @@ String normalizeAiBaseUrl(String raw) {
     }
   }
 
-  if (!url.endsWith('/v1')) {
+  if (!url.endsWith('/v1') && !url.contains('/v1/')) {
     url = '$url/v1';
   }
 

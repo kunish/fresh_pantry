@@ -232,12 +232,21 @@ class FoodKnowledge {
     int bestLen = 0;
 
     for (final entry in _englishNames.entries) {
-      if (lower.contains(entry.key) && entry.key.length > bestLen) {
+      if (_keyMatches(lower, entry.key) && entry.key.length > bestLen) {
         best = entry.value;
         bestLen = entry.key.length;
       }
     }
     return best;
+  }
+
+  /// Keyword match rule. Multi-character keywords match as substrings (so
+  /// "猪肉末" resolves via "猪肉"), but single-character keywords must match the
+  /// whole name exactly. Letting a length-1 substring win caused false
+  /// positives like "蛋糕"→"蛋" (egg) or "鱼丸"→"鱼" (2-day shelf life).
+  static bool _keyMatches(String lower, String key) {
+    if (key.length == 1) return lower == key;
+    return lower.contains(key);
   }
 
   /// Look up smart defaults for an ingredient name.
@@ -250,7 +259,7 @@ class FoodKnowledge {
     int bestLen = 0;
 
     for (final entry in _entries.entries) {
-      if (lower.contains(entry.key) && entry.key.length > bestLen) {
+      if (_keyMatches(lower, entry.key) && entry.key.length > bestLen) {
         best = entry.value;
         bestLen = entry.key.length;
       }
@@ -265,6 +274,14 @@ class FoodKnowledge {
   }) {
     final normalized = FoodCategories.normalize(lookup(name)?.category);
     return normalized ?? FoodCategories.dropdownValue(fallback);
+  }
+
+  /// Whether a food name is a known Perishable (meat/seafood, fresh produce,
+  /// dairy/eggs) per the knowledge base. Used to default an Intake to a new
+  /// Batch even when the supplied category is missing or defaulted to "其他",
+  /// so a perishable purchase is never silently merged into an aging row.
+  static bool isPerishableName(String name) {
+    return FoodCategories.isPerishable(lookup(name)?.category);
   }
 
   /// Common shelf life presets for quick-select UI.

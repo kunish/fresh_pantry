@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
@@ -104,10 +107,74 @@ void main() {
     expect(container.read(notificationSyncProvider), isEmpty);
     expect(errors.single.exception, isA<StateError>());
   });
+
+  test('seeds state from SharedPreferences on cold start', () async {
+    // Simulate a prior session that had scheduled notification ids [42, 99].
+    SharedPreferences.setMockInitialValues({
+      'notification_sync_scheduled_ids_v1': jsonEncode([42, 99]),
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final service = _RecordingNotificationService(permission: true);
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        inventorySeedProvider.overrideWithValue([]),
+        notificationServiceProvider.overrideWithValue(service),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    // Before any async work the state should be the persisted ids.
+    expect(container.read(notificationSyncProvider), [42, 99]);
+  });
+
+  test('previous persisted ids are passed as previousIds on first resync', () async {
+    // Simulate a prior session with scheduled ids [42, 99].
+    SharedPreferences.setMockInitialValues({
+      'notification_sync_scheduled_ids_v1': jsonEncode([42, 99]),
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final service = _RecordingNotificationService(permission: true);
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        inventorySeedProvider.overrideWithValue([]),
+        notificationServiceProvider.overrideWithValue(service),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    container.read(notificationSyncProvider);
+    await _flushMicrotasks();
+
+    // The first syncAll call must have received the persisted ids so the
+    // plugin can cancel them.
+    expect(service.previousIdsLog.first, [42, 99]);
+  });
+
+  test('concurrent resyncs are serialised — only one runs at a time', () async {
+    final service = _SlowRecordingNotificationService(permission: true);
+    final container = await _container(
+      service: service,
+      inventory: [_ingredient('牛奶')],
+    );
+    addTearDown(container.dispose);
+
+    // Trigger two rapid rebuild cycles to enqueue two potential resyncs.
+    container.read(notificationSyncProvider);
+    container.read(notificationSyncProvider);
+    await _flushMicrotasks();
+    // Release the slow syncAll.
+    service.completer.complete();
+    await _flushMicrotasks();
+
+    // Only one syncAll must have run because the second was gated.
+    expect(service.syncCalls, 1);
+  });
 }
 
 Future<ProviderContainer> _container({
-  required _RecordingNotificationService service,
+  required NotificationService service,
   required List<Ingredient> inventory,
   List<Override> overrides = const [],
 }) async {
@@ -185,5 +252,36 @@ class _RecordingNotificationService extends NotificationService {
     if (throwOnSync) {
       throw StateError('sync failed');
     }
+  }
+}
+
+/// A service whose syncAll blocks until [completer] is completed, used to
+/// verify the single-flight guard in NotificationSyncNotifier.
+class _SlowRecordingNotificationService extends NotificationService {
+  _SlowRecordingNotificationService({required this.permission}) : super();
+
+  final bool permission;
+  int syncCalls = 0;
+  final completer = Completer<void>();
+
+  @override
+  bool get isInitialized => true;
+
+  @override
+  bool get permissionGranted => permission;
+
+  @override
+  Future<void> init({void Function(int notificationId)? onTap}) async {}
+
+  @override
+  Future<bool> requestPermission() async => permission;
+
+  @override
+  Future<void> syncAll(
+    List<ScheduledNotification> next, {
+    required List<int> previousIds,
+  }) async {
+    syncCalls++;
+    await completer.future;
   }
 }

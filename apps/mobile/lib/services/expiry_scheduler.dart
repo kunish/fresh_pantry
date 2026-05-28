@@ -54,11 +54,17 @@ class ExpiryScheduler {
     return out;
   }
 
-  /// Deterministic id from name + storage + addedAt + offset.
+  /// Deterministic id from ingredient id + name + storage + addedAt +
+  /// expiryDate + offset.  Including the ingredient id and expiry date
+  /// prevents two batches of the same product added in the same millisecond
+  /// from colliding.
   /// Restricted to int32 range so flutter_local_notifications accepts it.
   static int _idFor(Ingredient ing, int offset) {
     final base =
-        '${ing.name}|${ing.storage.name}|${ing.addedAt?.millisecondsSinceEpoch ?? 0}|$offset';
+        '${ing.id}|${ing.name}|${ing.storage.name}'
+        '|${ing.addedAt?.millisecondsSinceEpoch ?? 0}'
+        '|${ing.expiryDate?.millisecondsSinceEpoch ?? 0}'
+        '|$offset';
     var hash = 0;
     for (final code in base.codeUnits) {
       hash = (hash * 31 + code) & 0x7fffffff;

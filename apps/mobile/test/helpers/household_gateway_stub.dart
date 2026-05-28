@@ -103,8 +103,11 @@ class HouseholdGatewayStub implements HouseholdGateway {
   final ownerPendingInvites = <OwnerPendingInvite>[];
 
   @override
-  Future<void> removeMember(String targetUserId) async {
-    removedUserId = targetUserId;
+  Future<void> removeMember({
+    required String householdId,
+    required String userId,
+  }) async {
+    removedUserId = userId;
   }
 
   @override

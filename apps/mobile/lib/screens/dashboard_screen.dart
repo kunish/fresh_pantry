@@ -135,8 +135,14 @@ class _DashboardHero extends ConsumerWidget {
       expiringItemsProvider.select(
         (items) => (
           urgent: items.where((i) => i.state == FreshnessState.expired).length,
+          // Not-yet-expired but soon — includes the urgent (very-near-expiry)
+          // tier so those items are still surfaced in the hero "即将过期" count.
           soon: items
-              .where((i) => i.state == FreshnessState.expiringSoon)
+              .where(
+                (i) =>
+                    i.state == FreshnessState.expiringSoon ||
+                    i.state == FreshnessState.urgent,
+              )
               .length,
         ),
       ),
@@ -423,7 +429,7 @@ class _HeroSection extends StatelessWidget {
             children: [
               Expanded(
                 child: _MiniStat(
-                  label: '快过期',
+                  label: '已过期',
                   count: urgent,
                   accent: AppColors.fkDanger,
                   onTap: onUrgentTap,

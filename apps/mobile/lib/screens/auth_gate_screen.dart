@@ -155,6 +155,11 @@ class _AuthGateScreenState extends ConsumerState<AuthGateScreen> {
                       const SizedBox(height: AppSpacing.md),
                       _ErrorText(session.error!),
                     ],
+                    if (session.error == null &&
+                        session.sentOtpToEmail.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      _OtpSentText(email: session.sentOtpToEmail),
+                    ],
                     const SizedBox(height: AppSpacing.xl),
                     FilledButton.icon(
                       onPressed: session.isSubmitting ? null : _sendOtp,
@@ -655,6 +660,35 @@ class _ErrorText extends StatelessWidget {
     return Text(
       message,
       style: TextStyle(color: Theme.of(context).colorScheme.error),
+    );
+  }
+}
+
+class _OtpSentText extends StatelessWidget {
+  const _OtpSentText({required this.email});
+
+  final String email;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Icon(
+          Icons.mark_email_read_outlined,
+          color: AppColors.primaryContainer,
+          size: 18,
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            '登录链接已发送至 $email，请查收邮件',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.primaryContainer),
+          ),
+        ),
+      ],
     );
   }
 }

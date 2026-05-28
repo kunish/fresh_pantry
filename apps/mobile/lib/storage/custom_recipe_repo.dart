@@ -1,6 +1,5 @@
 import 'dart:convert';
 import '../models/recipe.dart';
-import '../utils/json_object_list.dart';
 import 'storage_adapter.dart';
 
 class CustomRecipeRepo {
@@ -23,13 +22,34 @@ class CustomRecipeRepo {
     }
     final saved = _adapter.read(storageKey);
     if (saved == null) return [];
+
+    final decoded = _decodeListOrNull(saved);
+    // Top-level blob present but not a list: salvage nothing rather than let an
+    // empty result auto-overwrite the still-intact stored JSON.
+    if (decoded == null) return [];
+
+    // Parse item-by-item: skip only individual bad entries, keep the rest.
+    final recipes = <Recipe>[];
+    for (final entry in decoded) {
+      if (entry is! Map) continue;
+      try {
+        final recipe = Recipe.fromJson(Map<String, dynamic>.from(entry));
+        if (recipe.id.isNotEmpty && recipe.name.isNotEmpty) {
+          recipes.add(recipe);
+        }
+      } catch (_) {
+        // Skip this malformed entry only; keep already-parsed recipes.
+      }
+    }
+    return recipes;
+  }
+
+  List<dynamic>? _decodeListOrNull(String source) {
     try {
-      return decodeJsonObjectList(saved)
-          .map(Recipe.fromJson)
-          .where((recipe) => recipe.id.isNotEmpty && recipe.name.isNotEmpty)
-          .toList();
+      final decoded = json.decode(source);
+      return decoded is List ? decoded : null;
     } catch (_) {
-      return [];
+      return null;
     }
   }
 

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import '../models/ingredient.dart';
 import '../utils/ingredient_normalizer.dart';
-import '../utils/json_object_list.dart';
 import 'storage_adapter.dart';
 
 class InventoryRepo {
@@ -25,13 +24,35 @@ class InventoryRepo {
     }
     final jsonStr = _adapter.read(_inventoryKey);
     if (jsonStr == null) return [];
+
+    final decoded = _decodeListOrNull(jsonStr);
+    // Top-level blob present but not a list: salvage nothing rather than let an
+    // empty result auto-overwrite the still-intact stored JSON.
+    if (decoded == null) return [];
+
+    // Parse item-by-item: skip only individual bad entries, keep the rest.
+    final items = <Ingredient>[];
+    for (final entry in decoded) {
+      if (entry is! Map) continue;
+      try {
+        items.add(
+          normalizeInventoryIngredient(
+            Ingredient.fromJson(Map<String, dynamic>.from(entry)),
+          ),
+        );
+      } catch (_) {
+        // Skip this malformed entry only; keep already-parsed items.
+      }
+    }
+    return items;
+  }
+
+  List<dynamic>? _decodeListOrNull(String source) {
     try {
-      return decodeJsonObjectList(jsonStr)
-          .map(Ingredient.fromJson)
-          .map(normalizeInventoryIngredient)
-          .toList();
+      final decoded = json.decode(source);
+      return decoded is List ? decoded : null;
     } catch (_) {
-      return [];
+      return null;
     }
   }
 
