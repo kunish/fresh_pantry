@@ -9,31 +9,31 @@ declare
   matched_household_id uuid;
   current_user_id uuid := (select auth.uid());
 begin
-  if v_caller_id is null then
+  if current_user_id is null then
     raise exception 'Authentication required' using errcode = '28000';
   end if;
 
-  if target_user_id = v_caller_id then
+  if target_user_id = current_user_id then
     raise exception 'Cannot remove yourself' using errcode = 'P0001';
   end if;
 
-  select hm.household_id into v_household_id
+  select hm.household_id into matched_household_id
   from public.household_members hm
   where hm.user_id = target_user_id
     and hm.role = 'member'
     and exists (
       select 1 from public.household_members o
       where o.household_id = hm.household_id
-        and o.user_id = v_caller_id
+        and o.user_id = current_user_id
         and o.role = 'owner'
     );
 
-  if v_household_id is null then
+  if matched_household_id is null then
     raise exception 'Not authorized or target is not a member' using errcode = '42501';
   end if;
 
   delete from public.household_members
-  where household_id = v_household_id and user_id = target_user_id;
+  where household_id = matched_household_id and user_id = target_user_id;
 end;
 $$;
 
@@ -52,22 +52,22 @@ declare
   matched_household_id uuid;
   current_user_id uuid := (select auth.uid());
 begin
-  if v_caller_id is null then
+  if current_user_id is null then
     raise exception 'Authentication required' using errcode = '28000';
   end if;
 
-  select hi.household_id into v_household_id
+  select hi.household_id into matched_household_id
   from public.household_invites hi
   where hi.id = target_invite_id
     and hi.status = 'pending'
     and exists (
       select 1 from public.household_members o
       where o.household_id = hi.household_id
-        and o.user_id = v_caller_id
+        and o.user_id = current_user_id
         and o.role = 'owner'
     );
 
-  if v_household_id is null then
+  if matched_household_id is null then
     raise exception 'Not authorized or invite not found' using errcode = '42501';
   end if;
 
@@ -96,14 +96,14 @@ as $$
 declare
   current_user_id uuid := (select auth.uid());
 begin
-  if v_caller_id is null then
+  if current_user_id is null then
     raise exception 'Authentication required' using errcode = '28000';
   end if;
 
   if not exists (
     select 1 from public.household_members o
     where o.household_id = target_household_id
-      and o.user_id = v_caller_id
+      and o.user_id = current_user_id
       and o.role = 'owner'
   ) then
     raise exception 'Not authorized' using errcode = '42501';
