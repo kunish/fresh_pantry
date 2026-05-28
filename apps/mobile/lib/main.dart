@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
 import 'backend/backend_config_provider.dart';
 import 'config/backend_config.dart';
+import 'config/sentry_config.dart';
 import 'providers/ai_draft_provider.dart';
 import 'providers/invite_link_provider.dart';
 import 'providers/notification_service_provider.dart';
@@ -21,6 +23,17 @@ import 'storage/shopping_repo.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
+  final sentryConfig = SentryConfig.fromEnvironment();
+  await SentryFlutter.init((options) {
+    options.dsn = sentryConfig.dsn;
+    options.tracesSampleRate = sentryConfig.tracesSampleRate;
+    if (sentryConfig.environment.trim().isNotEmpty) {
+      options.environment = sentryConfig.environment;
+    }
+  }, appRunner: _runFreshPantry);
+}
+
+Future<void> _runFreshPantry() async {
   final backendConfig = BackendConfig.fromEnvironment();
   await Supabase.initialize(
     url: backendConfig.supabaseUrl,

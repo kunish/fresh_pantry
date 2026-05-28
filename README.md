@@ -41,6 +41,7 @@ flutter run \
 ```
 
 `FRESH_PANTRY_API_BASE_URL` defaults to `https://api.fresh-pantry.kunish.eu.org`.
+`SENTRY_DSN` defaults to the Fresh Pantry Sentry project DSN, and `SENTRY_TRACES_SAMPLE_RATE` defaults to `1.0`.
 
 ### Supabase
 
