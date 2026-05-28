@@ -181,6 +181,8 @@ class SupabaseHouseholdGateway implements HouseholdGateway {
 class HouseholdSessionState {
   const HouseholdSessionState({
     this.email = '',
+    this.currentUserId = '',
+    this.selectedHouseholdId = '',
     this.isLoading = true,
     this.isSubmitting = false,
     this.isPreviewLoading = false,
@@ -190,10 +192,13 @@ class HouseholdSessionState {
     this.households = const [],
     this.householdMembers = const [],
     this.pendingInvitePreviews = const [],
+    this.ownerPendingInvites = const [],
     this.invitePreview,
   });
 
   final String email;
+  final String currentUserId;
+  final String selectedHouseholdId;
   final bool isLoading;
   final bool isSubmitting;
   final bool isPreviewLoading;
@@ -203,10 +208,13 @@ class HouseholdSessionState {
   final List<Household> households;
   final List<HouseholdMember> householdMembers;
   final List<HouseholdInvitePreview> pendingInvitePreviews;
+  final List<OwnerPendingInvite> ownerPendingInvites;
   final HouseholdInvitePreview? invitePreview;
 
   HouseholdSessionState copyWith({
     String? email,
+    String? currentUserId,
+    String? selectedHouseholdId,
     bool? isLoading,
     bool? isSubmitting,
     bool? isPreviewLoading,
@@ -216,10 +224,13 @@ class HouseholdSessionState {
     List<Household>? households,
     List<HouseholdMember>? householdMembers,
     List<HouseholdInvitePreview>? pendingInvitePreviews,
+    List<OwnerPendingInvite>? ownerPendingInvites,
     Object? invitePreview = _preserveInvitePreview,
   }) {
     return HouseholdSessionState(
       email: email ?? this.email,
+      currentUserId: currentUserId ?? this.currentUserId,
+      selectedHouseholdId: selectedHouseholdId ?? this.selectedHouseholdId,
       isLoading: isLoading ?? this.isLoading,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       isPreviewLoading: isPreviewLoading ?? this.isPreviewLoading,
@@ -231,6 +242,7 @@ class HouseholdSessionState {
       householdMembers: householdMembers ?? this.householdMembers,
       pendingInvitePreviews:
           pendingInvitePreviews ?? this.pendingInvitePreviews,
+      ownerPendingInvites: ownerPendingInvites ?? this.ownerPendingInvites,
       invitePreview: identical(invitePreview, _preserveInvitePreview)
           ? this.invitePreview
           : invitePreview as HouseholdInvitePreview?,
@@ -274,8 +286,13 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
     try {
       final households = await _gateway.loadHouseholds();
       final isAuthenticated = _gateway.isAuthenticated;
+      final currentSelectedId = state.selectedHouseholdId;
+      final selectedId = (currentSelectedId.isNotEmpty &&
+              households.any((h) => h.id == currentSelectedId))
+          ? currentSelectedId
+          : (households.isEmpty ? '' : households.first.id);
       final members = isAuthenticated
-          ? await _loadMembersForPrimaryHousehold(households)
+          ? await _loadMembersForSelectedHousehold(households, selectedId)
           : const <HouseholdMember>[];
       if (!mounted) return;
       state = state.copyWith(
@@ -284,6 +301,8 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
         isAuthenticated: isAuthenticated,
         households: List.unmodifiable(households),
         householdMembers: List.unmodifiable(members),
+        selectedHouseholdId: selectedId,
+        currentUserId: _gateway.currentUserId ?? '',
         pendingInvitePreviews: isAuthenticated
             ? state.pendingInvitePreviews
             : const <HouseholdInvitePreview>[],
@@ -307,7 +326,7 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
     try {
       final household = await _gateway.createHousehold(trimmed);
       await _gateway.uploadInitialData(household.id);
-      final members = await _loadMembersForPrimaryHousehold([household]);
+      final members = await _loadMembersForSelectedHousehold([household], household.id);
       if (!mounted) return;
       state = state.copyWith(
         isSubmitting: false,
@@ -315,6 +334,7 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
         error: null,
         households: List.unmodifiable([household]),
         householdMembers: List.unmodifiable(members),
+        selectedHouseholdId: household.id,
       );
     } catch (error) {
       if (!mounted) return;
@@ -419,7 +439,7 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
       final households = await _gateway.loadHouseholds();
       final isAuthenticated = _gateway.isAuthenticated;
       final members = isAuthenticated
-          ? await _loadMembersForPrimaryHousehold(households)
+          ? await _loadMembersForSelectedHousehold(households, state.selectedHouseholdId)
           : const <HouseholdMember>[];
       if (!mounted) return;
       state = state.copyWith(
@@ -455,7 +475,7 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
       final households = await _gateway.loadHouseholds();
       final isAuthenticated = _gateway.isAuthenticated;
       final members = isAuthenticated
-          ? await _loadMembersForPrimaryHousehold(households)
+          ? await _loadMembersForSelectedHousehold(households, state.selectedHouseholdId)
           : const <HouseholdMember>[];
       if (!mounted) return;
       state = state.copyWith(
@@ -482,11 +502,76 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
     }
   }
 
-  Future<List<HouseholdMember>> _loadMembersForPrimaryHousehold(
+  Future<void> removeMember(String householdId, String targetUserId) async {
+    state = state.copyWith(isSubmitting: true, error: null);
+    try {
+      await _gateway.removeMember(targetUserId);
+      final members = await _gateway.loadHouseholdMembers(householdId);
+      if (!mounted) return;
+      state = state.copyWith(
+        isSubmitting: false,
+        error: null,
+        householdMembers: List.unmodifiable(members),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      state = state.copyWith(isSubmitting: false, error: error.toString());
+    }
+  }
+
+  Future<void> revokeInvite(String householdId, String inviteId) async {
+    state = state.copyWith(isSubmitting: true, error: null);
+    try {
+      await _gateway.revokeInvite(inviteId);
+      if (!mounted) return;
+      state = state.copyWith(isSubmitting: false, error: null);
+      await refreshOwnerPendingInvites(householdId);
+    } catch (error) {
+      if (!mounted) return;
+      state = state.copyWith(isSubmitting: false, error: error.toString());
+    }
+  }
+
+  Future<void> refreshOwnerPendingInvites(String householdId) async {
+    try {
+      final invites = await _gateway.fetchOwnerPendingInvites(householdId);
+      if (!mounted) return;
+      state = state.copyWith(
+        ownerPendingInvites: List.unmodifiable(invites),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      state = state.copyWith(error: error.toString());
+    }
+  }
+
+  Future<void> switchHousehold(String householdId) async {
+    state = state.copyWith(isLoading: true, error: null, selectedHouseholdId: householdId);
+    try {
+      final members = await _gateway.loadHouseholdMembers(householdId);
+      if (!mounted) return;
+      state = state.copyWith(
+        isLoading: false,
+        error: null,
+        householdMembers: List.unmodifiable(members),
+      );
+      await refreshOwnerPendingInvites(householdId);
+    } catch (error) {
+      if (!mounted) return;
+      state = state.copyWith(isLoading: false, error: error.toString());
+    }
+  }
+
+  Future<List<HouseholdMember>> _loadMembersForSelectedHousehold(
     List<Household> households,
+    String selectedHouseholdId,
   ) {
     if (households.isEmpty) return Future.value(const []);
-    return _gateway.loadHouseholdMembers(households.first.id);
+    final targetId = (selectedHouseholdId.isNotEmpty &&
+            households.any((h) => h.id == selectedHouseholdId))
+        ? selectedHouseholdId
+        : households.first.id;
+    return _gateway.loadHouseholdMembers(targetId);
   }
 
   void _setError(Object error) {

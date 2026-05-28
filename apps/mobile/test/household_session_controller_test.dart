@@ -255,4 +255,155 @@ void main() {
     controller.dispose();
     await gateway.close();
   });
+
+  test('removeMember calls gateway and refreshes members', () async {
+    final gateway = FakeHouseholdGateway()
+      ..isAuthenticated = true
+      ..households.add(
+        const Household(
+          id: 'household_1',
+          name: 'Home',
+          ownerId: 'owner_1',
+          defaultStorageArea: 'fridge',
+        ),
+      )
+      ..members.addAll(const [
+        HouseholdMember(
+          householdId: 'household_1',
+          userId: 'owner_1',
+          role: 'owner',
+          email: 'owner@example.com',
+        ),
+        HouseholdMember(
+          householdId: 'household_1',
+          userId: 'member_1',
+          role: 'member',
+          email: 'member@example.com',
+        ),
+      ]);
+    final controller = HouseholdSessionController(gateway);
+    await controller.refreshHouseholds();
+
+    await controller.removeMember('household_1', 'member_1');
+
+    expect(gateway.removedUserId, 'member_1');
+  });
+
+  test('removeMember exposes error in state on failure', () async {
+    final gateway = FakeHouseholdGateway()
+      ..isAuthenticated = true
+      ..households.add(
+        const Household(
+          id: 'household_1',
+          name: 'Home',
+          ownerId: 'owner_1',
+          defaultStorageArea: 'fridge',
+        ),
+      )
+      ..removeMemberError = StateError('not authorized');
+    final controller = HouseholdSessionController(gateway);
+    await controller.refreshHouseholds();
+
+    await controller.removeMember('household_1', 'member_1');
+
+    expect(controller.state.error, contains('not authorized'));
+  });
+
+  test('revokeInvite calls gateway and refreshes owner pending invites', () async {
+    final gateway = FakeHouseholdGateway()
+      ..isAuthenticated = true
+      ..households.add(
+        const Household(
+          id: 'household_1',
+          name: 'Home',
+          ownerId: 'owner_1',
+          defaultStorageArea: 'fridge',
+        ),
+      )
+      ..ownerPendingInvites.addAll([
+        OwnerPendingInvite(
+          id: 'invite_1',
+          email: 'pending@example.com',
+          expiresAt: DateTime.now().add(const Duration(days: 7)),
+          createdAt: DateTime.now(),
+        ),
+      ]);
+    final controller = HouseholdSessionController(gateway);
+    await controller.refreshHouseholds();
+
+    await controller.revokeInvite('household_1', 'invite_1');
+
+    expect(gateway.revokedInviteId, 'invite_1');
+  });
+
+  test('revokeInvite exposes error in state on failure', () async {
+    final gateway = FakeHouseholdGateway()
+      ..isAuthenticated = true
+      ..households.add(
+        const Household(
+          id: 'household_1',
+          name: 'Home',
+          ownerId: 'owner_1',
+          defaultStorageArea: 'fridge',
+        ),
+      )
+      ..revokeInviteError = StateError('not authorized');
+    final controller = HouseholdSessionController(gateway);
+    await controller.refreshHouseholds();
+
+    await controller.revokeInvite('household_1', 'invite_1');
+
+    expect(controller.state.error, contains('not authorized'));
+  });
+
+  test('switchHousehold updates selectedHouseholdId and reloads members', () async {
+    final gateway = FakeHouseholdGateway()
+      ..isAuthenticated = true
+      ..households.addAll(const [
+        Household(
+          id: 'household_1',
+          name: 'Home',
+          ownerId: 'owner_1',
+          defaultStorageArea: 'fridge',
+        ),
+        Household(
+          id: 'household_2',
+          name: 'Office',
+          ownerId: 'owner_1',
+          defaultStorageArea: 'pantry',
+        ),
+      ])
+      ..members.addAll(const [
+        HouseholdMember(
+          householdId: 'household_1',
+          userId: 'owner_1',
+          role: 'owner',
+          email: 'owner@example.com',
+        ),
+        HouseholdMember(
+          householdId: 'household_2',
+          userId: 'owner_1',
+          role: 'owner',
+          email: 'owner@example.com',
+        ),
+        HouseholdMember(
+          householdId: 'household_2',
+          userId: 'member_2',
+          role: 'member',
+          email: 'colleague@example.com',
+        ),
+      ]);
+    final controller = HouseholdSessionController(gateway);
+    await controller.refreshHouseholds();
+
+    expect(controller.state.selectedHouseholdId, 'household_1');
+
+    await controller.switchHousehold('household_2');
+
+    expect(controller.state.selectedHouseholdId, 'household_2');
+    expect(
+      controller.state.householdMembers.map((m) => m.email),
+      ['owner@example.com', 'colleague@example.com'],
+    );
+  });
 }
