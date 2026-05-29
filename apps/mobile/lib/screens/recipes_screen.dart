@@ -214,6 +214,7 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                                               )
                                               : RecipeDetailScreen(
                                                 recipe: recipe,
+                                                useExpiring: useExpiring,
                                               ),
                                 ),
                               ),
@@ -414,7 +415,7 @@ class _ExpiringBanner extends StatelessWidget {
           const Icon(
             Icons.local_fire_department_rounded,
             size: 16,
-            color: AppColors.onSecondaryContainer,
+            color: AppColors.fkWarnInk,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -422,7 +423,7 @@ class _ExpiringBanner extends StatelessWidget {
               '优先使用 $count 件临期食材',
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.onSecondaryContainer,
+                color: AppColors.fkWarnInk,
               ),
             ),
           ),

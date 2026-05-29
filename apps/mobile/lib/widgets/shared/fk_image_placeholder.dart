@@ -19,7 +19,7 @@ class FkImagePlaceholder extends StatelessWidget {
     this.height = 120,
     this.label,
     this.tint = AppColors.surfaceContainer,
-    this.borderRadius = AppRadius.lg,
+    this.borderRadius = AppRadius.chip,
   });
 
   @override

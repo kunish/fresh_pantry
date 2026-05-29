@@ -15,6 +15,7 @@ import '../services/deduction_proposal_factory.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_snackbar.dart';
 import '../widgets/shared/fk_card.dart';
+import '../widgets/shared/fk_dashed_border.dart';
 import '../widgets/shared/fk_icon_button.dart';
 import '../widgets/shared/fk_pill.dart';
 import '../widgets/shared/recipe_image.dart';
@@ -28,6 +29,9 @@ import 'deduction_review_screen.dart';
 class RecipeDetailScreen extends ConsumerStatefulWidget {
   final Recipe recipe;
   final bool isCustomRecipe;
+
+  /// 该菜谱是否从"用临期"入口进入 — 控制标题下方是否展示临期 pill。
+  final bool useExpiring;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
@@ -35,6 +39,7 @@ class RecipeDetailScreen extends ConsumerStatefulWidget {
     super.key,
     required this.recipe,
     this.isCustomRecipe = false,
+    this.useExpiring = false,
     this.onEdit,
     this.onDelete,
   });
@@ -192,7 +197,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                     ),
                   ),
                 ],
-                if (widget.recipe.tags.isNotEmpty) ...[
+                if (widget.recipe.tags.isNotEmpty || widget.useExpiring) ...[
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 6,
@@ -203,6 +208,13 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                           label: tag,
                           backgroundColor: AppColors.primarySoft,
                           foregroundColor: AppColors.primaryContainer,
+                        ),
+                      if (widget.useExpiring)
+                        const FkPill(
+                          label: '使用临期食材',
+                          leading: Icon(Icons.local_fire_department_rounded),
+                          backgroundColor: AppColors.fkWarnSoft,
+                          foregroundColor: AppColors.fkWarnInk,
                         ),
                     ],
                   ),
@@ -514,15 +526,25 @@ class _IngredientRow extends StatelessWidget {
                 backgroundColor: AppColors.primarySoft,
                 foregroundColor: AppColors.primaryContainer,
               )
-              : FkPill(
-                label: '缺少',
-                sm: true,
-                backgroundColor: Colors.white,
-                foregroundColor: AppColors.fkDanger,
-                border: const BorderSide(
-                  color: AppColors.fkDanger,
-                  width: 1,
-                  style: BorderStyle.solid,
+              : FkDashedBorder(
+                radius: AppRadius.pill,
+                color: AppColors.fkDanger,
+                fillColor: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  child: Text(
+                    '缺少',
+                    style: GoogleFonts.manrope(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.fkDanger,
+                      letterSpacing: -0.1,
+                      height: 1.2,
+                    ),
+                  ),
                 ),
               ),
         ],
@@ -537,22 +559,30 @@ class _StatusMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: BoxDecoration(
-        color: isAvailable ? AppColors.primary : Colors.white,
-        shape: BoxShape.circle,
-        border:
-            isAvailable
-                ? null
-                : Border.all(color: AppColors.fkDanger, width: 2),
-      ),
-      alignment: Alignment.center,
-      child: Icon(
-        isAvailable ? Icons.check_rounded : Icons.close_rounded,
-        size: isAvailable ? 14 : 12,
-        color: isAvailable ? Colors.white : AppColors.fkDanger,
+    if (isAvailable) {
+      return Container(
+        width: 24,
+        height: 24,
+        decoration: const BoxDecoration(
+          color: AppColors.primary,
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: const Icon(Icons.check_rounded, size: 14, color: Colors.white),
+      );
+    }
+    // 缺少:白底 + 珊瑚虚线圈(设计稿 `screens-3.jsx`)。
+    return FkDashedBorder(
+      radius: 12,
+      color: AppColors.fkDanger,
+      strokeWidth: 2,
+      fillColor: Colors.white,
+      child: const SizedBox(
+        width: 24,
+        height: 24,
+        child: Center(
+          child: Icon(Icons.close_rounded, size: 12, color: AppColors.fkDanger),
+        ),
       ),
     );
   }

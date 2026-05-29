@@ -30,6 +30,10 @@ class AppColors {
   static const fkDanger = tertiary;
   static const fkDangerSoft = tertiaryContainer;
 
+  // 「用临期」火苗强调色 — 设计稿 (`screens-3.jsx`) 对临期 fire 标签用更暖的橙
+  // #B26A1F,刻意区别于 soon 状态 ink(onSecondaryContainer #9B7A2A)。
+  static const fkWarnInk = Color(0xFFB26A1F);
+
   // Error
   static const error = Color(0xFFE76F51);
   static const errorContainer = Color(0xFFFBE0D7);
@@ -52,6 +56,9 @@ class AppColors {
   static const outline = Color(0xFF9B92A5);
   static const outlineVariant = Color(0xFFC7C1CE);
   static const hair = Color(0x142D2438);
+
+  // 开关关闭态轨道 — 设计稿 `screens-3.jsx::ToggleRow` off track #D9DDD8。
+  static const switchTrackOff = Color(0xFFD9DDD8);
 
   // Semantic
   static const urgentAttentionBackground = Color(0xFFFBE0D7);

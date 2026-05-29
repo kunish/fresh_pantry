@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../models/ingredient.dart';
 import '../../theme/app_theme.dart';
 
 /// 食材 / 菜谱 / 购物清单的状态枚举。语义见 `data.jsx::FK_STATUS_LABEL`。
@@ -36,6 +37,21 @@ const Map<FkStatus, FkStatusStyle> kFkStatusStyles = {
     '库存不足',
   ),
 };
+
+/// `FreshnessState`(领域模型)→ `FkStatus`(UI 状态)的唯一映射。
+///
+/// 各页面据此从 [kFkStatusStyles] 取状态配色,避免在卡片 / 行 / 徽章里各自
+/// 硬编码「过期 vs 非过期」的二分逻辑(会丢失 urgent 珊瑚 与 soon 黄油的区分)。
+extension FreshnessStatusX on FreshnessState {
+  FkStatus get fkStatus => switch (this) {
+    FreshnessState.fresh => FkStatus.fresh,
+    FreshnessState.expiringSoon => FkStatus.soon,
+    FreshnessState.urgent => FkStatus.urgent,
+    FreshnessState.expired => FkStatus.expired,
+  };
+
+  FkStatusStyle get statusStyle => kFkStatusStyles[fkStatus]!;
+}
 
 /// FK 圆形小标签 — 设计稿 `ui.jsx::FKPill`。
 ///

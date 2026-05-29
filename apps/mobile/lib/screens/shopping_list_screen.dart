@@ -19,6 +19,7 @@ import '../utils/safe_push.dart';
 import '../widgets/shared/cat_icon.dart';
 import '../widgets/shared/category_icon.dart';
 import '../widgets/shared/fk_card.dart';
+import '../widgets/shared/fk_dashed_border.dart';
 import '../widgets/shared/fk_icon_button.dart';
 import '../widgets/shared/fk_top_bar.dart';
 import '../widgets/shopping/quick_add_field.dart';
@@ -828,25 +829,20 @@ class _ClearDoneButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppColors.hair,
-            style: BorderStyle.solid,
-            width: 1,
-          ),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          '清空已完成 ($count)',
-          style: GoogleFonts.manrope(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppColors.onSurfaceVariant,
+      child: FkDashedBorder(
+        radius: 12,
+        color: AppColors.hair,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          alignment: Alignment.center,
+          child: Text(
+            '清空已完成 ($count)',
+            style: GoogleFonts.manrope(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.onSurfaceVariant,
+            ),
           ),
         ),
       ),

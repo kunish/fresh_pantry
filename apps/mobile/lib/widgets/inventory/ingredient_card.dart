@@ -11,17 +11,10 @@ import '../shared/fk_pill.dart';
 import '../shared/zone_icon.dart';
 
 /// 旧 API:freshness 状态 → 徽章配色。保留供未迁移的 caller(测试)读取。
+/// 现委托给单一来源 [kFkStatusStyles](经 `FreshnessState.statusStyle`)。
 ({Color bg, Color text}) freshnessBadgeColors(FreshnessState state) {
-  switch (state) {
-    case FreshnessState.fresh:
-      return (bg: AppColors.primarySoft, text: AppColors.primaryContainer);
-    case FreshnessState.expiringSoon:
-      return (bg: AppColors.fkWarnSoft, text: AppColors.onSecondaryContainer);
-    case FreshnessState.urgent:
-      return (bg: AppColors.fkDangerSoft, text: AppColors.onTertiaryContainer);
-    case FreshnessState.expired:
-      return (bg: AppColors.fkDanger, text: Colors.white);
-  }
+  final s = state.statusStyle;
+  return (bg: s.bg, text: s.fg);
 }
 
 /// 食材卡片 — 设计稿 `screens-2.jsx::IngredientCard`。
@@ -49,11 +42,9 @@ class IngredientCard extends StatelessWidget {
     final palette = FkCategoryPalette.of(catId);
     final statusBadge = _statusBadgeFor(state, ingredient.expiryLabel);
     final progress = ingredient.freshnessPercent.clamp(0.0, 1.0);
-    final progressColor = (isExpired || state == FreshnessState.urgent)
-        ? AppColors.fkDanger
-        : (state == FreshnessState.expiringSoon
-              ? AppColors.fkWarn
-              : AppColors.primary);
+    // 设计稿进度条用状态 ink 色(expired 因 ink 为白,退回用 bg = 珊瑚)。
+    final style = state.statusStyle;
+    final progressColor = isExpired ? style.bg : style.fg;
 
     final card = Container(
       padding: const EdgeInsets.all(12),

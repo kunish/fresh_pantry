@@ -16,6 +16,7 @@ import 'package:fresh_pantry/providers/inventory_provider.dart';
 import 'package:fresh_pantry/providers/navigation_provider.dart';
 import 'package:fresh_pantry/providers/notification_service_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
+import 'package:fresh_pantry/screens/low_stock_screen.dart';
 import 'package:fresh_pantry/services/share_intent_service.dart';
 import 'helpers/fake_notification_service.dart';
 import 'helpers/household_gateway_stub.dart';
@@ -243,7 +244,7 @@ void main() {
   );
 
   testWidgets(
-    'dashboard hero low-stock stat shows real count and opens fridge',
+    'dashboard hero low-stock stat shows real count and opens low stock screen',
     (tester) async {
       SharedPreferences.setMockInitialValues({
         'inventory_items': '[]',
@@ -258,7 +259,6 @@ void main() {
         }),
       });
       final prefs = await SharedPreferences.getInstance();
-      late ProviderContainer container;
 
       await tester.pumpWidget(
         ProviderScope(
@@ -274,12 +274,7 @@ void main() {
               ),
             ),
           ],
-          child: Builder(
-            builder: (context) {
-              container = ProviderScope.containerOf(context);
-              return const FreshPantryApp(home: AppShell());
-            },
-          ),
+          child: const FreshPantryApp(home: AppShell()),
         ),
       );
       await tester.pumpAndSettle();
@@ -287,9 +282,9 @@ void main() {
       await tester.tap(find.bySemanticsLabel('库存不足 1'));
       await tester.pumpAndSettle();
 
-      expect(container.read(navigationProvider), FkTab.fridge);
-      expect(container.read(selectedCategoryProvider), inventoryFilterAll);
-      expect(find.byKey(const Key('inventory_low_stock_cta')), findsOneWidget);
+      // 「库存不足」stat 现跳转到独立的 LowStockScreen(常买补货页)。
+      expect(find.byType(LowStockScreen), findsOneWidget);
+      expect(find.text('米'), findsOneWidget);
     },
   );
 

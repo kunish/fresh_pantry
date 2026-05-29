@@ -686,10 +686,17 @@ class _ToggleRow extends StatelessWidget {
               ],
             ),
           ),
-          Switch.adaptive(
+          // 设计稿 `ToggleRow`:白滑块 + 开 primary / 关 #D9DDD8 轨道、无描边。
+          Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: AppColors.primary,
+            thumbColor: const WidgetStatePropertyAll(Colors.white),
+            trackColor: WidgetStateProperty.resolveWith(
+              (states) => states.contains(WidgetState.selected)
+                  ? AppColors.primary
+                  : AppColors.switchTrackOff,
+            ),
+            trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
           ),
         ],
       ),

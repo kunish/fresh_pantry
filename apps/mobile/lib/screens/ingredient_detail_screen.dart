@@ -278,6 +278,10 @@ class _DetailHero extends StatelessWidget {
         color: palette.tint,
         child: Stack(
           children: [
+            // Subtle dot-pattern texture (设计稿 hero 第三层装饰)
+            Positioned.fill(
+              child: CustomPaint(painter: _HeroDotPattern(palette.ink)),
+            ),
             // Scattered ghost icons
             Positioned(
               top: 64,
@@ -475,12 +479,10 @@ class _QtyAndFreshnessCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final percent = (freshnessPercent.clamp(0.0, 1.0) * 100).round();
-    final percentColor = switch (state) {
-      FreshnessState.fresh => AppColors.primary,
-      FreshnessState.expiringSoon => AppColors.fkWarn,
-      FreshnessState.urgent => AppColors.fkDanger,
-      FreshnessState.expired => AppColors.fkDanger,
-    };
+    // 数字用状态 ink 色(expired 因 ink 为白,退回用珊瑚)。
+    final percentColor = state == FreshnessState.expired
+        ? AppColors.fkDanger
+        : state.statusStyle.fg;
     return FkCard(
       padding: EdgeInsets.zero,
       child: IntrinsicHeight(
@@ -692,4 +694,25 @@ class _ActionRow extends StatelessWidget {
       ],
     );
   }
+}
+
+/// 详情页 Hero 的点阵纹理层 — 设计稿 `screens-2.jsx` 的 `radial-gradient` 点阵
+/// (14px 网格、0.8px 点)。用 ink 色低透明度近似 soft-light 叠加效果。
+class _HeroDotPattern extends CustomPainter {
+  final Color color;
+  const _HeroDotPattern(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color.withValues(alpha: 0.10);
+    const step = 14.0;
+    for (double y = step / 2; y < size.height; y += step) {
+      for (double x = step / 2; x < size.width; x += step) {
+        canvas.drawCircle(Offset(x, y), 0.8, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_HeroDotPattern oldDelegate) => oldDelegate.color != color;
 }

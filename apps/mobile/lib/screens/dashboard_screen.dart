@@ -24,6 +24,7 @@ import '../widgets/shared/fk_icon_button.dart';
 import '../widgets/shared/fk_pill.dart';
 import '../widgets/shared/fk_section_head.dart';
 import 'expiring_screen.dart';
+import 'low_stock_screen.dart';
 import 'recipe_detail_screen.dart';
 import 'settings_screen.dart';
 
@@ -171,7 +172,9 @@ class _DashboardHero extends ConsumerWidget {
       lowStock: lowStock,
       onUrgentTap: () => openInventory(inventoryFilterNotFresh),
       onSoonTap: () => openInventory(inventoryFilterNotFresh),
-      onLowStockTap: () => openInventory(inventoryFilterAll),
+      onLowStockTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const LowStockScreen()),
+      ),
       onSettings: () => Navigator.of(
         context,
       ).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
@@ -546,12 +549,14 @@ class _ExpiringCard extends StatelessWidget {
     final catId = fkCategoryIdFor(item.category);
     final palette = FkCategoryPalette.of(catId);
     final isExpired = item.state == FreshnessState.expired;
-    final pillBg = isExpired ? AppColors.fkDanger : AppColors.fkWarnSoft;
-    final pillFg = isExpired ? Colors.white : AppColors.onSecondaryContainer;
-    final topBorder = isExpired ? AppColors.fkDanger : AppColors.fkWarn;
+    // 走单一状态色来源,保留 urgent(珊瑚)与 soon(黄油)的区分。
+    final style = item.state.statusStyle;
+    final pillBg = style.bg;
+    final pillFg = style.fg;
+    final topBorder = isExpired ? style.bg : style.fg;
 
     return Container(
-      width: 144,
+      width: 132,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),

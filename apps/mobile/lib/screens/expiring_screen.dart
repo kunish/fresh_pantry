@@ -239,9 +239,10 @@ class _ExpiringRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final catId = fkCategoryIdFor(item.category);
     final palette = FkCategoryPalette.of(catId);
-    final isExpired = item.state == FreshnessState.expired;
-    final pillBg = isExpired ? AppColors.fkDanger : AppColors.fkWarnSoft;
-    final pillFg = isExpired ? Colors.white : AppColors.onSecondaryContainer;
+    // 走单一状态色来源,保留 urgent(珊瑚)与 soon(黄油)的区分。
+    final style = item.state.statusStyle;
+    final pillBg = style.bg;
+    final pillFg = style.fg;
     final tt = Theme.of(context).textTheme;
 
     return Container(

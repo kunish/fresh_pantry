@@ -645,6 +645,12 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
             const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
+                _StepButton(
+                  icon: Icons.remove_rounded,
+                  onTap: () => _stepQty(-1),
+                  semanticLabel: '减少数量',
+                ),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   flex: 2,
                   child: _buildFilledInput(
@@ -654,6 +660,12 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
                     focusNode: _quantityFocus,
                     textInputAction: TextInputAction.done,
                   ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                _StepButton(
+                  icon: Icons.add_rounded,
+                  onTap: () => _stepQty(1),
+                  semanticLabel: '增加数量',
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(flex: 1, child: _buildUnitDropdown()),
@@ -695,12 +707,22 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     });
   }
 
+  void _stepQty(int delta) {
+    final current = double.tryParse(_quantityController.text.trim()) ?? 0;
+    final next = (current + delta).clamp(0.0, double.maxFinite);
+    final text = next == next.roundToDouble()
+        ? next.toInt().toString()
+        : next.toString();
+    _quantityController.text = text;
+    _quantityController.selection = TextSelection.collapsed(
+      offset: text.length,
+    );
+  }
+
   Widget _buildCategoryDropdown() {
     return Container(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.outline, width: 2)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      decoration: fieldBoxDecoration(),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 2),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedCategory,
@@ -728,10 +750,8 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
 
   Widget _buildStorageSelector() {
     return Container(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.outline, width: 2)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      decoration: fieldBoxDecoration(),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 2),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<IconType>(
           value: _selectedStorage,
@@ -759,10 +779,8 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
 
   Widget _buildUnitDropdown() {
     return Container(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.outline, width: 2)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      decoration: fieldBoxDecoration(),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 2),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedUnit,
@@ -976,15 +994,15 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
           width: double.infinity,
           height: 56,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppColors.primary,
-                AppColors.primary.withValues(alpha: 0.8),
-              ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(AppRadius.pill),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.shadowWarm,
+                blurRadius: 18,
+                offset: Offset(0, 6),
+              ),
+            ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1275,15 +1293,15 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
   // ─── Shared helpers ─────────────────────────────────────────────────
 
   Widget _buildLabel(String text) {
+    // 设计稿 `FormRow` 标签:低调 muted、不大写、w600(取代旧的蓝色全大写)。
     return Padding(
       padding: const EdgeInsets.only(left: 4),
       child: Text(
-        text.toUpperCase(),
-        style: GoogleFonts.plusJakartaSans(
+        text,
+        style: GoogleFonts.manrope(
           fontSize: AppFontSize.sm,
           fontWeight: FontWeight.w600,
-          letterSpacing: 2,
-          color: AppColors.primary,
+          color: AppColors.onSurfaceVariant,
         ),
       ),
     );
@@ -1382,12 +1400,56 @@ class _SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      label.toUpperCase(),
+      label,
       style: GoogleFonts.plusJakartaSans(
-        fontSize: AppFontSize.sm,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 2,
-        color: AppColors.primary,
+        fontSize: AppFontSize.lg,
+        fontWeight: FontWeight.w700,
+        color: AppColors.onSurface,
+      ),
+    );
+  }
+}
+
+/// 设计稿输入控件外观:白底 + 圆角 + hair 描边(focus 时 primary)。
+/// 取代旧的下划线样式,统一名称/数量输入与分类/存储/单位下拉的视觉语言。
+BoxDecoration fieldBoxDecoration({bool focused = false}) => BoxDecoration(
+  color: AppColors.surfaceContainerLowest,
+  borderRadius: BorderRadius.circular(AppRadius.md),
+  border: Border.all(
+    color: focused ? AppColors.primary : AppColors.hair,
+    width: focused ? 1.5 : 1,
+  ),
+);
+
+/// 数量行的圆形步进按钮 — 设计稿 `screens-1.jsx::stepBtn`(32×32 / bgAlt 底)。
+class _StepButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final String semanticLabel;
+  const _StepButton({
+    required this.icon,
+    required this.onTap,
+    required this.semanticLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: const BoxDecoration(
+            color: AppColors.surfaceContainer,
+            shape: BoxShape.circle,
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, size: 18, color: AppColors.onSurface),
+        ),
       ),
     );
   }
@@ -1429,14 +1491,7 @@ class _FilledInputState extends State<_FilledInput> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),
         curve: Curves.easeOut,
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: _hasFocus ? AppColors.primary : AppColors.outline,
-              width: 2,
-            ),
-          ),
-        ),
+        decoration: fieldBoxDecoration(focused: _hasFocus),
         child: TextField(
           controller: widget.controller,
           focusNode: widget.focusNode,
@@ -1462,8 +1517,8 @@ class _FilledInputState extends State<_FilledInput> {
             errorBorder: InputBorder.none,
             focusedErrorBorder: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg,
-              vertical: AppSpacing.lg,
+              horizontal: 14,
+              vertical: 13,
             ),
           ),
         ),
