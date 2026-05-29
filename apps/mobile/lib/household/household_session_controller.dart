@@ -679,6 +679,51 @@ class HouseholdSessionController extends StateNotifier<HouseholdSessionState> {
     }
   }
 
+  Future<bool> leaveHousehold(String householdId) async {
+    final trimmedHouseholdId = householdId.trim();
+    if (trimmedHouseholdId.isEmpty) {
+      state = state.copyWith(error: '家庭不存在');
+      return false;
+    }
+
+    state = state.copyWith(isSubmitting: true, error: null);
+    try {
+      await _gateway.leaveHousehold(trimmedHouseholdId);
+      final households = await _gateway.loadHouseholds();
+      final isAuthenticated = _gateway.isAuthenticated;
+      final selectedId = _selectedHouseholdIdAfterRemoval(
+        households,
+        removedHouseholdId: trimmedHouseholdId,
+      );
+      final members = isAuthenticated
+          ? await _loadMembersForSelectedHousehold(households, selectedId)
+          : const <HouseholdMember>[];
+      if (!mounted) return false;
+      state = state.copyWith(
+        isSubmitting: false,
+        isAuthenticated: isAuthenticated,
+        error: null,
+        households: List.unmodifiable(households),
+        householdMembers: List.unmodifiable(members),
+        selectedHouseholdId: selectedId,
+        currentUserId: _gateway.currentUserId ?? '',
+        ownerPendingInvites: const [],
+        pendingInvitePreviews: isAuthenticated
+            ? state.pendingInvitePreviews
+            : const <HouseholdInvitePreview>[],
+      );
+      if (isAuthenticated) {
+        await refreshPendingInvites();
+      }
+      return true;
+    } catch (error) {
+      if (mounted) {
+        state = state.copyWith(isSubmitting: false, error: error.toString());
+      }
+      return false;
+    }
+  }
+
   Future<void> refreshOwnerPendingInvites(String householdId) async {
     if (!_gateway.isAuthenticated) {
       state = state.copyWith(ownerPendingInvites: const []);

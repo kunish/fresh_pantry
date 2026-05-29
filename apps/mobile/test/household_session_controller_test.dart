@@ -765,4 +765,46 @@ void main() {
     expect(gateway.updatedHouseholdId, 'household_1');
     expect(gateway.updatedCategoryPreferences, {'高蛋白': true});
   });
+
+  test('leaveHousehold re-selects another household after leaving', () async {
+    final gateway = FakeHouseholdGateway()
+      ..isAuthenticated = true
+      ..households.addAll(const [
+        Household(id: 'h1', name: '我家', ownerId: 'owner_2', defaultStorageArea: 'fridge'),
+        Household(id: 'h2', name: '李家', ownerId: 'owner_2', defaultStorageArea: 'fridge'),
+      ])
+      ..members.addAll(const [
+        HouseholdMember(householdId: 'h2', userId: 'owner_1', role: 'member', email: 'me@ex.com'),
+      ]);
+    final controller = HouseholdSessionController(gateway);
+    addTearDown(controller.dispose);
+    await controller.switchHousehold('h1');
+
+    final ok = await controller.leaveHousehold('h1');
+
+    expect(ok, isTrue);
+    expect(gateway.leftHouseholdId, 'h1');
+    expect(controller.state.households.map((h) => h.id), ['h2']);
+    expect(controller.state.selectedHouseholdId, 'h2');
+    expect(controller.state.error, isNull);
+    expect(controller.state.isSubmitting, isFalse);
+  });
+
+  test('leaveHousehold surfaces error and keeps selection on failure', () async {
+    final gateway = FakeHouseholdGateway()
+      ..isAuthenticated = true
+      ..households.addAll(const [
+        Household(id: 'h1', name: '我家', ownerId: 'owner_2', defaultStorageArea: 'fridge'),
+      ])
+      ..leaveHouseholdError = StateError('sole owner');
+    final controller = HouseholdSessionController(gateway);
+    addTearDown(controller.dispose);
+    await controller.switchHousehold('h1');
+
+    final ok = await controller.leaveHousehold('h1');
+
+    expect(ok, isFalse);
+    expect(controller.state.error, isNotNull);
+    expect(controller.state.selectedHouseholdId, 'h1');
+  });
 }
