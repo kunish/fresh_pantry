@@ -13,28 +13,20 @@ class IntakeProposalFactory {
     List<IngredientDraft> drafts,
     List<Ingredient> inventory,
   ) {
-    return drafts.map((d) {
-      final candidate = _Candidate(d);
-      final defaultAction = ProposalPlanner.computeIntakeDefaultAction(
-        candidate: candidate,
-        inventory: inventory,
-      );
-      final i = defaultAction.targetIndex;
-      return IntakeProposal(
-        id: d.id,
-        name: d.name.value,
-        quantity: d.quantity.value,
-        unit: d.unit.value,
-        category: d.category.value,
-        storage: d.storage.value ?? IconType.fridge,
-        shelfLifeDays: d.shelfLifeDays.value,
-        action: defaultAction.kind,
-        mergeTargetId: i?.toString(),
-        mergeTargetLabel: i == null
-            ? null
-            : '${inventory[i].name} ${inventory[i].quantity}${inventory[i].unit}',
-      );
-    }).toList();
+    return drafts
+        .map(
+          (d) => _build(
+            id: d.id,
+            name: d.name.value,
+            quantity: d.quantity.value,
+            unit: d.unit.value,
+            category: d.category.value,
+            storage: d.storage.value ?? IconType.fridge,
+            shelfLifeDays: d.shelfLifeDays.value,
+            inventory: inventory,
+          ),
+        )
+        .toList();
   }
 
   static List<IntakeProposal> fromShoppingItems(
@@ -45,34 +37,60 @@ class IntakeProposalFactory {
       final (qty, unit) = _parseDetail(item.detail);
       // Inherit storage from a matching inventory row (name+unit) so the
       // planner's merge rule γ (name+unit+storage) can fire for non-perishables.
-      final matchedStorage = _inferStorage(item.name, unit, inventory);
-      final candidate = _ShoppingCandidate(
-        name: item.name,
-        unit: unit,
-        storage: matchedStorage, // adopts inventory storage when match found
-        category: item.category,
-      );
-      final defaultAction = ProposalPlanner.computeIntakeDefaultAction(
-        candidate: candidate,
-        inventory: inventory,
-      );
-      final i = defaultAction.targetIndex;
-      return IntakeProposal(
+      final storage = _inferStorage(item.name, unit, inventory);
+      return _build(
         id: 'ix_${item.id}',
         name: item.name,
         quantity: qty,
         unit: unit,
         category: item.category,
-        storage: matchedStorage,
+        storage: storage,
         shelfLifeDays: null,
-        action: defaultAction.kind,
-        mergeTargetId: i?.toString(),
-        mergeTargetLabel: i == null
-            ? null
-            : '${inventory[i].name} ${inventory[i].quantity}${inventory[i].unit}',
+        inventory: inventory,
         origin: FieldOrigin.system,
       );
     }).toList();
+  }
+
+  /// Builds one [IntakeProposal], resolving its default Intake action against
+  /// the live inventory and capturing the merge-target hint + label. Shared by
+  /// both intake sources so the proposal shape lives in one place.
+  static IntakeProposal _build({
+    required String id,
+    required String name,
+    required String quantity,
+    required String unit,
+    required String? category,
+    required IconType storage,
+    required int? shelfLifeDays,
+    required List<Ingredient> inventory,
+    FieldOrigin origin = FieldOrigin.ai,
+  }) {
+    final action = ProposalPlanner.computeIntakeDefaultAction(
+      candidate: _Candidate(
+        name: name,
+        unit: unit,
+        storage: storage,
+        category: category,
+      ),
+      inventory: inventory,
+    );
+    final i = action.targetIndex;
+    return IntakeProposal(
+      id: id,
+      name: name,
+      quantity: quantity,
+      unit: unit,
+      category: category,
+      storage: storage,
+      shelfLifeDays: shelfLifeDays,
+      action: action.kind,
+      mergeTargetId: i?.toString(),
+      mergeTargetLabel: i == null
+          ? null
+          : '${inventory[i].name} ${inventory[i].quantity}${inventory[i].unit}',
+      origin: origin,
+    );
   }
 
   static (String qty, String unit) _parseDetail(String detail) {
@@ -80,9 +98,10 @@ class IntakeProposalFactory {
     if (trimmed.isEmpty) return ('1', '份');
     final m = RegExp(r'^(\d+(?:\.\d+)?)\s*(.*)$').firstMatch(trimmed);
     if (m == null) return ('1', trimmed);
-    return (m.group(1) ?? '1', (m.group(2) ?? '').trim().isEmpty
-        ? '份'
-        : (m.group(2) ?? '').trim());
+    return (
+      m.group(1) ?? '1',
+      (m.group(2) ?? '').trim().isEmpty ? '份' : (m.group(2) ?? '').trim(),
+    );
   }
 
   /// Returns the storage of the first inventory row that matches name+unit,
@@ -104,27 +123,18 @@ class IntakeProposalFactory {
 }
 
 class _Candidate implements IntakeCandidate {
-  _Candidate(this.d);
-  final IngredientDraft d;
-  @override
-  String get name => d.name.value;
-  @override
-  String get unit => d.unit.value;
-  @override
-  IconType get storage => d.storage.value ?? IconType.fridge;
-  @override
-  String? get category => d.category.value;
-}
-
-class _ShoppingCandidate implements IntakeCandidate {
-  _ShoppingCandidate({
+  _Candidate({
     required this.name,
     required this.unit,
     required this.storage,
     required this.category,
   });
-  @override final String name;
-  @override final String unit;
-  @override final IconType storage;
-  @override final String? category;
+  @override
+  final String name;
+  @override
+  final String unit;
+  @override
+  final IconType storage;
+  @override
+  final String? category;
 }
