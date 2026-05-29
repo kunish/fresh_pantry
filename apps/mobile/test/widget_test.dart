@@ -17,6 +17,8 @@ import 'package:fresh_pantry/storage/shared_prefs_storage_adapter.dart';
 import 'helpers/fake_notification_service.dart';
 import 'helpers/household_gateway_stub.dart';
 import 'package:fresh_pantry/widgets/common/bottom_nav_bar.dart';
+import 'package:fresh_pantry/widgets/common/top_app_bar.dart';
+import 'package:fresh_pantry/widgets/shared/fk_hero_header.dart';
 
 void main() {
   setUpAll(() {
@@ -56,6 +58,16 @@ void main() {
     for (final label in const ['首页', '食材', '菜谱', '清单']) {
       expect(find.text(label), findsOneWidget);
     }
+
+    // 首页 Header 是 hero 的一部分(被 FkHeroHeader 渐变包裹),随列表一起滚动 —
+    // 既让蓝色无缝铺到顶,又避免固定浮层在滚动时重叠或遮挡下方内容。
+    expect(
+      find.ancestor(
+        of: find.byType(TopAppBar),
+        matching: find.byType(FkHeroHeader),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('handles Supabase auth callback route with query parameters', (

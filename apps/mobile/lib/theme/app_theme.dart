@@ -25,6 +25,18 @@ const kAppSystemOverlayStyle = SystemUiOverlayStyle(
   systemStatusBarContrastEnforced: false,
 );
 
+/// 首页 Hero 把深色渐变铺到状态栏后面,需要浅色状态栏图标才能在蓝底上看清
+/// 时间 / 电量。仅状态栏 brightness 与 [kAppSystemOverlayStyle] 不同。
+const kHeroSystemOverlayStyle = SystemUiOverlayStyle(
+  statusBarColor: Colors.transparent,
+  statusBarBrightness: Brightness.dark,
+  statusBarIconBrightness: Brightness.light,
+  systemNavigationBarColor: AppColors.surface,
+  systemNavigationBarDividerColor: Colors.transparent,
+  systemNavigationBarIconBrightness: Brightness.dark,
+  systemStatusBarContrastEnforced: false,
+);
+
 class AppTheme {
   static ThemeData get lightTheme {
     final colorScheme = ColorScheme(

@@ -18,7 +18,6 @@ import 'providers/notification_sync_provider.dart';
 import 'services/share_intent_service.dart';
 import 'household/invite_token.dart';
 import 'sync/household_content_sync.dart';
-import 'widgets/common/top_app_bar.dart';
 import 'widgets/common/bottom_nav_bar.dart';
 import 'widgets/common/search_overlay.dart';
 
@@ -142,31 +141,46 @@ class _AppShellState extends ConsumerState<AppShell> {
     ref.watch(notificationSyncProvider);
     final currentIndex = ref.watch(navigationProvider);
     final isSearchActive = ref.watch(searchActiveProvider);
+    final isHome = currentIndex == FkTab.home;
 
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                const TopAppBar(),
-                Expanded(
-                  child: HouseholdContentSync(
-                    child: IndexedStack(
-                      index: currentIndex,
-                      children: _screens,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            if (isSearchActive) const SearchOverlay(),
-          ],
-        ),
+    // SafeArea 常驻树中、仅切换 top,避免 home/非 home 间结构变动重建 IndexedStack
+    // (会丢子页面 State 并反复重启 sync 订阅)。首页 top: false → hero(含其内部
+    // Header)自己铺到物理顶并让出状态栏。
+    final pages = HouseholdContentSync(
+      child: SafeArea(
+        top: !isHome,
+        bottom: false,
+        child: IndexedStack(index: currentIndex, children: _screens),
       ),
-      extendBody: true,
-      bottomNavigationBar: const BottomNavBar(),
+    );
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      // 首页状态栏后面始终是不透明蓝色 scrim(见下),故图标固定浅色。
+      value: isHome ? kHeroSystemOverlayStyle : kAppSystemOverlayStyle,
+      child: Scaffold(
+        backgroundColor: AppColors.surface,
+        body: SafeArea(
+          top: false,
+          child: Stack(
+            children: [
+              Positioned.fill(child: pages),
+              if (isHome)
+                // 状态栏专用不透明蓝色 scrim — 让首页状态栏像其他页面一样有稳定
+                // 背景(不透出滚动中的 hero 渐变/装饰),图标也始终清晰。
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: MediaQuery.paddingOf(context).top,
+                  child: const ColoredBox(color: AppColors.primary),
+                ),
+              if (isSearchActive) const SearchOverlay(),
+            ],
+          ),
+        ),
+        extendBody: true,
+        bottomNavigationBar: const BottomNavBar(),
+      ),
     );
   }
 }

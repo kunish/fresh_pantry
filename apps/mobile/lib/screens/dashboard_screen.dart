@@ -13,6 +13,7 @@ import '../theme/fk_category_palette.dart';
 import '../utils/app_snackbar.dart';
 import '../utils/dashboard_greeting.dart';
 import '../utils/safe_push.dart';
+import '../widgets/common/top_app_bar.dart';
 import '../widgets/dashboard/expiring_fallback_card.dart';
 import '../widgets/dashboard/household_chip.dart';
 import '../widgets/dashboard/low_stock_card.dart';
@@ -41,30 +42,27 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SafeArea(
-      bottom: false,
-      child: RefreshIndicator(
-        onRefresh: () => _refreshDashboard(context, ref),
-        color: AppColors.primary,
-        backgroundColor: AppColors.surface,
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.zero,
-          children: const [
-            _DashboardHero(),
-            _ExpiringItemsSection(),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-              child: LowStockCard(),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-              child: ExpiringFallbackCard(),
-            ),
-            _CategorySection(),
-            _TodayRecommendationSection(),
-          ],
-        ),
+    return RefreshIndicator(
+      onRefresh: () => _refreshDashboard(context, ref),
+      color: AppColors.primary,
+      backgroundColor: AppColors.surface,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.zero,
+        children: const [
+          _DashboardHero(),
+          _ExpiringItemsSection(),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+            child: LowStockCard(),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+            child: ExpiringFallbackCard(),
+          ),
+          _CategorySection(),
+          _TodayRecommendationSection(),
+        ],
       ),
     );
   }
@@ -172,9 +170,9 @@ class _DashboardHero extends ConsumerWidget {
       lowStock: lowStock,
       onUrgentTap: () => openInventory(inventoryFilterNotFresh),
       onSoonTap: () => openInventory(inventoryFilterNotFresh),
-      onLowStockTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const LowStockScreen()),
-      ),
+      onLowStockTap: () => Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const LowStockScreen())),
       onSettings: () => Navigator.of(
         context,
       ).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
@@ -380,101 +378,114 @@ class _HeroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Header 现在是 hero 的一部分,随列表一起滚动(不再固定浮层),让蓝色一整片
+    // 无缝铺到顶;滚动时既不会重叠也不会遮挡下方内容。
     return FkHeroHeader(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          const SafeArea(bottom: false, child: TopAppBar()),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, AppSpacing.sm, 20, 28),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Text(
-                      greeting,
-                      style: GoogleFonts.manrope(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.75),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            greeting,
+                            style: GoogleFonts.manrope(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white.withValues(alpha: 0.75),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '你的冰箱状态',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.4,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(width: 8),
+                    const HouseholdChip(),
+                    const SizedBox(width: 8),
+                    FkIconButton(
+                      backgroundColor: Colors.white.withValues(alpha: 0.18),
+                      foregroundColor: Colors.white,
+                      onTap: onSettings,
+                      child: const Icon(Icons.notifications_outlined),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 22),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
                     Text(
-                      '你的冰箱状态',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.4,
+                      '$total',
+                      style: AppTypography.heroStat.copyWith(
                         color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(
+                        '件食材 · $categoryCount 类',
+                        style: GoogleFonts.manrope(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.85),
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              const HouseholdChip(),
-              const SizedBox(width: 8),
-              FkIconButton(
-                backgroundColor: Colors.white.withValues(alpha: 0.18),
-                foregroundColor: Colors.white,
-                onTap: onSettings,
-                child: const Icon(Icons.notifications_outlined),
-              ),
-            ],
-          ),
-          const SizedBox(height: 22),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '$total',
-                style: AppTypography.heroStat.copyWith(color: Colors.white),
-              ),
-              const SizedBox(width: 8),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Text(
-                  '件食材 · $categoryCount 类',
-                  style: GoogleFonts.manrope(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white.withValues(alpha: 0.85),
-                  ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _MiniStat(
+                        label: '已过期',
+                        count: urgent,
+                        accent: AppColors.fkDanger,
+                        onTap: onUrgentTap,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _MiniStat(
+                        label: '即将过期',
+                        count: soon,
+                        accent: AppColors.fkWarn,
+                        onTap: onSoonTap,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _MiniStat(
+                        label: '库存不足',
+                        count: lowStock,
+                        accent: Colors.white,
+                        onTap: onLowStockTap,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _MiniStat(
-                  label: '已过期',
-                  count: urgent,
-                  accent: AppColors.fkDanger,
-                  onTap: onUrgentTap,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _MiniStat(
-                  label: '即将过期',
-                  count: soon,
-                  accent: AppColors.fkWarn,
-                  onTap: onSoonTap,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _MiniStat(
-                  label: '库存不足',
-                  count: lowStock,
-                  accent: Colors.white,
-                  onTap: onLowStockTap,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

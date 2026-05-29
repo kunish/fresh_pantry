@@ -18,6 +18,7 @@ import 'package:fresh_pantry/providers/food_details_provider.dart';
 import 'package:fresh_pantry/providers/inventory_provider.dart';
 import 'package:fresh_pantry/providers/navigation_provider.dart';
 import 'package:fresh_pantry/providers/notification_service_provider.dart';
+import 'package:fresh_pantry/providers/shopping_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/services/share_intent_service.dart';
 import 'helpers/fake_notification_service.dart';
@@ -294,7 +295,11 @@ void main() {
               HouseholdGatewayStub(isAuthenticated: true),
             ),
           ),
-          navigationProvider.overrideWith((ref) => FkTab.shopping),
+          // 全局搜索入口现在仅在首页 — 从首页(默认 tab)发起。预设 freshProduce
+          // 分类折叠,以验证点击搜索结果会展开清单中对应分类。
+          collapsedShoppingCategoriesProvider.overrideWith(
+            (ref) => {FoodCategories.freshProduce},
+          ),
           foodDetailsClientProvider.overrideWithValue(
             const _FakeFoodDetailsClient(null),
           ),
@@ -304,10 +309,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text(FoodCategories.freshProduce));
-    await tester.pumpAndSettle();
-    expect(find.text('番茄'), findsNothing);
-
     await tester.tap(find.byTooltip('搜索'));
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, '搜索食材...'), '番茄');
@@ -315,6 +316,7 @@ void main() {
     await tester.tap(find.widgetWithText(ListTile, '番茄').first);
     await tester.pumpAndSettle();
 
+    // 点击搜索结果应切到清单 tab 并展开此前折叠的 freshProduce 分类。
     expect(find.text('番茄'), findsOneWidget);
   });
 }
