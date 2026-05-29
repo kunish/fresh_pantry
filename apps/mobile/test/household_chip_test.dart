@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fresh_pantry/household/household_models.dart';
 import 'package:fresh_pantry/household/household_session_controller.dart';
+import 'package:fresh_pantry/screens/household_screen.dart';
 import 'package:fresh_pantry/widgets/dashboard/household_chip.dart';
 import 'helpers/household_gateway_stub.dart';
 
@@ -47,5 +48,19 @@ void main() {
     ));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('household_chip_badge')), findsOneWidget);
+  });
+
+  testWidgets('tapping the chip opens HouseholdScreen', (tester) async {
+    final controller = await _seeded();
+    await tester.pumpWidget(ProviderScope(
+      overrides: [householdSessionControllerProvider.overrideWith((ref) => controller)],
+      child: const MaterialApp(home: Scaffold(body: HouseholdChip())),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(HouseholdChip));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HouseholdScreen), findsOneWidget);
   });
 }
