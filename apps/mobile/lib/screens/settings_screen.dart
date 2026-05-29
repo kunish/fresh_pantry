@@ -16,16 +16,13 @@ import '../providers/storage_service_provider.dart';
 import '../services/backup_service.dart';
 import '../sync/sync_providers.dart';
 import '../theme/app_theme.dart';
-import '../utils/app_snackbar.dart';
 import '../utils/fk_toast.dart';
 import '../widgets/shared/fk_card.dart';
 import '../widgets/shared/fk_pill.dart';
 import '../widgets/shared/fk_section_head.dart';
 import '../widgets/shared/fk_top_bar.dart';
-import '../utils/app_dialog.dart';
-import '../widgets/household/household_section.dart';
-import '../widgets/settings/invite_result_sheet.dart';
 import 'ai_settings_screen.dart';
+import 'household_screen.dart';
 import 'my_recipes_screen.dart';
 
 /// FreshKeeper "我的" 设置页 — 设计稿 `screens-3.jsx::SettingsScreen`。
@@ -40,14 +37,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  String? _ownerInviteRefreshHouseholdId;
-
-  Future<void> _onEditName(String householdId, String newName) async {
-    await ref
-        .read(householdSessionControllerProvider.notifier)
-        .updateHouseholdName(householdId, newName);
-  }
-
   String _currentUserEmail(HouseholdSessionState session) {
     for (final member in session.householdMembers) {
       if (member.userId == session.currentUserId) return member.email;
@@ -134,132 +123,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _showSimpleDialog('导入完成', '数据已恢复。如未刷新，请重启 App。');
   }
 
-  Future<void> _onInviteLink(String householdId) async {
-    final String inviteUrl;
-    try {
-      inviteUrl = await ref
-          .read(householdSessionControllerProvider.notifier)
-          .createInvite(householdId);
-    } catch (_) {
-      if (!mounted) return;
-      final error = ref.read(householdSessionControllerProvider).error;
-      showAppSnackBar(
-        context,
-        error ?? '创建邀请失败，请重试',
-        backgroundColor: AppColors.error,
-      );
-      return;
-    }
-    if (!mounted) return;
-    await InviteResultSheet.show(context, inviteUrl: inviteUrl);
-    await ref
-        .read(householdSessionControllerProvider.notifier)
-        .refreshOwnerPendingInvites(householdId);
-  }
-
-  Future<void> _onInviteEmail(String householdId, String email) async {
-    final inviteUrl = await ref
-        .read(householdSessionControllerProvider.notifier)
-        .createInvite(householdId, email: email);
-    if (!mounted) return;
-    await InviteResultSheet.show(
-      context,
-      inviteUrl: inviteUrl,
-      invitedEmail: email.trim(),
-    );
-    await ref
-        .read(householdSessionControllerProvider.notifier)
-        .refreshOwnerPendingInvites(householdId);
-  }
-
-  Future<void> _onRemoveMember(String householdId, String userId) async {
-    await ref
-        .read(householdSessionControllerProvider.notifier)
-        .removeMember(householdId, userId);
-    if (!mounted) return;
-    final error = ref.read(householdSessionControllerProvider).error;
-    if (error != null) {
-      showAppSnackBar(context, error, backgroundColor: AppColors.error);
-    }
-  }
-
-  Future<void> _onRevokeInvite(String householdId, String inviteId) async {
-    final confirmed = await showAppConfirmDialog(
-      context,
-      title: '撤销邀请',
-      content: '确定撤销该邀请？',
-      confirmLabel: '撤销',
-      isDestructive: true,
-    );
-    if (!confirmed || !mounted) return;
-    await ref
-        .read(householdSessionControllerProvider.notifier)
-        .revokeInvite(householdId, inviteId);
-    if (!mounted) return;
-    final error = ref.read(householdSessionControllerProvider).error;
-    if (error != null) {
-      showAppSnackBar(context, error, backgroundColor: AppColors.error);
-    }
-  }
-
-  Future<void> _onDissolveHousehold(String householdId, String name) async {
-    final confirmed = await showAppConfirmDialog(
-      context,
-      title: '解散家庭',
-      content: '确定解散「$name」？这会删除家庭、成员、邀请以及所有共享食材、采购和菜谱数据，无法撤销。',
-      confirmLabel: '解散',
-      isDestructive: true,
-    );
-    if (!confirmed || !mounted) return;
-    _ownerInviteRefreshHouseholdId = null;
-    final dissolved = await _withLoading(
-      '正在解散家庭...',
-      () => ref
-          .read(householdSessionControllerProvider.notifier)
-          .dissolveHousehold(householdId),
-    );
-    if (!mounted) return;
-
-    final session = ref.read(householdSessionControllerProvider);
-    if (!dissolved) {
-      showAppSnackBar(
-        context,
-        session.error ?? '解散家庭失败，请重试',
-        backgroundColor: AppColors.error,
-      );
-      return;
-    }
-
-    fkToast(context, '已解散「$name」');
-    if (session.households.isEmpty && Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
-    }
-  }
-
-  void _onSwitchHousehold(String householdId) {
-    _ownerInviteRefreshHouseholdId = null;
-    ref
-        .read(householdSessionControllerProvider.notifier)
-        .switchHousehold(householdId);
-  }
-
   void _throwSentryTestException() {
     throw StateError('This is test exception');
-  }
-
-  void _ensureOwnerPendingInvitesLoaded(String householdId, bool isOwner) {
-    if (!isOwner) {
-      _ownerInviteRefreshHouseholdId = null;
-      return;
-    }
-    if (_ownerInviteRefreshHouseholdId == householdId) return;
-    _ownerInviteRefreshHouseholdId = householdId;
-    Future.microtask(() {
-      if (!mounted) return;
-      ref
-          .read(householdSessionControllerProvider.notifier)
-          .refreshOwnerPendingInvites(householdId);
-    });
   }
 
   Future<void> _onReminderToggle(
@@ -353,12 +218,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             (h) => h.id == householdSession.selectedHouseholdId,
             orElse: () => householdSession.households.first,
           );
-    final isOwner =
-        household != null &&
-        household.ownerId == householdSession.currentUserId;
-    if (household != null) {
-      _ensureOwnerPendingInvitesLoaded(household.id, isOwner);
-    }
     final categoryPrefs =
         household?.categoryPreferences ?? const <String, dynamic>{};
     final selectedPrefs = <String>{
@@ -410,35 +269,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ],
                 ),
               ),
-              HouseholdSection(
-                householdName: household?.name ?? '未加入家庭',
-                members: household == null
-                    ? const []
-                    : householdSession.householdMembers,
-                onInviteLink: household == null || !isOwner
-                    ? null
-                    : () => _onInviteLink(household.id),
-                onInviteEmail: household == null || !isOwner
-                    ? null
-                    : (email) => _onInviteEmail(household.id, email),
-                isOwner: isOwner,
-                currentUserId: householdSession.currentUserId,
-                onRemoveMember: household == null
-                    ? null
-                    : (userId) => _onRemoveMember(household.id, userId),
-                ownerPendingInvites: householdSession.ownerPendingInvites,
-                onRevokeInvite: household == null
-                    ? null
-                    : (inviteId) => _onRevokeInvite(household.id, inviteId),
-                onDissolveHousehold: household == null || !isOwner
-                    ? null
-                    : () => _onDissolveHousehold(household.id, household.name),
-                households: householdSession.households,
-                selectedHouseholdId: householdSession.selectedHouseholdId,
-                onSwitchHousehold: (id) => _onSwitchHousehold(id),
-                onEditName: household == null
-                    ? null
-                    : (newName) => _onEditName(household.id, newName),
+              const FkSectionHead(title: '家庭共享'),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: _LinkRow(
+                  key: const Key('household_entry_row'),
+                  label: '家庭共享',
+                  sub: householdSession.households.isEmpty
+                      ? '未加入家庭'
+                      : '${household?.name ?? ''} · ${householdSession.householdMembers.length} 名成员',
+                  icon: Icons.home_rounded,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const HouseholdScreen()),
+                  ),
+                  isLast: true,
+                ),
               ),
               if (permissionMissing)
                 Padding(
