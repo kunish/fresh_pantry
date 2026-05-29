@@ -26,6 +26,7 @@ abstract class RemotePantryRepository {
   });
   Future<void> revokeInvite(String inviteId);
   Future<void> dissolveHousehold(String householdId);
+  Future<void> leaveHousehold(String householdId);
   Future<List<OwnerPendingInvite>> fetchOwnerPendingInvites(String householdId);
   Future<void> updateHouseholdName(String householdId, String name);
   Future<void> updateCategoryPreferences(
@@ -251,6 +252,25 @@ class SupabaseRemotePantryRepository
         'target_household_id': trimmedHouseholdId,
         'target_user_id': trimmedUserId,
       },
+    );
+  }
+
+  @override
+  Future<void> leaveHousehold(String householdId) async {
+    final trimmedHouseholdId = householdId.trim();
+    if (!isUuid(trimmedHouseholdId)) {
+      throw ArgumentError.value(
+        householdId,
+        'householdId',
+        'Invalid household id',
+      );
+    }
+    if (_client.auth.currentUser == null) {
+      throw StateError('Cannot leave a household without a signed-in user.');
+    }
+    await _client.rpc(
+      'leave_household',
+      params: {'target_household_id': trimmedHouseholdId},
     );
   }
 

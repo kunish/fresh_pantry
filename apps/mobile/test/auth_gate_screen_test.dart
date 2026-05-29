@@ -136,6 +136,11 @@ class FakeHouseholdGateway implements HouseholdGateway {
   }
 
   @override
+  Future<void> leaveHousehold(String householdId) {
+    throw UnimplementedError('Not needed by these tests.');
+  }
+
+  @override
   Future<List<OwnerPendingInvite>> fetchOwnerPendingInvites(
     String householdId,
   ) {

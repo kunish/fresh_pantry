@@ -123,6 +123,18 @@ class HouseholdGatewayStub implements HouseholdGateway {
     members.removeWhere((member) => member.householdId == householdId);
   }
 
+  var leftHouseholdId = '';
+
+  @override
+  Future<void> leaveHousehold(String householdId) async {
+    leftHouseholdId = householdId;
+    households.removeWhere((household) => household.id == householdId);
+    members.removeWhere(
+      (member) =>
+          member.householdId == householdId && member.userId == currentUserId,
+    );
+  }
+
   @override
   Future<List<OwnerPendingInvite>> fetchOwnerPendingInvites(
     String householdId,

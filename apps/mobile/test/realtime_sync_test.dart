@@ -525,6 +525,11 @@ class FakeRemotePantryRepository implements RemotePantryRepository {
   }
 
   @override
+  Future<void> leaveHousehold(String householdId) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<List<OwnerPendingInvite>> fetchOwnerPendingInvites(
     String householdId,
   ) {

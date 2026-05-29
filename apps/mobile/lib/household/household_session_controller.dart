@@ -54,6 +54,7 @@ abstract class HouseholdGateway {
   });
   Future<void> revokeInvite(String inviteId);
   Future<void> dissolveHousehold(String householdId);
+  Future<void> leaveHousehold(String householdId);
   Future<List<OwnerPendingInvite>> fetchOwnerPendingInvites(String householdId);
   Future<void> updateHouseholdName(String householdId, String name);
   Future<void> updateCategoryPreferences(
@@ -200,6 +201,11 @@ class SupabaseHouseholdGateway implements HouseholdGateway {
       householdId: householdId,
       userId: userId,
     );
+  }
+
+  @override
+  Future<void> leaveHousehold(String householdId) {
+    return _remoteRepository.leaveHousehold(householdId);
   }
 
   @override

@@ -117,6 +117,20 @@ class FakeHouseholdGateway implements HouseholdGateway {
     members.removeWhere((member) => member.householdId == householdId);
   }
 
+  var leftHouseholdId = '';
+  Object? leaveHouseholdError;
+
+  @override
+  Future<void> leaveHousehold(String householdId) async {
+    if (leaveHouseholdError != null) throw leaveHouseholdError!;
+    leftHouseholdId = householdId;
+    households.removeWhere((household) => household.id == householdId);
+    members.removeWhere(
+      (member) =>
+          member.householdId == householdId && member.userId == currentUserId,
+    );
+  }
+
   @override
   Future<List<OwnerPendingInvite>> fetchOwnerPendingInvites(
     String householdId,
