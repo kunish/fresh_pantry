@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fresh_pantry/household/household_models.dart';
 import 'package:fresh_pantry/sync/remote_pantry_repository.dart';
+import 'package:fresh_pantry/sync/remote_row_codec.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
