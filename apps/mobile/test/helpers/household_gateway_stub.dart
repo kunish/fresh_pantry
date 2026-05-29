@@ -8,17 +8,20 @@ class HouseholdGatewayStub implements HouseholdGateway {
   HouseholdGatewayStub({
     List<Household> households = const [],
     List<HouseholdMember> members = const [],
+    List<HouseholdInvitePreview> pendingInvites = const [],
     this.inviteUrl = stubInviteUrl,
     this.isAuthenticated = false,
     bool emitInitialAuthState = false,
   }) : households = List<Household>.of(households),
        members = List<HouseholdMember>.of(members),
+       _pendingInvites = List<HouseholdInvitePreview>.of(pendingInvites),
        _authStateChanges = emitInitialAuthState
            ? Stream<void>.value(null)
            : const Stream<void>.empty();
 
   final List<Household> households;
   final List<HouseholdMember> members;
+  final List<HouseholdInvitePreview> _pendingInvites;
   final String inviteUrl;
   @override
   final bool isAuthenticated;
@@ -85,7 +88,7 @@ class HouseholdGatewayStub implements HouseholdGateway {
 
   @override
   Future<List<HouseholdInvitePreview>> loadPendingInvites() async {
-    return const [];
+    return _pendingInvites;
   }
 
   @override
