@@ -25,6 +25,7 @@ class HouseholdSection extends StatelessWidget {
     this.selectedHouseholdId = '',
     this.onSwitchHousehold,
     this.onEditName,
+    this.onLeaveHousehold,
   });
 
   final String householdName;
@@ -42,6 +43,7 @@ class HouseholdSection extends StatelessWidget {
   final String selectedHouseholdId;
   final ValueChanged<String>? onSwitchHousehold;
   final Future<void> Function(String newName)? onEditName;
+  final Future<void> Function()? onLeaveHousehold;
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +51,7 @@ class HouseholdSection extends StatelessWidget {
         isOwner &&
         (onInviteLink != null || onInviteEmail != null || onInvite != null);
     final canDissolve = isOwner && onDissolveHousehold != null;
+    final canLeave = !isOwner && onLeaveHousehold != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -180,6 +183,20 @@ class HouseholdSection extends StatelessWidget {
                     label: const Text('解散家庭'),
                   ),
                 ],
+                if (canLeave) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  const Divider(height: 1),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.fkDanger,
+                      alignment: Alignment.centerLeft,
+                    ),
+                    onPressed: () => _confirmLeave(context),
+                    icon: const Icon(Icons.logout_rounded),
+                    label: const Text('退出家庭'),
+                  ),
+                ],
               ],
             ),
           ),
@@ -220,6 +237,17 @@ class HouseholdSection extends StatelessWidget {
       onDismissed: (_) => onRemoveMember!(member.userId),
       child: row,
     );
+  }
+
+  Future<void> _confirmLeave(BuildContext context) async {
+    final ok = await showAppConfirmDialog(
+      context,
+      title: '退出家庭',
+      content: '退出后将不再看到该家庭的共享数据。确定退出？',
+      confirmLabel: '退出',
+      isDestructive: true,
+    );
+    if (ok == true) await onLeaveHousehold?.call();
   }
 
   Future<void> _showInviteDialog(BuildContext context) {

@@ -351,4 +351,30 @@ void main() {
 
     expect(find.byIcon(Icons.edit_outlined), findsNothing);
   });
+
+  testWidgets('member sees 退出家庭, owner does not', (tester) async {
+    var left = false;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: HouseholdSection(
+          householdName: '我家',
+          members: const [
+            HouseholdMember(householdId: 'h1', userId: 'u2', role: 'member', email: 'me@ex.com'),
+          ],
+          isOwner: false,
+          currentUserId: 'u2',
+          onLeaveHousehold: () async => left = true,
+        ),
+      ),
+    ));
+
+    expect(find.text('退出家庭'), findsOneWidget);
+    expect(find.text('解散家庭'), findsNothing);
+
+    await tester.tap(find.text('退出家庭'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('退出'));
+    await tester.pumpAndSettle();
+    expect(left, isTrue);
+  });
 }
