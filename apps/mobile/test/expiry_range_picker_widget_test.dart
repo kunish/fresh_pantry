@@ -7,12 +7,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:fresh_pantry/app.dart';
+import 'package:fresh_pantry/household/household_session_controller.dart';
 import 'package:fresh_pantry/providers/ai_draft_provider.dart';
 import 'package:fresh_pantry/providers/navigation_provider.dart';
 import 'package:fresh_pantry/providers/notification_service_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/services/share_intent_service.dart';
 import 'helpers/fake_notification_service.dart';
+import 'helpers/household_gateway_stub.dart';
 
 void main() {
   setUpAll(() {
@@ -38,6 +40,11 @@ void main() {
             FakeNotificationService(),
           ),
           navigationProvider.overrideWith((ref) => 2),
+          householdSessionControllerProvider.overrideWith(
+            (ref) => HouseholdSessionController(
+              HouseholdGatewayStub(isAuthenticated: true),
+            ),
+          ),
         ],
         child: const FreshPantryApp(home: AppShell()),
       ),
@@ -74,6 +81,11 @@ void main() {
               FakeNotificationService(),
             ),
             navigationProvider.overrideWith((ref) => 2),
+            householdSessionControllerProvider.overrideWith(
+              (ref) => HouseholdSessionController(
+                HouseholdGatewayStub(isAuthenticated: true),
+              ),
+            ),
           ],
           child: const FreshPantryApp(home: AppShell()),
         ),
@@ -110,6 +122,11 @@ void main() {
               FakeNotificationService(),
             ),
             navigationProvider.overrideWith((ref) => 2),
+            householdSessionControllerProvider.overrideWith(
+              (ref) => HouseholdSessionController(
+                HouseholdGatewayStub(isAuthenticated: true),
+              ),
+            ),
           ],
           child: const FreshPantryApp(home: AppShell()),
         ),
@@ -154,6 +171,11 @@ void main() {
             FakeNotificationService(),
           ),
           navigationProvider.overrideWith((ref) => 2),
+          householdSessionControllerProvider.overrideWith(
+            (ref) => HouseholdSessionController(
+              HouseholdGatewayStub(isAuthenticated: true),
+            ),
+          ),
         ],
         child: const FreshPantryApp(home: AppShell()),
       ),
@@ -198,6 +220,11 @@ void main() {
             FakeNotificationService(),
           ),
           navigationProvider.overrideWith((ref) => 2),
+          householdSessionControllerProvider.overrideWith(
+            (ref) => HouseholdSessionController(
+              HouseholdGatewayStub(isAuthenticated: true),
+            ),
+          ),
         ],
         child: const FreshPantryApp(home: AppShell()),
       ),
@@ -241,6 +268,11 @@ void main() {
               FakeNotificationService(),
             ),
             navigationProvider.overrideWith((ref) => 2),
+            householdSessionControllerProvider.overrideWith(
+              (ref) => HouseholdSessionController(
+                HouseholdGatewayStub(isAuthenticated: true),
+              ),
+            ),
           ],
           child: const FreshPantryApp(home: AppShell()),
         ),
@@ -293,6 +325,11 @@ void main() {
             FakeNotificationService(),
           ),
           navigationProvider.overrideWith((ref) => 2),
+          householdSessionControllerProvider.overrideWith(
+            (ref) => HouseholdSessionController(
+              HouseholdGatewayStub(isAuthenticated: true),
+            ),
+          ),
         ],
         child: const FreshPantryApp(home: AppShell()),
       ),
@@ -324,6 +361,11 @@ void main() {
             FakeNotificationService(),
           ),
           navigationProvider.overrideWith((ref) => 2),
+          householdSessionControllerProvider.overrideWith(
+            (ref) => HouseholdSessionController(
+              HouseholdGatewayStub(isAuthenticated: true),
+            ),
+          ),
         ],
         child: const FreshPantryApp(home: AppShell()),
       ),

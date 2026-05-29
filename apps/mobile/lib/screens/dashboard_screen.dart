@@ -14,6 +14,7 @@ import '../utils/app_snackbar.dart';
 import '../utils/dashboard_greeting.dart';
 import '../utils/safe_push.dart';
 import '../widgets/dashboard/expiring_fallback_card.dart';
+import '../widgets/dashboard/household_chip.dart';
 import '../widgets/dashboard/low_stock_card.dart';
 import '../widgets/recipe_card.dart';
 import '../widgets/shared/cat_icon.dart';
@@ -408,6 +409,9 @@ class _HeroSection extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
+              const HouseholdChip(),
+              const SizedBox(width: 8),
               FkIconButton(
                 backgroundColor: Colors.white.withValues(alpha: 0.18),
                 foregroundColor: Colors.white,

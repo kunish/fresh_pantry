@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:fresh_pantry/app.dart';
 import 'package:fresh_pantry/data/food_categories.dart';
+import 'package:fresh_pantry/household/household_session_controller.dart';
 import 'package:fresh_pantry/models/ingredient.dart';
 import 'package:fresh_pantry/models/storage_area.dart';
 import 'package:fresh_pantry/providers/ai_draft_provider.dart';
@@ -17,6 +18,7 @@ import 'package:fresh_pantry/providers/notification_service_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/services/share_intent_service.dart';
 import 'helpers/fake_notification_service.dart';
+import 'helpers/household_gateway_stub.dart';
 
 void main() {
   setUpAll(() {
@@ -43,6 +45,11 @@ void main() {
             systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
             notificationServiceProvider.overrideWithValue(
               FakeNotificationService(),
+            ),
+            householdSessionControllerProvider.overrideWith(
+              (ref) => HouseholdSessionController(
+                HouseholdGatewayStub(isAuthenticated: true),
+              ),
             ),
           ],
           child: const FreshPantryApp(home: AppShell()),
@@ -88,6 +95,11 @@ void main() {
           notificationServiceProvider.overrideWithValue(
             FakeNotificationService(),
           ),
+          householdSessionControllerProvider.overrideWith(
+            (ref) => HouseholdSessionController(
+              HouseholdGatewayStub(isAuthenticated: true),
+            ),
+          ),
         ],
         child: const FreshPantryApp(home: AppShell()),
       ),
@@ -125,6 +137,11 @@ void main() {
           notificationServiceProvider.overrideWithValue(
             FakeNotificationService(),
           ),
+          householdSessionControllerProvider.overrideWith(
+            (ref) => HouseholdSessionController(
+              HouseholdGatewayStub(isAuthenticated: true),
+            ),
+          ),
         ],
         child: const FreshPantryApp(home: AppShell()),
       ),
@@ -157,6 +174,11 @@ void main() {
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
           notificationServiceProvider.overrideWithValue(
             FakeNotificationService(),
+          ),
+          householdSessionControllerProvider.overrideWith(
+            (ref) => HouseholdSessionController(
+              HouseholdGatewayStub(isAuthenticated: true),
+            ),
           ),
         ],
         child: const FreshPantryApp(home: AppShell()),
@@ -195,6 +217,11 @@ void main() {
             systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
             notificationServiceProvider.overrideWithValue(
               FakeNotificationService(),
+            ),
+            householdSessionControllerProvider.overrideWith(
+              (ref) => HouseholdSessionController(
+                HouseholdGatewayStub(isAuthenticated: true),
+              ),
             ),
           ],
           child: Builder(
@@ -240,6 +267,11 @@ void main() {
             systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
             notificationServiceProvider.overrideWithValue(
               FakeNotificationService(),
+            ),
+            householdSessionControllerProvider.overrideWith(
+              (ref) => HouseholdSessionController(
+                HouseholdGatewayStub(isAuthenticated: true),
+              ),
             ),
           ],
           child: Builder(
@@ -287,6 +319,11 @@ void main() {
             notificationServiceProvider.overrideWithValue(
               FakeNotificationService(),
             ),
+            householdSessionControllerProvider.overrideWith(
+              (ref) => HouseholdSessionController(
+                HouseholdGatewayStub(isAuthenticated: true),
+              ),
+            ),
           ],
           child: Builder(
             builder: (context) {
@@ -331,6 +368,11 @@ void main() {
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
           notificationServiceProvider.overrideWithValue(
             FakeNotificationService(),
+          ),
+          householdSessionControllerProvider.overrideWith(
+            (ref) => HouseholdSessionController(
+              HouseholdGatewayStub(isAuthenticated: true),
+            ),
           ),
         ],
         child: Builder(

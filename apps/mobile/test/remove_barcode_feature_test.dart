@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fresh_pantry/household/household_session_controller.dart';
 import 'package:fresh_pantry/providers/inventory_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/screens/add_ingredient_screen.dart';
@@ -10,6 +11,7 @@ import 'package:fresh_pantry/models/storage_area.dart';
 import 'package:fresh_pantry/theme/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'helpers/household_gateway_stub.dart';
 
 void main() {
   setUpAll(() {
@@ -150,6 +152,11 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           recentAdditionsProvider.overrideWithValue([]),
+          householdSessionControllerProvider.overrideWith(
+            (ref) => HouseholdSessionController(
+              HouseholdGatewayStub(isAuthenticated: true),
+            ),
+          ),
         ],
         child: const MaterialApp(home: Scaffold(body: DashboardScreen())),
       ),

@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:fresh_pantry/app.dart';
 import 'package:fresh_pantry/data/food_categories.dart';
+import 'package:fresh_pantry/household/household_session_controller.dart';
 import 'package:fresh_pantry/models/food_details.dart';
 import 'package:fresh_pantry/models/ingredient.dart';
 import 'package:fresh_pantry/models/shopping_item.dart';
@@ -20,6 +21,7 @@ import 'package:fresh_pantry/providers/notification_service_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/services/share_intent_service.dart';
 import 'helpers/fake_notification_service.dart';
+import 'helpers/household_gateway_stub.dart';
 
 void main() {
   setUpAll(() {
@@ -48,6 +50,11 @@ void main() {
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
           notificationServiceProvider.overrideWithValue(
             FakeNotificationService(),
+          ),
+          householdSessionControllerProvider.overrideWith(
+            (ref) => HouseholdSessionController(
+              HouseholdGatewayStub(isAuthenticated: true),
+            ),
           ),
           foodDetailsClientProvider.overrideWithValue(
             const _FakeFoodDetailsClient(null),
@@ -108,6 +115,11 @@ void main() {
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
           notificationServiceProvider.overrideWithValue(
             FakeNotificationService(),
+          ),
+          householdSessionControllerProvider.overrideWith(
+            (ref) => HouseholdSessionController(
+              HouseholdGatewayStub(isAuthenticated: true),
+            ),
           ),
           foodDetailsClientProvider.overrideWithValue(
             _FakeFoodDetailsClient(details),
@@ -170,6 +182,11 @@ void main() {
           notificationServiceProvider.overrideWithValue(
             FakeNotificationService(),
           ),
+          householdSessionControllerProvider.overrideWith(
+            (ref) => HouseholdSessionController(
+              HouseholdGatewayStub(isAuthenticated: true),
+            ),
+          ),
           foodDetailsClientProvider.overrideWithValue(
             _FakeFoodDetailsClient(details),
           ),
@@ -223,6 +240,11 @@ void main() {
           notificationServiceProvider.overrideWithValue(
             FakeNotificationService(),
           ),
+          householdSessionControllerProvider.overrideWith(
+            (ref) => HouseholdSessionController(
+              HouseholdGatewayStub(isAuthenticated: true),
+            ),
+          ),
           foodDetailsClientProvider.overrideWithValue(
             _FakeFoodDetailsClient(details),
           ),
@@ -266,6 +288,11 @@ void main() {
           systemShareSourceProvider.overrideWithValue(InMemoryShareSource()),
           notificationServiceProvider.overrideWithValue(
             FakeNotificationService(),
+          ),
+          householdSessionControllerProvider.overrideWith(
+            (ref) => HouseholdSessionController(
+              HouseholdGatewayStub(isAuthenticated: true),
+            ),
           ),
           navigationProvider.overrideWith((ref) => FkTab.shopping),
           foodDetailsClientProvider.overrideWithValue(
