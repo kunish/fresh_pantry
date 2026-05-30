@@ -7,7 +7,6 @@ import 'package:fresh_pantry/models/storage_area.dart';
 import 'package:fresh_pantry/providers/inventory_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/screens/add_ingredient_screen.dart';
-import 'package:fresh_pantry/storage/drift/app_database.dart' show AppDatabase;
 import 'package:fresh_pantry/storage/inventory_repo.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';

@@ -13,7 +13,6 @@ import 'package:fresh_pantry/providers/inventory_provider.dart';
 import 'package:fresh_pantry/providers/shopping_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/storage/custom_recipe_repo.dart';
-import 'package:fresh_pantry/storage/drift/app_database.dart' show AppDatabase;
 import 'package:fresh_pantry/storage/inventory_repo.dart';
 import 'package:fresh_pantry/storage/shopping_repo.dart';
 import 'package:fresh_pantry/sync/sync_coordinator.dart';
