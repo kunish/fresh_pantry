@@ -140,9 +140,9 @@ class SupabaseHouseholdGateway implements HouseholdGateway {
         })
         .toList(growable: false);
 
-    _inventoryRepo.saveItems(inventory);
-    _shoppingRepo.saveItems(shopping);
-    _customRecipeRepo.saveRecipes(customRecipes);
+    await _inventoryRepo.saveItems(householdId, inventory);
+    await _shoppingRepo.saveItems(householdId, shopping);
+    await _customRecipeRepo.saveRecipes(householdId, customRecipes);
 
     await _remoteRepository.upsertInventory(
       householdId,

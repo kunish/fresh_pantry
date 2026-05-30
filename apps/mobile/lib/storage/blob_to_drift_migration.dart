@@ -39,14 +39,18 @@ Future<void> migratePrefsBlobsToDrift({
 }) async {
   if (prefs.getBool(migratedFlagKey) == true) return;
 
+  // Filter by name (not id): local-only rows legitimately carry an empty id,
+  // so an id filter would drop real data. A blank name marks a junk blob entry
+  // that `fromJson` tolerates (it has field defaults) rather than throwing, so
+  // the per-entry lenient parse alone would let it through as a phantom row.
   final inventory = _mapLenient(
     _decodeList(prefs.getString(legacyInventoryKey)),
     Ingredient.fromJson,
-  );
+  ).where((i) => i.name.trim().isNotEmpty).toList();
   final shopping = _mapLenient(
     _decodeList(prefs.getString(legacyShoppingKey)),
     ShoppingItem.fromJson,
-  );
+  ).where((s) => s.name.trim().isNotEmpty).toList();
   final recipes = _mapLenient(
     _decodeList(prefs.getString(legacyRecipesKey)),
     Recipe.fromJson,
