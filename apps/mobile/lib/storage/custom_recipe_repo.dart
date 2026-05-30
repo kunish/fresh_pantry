@@ -1,64 +1,61 @@
-import 'dart:convert';
-
 import 'package:drift/drift.dart';
 
-import '../db/app_database.dart';
 import '../models/recipe.dart';
+import 'drift/app_database.dart';
+import 'drift/entity_row_codec.dart';
 
 class CustomRecipeRepo {
   CustomRecipeRepo(this._db);
 
+  /// Legacy SharedPreferences key, retained for the one-time blob migration and
+  /// the backup/export service which still read/write the prefs snapshot.
+  static const storageKey = 'custom_recipes';
+
   final AppDatabase _db;
+  List<Recipe>? _hydratedSeed;
 
-  final Map<String, List<Recipe>> _seed = {};
+  /// Pre-read seed (injected by main.dart) so the notifier's `build()` can stay
+  /// synchronous while reads from Drift are async.
+  void hydrate(List<Recipe> seed) => _hydratedSeed = seed;
 
-  void hydrate(String householdId, List<Recipe> recipes) {
-    _seed[householdId] = List<Recipe>.unmodifiable(recipes);
+  /// Returns the hydrated seed once; falls back to empty when none is set
+  /// (household switches load via the async [loadAllFor]).
+  List<Recipe> loadAll() {
+    final seed = _hydratedSeed;
+    _hydratedSeed = null;
+    return seed ?? const [];
   }
-
-  List<Recipe> loadAll(String householdId) =>
-      _seed[householdId] ?? const <Recipe>[];
 
   Future<List<Recipe>> loadAllFor(String householdId) async {
     final rows = await (_db.select(_db.customRecipes)
           ..where((t) => t.householdId.equals(householdId)))
         .get();
-    final result = <Recipe>[];
+    final recipes = <Recipe>[];
     for (final row in rows) {
       try {
-        if (row.id.isEmpty) continue;
-        final recipe = _decode(row);
-        if (recipe.id.isEmpty || recipe.name.isEmpty) continue;
-        result.add(recipe);
+        final recipe = recipeFromRow(row);
+        if (recipe.id.isNotEmpty && recipe.name.isNotEmpty) recipes.add(recipe);
       } catch (_) {
-        continue;
+        // skip malformed
       }
     }
-    return result;
+    return recipes;
   }
 
-  Future<void> saveRecipes(String householdId, List<Recipe> recipes) async {
-    await _db.transaction(() async {
+  Future<void> saveRecipes(String householdId, List<Recipe> recipes) {
+    return _db.transaction(() async {
       await (_db.delete(_db.customRecipes)
             ..where((t) => t.householdId.equals(householdId)))
           .go();
-      for (final recipe in recipes) {
-        await _db.into(_db.customRecipes).insertOnConflictUpdate(
-              _encode(householdId, recipe),
-            );
-      }
+      await _db.batch((b) {
+        b.insertAll(
+          _db.customRecipes,
+          recipes
+              .where((r) => r.id.isNotEmpty && r.name.isNotEmpty)
+              .map((r) => recipeCompanionFor(householdId, r)),
+          mode: InsertMode.insertOrReplace,
+        );
+      });
     });
-  }
-
-  CustomRecipesCompanion _encode(String householdId, Recipe recipe) {
-    return CustomRecipesCompanion.insert(
-      id: recipe.id,
-      householdId: householdId,
-      payload: jsonEncode(recipe.toJson()),
-    );
-  }
-
-  Recipe _decode(CustomRecipe row) {
-    return Recipe.fromJson(jsonDecode(row.payload) as Map<String, dynamic>);
   }
 }

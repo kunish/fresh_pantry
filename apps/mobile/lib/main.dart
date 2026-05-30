@@ -15,10 +15,13 @@ import 'providers/storage_service_provider.dart';
 import 'services/invite_link_service.dart';
 import 'services/notification_service.dart';
 import 'services/share_intent_service.dart';
+import 'storage/blob_to_drift_migration.dart';
 import 'storage/custom_recipe_repo.dart';
+import 'storage/drift/app_database.dart';
 import 'storage/inventory_repo.dart';
 import 'storage/shared_prefs_storage_adapter.dart';
 import 'storage/shopping_repo.dart';
+import 'sync/sync_outbox_repo.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,25 +54,39 @@ Future<void> _runFreshPantry() async {
   final prefs = await SharedPreferences.getInstance();
   final adapter = SharedPrefsStorageAdapter(prefs);
 
-  final inventoryRepo = InventoryRepo(adapter);
-  final shoppingRepo = ShoppingRepo(adapter);
-  final customRecipeRepo = CustomRecipeRepo(adapter);
+  // Drift database backing structured persistence.
+  final db = AppDatabase();
 
-  // Pre-decode seeds to avoid JSON parse on the first frame.
-  inventoryRepo.hydrate(inventoryRepo.loadAll());
-  shoppingRepo.hydrate(shoppingRepo.loadAll());
-  customRecipeRepo.hydrate(customRecipeRepo.loadAll());
+  // One-time, idempotent import of legacy SharedPreferences blobs into Drift.
+  await migratePrefsBlobsToDrift(prefs: prefs, db: db);
+
+  final inventoryRepo = InventoryRepo(db);
+  final shoppingRepo = ShoppingRepo(db);
+  final customRecipeRepo = CustomRecipeRepo(db);
+  final outboxRepo = SyncOutboxRepo(db);
+
+  // Pre-read the local-only ('') scope so the notifiers' synchronous `build()`
+  // contract holds while Drift reads are async. add_history and the outbox are
+  // hydrated into memory for the same reason; skipping hydrateHistory would make
+  // a cold start see an empty history and truncate it on the first add.
+  inventoryRepo.hydrate(await inventoryRepo.loadAllFor(''));
+  await inventoryRepo.hydrateHistory();
+  shoppingRepo.hydrate(await shoppingRepo.loadAllFor(''));
+  customRecipeRepo.hydrate(await customRecipeRepo.loadAllFor(''));
+  await outboxRepo.hydratePending();
 
   runApp(
     SentryWidget(
       child: ProviderScope(
         overrides: [
           notificationServiceProvider.overrideWithValue(notificationService),
+          appDatabaseProvider.overrideWithValue(db),
           sharedPreferencesProvider.overrideWithValue(prefs),
           storageAdapterProvider.overrideWithValue(adapter),
           inventoryRepoProvider.overrideWithValue(inventoryRepo),
           shoppingRepoProvider.overrideWithValue(shoppingRepo),
           customRecipeRepoProvider.overrideWithValue(customRecipeRepo),
+          syncOutboxRepoProvider.overrideWithValue(outboxRepo),
           systemShareSourceProvider.overrideWithValue(
             createSystemShareSource(),
           ),
