@@ -95,7 +95,7 @@ class ShoppingNotifier extends Notifier<List<ShoppingItem>>
   }
 
   Future<void> _save(List<ShoppingItem> items) async {
-    _repo.saveItems(items);
+    await _repo.saveItems(activeHouseholdId, items);
   }
 
   ShoppingItem _withSyncId(ShoppingItem item) {

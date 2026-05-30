@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -40,7 +41,10 @@ mixin SyncEnqueue<StateT> on Notifier<StateT> {
 
   /// The household this notifier currently syncs to, or empty when the app is
   /// running local-only (no household selected).
-  String get _householdId => ref.read(selectedHouseholdIdProvider).trim();
+  @protected
+  String get activeHouseholdId => ref.read(selectedHouseholdIdProvider).trim();
+
+  String get _householdId => activeHouseholdId;
 
   /// The id an entity should persist under: a fresh sync UUID when the notifier
   /// is attached to a household and [currentId] isn't already one, else

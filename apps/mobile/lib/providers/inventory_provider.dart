@@ -70,7 +70,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
   }
 
   Future<void> _save(List<Ingredient> items) async {
-    _repo.saveItems(items);
+    await _repo.saveItems(activeHouseholdId, items);
   }
 
   Ingredient _withSyncId(Ingredient item) {
@@ -131,6 +131,33 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
       patch: {'deletedAt': deletedAt.toIso8601String()},
       baseVersion: removed.remoteVersion,
     );
+  }
+
+  /// Removes every inventory row at once (the "clear all" action). Optimistic
+  /// with rollback so disk never diverges from state, then enqueues a delete per
+  /// removed row so other household members see the clear too.
+  Future<void> clearAll() async {
+    if (state.isEmpty) return;
+    final removed = state;
+    final deletedAt = DateTime.now().toUtc();
+    final syncOperations = removed
+        .map(
+          (item) => SyncEnqueueOp(
+            entityId: item.id,
+            operation: SyncOperationType.delete,
+            patch: {'deletedAt': deletedAt.toIso8601String()},
+            baseVersion: item.remoteVersion,
+          ),
+        )
+        .toList(growable: false);
+    state = const <Ingredient>[];
+    try {
+      await queuePersistence(() => _save(const <Ingredient>[]), rethrowError: true);
+    } catch (_) {
+      state = removed;
+      rethrow;
+    }
+    await enqueueSyncBatch(syncOperations);
   }
 
   Future<void> insertAt(int index, Ingredient item) async {

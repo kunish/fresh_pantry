@@ -21,6 +21,10 @@ class CustomRecipeNotifier extends Notifier<List<Recipe>>
     return _repo.loadAll();
   }
 
+  Future<void> _save(List<Recipe> recipes) async {
+    await _repo.saveRecipes(activeHouseholdId, recipes);
+  }
+
   Future<void> _mutate(List<Recipe> Function(List<Recipe>) nextState) {
     return queuePersistence(() async {
       final current = state;
@@ -29,7 +33,7 @@ class CustomRecipeNotifier extends Notifier<List<Recipe>>
         return;
       }
 
-      _repo.saveRecipes(next);
+      await _save(next);
       state = next;
     });
   }
