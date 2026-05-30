@@ -465,7 +465,7 @@ class _AddHistoryNotifier extends Notifier<List<FrequentItem>> {
       'storage': item.storage.name,
       'unit': item.unit,
     };
-    _repo.saveHistory(history);
+    await _repo.saveHistory(history);
     state = _itemsFromHistoryMap(history);
   }
 
