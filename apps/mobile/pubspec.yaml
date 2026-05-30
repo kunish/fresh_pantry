@@ -50,6 +50,11 @@ dependencies:
   share_plus: ^11.0.0
   qr_flutter: ^4.1.0
   sentry_flutter: ^9.20.0
+  drift: ^2.33.0
+  drift_flutter: ^0.3.0
+  path_provider: ^2.1.4
+  connectivity_plus: ^7.0.0
+  workmanager: ^0.9.0+3
 
 dev_dependencies:
   flutter_test:
@@ -62,6 +67,9 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  sentry_dart_plugin: ^3.4.0
+  drift_dev: ^2.33.0
+  build_runner: ^2.4.13
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -108,3 +116,16 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# sentry_dart_plugin 在构建后上传 iOS dSYM 与 Dart 混淆符号(split-debug-info),
+# 让 Sentry 上的 crash / AppHang 能符号化到具体代码,而不是显示 <redacted>。
+# auth token 不写入此文件:通过环境变量 SENTRY_AUTH_TOKEN 提供
+# (该 token 需要 project:releases 权限,普通只读 token 无法上传)。
+# 用法见 README「Sentry 符号上传」。
+sentry:
+  org: kunish
+  project: fresh_pantry
+  upload_debug_symbols: true
+  upload_source_maps: false
+  upload_sources: false
+  log_level: info
