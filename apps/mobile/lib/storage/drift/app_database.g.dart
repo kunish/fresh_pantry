@@ -9,6 +9,19 @@ class $InventoryItemsTable extends InventoryItems
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $InventoryItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _rowPkMeta = const VerificationMeta('rowPk');
+  @override
+  late final GeneratedColumn<int> rowPk = GeneratedColumn<int>(
+    'row_pk',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -98,6 +111,7 @@ class $InventoryItemsTable extends InventoryItems
   );
   @override
   List<GeneratedColumn> get $columns => [
+    rowPk,
     id,
     householdId,
     name,
@@ -119,6 +133,12 @@ class $InventoryItemsTable extends InventoryItems
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('row_pk')) {
+      context.handle(
+        _rowPkMeta,
+        rowPk.isAcceptableOrUnknown(data['row_pk']!, _rowPkMeta),
+      );
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -184,11 +204,15 @@ class $InventoryItemsTable extends InventoryItems
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => {rowPk};
   @override
   InventoryItem map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return InventoryItem(
+      rowPk: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}row_pk'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -231,6 +255,7 @@ class $InventoryItemsTable extends InventoryItems
 }
 
 class InventoryItem extends DataClass implements Insertable<InventoryItem> {
+  final int rowPk;
   final String id;
   final String householdId;
   final String name;
@@ -240,6 +265,7 @@ class InventoryItem extends DataClass implements Insertable<InventoryItem> {
   final int? deletedAt;
   final String payloadJson;
   const InventoryItem({
+    required this.rowPk,
     required this.id,
     required this.householdId,
     required this.name,
@@ -252,6 +278,7 @@ class InventoryItem extends DataClass implements Insertable<InventoryItem> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['row_pk'] = Variable<int>(rowPk);
     map['id'] = Variable<String>(id);
     map['household_id'] = Variable<String>(householdId);
     map['name'] = Variable<String>(name);
@@ -271,6 +298,7 @@ class InventoryItem extends DataClass implements Insertable<InventoryItem> {
 
   InventoryItemsCompanion toCompanion(bool nullToAbsent) {
     return InventoryItemsCompanion(
+      rowPk: Value(rowPk),
       id: Value(id),
       householdId: Value(householdId),
       name: Value(name),
@@ -294,6 +322,7 @@ class InventoryItem extends DataClass implements Insertable<InventoryItem> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return InventoryItem(
+      rowPk: serializer.fromJson<int>(json['rowPk']),
       id: serializer.fromJson<String>(json['id']),
       householdId: serializer.fromJson<String>(json['householdId']),
       name: serializer.fromJson<String>(json['name']),
@@ -308,6 +337,7 @@ class InventoryItem extends DataClass implements Insertable<InventoryItem> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'rowPk': serializer.toJson<int>(rowPk),
       'id': serializer.toJson<String>(id),
       'householdId': serializer.toJson<String>(householdId),
       'name': serializer.toJson<String>(name),
@@ -320,6 +350,7 @@ class InventoryItem extends DataClass implements Insertable<InventoryItem> {
   }
 
   InventoryItem copyWith({
+    int? rowPk,
     String? id,
     String? householdId,
     String? name,
@@ -329,6 +360,7 @@ class InventoryItem extends DataClass implements Insertable<InventoryItem> {
     Value<int?> deletedAt = const Value.absent(),
     String? payloadJson,
   }) => InventoryItem(
+    rowPk: rowPk ?? this.rowPk,
     id: id ?? this.id,
     householdId: householdId ?? this.householdId,
     name: name ?? this.name,
@@ -340,6 +372,7 @@ class InventoryItem extends DataClass implements Insertable<InventoryItem> {
   );
   InventoryItem copyWithCompanion(InventoryItemsCompanion data) {
     return InventoryItem(
+      rowPk: data.rowPk.present ? data.rowPk.value : this.rowPk,
       id: data.id.present ? data.id.value : this.id,
       householdId: data.householdId.present
           ? data.householdId.value
@@ -364,6 +397,7 @@ class InventoryItem extends DataClass implements Insertable<InventoryItem> {
   @override
   String toString() {
     return (StringBuffer('InventoryItem(')
+          ..write('rowPk: $rowPk, ')
           ..write('id: $id, ')
           ..write('householdId: $householdId, ')
           ..write('name: $name, ')
@@ -378,6 +412,7 @@ class InventoryItem extends DataClass implements Insertable<InventoryItem> {
 
   @override
   int get hashCode => Object.hash(
+    rowPk,
     id,
     householdId,
     name,
@@ -391,6 +426,7 @@ class InventoryItem extends DataClass implements Insertable<InventoryItem> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is InventoryItem &&
+          other.rowPk == this.rowPk &&
           other.id == this.id &&
           other.householdId == this.householdId &&
           other.name == this.name &&
@@ -402,6 +438,7 @@ class InventoryItem extends DataClass implements Insertable<InventoryItem> {
 }
 
 class InventoryItemsCompanion extends UpdateCompanion<InventoryItem> {
+  final Value<int> rowPk;
   final Value<String> id;
   final Value<String> householdId;
   final Value<String> name;
@@ -410,8 +447,8 @@ class InventoryItemsCompanion extends UpdateCompanion<InventoryItem> {
   final Value<int> remoteVersion;
   final Value<int?> deletedAt;
   final Value<String> payloadJson;
-  final Value<int> rowid;
   const InventoryItemsCompanion({
+    this.rowPk = const Value.absent(),
     this.id = const Value.absent(),
     this.householdId = const Value.absent(),
     this.name = const Value.absent(),
@@ -420,9 +457,9 @@ class InventoryItemsCompanion extends UpdateCompanion<InventoryItem> {
     this.remoteVersion = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.payloadJson = const Value.absent(),
-    this.rowid = const Value.absent(),
   });
   InventoryItemsCompanion.insert({
+    this.rowPk = const Value.absent(),
     required String id,
     this.householdId = const Value.absent(),
     this.name = const Value.absent(),
@@ -431,10 +468,10 @@ class InventoryItemsCompanion extends UpdateCompanion<InventoryItem> {
     this.remoteVersion = const Value.absent(),
     this.deletedAt = const Value.absent(),
     required String payloadJson,
-    this.rowid = const Value.absent(),
   }) : id = Value(id),
        payloadJson = Value(payloadJson);
   static Insertable<InventoryItem> custom({
+    Expression<int>? rowPk,
     Expression<String>? id,
     Expression<String>? householdId,
     Expression<String>? name,
@@ -443,9 +480,9 @@ class InventoryItemsCompanion extends UpdateCompanion<InventoryItem> {
     Expression<int>? remoteVersion,
     Expression<int>? deletedAt,
     Expression<String>? payloadJson,
-    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (rowPk != null) 'row_pk': rowPk,
       if (id != null) 'id': id,
       if (householdId != null) 'household_id': householdId,
       if (name != null) 'name': name,
@@ -454,11 +491,11 @@ class InventoryItemsCompanion extends UpdateCompanion<InventoryItem> {
       if (remoteVersion != null) 'remote_version': remoteVersion,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (payloadJson != null) 'payload_json': payloadJson,
-      if (rowid != null) 'rowid': rowid,
     });
   }
 
   InventoryItemsCompanion copyWith({
+    Value<int>? rowPk,
     Value<String>? id,
     Value<String>? householdId,
     Value<String>? name,
@@ -467,9 +504,9 @@ class InventoryItemsCompanion extends UpdateCompanion<InventoryItem> {
     Value<int>? remoteVersion,
     Value<int?>? deletedAt,
     Value<String>? payloadJson,
-    Value<int>? rowid,
   }) {
     return InventoryItemsCompanion(
+      rowPk: rowPk ?? this.rowPk,
       id: id ?? this.id,
       householdId: householdId ?? this.householdId,
       name: name ?? this.name,
@@ -478,13 +515,15 @@ class InventoryItemsCompanion extends UpdateCompanion<InventoryItem> {
       remoteVersion: remoteVersion ?? this.remoteVersion,
       deletedAt: deletedAt ?? this.deletedAt,
       payloadJson: payloadJson ?? this.payloadJson,
-      rowid: rowid ?? this.rowid,
     );
   }
 
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (rowPk.present) {
+      map['row_pk'] = Variable<int>(rowPk.value);
+    }
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
@@ -509,15 +548,13 @@ class InventoryItemsCompanion extends UpdateCompanion<InventoryItem> {
     if (payloadJson.present) {
       map['payload_json'] = Variable<String>(payloadJson.value);
     }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
     return map;
   }
 
   @override
   String toString() {
     return (StringBuffer('InventoryItemsCompanion(')
+          ..write('rowPk: $rowPk, ')
           ..write('id: $id, ')
           ..write('householdId: $householdId, ')
           ..write('name: $name, ')
@@ -525,8 +562,7 @@ class InventoryItemsCompanion extends UpdateCompanion<InventoryItem> {
           ..write('expiryDate: $expiryDate, ')
           ..write('remoteVersion: $remoteVersion, ')
           ..write('deletedAt: $deletedAt, ')
-          ..write('payloadJson: $payloadJson, ')
-          ..write('rowid: $rowid')
+          ..write('payloadJson: $payloadJson')
           ..write(')'))
         .toString();
   }
@@ -2246,6 +2282,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 
 typedef $$InventoryItemsTableCreateCompanionBuilder =
     InventoryItemsCompanion Function({
+      Value<int> rowPk,
       required String id,
       Value<String> householdId,
       Value<String> name,
@@ -2254,10 +2291,10 @@ typedef $$InventoryItemsTableCreateCompanionBuilder =
       Value<int> remoteVersion,
       Value<int?> deletedAt,
       required String payloadJson,
-      Value<int> rowid,
     });
 typedef $$InventoryItemsTableUpdateCompanionBuilder =
     InventoryItemsCompanion Function({
+      Value<int> rowPk,
       Value<String> id,
       Value<String> householdId,
       Value<String> name,
@@ -2266,7 +2303,6 @@ typedef $$InventoryItemsTableUpdateCompanionBuilder =
       Value<int> remoteVersion,
       Value<int?> deletedAt,
       Value<String> payloadJson,
-      Value<int> rowid,
     });
 
 class $$InventoryItemsTableFilterComposer
@@ -2278,6 +2314,11 @@ class $$InventoryItemsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<int> get rowPk => $composableBuilder(
+    column: $table.rowPk,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -2328,6 +2369,11 @@ class $$InventoryItemsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<int> get rowPk => $composableBuilder(
+    column: $table.rowPk,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -2378,6 +2424,9 @@ class $$InventoryItemsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<int> get rowPk =>
+      $composableBuilder(column: $table.rowPk, builder: (column) => column);
+
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -2446,6 +2495,7 @@ class $$InventoryItemsTableTableManager
               $$InventoryItemsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<int> rowPk = const Value.absent(),
                 Value<String> id = const Value.absent(),
                 Value<String> householdId = const Value.absent(),
                 Value<String> name = const Value.absent(),
@@ -2454,8 +2504,8 @@ class $$InventoryItemsTableTableManager
                 Value<int> remoteVersion = const Value.absent(),
                 Value<int?> deletedAt = const Value.absent(),
                 Value<String> payloadJson = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
               }) => InventoryItemsCompanion(
+                rowPk: rowPk,
                 id: id,
                 householdId: householdId,
                 name: name,
@@ -2464,10 +2514,10 @@ class $$InventoryItemsTableTableManager
                 remoteVersion: remoteVersion,
                 deletedAt: deletedAt,
                 payloadJson: payloadJson,
-                rowid: rowid,
               ),
           createCompanionCallback:
               ({
+                Value<int> rowPk = const Value.absent(),
                 required String id,
                 Value<String> householdId = const Value.absent(),
                 Value<String> name = const Value.absent(),
@@ -2476,8 +2526,8 @@ class $$InventoryItemsTableTableManager
                 Value<int> remoteVersion = const Value.absent(),
                 Value<int?> deletedAt = const Value.absent(),
                 required String payloadJson,
-                Value<int> rowid = const Value.absent(),
               }) => InventoryItemsCompanion.insert(
+                rowPk: rowPk,
                 id: id,
                 householdId: householdId,
                 name: name,
@@ -2486,7 +2536,6 @@ class $$InventoryItemsTableTableManager
                 remoteVersion: remoteVersion,
                 deletedAt: deletedAt,
                 payloadJson: payloadJson,
-                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
