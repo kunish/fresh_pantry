@@ -1,5 +1,5 @@
 import 'sync_operation.dart';
-import 'sync_outbox_repo.dart';
+import 'sync_retry_policy.dart';
 
 List<Map<String, dynamic>> visibleRemoteRows(
   Iterable<Map<String, dynamic>> rows,
@@ -13,15 +13,24 @@ abstract class RemoteSyncGateway {
   Future<Set<String>> pushOperations(List<SyncOperation> operations);
 }
 
+/// Outbox read surface the coordinator depends on, so retry logic can be unit
+/// tested without binding to Drift. [SyncOutboxRepo] implements this.
+abstract class OutboxReader {
+  List<SyncOperation> loadPending();
+  Future<void> removeAcknowledged(Set<String> operationIds);
+}
+
 class SyncCoordinator {
   SyncCoordinator({
-    required SyncOutboxRepo outbox,
+    required OutboxReader outbox,
     required RemoteSyncGateway remote,
+    this.retry = const SyncRetryPolicy(),
   }) : _outbox = outbox,
        _remote = remote;
 
-  final SyncOutboxRepo _outbox;
+  final OutboxReader _outbox;
   final RemoteSyncGateway _remote;
+  final SyncRetryPolicy retry;
 
   Future<void>? _inFlight;
   bool _rerunRequested = false;
@@ -61,7 +70,20 @@ class SyncCoordinator {
     final pending = _outbox.loadPending();
     if (pending.isEmpty) return;
 
-    final acknowledged = await _remote.pushOperations(pending);
-    await _outbox.removeAcknowledged(acknowledged);
+    for (var attempt = 1; attempt <= retry.maxAttempts; attempt++) {
+      try {
+        final acknowledged = await _remote.pushOperations(pending);
+        await _outbox.removeAcknowledged(acknowledged);
+        return;
+      } catch (error) {
+        final lastAttempt = attempt == retry.maxAttempts;
+        if (lastAttempt || !isTransientSyncError(error)) {
+          // Permanent error or retries exhausted: leave ops in the outbox to be
+          // retried on the next trigger (reconnect / foreground / background).
+          return;
+        }
+        await Future<void>.delayed(retry.delayFor(attempt));
+      }
+    }
   }
 }

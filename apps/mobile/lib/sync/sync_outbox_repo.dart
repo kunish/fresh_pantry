@@ -2,9 +2,10 @@ import 'package:drift/drift.dart';
 
 import '../storage/drift/app_database.dart';
 import '../storage/drift/entity_row_codec.dart';
+import 'sync_coordinator.dart';
 import 'sync_operation.dart';
 
-class SyncOutboxRepo {
+class SyncOutboxRepo implements OutboxReader {
   SyncOutboxRepo(this._db);
 
   final AppDatabase _db;
@@ -16,6 +17,7 @@ class SyncOutboxRepo {
   }
 
   /// 同步读取(供 enqueueSync / household_content_sync 的同步路径)。
+  @override
   List<SyncOperation> loadPending() => _cache;
 
   Future<void> enqueue(SyncOperation operation) async {
@@ -25,6 +27,7 @@ class SyncOutboxRepo {
     _cache = await _readAll();
   }
 
+  @override
   Future<void> removeAcknowledged(Set<String> operationIds) async {
     if (operationIds.isEmpty) return;
     await (_db.delete(_db.syncOutbox)
