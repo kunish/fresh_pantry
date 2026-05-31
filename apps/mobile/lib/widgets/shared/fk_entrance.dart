@@ -26,7 +26,6 @@ class _FkEntranceState extends State<FkEntrance>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _opacity;
-  late final Animation<Offset> _slide;
 
   bool _started = false;
 
@@ -39,10 +38,6 @@ class _FkEntranceState extends State<FkEntrance>
       parent: _controller,
       curve: AppMotionCurves.standard,
     );
-    _slide = Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero)
-        .animate(
-          CurvedAnimation(parent: _controller, curve: AppMotionCurves.standard),
-        );
   }
 
   @override
@@ -81,7 +76,10 @@ class _FkEntranceState extends State<FkEntrance>
       animation: _controller,
       builder: (context, child) => Opacity(
         opacity: _opacity.value,
-        child: SlideTransition(position: _slide, child: child),
+        child: Transform.translate(
+          offset: Offset(0, (1 - _opacity.value) * AppMotion.entranceOffset),
+          child: child,
+        ),
       ),
       child: widget.child,
     );
