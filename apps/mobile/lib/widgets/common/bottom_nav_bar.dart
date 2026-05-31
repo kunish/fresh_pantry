@@ -32,8 +32,8 @@ class BottomNavBar extends ConsumerWidget {
 
     return ClipRRect(
       borderRadius: const BorderRadius.only(
-        topLeft: Radius.circular(24),
-        topRight: Radius.circular(24),
+        topLeft: Radius.circular(AppRadius.xxl),
+        topRight: Radius.circular(AppRadius.xxl),
       ),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
@@ -41,8 +41,8 @@ class BottomNavBar extends ConsumerWidget {
           decoration: BoxDecoration(
             color: AppColors.surface.withValues(alpha: 0.92),
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
+              topLeft: Radius.circular(AppRadius.xxl),
+              topRight: Radius.circular(AppRadius.xxl),
             ),
             border: const Border(
               top: BorderSide(color: AppColors.hair, width: 0.5),

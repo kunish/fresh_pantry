@@ -16,7 +16,7 @@ class SwipeRevealDeleteAction extends StatefulWidget {
     required this.onDelete,
     this.deleteButtonKey,
     this.actionExtent = 84,
-    this.borderRadius = const BorderRadius.all(Radius.circular(12)),
+    this.borderRadius = const BorderRadius.all(Radius.circular(AppRadius.md)),
   });
 
   @override

@@ -523,7 +523,7 @@ class _MiniStat extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.chip),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -582,7 +582,7 @@ class _ExpiringCard extends StatelessWidget {
       width: 132,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: AppShadows.soft,
         border: Border(top: BorderSide(color: topBorder, width: 3)),
       ),
@@ -595,7 +595,7 @@ class _ExpiringCard extends StatelessWidget {
             height: 56,
             decoration: BoxDecoration(
               color: palette.tint,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppRadius.chip),
             ),
             child: Center(
               child: CatIcon(category: catId, size: 36, color: palette.ink),
@@ -666,7 +666,7 @@ class _CategoryGrid extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 color: palette.tint,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
               child: Column(

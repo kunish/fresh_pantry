@@ -58,7 +58,7 @@ class IngredientCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: AppShadows.soft,
       ),
       child: Column(
@@ -175,7 +175,7 @@ class IngredientCard extends StatelessWidget {
       height: 48,
       decoration: BoxDecoration(
         color: palette.tint,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Center(
         child: CatIcon(category: catId, size: 30, color: palette.ink),

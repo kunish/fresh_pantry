@@ -26,24 +26,18 @@ class DeductionProposalRow extends StatelessWidget {
     final p = proposal;
     final chosen = p.candidates.firstWhere(
       (c) => c.inventoryRowIndex == p.chosenIndex,
-      orElse:
-          () =>
-              p.candidates.isEmpty
-                  ? const DeductionCandidate(
-                    inventoryRowIndex: -1,
-                    displayLabel: '',
-                  )
-                  : p.candidates.first,
+      orElse: () => p.candidates.isEmpty
+          ? const DeductionCandidate(inventoryRowIndex: -1, displayLabel: '')
+          : p.candidates.first,
     );
     final isSkip = p.action == DeductionAction.skip;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color:
-            isSkip
-                ? AppColors.surfaceContainerLow
-                : AppColors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(12),
+        color: isSkip
+            ? AppColors.surfaceContainerLow
+            : AppColors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(color: AppColors.hair),
       ),
       child: Column(
@@ -96,15 +90,14 @@ class DeductionProposalRow extends StatelessWidget {
                 final picked = await PickerSheet.show<int>(
                   context,
                   title: '扣减来源批次',
-                  options:
-                      p.candidates
-                          .map(
-                            (c) => PickerOption(
-                              value: c.inventoryRowIndex,
-                              label: c.displayLabel,
-                            ),
-                          )
-                          .toList(),
+                  options: p.candidates
+                      .map(
+                        (c) => PickerOption(
+                          value: c.inventoryRowIndex,
+                          label: c.displayLabel,
+                        ),
+                      )
+                      .toList(),
                   selected: p.chosenIndex,
                 );
                 if (picked != null) onChooseCandidate(picked);

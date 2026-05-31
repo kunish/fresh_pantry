@@ -11,14 +11,14 @@ class ProposalActionChip extends StatelessWidget {
     required this.intakeAction,
     required this.mergeTargetLabel,
     required this.onToggle,
-  })  : deductionAction = null;
+  }) : deductionAction = null;
 
   const ProposalActionChip.deduction({
     super.key,
     required this.deductionAction,
     required this.onToggle,
-  })  : intakeAction = null,
-        mergeTargetLabel = null;
+  }) : intakeAction = null,
+       mergeTargetLabel = null;
 
   final IntakeAction? intakeAction;
   final DeductionAction? deductionAction;
@@ -34,18 +34,23 @@ class ProposalActionChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
           color: bg,
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Flexible(
-              child: Text(label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: false,
-                  style: TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w600, color: fg)),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: fg,
+                ),
+              ),
             ),
             const SizedBox(width: 4),
             Icon(Icons.keyboard_arrow_down, size: 14, color: fg),
@@ -59,7 +64,11 @@ class ProposalActionChip extends StatelessWidget {
     if (intakeAction != null) {
       switch (intakeAction!) {
         case IntakeAction.newRow:
-          return ('新建 Batch', AppColors.primarySoft, AppColors.primaryContainer);
+          return (
+            '新建 Batch',
+            AppColors.primarySoft,
+            AppColors.primaryContainer,
+          );
         case IntakeAction.mergeInto:
           return (
             mergeTargetLabel == null ? '合并' : '合并 → $mergeTargetLabel',

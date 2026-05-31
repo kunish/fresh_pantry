@@ -284,7 +284,7 @@ class _DetailHero extends StatelessWidget {
       height: 92,
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
         border: Border.all(color: Colors.white.withValues(alpha: 0.6)),
         boxShadow: const [
           BoxShadow(

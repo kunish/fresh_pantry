@@ -57,16 +57,14 @@ class _IntakeProposalRowState extends State<IntakeProposalRow> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color:
-            p.selected
-                ? AppColors.surfaceContainerLowest
-                : AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(12),
+        color: p.selected
+            ? AppColors.surfaceContainerLowest
+            : AppColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
-          color:
-              p.selected
-                  ? AppColors.primary.withValues(alpha: 0.3)
-                  : AppColors.hair,
+          color: p.selected
+              ? AppColors.primary.withValues(alpha: 0.3)
+              : AppColors.hair,
         ),
       ),
       child: Column(
@@ -112,10 +110,9 @@ class _IntakeProposalRowState extends State<IntakeProposalRow> {
                   InlineNumberStepper(
                     value: p.quantity,
                     min: 1,
-                    onChanged:
-                        (v) => widget.onChanged(
-                          p.copyWith(quantity: v, userEdited: true),
-                        ),
+                    onChanged: (v) => widget.onChanged(
+                      p.copyWith(quantity: v, userEdited: true),
+                    ),
                   ),
                   const SizedBox(width: 4),
                   _unitChip(p),
@@ -144,7 +141,7 @@ class _IntakeProposalRowState extends State<IntakeProposalRow> {
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.surfaceContainer,
-                          borderRadius: BorderRadius.circular(999),
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
                         ),
                         child: const Text(
                           '未设置 · 点按设置',
@@ -248,10 +245,9 @@ class _IntakeProposalRowState extends State<IntakeProposalRow> {
         final chosen = await PickerSheet.show<String>(
           context,
           title: '分类',
-          options:
-              FoodCategories.values
-                  .map((c) => PickerOption(value: c, label: c))
-                  .toList(),
+          options: FoodCategories.values
+              .map((c) => PickerOption(value: c, label: c))
+              .toList(),
           selected: p.category,
         );
         if (chosen != null) {
@@ -268,10 +264,9 @@ class _IntakeProposalRowState extends State<IntakeProposalRow> {
         final chosen = await PickerSheet.show<IconType>(
           context,
           title: '存储位置',
-          options:
-              IconType.values
-                  .map((i) => PickerOption(value: i, label: storageLabelFor(i)))
-                  .toList(),
+          options: IconType.values
+              .map((i) => PickerOption(value: i, label: storageLabelFor(i)))
+              .toList(),
           selected: p.storage,
         );
         if (chosen != null) {
@@ -288,7 +283,7 @@ class _IntakeProposalRowState extends State<IntakeProposalRow> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: AppColors.surfaceContainer,
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
         ),
         child: Text(
           label,

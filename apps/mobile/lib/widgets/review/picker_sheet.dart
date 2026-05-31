@@ -30,14 +30,11 @@ class PickerSheet<T> extends StatelessWidget {
     return showModalBottomSheet<T>(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       backgroundColor: AppColors.surfaceContainerLowest,
-      builder: (_) => PickerSheet<T>(
-        title: title,
-        options: options,
-        selected: selected,
-      ),
+      builder: (_) =>
+          PickerSheet<T>(title: title, options: options, selected: selected),
     );
   }
 
