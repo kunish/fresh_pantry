@@ -13,8 +13,12 @@ let package = Package(
         .iOS(.v14)
     ],
     products: [
+        // Product name must be the dash-cased package name: Flutter's
+        // FlutterGeneratedPluginSwiftPackage references `.product(name:
+        // "workmanager-apple", ...)`. Upstream declares it with an underscore,
+        // which Xcode SPM can't resolve (the target keeps the underscore).
         .library(
-            name: "workmanager_apple",
+            name: "workmanager-apple",
             targets: ["workmanager_apple"]
         )
     ],
