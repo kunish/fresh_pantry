@@ -8,6 +8,7 @@ import '../../utils/storage_labels.dart';
 import '../shared/cat_icon.dart';
 import '../shared/category_icon.dart';
 import '../shared/fk_pill.dart';
+import '../shared/fk_pressable.dart';
 import '../shared/zone_icon.dart';
 
 /// 旧 API:freshness 状态 → 徽章配色。保留供未迁移的 caller(测试)读取。
@@ -140,9 +141,8 @@ class IngredientCard extends StatelessWidget {
           ),
           if (onBuyAgain != null && !isFresh) ...[
             const SizedBox(height: 10),
-            GestureDetector(
+            FkAnimatedPressable(
               onTap: onBuyAgain,
-              behavior: HitTestBehavior.opaque,
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 6),
@@ -167,11 +167,7 @@ class IngredientCard extends StatelessWidget {
     );
 
     if (onTap == null) return card;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: card,
-    );
+    return FkAnimatedPressable(onTap: onTap, child: card);
   }
 
   /// 右上小角徽 — 设计稿用 expiryLabel 作为内容;fresh 状态不显示。
