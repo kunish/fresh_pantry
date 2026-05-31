@@ -24,6 +24,7 @@ import '../widgets/shared/category_icon.dart';
 import '../widgets/shared/fk_hero_header.dart';
 import '../widgets/shared/fk_pill.dart';
 import '../widgets/shared/fk_section_head.dart';
+import '../widgets/shared/fk_skeleton_card.dart';
 import 'expiring_screen.dart';
 import 'low_stock_screen.dart';
 import 'recipe_detail_screen.dart';
@@ -265,9 +266,17 @@ class _TodayRecommendationSection extends ConsumerWidget {
       // Show a loader while the first recipe fetch is still in flight, so the
       // section doesn't read as an empty flicker before recipes pop in.
       if (ref.watch(recipesProvider).isLoading) {
-        return const SizedBox(
-          height: 120,
-          child: Center(child: CircularProgressIndicator()),
+        return const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 18),
+          child: Column(
+            children: [
+              FkRecipeSkeletonCard(),
+              SizedBox(height: AppSpacing.md),
+              FkRecipeSkeletonCard(),
+              SizedBox(height: AppSpacing.md),
+              FkRecipeSkeletonCard(),
+            ],
+          ),
         );
       }
       return const SizedBox(height: 100);
