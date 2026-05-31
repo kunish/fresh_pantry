@@ -1487,8 +1487,8 @@ class _FilledInputState extends State<_FilledInput> {
       skipTraversal: true,
       onFocusChange: (hasFocus) => setState(() => _hasFocus = hasFocus),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
+        duration: AppDuration.fast,
+        curve: AppMotionCurves.decelerate,
         decoration: fieldBoxDecoration(focused: _hasFocus),
         child: TextField(
           controller: widget.controller,

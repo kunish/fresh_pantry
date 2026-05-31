@@ -123,7 +123,8 @@ class _LowStockScreenState extends ConsumerState<LowStockScreen> {
 
   void _toggle(String name) {
     setState(() {
-      final current = _selected ??
+      final current =
+          _selected ??
           ref.read(lowStockItemsProvider).map((i) => i.name).toSet();
       _selected = current.contains(name)
           ? (current..remove(name))
@@ -271,7 +272,7 @@ class _CheckCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
+      duration: AppDuration.normal,
       width: 22,
       height: 22,
       decoration: BoxDecoration(

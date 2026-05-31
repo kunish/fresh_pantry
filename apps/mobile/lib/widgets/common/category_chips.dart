@@ -117,7 +117,7 @@ class _CategoryChip extends StatelessWidget {
       child: GestureDetector(
         onTap: () => onSelected(category),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: AppDuration.slow,
           height: 40,
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),

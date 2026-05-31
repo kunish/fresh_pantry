@@ -20,14 +20,13 @@ class ShoppingItemTile extends StatelessWidget {
           onTap: onTap,
           child: AnimatedOpacity(
             opacity: item.isChecked ? 0.6 : 1.0,
-            duration: const Duration(milliseconds: 200),
+            duration: AppDuration.slow,
             child: Container(
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
-                color:
-                    item.isChecked
-                        ? AppColors.surfaceContainerLow.withValues(alpha: 0.5)
-                        : AppColors.surfaceContainerLowest,
+                color: item.isChecked
+                    ? AppColors.surfaceContainerLow.withValues(alpha: 0.5)
+                    : AppColors.surfaceContainerLowest,
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: Row(
@@ -37,24 +36,21 @@ class ShoppingItemTile extends StatelessWidget {
                     width: 24,
                     height: 24,
                     decoration: BoxDecoration(
-                      color:
-                          item.isChecked
-                              ? AppColors.primary
-                              : Colors.transparent,
+                      color: item.isChecked
+                          ? AppColors.primary
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(AppRadius.md),
-                      border:
-                          item.isChecked
-                              ? null
-                              : Border.all(color: AppColors.outline, width: 2),
+                      border: item.isChecked
+                          ? null
+                          : Border.all(color: AppColors.outline, width: 2),
                     ),
-                    child:
-                        item.isChecked
-                            ? const Icon(
-                              Icons.check,
-                              color: AppColors.onPrimary,
-                              size: 16,
-                            )
-                            : null,
+                    child: item.isChecked
+                        ? const Icon(
+                            Icons.check,
+                            color: AppColors.onPrimary,
+                            size: 16,
+                          )
+                        : null,
                   ),
                   const SizedBox(width: AppSpacing.lg),
                   // Info
@@ -66,8 +62,9 @@ class ShoppingItemTile extends StatelessWidget {
                       style: GoogleFonts.manrope(
                         fontWeight: FontWeight.w600,
                         color: AppColors.onSurface,
-                        decoration:
-                            item.isChecked ? TextDecoration.lineThrough : null,
+                        decoration: item.isChecked
+                            ? TextDecoration.lineThrough
+                            : null,
                       ),
                     ),
                   ),
