@@ -419,7 +419,7 @@ class _HeroSection extends StatelessWidget {
                           Text(
                             '你的冰箱状态',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 24,
+                              fontSize: AppFontSize.xxl,
                               fontWeight: FontWeight.w700,
                               letterSpacing: -0.4,
                               color: Colors.white,
@@ -448,7 +448,7 @@ class _HeroSection extends StatelessWidget {
                       child: Text(
                         '件食材 · $categoryCount 类',
                         style: GoogleFonts.manrope(
-                          fontSize: 14,
+                          fontSize: AppFontSize.md,
                           fontWeight: FontWeight.w500,
                           color: Colors.white.withValues(alpha: 0.85),
                         ),
@@ -541,7 +541,7 @@ class _MiniStat extends StatelessWidget {
           Text(
             label,
             style: GoogleFonts.manrope(
-              fontSize: 11,
+              fontSize: AppFontSize.xs,
               color: Colors.white.withValues(alpha: 0.85),
             ),
           ),
@@ -607,7 +607,7 @@ class _ExpiringCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 14,
+              fontSize: AppFontSize.md,
               fontWeight: FontWeight.w700,
               color: AppColors.onSurface,
             ),
@@ -616,7 +616,7 @@ class _ExpiringCard extends StatelessWidget {
           Text(
             '${item.quantity}${item.unit}',
             style: GoogleFonts.manrope(
-              fontSize: 11,
+              fontSize: AppFontSize.xs,
               color: AppColors.onSurfaceVariant,
             ),
           ),
@@ -677,7 +677,7 @@ class _CategoryGrid extends StatelessWidget {
                   Text(
                     FkCategoryPalette.names[entry.key] ?? entry.key,
                     style: GoogleFonts.manrope(
-                      fontSize: 11,
+                      fontSize: AppFontSize.xs,
                       fontWeight: FontWeight.w600,
                       color: palette.ink,
                     ),
@@ -689,7 +689,7 @@ class _CategoryGrid extends StatelessWidget {
                   Text(
                     '${entry.value}',
                     style: GoogleFonts.manrope(
-                      fontSize: 11,
+                      fontSize: AppFontSize.xs,
                       color: palette.ink.withValues(alpha: 0.7),
                     ),
                     maxLines: 1,

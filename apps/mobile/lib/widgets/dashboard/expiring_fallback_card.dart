@@ -64,7 +64,7 @@ class ExpiringFallbackCard extends ConsumerWidget {
                         const Text(
                           '用临期食材',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: AppFontSize.xs,
                             fontWeight: FontWeight.w600,
                             color: AppColors.fkWarn,
                             letterSpacing: 1,
@@ -76,7 +76,7 @@ class ExpiringFallbackCard extends ConsumerWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: AppFontSize.lg,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -88,7 +88,7 @@ class ExpiringFallbackCard extends ConsumerWidget {
                         Text(
                           '可用 ${covered.length} 件临期食材',
                           style: const TextStyle(
-                            fontSize: 12,
+                            fontSize: AppFontSize.sm,
                             color: AppColors.outline,
                           ),
                         ),

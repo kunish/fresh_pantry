@@ -34,7 +34,7 @@ class FkSectionHead extends StatelessWidget {
           Text(
             title,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 16,
+              fontSize: AppFontSize.lg,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.2,
               color: AppColors.onSurface,

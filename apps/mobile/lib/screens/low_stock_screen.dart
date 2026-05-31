@@ -170,7 +170,7 @@ class _CategoryGroup extends StatelessWidget {
                 Text(
                   name,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
+                    fontSize: AppFontSize.md,
                     fontWeight: FontWeight.w700,
                     color: AppColors.onSurface,
                   ),
@@ -179,7 +179,7 @@ class _CategoryGroup extends StatelessWidget {
                 Text(
                   '${items.length} 项',
                   style: GoogleFonts.manrope(
-                    fontSize: 12,
+                    fontSize: AppFontSize.sm,
                     color: AppColors.onSurfaceVariant,
                   ),
                 ),
@@ -245,7 +245,7 @@ class _LowRow extends StatelessWidget {
                 child: Text(
                   item.name,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
+                    fontSize: AppFontSize.md,
                     fontWeight: FontWeight.w700,
                     color: AppColors.onSurface,
                   ),
@@ -254,7 +254,7 @@ class _LowRow extends StatelessWidget {
               Text(
                 '买过 ${item.count} 次',
                 style: GoogleFonts.manrope(
-                  fontSize: 11,
+                  fontSize: AppFontSize.xs,
                   color: AppColors.onSurfaceVariant,
                 ),
               ),
@@ -379,7 +379,7 @@ class _EmptyState extends StatelessWidget {
             Text(
               '暂无需补货的常买项',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
+                fontSize: AppFontSize.lg,
                 fontWeight: FontWeight.w700,
                 color: AppColors.onSurface,
               ),
@@ -389,7 +389,7 @@ class _EmptyState extends StatelessWidget {
               '买过 3 次以上、当前不在库的食材会出现在这里',
               textAlign: TextAlign.center,
               style: GoogleFonts.manrope(
-                fontSize: 12,
+                fontSize: AppFontSize.sm,
                 color: AppColors.onSurfaceVariant,
               ),
             ),

@@ -79,7 +79,7 @@ class IngredientCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 14,
+              fontSize: AppFontSize.md,
               fontWeight: FontWeight.w700,
               color: AppColors.onSurface.withValues(
                 alpha: isExpired ? 0.6 : 1.0,
@@ -89,7 +89,7 @@ class IngredientCard extends StatelessWidget {
           const SizedBox(height: 2),
           DefaultTextStyle.merge(
             style: GoogleFonts.manrope(
-              fontSize: 11,
+              fontSize: AppFontSize.xs,
               color: AppColors.onSurfaceVariant,
               height: 1.2,
             ),
@@ -153,7 +153,7 @@ class IngredientCard extends StatelessWidget {
                 child: Text(
                   '加购',
                   style: GoogleFonts.manrope(
-                    fontSize: 11,
+                    fontSize: AppFontSize.xs,
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryContainer,
                   ),

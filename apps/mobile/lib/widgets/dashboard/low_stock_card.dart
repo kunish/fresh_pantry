@@ -25,12 +25,16 @@ class LowStockCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.warning_amber, color: AppColors.fkWarn, size: 20),
+              const Icon(
+                Icons.warning_amber,
+                color: AppColors.fkWarn,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text(
                 '库存不足 (${items.length} 项)',
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: AppFontSize.lg,
                   fontWeight: FontWeight.w700,
                   color: AppColors.onSurface,
                 ),
@@ -45,7 +49,7 @@ class LowStockCard extends ConsumerWidget {
               child: Text(
                 '+ 还有 ${items.length - 4} 项',
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: AppFontSize.sm,
                   color: AppColors.outline,
                 ),
               ),
@@ -133,7 +137,7 @@ class _LowStockRow extends StatelessWidget {
           Text(
             '已买 ${item.count} 次',
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: AppFontSize.sm,
               color: AppColors.outline,
             ),
           ),

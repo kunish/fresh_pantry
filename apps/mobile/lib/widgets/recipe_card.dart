@@ -85,7 +85,7 @@ class RecipeCard extends StatelessWidget {
                           const SizedBox(height: 4),
                           DefaultTextStyle.merge(
                             style: GoogleFonts.manrope(
-                              fontSize: 11,
+                              fontSize: AppFontSize.xs,
                               color: AppColors.onSurfaceVariant,
                               height: 1.2,
                             ),
@@ -113,7 +113,7 @@ class RecipeCard extends StatelessWidget {
                               Text(
                                 ingredientLabel ?? '食材匹配 $matched/$total',
                                 style: GoogleFonts.manrope(
-                                  fontSize: 11,
+                                  fontSize: AppFontSize.xs,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.primary,
                                 ),
@@ -123,7 +123,7 @@ class RecipeCard extends StatelessWidget {
                                 Text(
                                   '缺 $missing 件',
                                   style: GoogleFonts.manrope(
-                                    fontSize: 11,
+                                    fontSize: AppFontSize.xs,
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.fkDanger,
                                   ),

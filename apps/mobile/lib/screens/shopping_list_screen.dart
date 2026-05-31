@@ -425,7 +425,7 @@ class _ProgressCard extends StatelessWidget {
                     Text(
                       '本次采购进度',
                       style: GoogleFonts.manrope(
-                        fontSize: 11,
+                        fontSize: AppFontSize.xs,
                         fontWeight: FontWeight.w500,
                         color: Colors.white.withValues(alpha: 0.85),
                       ),
@@ -438,7 +438,7 @@ class _ProgressCard extends StatelessWidget {
                         Text(
                           '$done',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 32,
+                            fontSize: AppFontSize.huge,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
                             height: 1,
@@ -461,7 +461,7 @@ class _ProgressCard extends StatelessWidget {
               Text(
                 '$percent%',
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 28,
+                  fontSize: AppFontSize.xxxl,
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
                 ),
@@ -537,7 +537,7 @@ class _FilterChipRow extends StatelessWidget {
               child: Text(
                 count > 0 ? '$label · $count' : label,
                 style: GoogleFonts.manrope(
-                  fontSize: 12,
+                  fontSize: AppFontSize.sm,
                   fontWeight: FontWeight.w600,
                   color: active ? Colors.white : AppColors.onSurface,
                 ),
@@ -613,7 +613,7 @@ class _CategoryGroup extends StatelessWidget {
                     Text(
                       '${items.length}',
                       style: GoogleFonts.manrope(
-                        fontSize: 11,
+                        fontSize: AppFontSize.xs,
                         color: AppColors.onSurfaceVariant,
                       ),
                     ),
@@ -708,7 +708,7 @@ class _ShopRow extends StatelessWidget {
                     Text(
                       item.name,
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
+                        fontSize: AppFontSize.md,
                         fontWeight: FontWeight.w700,
                         color: AppColors.onSurface,
                         decoration: checked ? TextDecoration.lineThrough : null,
@@ -719,7 +719,7 @@ class _ShopRow extends StatelessWidget {
                       Text(
                         item.detail,
                         style: GoogleFonts.manrope(
-                          fontSize: 11,
+                          fontSize: AppFontSize.xs,
                           color: AppColors.onSurfaceVariant,
                         ),
                       ),
@@ -767,7 +767,7 @@ class _ClearDoneButton extends StatelessWidget {
           child: Text(
             '清空已完成 ($count)',
             style: GoogleFonts.manrope(
-              fontSize: 12,
+              fontSize: AppFontSize.sm,
               fontWeight: FontWeight.w600,
               color: AppColors.onSurfaceVariant,
             ),
@@ -807,7 +807,7 @@ class _EmptyState extends StatelessWidget {
               Text(
                 '购物清单为空',
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 16,
+                  fontSize: AppFontSize.lg,
                   fontWeight: FontWeight.w700,
                   color: AppColors.onSurface,
                 ),
@@ -816,7 +816,7 @@ class _EmptyState extends StatelessWidget {
               Text(
                 '在上方输入框添加需要购买的食材',
                 style: GoogleFonts.manrope(
-                  fontSize: 12,
+                  fontSize: AppFontSize.sm,
                   color: AppColors.onSurfaceVariant,
                 ),
               ),

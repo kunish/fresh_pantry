@@ -104,7 +104,10 @@ class _IntakeProposalRowState extends State<IntakeProposalRow> {
                 children: [
                   const Text(
                     '数量',
-                    style: TextStyle(color: AppColors.outline, fontSize: 12),
+                    style: TextStyle(
+                      color: AppColors.outline,
+                      fontSize: AppFontSize.sm,
+                    ),
                   ),
                   const SizedBox(width: 6),
                   InlineNumberStepper(
@@ -123,7 +126,10 @@ class _IntakeProposalRowState extends State<IntakeProposalRow> {
                 children: [
                   const Text(
                     '保质期',
-                    style: TextStyle(color: AppColors.outline, fontSize: 12),
+                    style: TextStyle(
+                      color: AppColors.outline,
+                      fontSize: AppFontSize.sm,
+                    ),
                   ),
                   const SizedBox(width: 6),
                   if ((p.shelfLifeDays ?? 0) <= 0)
@@ -147,7 +153,7 @@ class _IntakeProposalRowState extends State<IntakeProposalRow> {
                           '未设置 · 点按设置',
                           style: TextStyle(
                             color: AppColors.outline,
-                            fontSize: 12,
+                            fontSize: AppFontSize.sm,
                           ),
                         ),
                       ),
@@ -181,14 +187,20 @@ class _IntakeProposalRowState extends State<IntakeProposalRow> {
         onTap: () => setState(() => _editingName = true),
         child: Text(
           p.name.isEmpty ? '(无名)' : p.name,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          style: const TextStyle(
+            fontSize: AppFontSize.lg,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       );
     }
     return TextField(
       controller: _nameCtrl,
       autofocus: true,
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+      style: const TextStyle(
+        fontSize: AppFontSize.lg,
+        fontWeight: FontWeight.w700,
+      ),
       decoration: const InputDecoration(
         isDense: true,
         border: InputBorder.none,
@@ -288,7 +300,7 @@ class _IntakeProposalRowState extends State<IntakeProposalRow> {
         child: Text(
           label,
           style: const TextStyle(
-            fontSize: 12,
+            fontSize: AppFontSize.sm,
             fontWeight: FontWeight.w600,
             color: AppColors.onSurface,
           ),

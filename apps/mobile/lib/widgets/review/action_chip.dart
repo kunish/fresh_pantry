@@ -46,7 +46,7 @@ class ProposalActionChip extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 softWrap: false,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: AppFontSize.sm,
                   fontWeight: FontWeight.w600,
                   color: fg,
                 ),

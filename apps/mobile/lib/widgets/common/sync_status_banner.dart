@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/sync_status_provider.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_motion.dart';
+import '../../theme/app_theme.dart';
 
 /// Lightweight banner surfacing offline / pending-sync state.
 ///
@@ -55,7 +54,7 @@ class SyncStatusBanner extends ConsumerWidget {
                         label!,
                         style: const TextStyle(
                           color: AppColors.onPrimary,
-                          fontSize: 12,
+                          fontSize: AppFontSize.sm,
                         ),
                       ),
                     ],

@@ -62,7 +62,7 @@ class DeductionProposalRow extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: AppFontSize.lg,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -70,7 +70,7 @@ class DeductionProposalRow extends StatelessWidget {
                       Text(
                         '菜谱需要 ${p.requiredQty}',
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: AppFontSize.sm,
                           color: AppColors.outline,
                         ),
                       ),
@@ -141,7 +141,10 @@ class DeductionProposalRow extends StatelessWidget {
               children: [
                 const Text(
                   '扣减',
-                  style: TextStyle(color: AppColors.outline, fontSize: 12),
+                  style: TextStyle(
+                    color: AppColors.outline,
+                    fontSize: AppFontSize.sm,
+                  ),
                 ),
                 const SizedBox(width: 6),
                 InlineNumberStepper(
@@ -155,7 +158,10 @@ class DeductionProposalRow extends StatelessWidget {
             const SizedBox(height: 4),
             const Text(
               '库存中没有匹配项,这条将被跳过。',
-              style: TextStyle(color: AppColors.outline, fontSize: 12),
+              style: TextStyle(
+                color: AppColors.outline,
+                fontSize: AppFontSize.sm,
+              ),
             ),
           ],
         ],

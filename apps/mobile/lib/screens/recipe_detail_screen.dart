@@ -152,7 +152,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                 Text(
                   widget.recipe.name,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 24,
+                    fontSize: AppFontSize.xxl,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.4,
                     color: AppColors.onSurface,
@@ -189,7 +189,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                   Text(
                     widget.recipe.description,
                     style: GoogleFonts.manrope(
-                      fontSize: 14,
+                      fontSize: AppFontSize.md,
                       height: 1.6,
                       color: AppColors.onSurfaceVariant,
                     ),
@@ -422,7 +422,7 @@ class _IngredientsSection extends StatelessWidget {
             Text(
               '食材清单',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
+                fontSize: AppFontSize.lg,
                 fontWeight: FontWeight.w700,
                 color: AppColors.onSurface,
               ),
@@ -431,7 +431,7 @@ class _IngredientsSection extends StatelessWidget {
             Text(
               '已有 $matched/${recipe.ingredients.length}',
               style: GoogleFonts.manrope(
-                fontSize: 12,
+                fontSize: AppFontSize.sm,
                 color: AppColors.onSurfaceVariant,
               ),
             ),
@@ -502,7 +502,7 @@ class _IngredientRow extends StatelessWidget {
                 Text(
                   ingredient.name,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
+                    fontSize: AppFontSize.md,
                     fontWeight: FontWeight.w600,
                     color: isAvailable
                         ? AppColors.onSurface
@@ -514,7 +514,7 @@ class _IngredientRow extends StatelessWidget {
                   Text(
                     ingredient.amount,
                     style: GoogleFonts.manrope(
-                      fontSize: 11,
+                      fontSize: AppFontSize.xs,
                       color: AppColors.onSurfaceVariant,
                     ),
                   ),
@@ -541,7 +541,7 @@ class _IngredientRow extends StatelessWidget {
                     child: Text(
                       '缺少',
                       style: GoogleFonts.manrope(
-                        fontSize: 11,
+                        fontSize: AppFontSize.xs,
                         fontWeight: FontWeight.w600,
                         color: AppColors.fkDanger,
                         letterSpacing: -0.1,
@@ -674,7 +674,7 @@ class _StepsSection extends StatelessWidget {
             Text(
               '烹饪步骤',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
+                fontSize: AppFontSize.lg,
                 fontWeight: FontWeight.w700,
                 color: AppColors.onSurface,
               ),
@@ -684,7 +684,7 @@ class _StepsSection extends StatelessWidget {
               Text(
                 '${completed.length}/${steps.length}',
                 style: GoogleFonts.manrope(
-                  fontSize: 12,
+                  fontSize: AppFontSize.sm,
                   color: AppColors.onSurfaceVariant,
                 ),
               ),
@@ -757,7 +757,7 @@ class _StepRow extends StatelessWidget {
                 : Text(
                     '${index + 1}',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
+                      fontSize: AppFontSize.sm,
                       fontWeight: FontWeight.w800,
                       color: AppColors.primaryContainer,
                     ),
@@ -773,7 +773,7 @@ class _StepRow extends StatelessWidget {
                     : AppDuration.normal,
                 curve: AppMotionCurves.standard,
                 style: GoogleFonts.manrope(
-                  fontSize: 14,
+                  fontSize: AppFontSize.md,
                   height: 1.5,
                   color: completed
                       ? AppColors.onSurfaceVariant

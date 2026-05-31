@@ -438,7 +438,7 @@ class _DetailHero extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 28,
+                                fontSize: AppFontSize.xxxl,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: -0.4,
                                 color: AppColors.onSurface,
@@ -556,7 +556,7 @@ class _StatColumn extends StatelessWidget {
         Text(
           label,
           style: GoogleFonts.manrope(
-            fontSize: 11,
+            fontSize: AppFontSize.xs,
             fontWeight: FontWeight.w600,
             color: AppColors.onSurfaceVariant,
           ),
@@ -589,7 +589,7 @@ class _StatColumn extends StatelessWidget {
           Text(
             hint!,
             style: GoogleFonts.manrope(
-              fontSize: 11,
+              fontSize: AppFontSize.xs,
               color: AppColors.onSurfaceVariant,
             ),
           ),
@@ -642,7 +642,7 @@ class _InfoList extends StatelessWidget {
                       rows[i].$2,
                       textAlign: TextAlign.right,
                       style: GoogleFonts.manrope(
-                        fontSize: 14,
+                        fontSize: AppFontSize.md,
                         fontWeight: FontWeight.w600,
                         color: AppColors.onSurface,
                       ),

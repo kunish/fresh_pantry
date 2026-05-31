@@ -115,7 +115,7 @@ class FkPill extends StatelessWidget {
           Text(
             label,
             style: GoogleFonts.manrope(
-              fontSize: sm ? 11 : 12,
+              fontSize: sm ? AppFontSize.xs : AppFontSize.sm,
               fontWeight: FontWeight.w600,
               color: fg,
               letterSpacing: -0.1,
