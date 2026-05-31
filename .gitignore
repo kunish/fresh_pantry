@@ -57,3 +57,6 @@ app.*.map.json
 **/.dev.vars
 supabase/.branches/
 supabase/.temp/
+
+# Sentry auth token (符号上传用,绝不入库)
+**/sentry.properties

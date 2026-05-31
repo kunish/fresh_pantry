@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../models/recipe.dart';
 import '../models/shopping_item.dart';
 import '../providers/intake_review_provider.dart';
 import '../providers/inventory_provider.dart';
-import '../providers/recipe_provider.dart';
 import '../providers/shopping_provider.dart';
 import '../services/ingredient_factory.dart';
 import '../services/intake_proposal_factory.dart';
@@ -15,7 +13,6 @@ import '../theme/app_theme.dart';
 import '../theme/fk_category_palette.dart';
 import '../utils/app_dialog.dart';
 import '../utils/app_snackbar.dart';
-import '../utils/safe_push.dart';
 import '../widgets/shared/cat_icon.dart';
 import '../widgets/shared/category_icon.dart';
 import '../widgets/shared/fk_card.dart';
@@ -23,8 +20,6 @@ import '../widgets/shared/fk_dashed_border.dart';
 import '../widgets/shared/fk_icon_button.dart';
 import '../widgets/shared/fk_top_bar.dart';
 import '../widgets/shopping/quick_add_field.dart';
-import '../widgets/shopping/smart_planner_card.dart';
-import 'recipe_detail_screen.dart';
 
 /// FreshKeeper 购物清单 - 设计稿 `screens-3.jsx::ShoppingScreen`。
 ///
@@ -58,18 +53,6 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
     final visibleEntries = viewState.visibleGroups.entries.toList(
       growable: false,
     );
-    final recommendedRecipes = ref.watch(recommendedRecipesProvider);
-    final plannerRecipe = recommendedRecipes.isEmpty
-        ? null
-        : recommendedRecipes.first;
-    final inventoryNames = inventoryNameSet(ref.watch(inventoryProvider));
-    final plannerMissingCount = plannerRecipe == null
-        ? 0
-        : missingRecipeIngredientsForNames(
-            inventoryNames,
-            plannerRecipe,
-          ).length;
-
     return Stack(
       children: [
         GestureDetector(
@@ -144,10 +127,6 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                           _onItemChecked(context, ref, item),
                       onItemDelete: (item) =>
                           _deleteShoppingItem(context, ref, item),
-                      plannerRecipe: plannerRecipe,
-                      plannerMissingCount: plannerMissingCount,
-                      onViewRecipe: (recipe) =>
-                          _openPlannerRecipe(context, recipe),
                       onClearChecked: () => _confirmClearChecked(context, ref),
                     ),
                   ),
@@ -203,13 +182,6 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
       if (!context.mounted) return;
       showAppSnackBar(context, '购物清单刷新失败', backgroundColor: AppColors.error);
     }
-  }
-
-  void _openPlannerRecipe(BuildContext context, Recipe recipe) {
-    pushRouteOnce(
-      context,
-      MaterialPageRoute(builder: (_) => RecipeDetailScreen(recipe: recipe)),
-    );
   }
 
   Future<void> _confirmClearChecked(BuildContext context, WidgetRef ref) async {
@@ -365,9 +337,6 @@ class _ShoppingContentSliver extends StatelessWidget {
     required this.onToggleCategory,
     required this.onItemToggle,
     required this.onItemDelete,
-    required this.plannerRecipe,
-    required this.plannerMissingCount,
-    required this.onViewRecipe,
     required this.onClearChecked,
   });
 
@@ -378,9 +347,6 @@ class _ShoppingContentSliver extends StatelessWidget {
   final ValueChanged<String> onToggleCategory;
   final ValueChanged<ShoppingItem> onItemToggle;
   final ValueChanged<ShoppingItem> onItemDelete;
-  final Recipe? plannerRecipe;
-  final int plannerMissingCount;
-  final ValueChanged<Recipe> onViewRecipe;
   final VoidCallback onClearChecked;
 
   @override
@@ -393,7 +359,6 @@ class _ShoppingContentSliver extends StatelessWidget {
   int get _itemCount =>
       visibleEntries.length +
       (visibleEntries.isEmpty ? 1 : 0) +
-      (plannerRecipe == null ? 0 : 1) +
       (checkedCount > 0 ? 1 : 0);
 
   Widget _buildItem(BuildContext context, int index) {
@@ -409,36 +374,14 @@ class _ShoppingContentSliver extends StatelessWidget {
       );
     }
 
-    var extraIndex = index - visibleEntries.length;
-    if (visibleEntries.isEmpty) {
-      if (extraIndex == 0) {
-        return _FilterEmptyMessage(filter: selectedFilter);
-      }
-      extraIndex -= 1;
-    }
-
-    final recipe = plannerRecipe;
-    if (extraIndex == 0 && recipe != null) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 12),
-        child: SmartPlannerCard(
-          title: _plannerTitleFor(recipe),
-          onViewRecipe: () => onViewRecipe(recipe),
-        ),
-      );
+    if (visibleEntries.isEmpty && index == visibleEntries.length) {
+      return _FilterEmptyMessage(filter: selectedFilter);
     }
 
     return Padding(
       padding: const EdgeInsets.only(top: 14),
       child: _ClearDoneButton(count: checkedCount, onTap: onClearChecked),
     );
-  }
-
-  String _plannerTitleFor(Recipe recipe) {
-    if (plannerMissingCount <= 0) {
-      return '现有食材可以完成「${recipe.name}」。';
-    }
-    return '再买$plannerMissingCount样食材，就能完成「${recipe.name}」。';
   }
 }
 

@@ -637,6 +637,9 @@ class _CategoryGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final entries = counts.entries.take(8).toList();
     return GridView.builder(
+      // 非滚动的内嵌 grid:显式清零 padding,否则 BoxScrollView 会把
+      // MediaQuery 的状态栏安全区当作顶部 padding,在标题与卡片间留出空白。
+      padding: EdgeInsets.zero,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: entries.length,

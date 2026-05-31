@@ -439,6 +439,7 @@ class _IngredientsSection extends StatelessWidget {
         FkCard(
           padding: EdgeInsets.zero,
           child: ListView.builder(
+            padding: EdgeInsets.zero,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: recipe.ingredients.length,
@@ -702,6 +703,7 @@ class _StepsSection extends StatelessWidget {
         ] else
           const SizedBox(height: 10),
         ListView.separated(
+          padding: EdgeInsets.zero,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: steps.length,
