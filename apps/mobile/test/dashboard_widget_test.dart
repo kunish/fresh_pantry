@@ -296,6 +296,10 @@ void main() {
                 HouseholdGatewayStub(isAuthenticated: true),
               ),
             ),
+            // This test builds its own override list (custom repo with history)
+            // instead of testStorageOverrides, so add the AppShell sync-banner
+            // overrides explicitly to avoid the Drift stream's pending timer.
+            ...syncBannerTestOverrides(),
           ],
           child: const FreshPantryApp(home: AppShell()),
         ),

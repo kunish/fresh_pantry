@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/misc.dart';
 import 'package:fresh_pantry/models/ingredient.dart';
 import 'package:fresh_pantry/models/recipe.dart';
 import 'package:fresh_pantry/models/shopping_item.dart';
+import 'package:fresh_pantry/providers/connectivity_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
+import 'package:fresh_pantry/providers/sync_status_provider.dart';
 // Scope the drift import to `AppDatabase`: the generated `app_database.g.dart`
 // also declares a `ShoppingItem` data class that would otherwise collide with
 // `models/shopping_item.dart`. The helper only needs `AppDatabase`.
@@ -36,5 +38,18 @@ List<Override> testStorageOverrides({
     if (shopping != null) shoppingSeedProvider.overrideWithValue(shopping),
     if (customRecipes != null)
       customRecipeSeedProvider.overrideWithValue(customRecipes),
+    ...syncBannerTestOverrides(),
   ];
 }
+
+/// Overrides that keep AppShell's SyncStatusBanner hermetic in widget tests.
+///
+/// The banner watches a Drift outbox query stream (whose cleanup timer trips
+/// flutter_test's pending-timer check at teardown) and the connectivity plugin
+/// (which has no test binding). [Stream.value] emits via a microtask, not a
+/// Timer, so nothing stays pending. Folded into [testStorageOverrides]; spread
+/// directly in tests that build their own override list instead of the helper.
+List<Override> syncBannerTestOverrides() => [
+  pendingSyncCountProvider.overrideWith((ref) => Stream.value(0)),
+  connectivityOnlineProvider.overrideWith((ref) => Stream.value(true)),
+];
