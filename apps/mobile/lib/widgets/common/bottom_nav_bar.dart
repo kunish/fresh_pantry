@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/navigation_provider.dart';
 import '../../theme/app_theme.dart';
 import '../shared/fk_nav_icon.dart';
+import '../shared/fk_pressable.dart';
 
 class _NavItem {
   final String icon;
@@ -58,15 +59,15 @@ class BottomNavBar extends ConsumerWidget {
                   for (final (index, item) in _items.indexed)
                     index == FkTab.add
                         ? _PrimaryFab(
-                          icon: item.icon,
-                          onTap: () => ref.navigateToTab(index),
-                        )
+                            icon: item.icon,
+                            onTap: () => ref.navigateToTab(index),
+                          )
                         : _TabButton(
-                          icon: item.icon,
-                          label: item.label,
-                          active: index == currentIndex,
-                          onTap: () => ref.navigateToTab(index),
-                        ),
+                            icon: item.icon,
+                            label: item.label,
+                            active: index == currentIndex,
+                            onTap: () => ref.navigateToTab(index),
+                          ),
                 ],
               ),
             ),
@@ -96,9 +97,9 @@ class _TabButton extends StatelessWidget {
       selected: active,
       button: true,
       label: label,
-      child: GestureDetector(
+      child: FkAnimatedPressable(
         onTap: onTap,
-        behavior: HitTestBehavior.opaque,
+        haptic: HapticKind.selection,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           child: Column(
@@ -131,9 +132,9 @@ class _PrimaryFab extends StatelessWidget {
     return Semantics(
       button: true,
       label: '添加食材',
-      child: GestureDetector(
+      child: FkAnimatedPressable(
         onTap: onTap,
-        behavior: HitTestBehavior.opaque,
+        haptic: HapticKind.light,
         child: Container(
           width: AppSize.profileAvatar - AppSpacing.xs,
           height: AppSize.profileAvatar - AppSpacing.xs,
