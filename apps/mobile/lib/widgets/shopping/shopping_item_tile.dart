@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/shopping_item.dart';
 import '../../theme/app_theme.dart';
+import '../shared/fk_check_circle.dart';
 
 class ShoppingItemTile extends StatelessWidget {
   final ShoppingItem item;
@@ -32,25 +33,10 @@ class ShoppingItemTile extends StatelessWidget {
               child: Row(
                 children: [
                   // Checkbox
-                  Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: item.isChecked
-                          ? AppColors.primary
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      border: item.isChecked
-                          ? null
-                          : Border.all(color: AppColors.outline, width: 2),
-                    ),
-                    child: item.isChecked
-                        ? const Icon(
-                            Icons.check,
-                            color: AppColors.onPrimary,
-                            size: 16,
-                          )
-                        : null,
+                  FkCheckCircle(
+                    checked: item.isChecked,
+                    onTap: onTap,
+                    size: 24,
                   ),
                   const SizedBox(width: AppSpacing.lg),
                   // Info

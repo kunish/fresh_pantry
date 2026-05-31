@@ -12,6 +12,7 @@ import '../utils/app_snackbar.dart';
 import '../widgets/shared/cat_icon.dart';
 import '../widgets/shared/category_icon.dart';
 import '../widgets/shared/fk_card.dart';
+import '../widgets/shared/fk_check_circle.dart';
 import '../widgets/shared/fk_top_bar.dart';
 
 /// 库存不足(常买补货)页 — 设计稿 `screens-2.jsx::LowStockScreen`。
@@ -238,7 +239,7 @@ class _LowRow extends StatelessWidget {
           ),
           child: Row(
             children: [
-              _CheckCircle(checked: checked),
+              FkCheckCircle(checked: checked, onTap: onToggle, size: 22),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Text(
@@ -261,32 +262,6 @@ class _LowRow extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _CheckCircle extends StatelessWidget {
-  final bool checked;
-  const _CheckCircle({required this.checked});
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: AppDuration.normal,
-      width: 22,
-      height: 22,
-      decoration: BoxDecoration(
-        color: checked ? AppColors.primary : Colors.white,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: checked ? AppColors.primary : AppColors.hair,
-          width: 2,
-        ),
-      ),
-      alignment: Alignment.center,
-      child: checked
-          ? const Icon(Icons.check_rounded, size: 14, color: Colors.white)
-          : null,
     );
   }
 }
