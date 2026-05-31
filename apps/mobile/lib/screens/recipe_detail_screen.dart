@@ -297,17 +297,20 @@ class _HeroSection extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          RecipeImage(
-            imageSource: recipe.imageUrl,
-            fit: BoxFit.cover,
-            semanticLabel: recipe.name,
-            fallback: Container(
-              color: AppColors.primarySoft,
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.restaurant_rounded,
-                size: 64,
-                color: AppColors.primary,
+          Hero(
+            tag: 'recipe-image-${recipe.id}',
+            child: RecipeImage(
+              imageSource: recipe.imageUrl,
+              fit: BoxFit.cover,
+              semanticLabel: recipe.name,
+              fallback: Container(
+                color: AppColors.primarySoft,
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.restaurant_rounded,
+                  size: 64,
+                  color: AppColors.primary,
+                ),
               ),
             ),
           ),

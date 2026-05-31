@@ -199,10 +199,12 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                         recipe,
                       );
                       final useExpiring = _tab == _RecipeTab.expiring;
+                      final usesHero = _tab != _RecipeTab.mine;
                       return RecipeCard(
                         recipe: recipe,
                         matchedCount: matched,
                         useExpiring: useExpiring,
+                        heroTag: usesHero ? 'recipe-image-${recipe.id}' : null,
                         onTap: () => pushRouteOnce(
                           context,
                           fkRoute<void>(

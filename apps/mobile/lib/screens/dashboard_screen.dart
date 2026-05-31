@@ -312,6 +312,7 @@ class _TodayRecommendationSection extends ConsumerWidget {
               inventoryNames,
               todayRecipe,
             ),
+            heroTag: 'recipe-image-${todayRecipe.id}',
             onTap: () => pushRouteOnce(
               context,
               fkRoute<void>(

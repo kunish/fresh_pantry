@@ -20,6 +20,7 @@ class RecipeCard extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
   final bool useExpiring;
+  final Object? heroTag;
 
   const RecipeCard({
     super.key,
@@ -30,6 +31,7 @@ class RecipeCard extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.useExpiring = false,
+    this.heroTag,
   });
 
   @override
@@ -55,7 +57,11 @@ class RecipeCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _Cover(recipe: recipe, useExpiring: useExpiring),
+              _Cover(
+                recipe: recipe,
+                useExpiring: useExpiring,
+                heroTag: heroTag,
+              ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
@@ -175,33 +181,38 @@ class RecipeCard extends StatelessWidget {
 class _Cover extends StatelessWidget {
   final Recipe recipe;
   final bool useExpiring;
-  const _Cover({required this.recipe, required this.useExpiring});
+  final Object? heroTag;
+  const _Cover({required this.recipe, required this.useExpiring, this.heroTag});
 
   @override
   Widget build(BuildContext context) {
+    final cover = ClipRRect(
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(AppRadius.xl),
+        bottomLeft: Radius.circular(AppRadius.xl),
+      ),
+      child: RecipeImage(
+        imageSource: recipe.imageUrl,
+        fit: BoxFit.cover,
+        fallback: Container(
+          color: AppColors.primarySoft,
+          alignment: Alignment.center,
+          child: const Icon(
+            Icons.restaurant_rounded,
+            size: 32,
+            color: AppColors.primary,
+          ),
+        ),
+      ),
+    );
+    final wrappedCover = heroTag == null
+        ? cover
+        : Hero(tag: heroTag!, child: cover);
     return SizedBox(
       width: 120,
       child: Stack(
         children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(AppRadius.xl),
-              bottomLeft: Radius.circular(AppRadius.xl),
-            ),
-            child: RecipeImage(
-              imageSource: recipe.imageUrl,
-              fit: BoxFit.cover,
-              fallback: Container(
-                color: AppColors.primarySoft,
-                alignment: Alignment.center,
-                child: const Icon(
-                  Icons.restaurant_rounded,
-                  size: 32,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-          ),
+          wrappedCover,
           if (useExpiring)
             Positioned(
               top: 8,
