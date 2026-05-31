@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/navigation_provider.dart';
 import '../../screens/settings_screen.dart';
+import '../../utils/page_transitions.dart';
 
 /// 首页 Header 固定高度 — Dashboard hero 用它换算顶部留白,使蓝色铺到状态栏
 /// 后面时问候文案不会被浮在上方的 Header 压住。
@@ -58,9 +59,7 @@ class TopAppBar extends ConsumerWidget {
                   tooltip: '设置',
                   onPressed: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const SettingsScreen(),
-                      ),
+                      fkRoute<void>(builder: (_) => const SettingsScreen()),
                     );
                   },
                 ),

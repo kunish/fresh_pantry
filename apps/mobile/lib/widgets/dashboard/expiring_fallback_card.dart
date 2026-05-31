@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/recipe_provider.dart';
 import '../../screens/recipe_detail_screen.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/page_transitions.dart';
 import '../shared/fk_card.dart';
 import '../shared/pill_chip.dart';
 import '../shared/recipe_image.dart';
@@ -20,9 +21,9 @@ class ExpiringFallbackCard extends ConsumerWidget {
 
     return FkCard(
       padding: EdgeInsets.zero,
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => RecipeDetailScreen(recipe: recipe)),
-      ),
+      onTap: () => Navigator.of(
+        context,
+      ).push(fkRoute<void>(builder: (_) => RecipeDetailScreen(recipe: recipe))),
       child: SizedBox(
         height: 130,
         child: Row(
@@ -97,12 +98,14 @@ class ExpiringFallbackCard extends ConsumerWidget {
                           runSpacing: 4,
                           children: covered
                               .take(3)
-                              .map((name) => PillChip(
-                                    label: name,
-                                    backgroundColor: AppColors.fkWarnSoft,
-                                    foregroundColor:
-                                        AppColors.onSecondaryContainer,
-                                  ))
+                              .map(
+                                (name) => PillChip(
+                                  label: name,
+                                  backgroundColor: AppColors.fkWarnSoft,
+                                  foregroundColor:
+                                      AppColors.onSecondaryContainer,
+                                ),
+                              )
                               .toList(),
                         ),
                       ],

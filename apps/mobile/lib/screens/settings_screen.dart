@@ -17,6 +17,7 @@ import '../services/backup_service.dart';
 import '../sync/sync_providers.dart';
 import '../theme/app_theme.dart';
 import '../utils/fk_toast.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/shared/fk_card.dart';
 import '../widgets/shared/fk_pill.dart';
 import '../widgets/shared/fk_section_head.dart';
@@ -280,7 +281,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       : '${household?.name ?? ''} · ${householdSession.householdMembers.length} 名成员',
                   icon: Icons.home_rounded,
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const HouseholdScreen()),
+                    fkRoute<void>(builder: (_) => const HouseholdScreen()),
                   ),
                   isLast: true,
                 ),
@@ -457,7 +458,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         sub: '添加和管理私房菜单',
                         icon: Icons.menu_book_rounded,
                         onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
+                          fkRoute<void>(
                             builder: (_) => const MyRecipesScreen(),
                           ),
                         ),
@@ -467,7 +468,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         sub: '配置模型与连接',
                         icon: Icons.auto_awesome_outlined,
                         onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
+                          fkRoute<void>(
                             builder: (_) => const AiSettingsScreen(),
                           ),
                         ),

@@ -11,6 +11,7 @@ import '../theme/app_theme.dart';
 import '../theme/fk_category_palette.dart';
 import '../utils/app_dialog.dart';
 import '../utils/app_snackbar.dart';
+import '../utils/page_transitions.dart';
 import '../utils/storage_labels.dart';
 import '../widgets/shared/cat_icon.dart';
 import '../widgets/shared/category_icon.dart';
@@ -71,9 +72,7 @@ class _IngredientDetailScreenState
   Future<void> _addToShoppingList(Ingredient item) async {
     final bool added;
     try {
-      added = await ref
-          .read(shoppingProvider.notifier)
-          .addFromIngredient(item);
+      added = await ref.read(shoppingProvider.notifier).addFromIngredient(item);
     } catch (_) {
       if (mounted) showAppSnackBar(context, '加入购物清单失败，请重试');
       return;
@@ -91,17 +90,16 @@ class _IngredientDetailScreenState
     if (index == -1) return;
 
     final updatedName = await Navigator.of(context).push<String>(
-      MaterialPageRoute(
-        builder:
-            (_) => Scaffold(
-              backgroundColor: AppColors.surface,
-              body: SafeArea(
-                child: AddIngredientScreen(
-                  initialIngredient: item,
-                  inventoryIndex: index,
-                ),
-              ),
+      fkRoute<String>(
+        builder: (_) => Scaffold(
+          backgroundColor: AppColors.surface,
+          body: SafeArea(
+            child: AddIngredientScreen(
+              initialIngredient: item,
+              inventoryIndex: index,
             ),
+          ),
+        ),
       ),
     );
     if (!mounted || updatedName == null) return;
@@ -151,13 +149,11 @@ class _IngredientDetailScreenState
       backgroundColor: AppColors.surface,
       body: detailsAsync.when(
         data: (details) => _buildBody(item, details, isInventoryItem),
-        loading:
-            () => const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
-        error:
-            (_, _) =>
-                _buildBody(item, fallbackFoodDetailsFor(item), isInventoryItem),
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+        error: (_, _) =>
+            _buildBody(item, fallbackFoodDetailsFor(item), isInventoryItem),
       ),
     );
   }
@@ -609,12 +605,11 @@ class _InfoList extends StatelessWidget {
             Container(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
               decoration: BoxDecoration(
-                border:
-                    i == rows.length - 1
-                        ? null
-                        : const Border(
-                          bottom: BorderSide(color: AppColors.hair, width: 0.5),
-                        ),
+                border: i == rows.length - 1
+                    ? null
+                    : const Border(
+                        bottom: BorderSide(color: AppColors.hair, width: 0.5),
+                      ),
               ),
               child: Row(
                 children: [

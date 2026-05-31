@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../household/household_models.dart';
 import '../../household/household_session_controller.dart';
 import '../../screens/household_screen.dart';
+import '../../utils/page_transitions.dart';
 
 class HouseholdChip extends ConsumerWidget {
   const HouseholdChip({super.key});
@@ -23,9 +24,9 @@ class HouseholdChip extends ConsumerWidget {
 
     return InkWell(
       borderRadius: BorderRadius.circular(999),
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const HouseholdScreen()),
-      ),
+      onTap: () => Navigator.of(
+        context,
+      ).push(fkRoute<void>(builder: (_) => const HouseholdScreen())),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
@@ -50,7 +51,11 @@ class HouseholdChip extends ConsumerWidget {
                 ),
               ),
             ),
-            const Icon(Icons.expand_more_rounded, size: 16, color: Colors.white),
+            const Icon(
+              Icons.expand_more_rounded,
+              size: 16,
+              color: Colors.white,
+            ),
             if (hasInvite) ...[
               const SizedBox(width: 6),
               Container(

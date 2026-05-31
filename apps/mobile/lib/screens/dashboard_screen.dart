@@ -12,6 +12,7 @@ import '../theme/app_theme.dart';
 import '../theme/fk_category_palette.dart';
 import '../utils/app_snackbar.dart';
 import '../utils/dashboard_greeting.dart';
+import '../utils/page_transitions.dart';
 import '../utils/safe_push.dart';
 import '../widgets/common/top_app_bar.dart';
 import '../widgets/dashboard/expiring_fallback_card.dart';
@@ -170,7 +171,7 @@ class _DashboardHero extends ConsumerWidget {
       onSoonTap: () => openInventory(inventoryFilterNotFresh),
       onLowStockTap: () => Navigator.of(
         context,
-      ).push(MaterialPageRoute(builder: (_) => const LowStockScreen())),
+      ).push(fkRoute<void>(builder: (_) => const LowStockScreen())),
     );
   }
 }
@@ -194,7 +195,7 @@ class _ExpiringItemsSection extends ConsumerWidget {
           actionLabel: '全部',
           onAction: () => Navigator.of(
             context,
-          ).push(MaterialPageRoute(builder: (_) => const ExpiringScreen())),
+          ).push(fkRoute<void>(builder: (_) => const ExpiringScreen())),
         ),
         SizedBox(
           height: 168,
@@ -298,7 +299,7 @@ class _TodayRecommendationSection extends ConsumerWidget {
             ),
             onTap: () => pushRouteOnce(
               context,
-              MaterialPageRoute(
+              fkRoute<void>(
                 builder: (_) => RecipeDetailScreen(recipe: todayRecipe),
               ),
             ),

@@ -14,6 +14,7 @@ import '../providers/shopping_provider.dart';
 import '../services/deduction_proposal_factory.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_snackbar.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/shared/fk_card.dart';
 import '../widgets/shared/fk_dashed_border.dart';
 import '../widgets/shared/fk_icon_button.dart';
@@ -121,14 +122,11 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       widget.recipe,
     );
 
-    final stepProgress =
-        widget.recipe.steps.isEmpty
-            ? 0.0
-            : _completedSteps.length / widget.recipe.steps.length;
+    final stepProgress = widget.recipe.steps.isEmpty
+        ? 0.0
+        : _completedSteps.length / widget.recipe.steps.length;
 
-    final isFavorite = ref.watch(
-      isRecipeFavoriteProvider(widget.recipe.id),
-    );
+    final isFavorite = ref.watch(isRecipeFavoriteProvider(widget.recipe.id));
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -254,7 +252,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                     );
                     ref.read(deductionReviewProvider.notifier).seed(proposals);
                     await Navigator.of(context).push(
-                      MaterialPageRoute(
+                      fkRoute<void>(
                         builder: (_) => const DeductionReviewScreen(),
                       ),
                     );
@@ -378,8 +376,9 @@ class _HeroSection extends StatelessWidget {
                   FkIconButton(
                     onTap: onToggleFavorite,
                     onImage: true,
-                    foregroundColor:
-                        isFavorite ? AppColors.fkDanger : AppColors.onSurface,
+                    foregroundColor: isFavorite
+                        ? AppColors.fkDanger
+                        : AppColors.onSurface,
                     child: Icon(
                       isFavorite
                           ? Icons.favorite_rounded
@@ -482,12 +481,11 @@ class _IngredientRow extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       decoration: BoxDecoration(
         color: isAvailable ? Colors.transparent : AppColors.fkDangerSoft,
-        border:
-            isLast
-                ? null
-                : const Border(
-                  bottom: BorderSide(color: AppColors.hair, width: 0.5),
-                ),
+        border: isLast
+            ? null
+            : const Border(
+                bottom: BorderSide(color: AppColors.hair, width: 0.5),
+              ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -503,8 +501,9 @@ class _IngredientRow extends StatelessWidget {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color:
-                        isAvailable ? AppColors.onSurface : AppColors.fkDanger,
+                    color: isAvailable
+                        ? AppColors.onSurface
+                        : AppColors.fkDanger,
                   ),
                 ),
                 if (ingredient.amount.trim().isNotEmpty) ...[
@@ -522,32 +521,32 @@ class _IngredientRow extends StatelessWidget {
           ),
           isAvailable
               ? FkPill(
-                label: '已有',
-                sm: true,
-                backgroundColor: AppColors.primarySoft,
-                foregroundColor: AppColors.primaryContainer,
-              )
+                  label: '已有',
+                  sm: true,
+                  backgroundColor: AppColors.primarySoft,
+                  foregroundColor: AppColors.primaryContainer,
+                )
               : FkDashedBorder(
-                radius: AppRadius.pill,
-                color: AppColors.fkDanger,
-                fillColor: Colors.white,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
-                  ),
-                  child: Text(
-                    '缺少',
-                    style: GoogleFonts.manrope(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.fkDanger,
-                      letterSpacing: -0.1,
-                      height: 1.2,
+                  radius: AppRadius.pill,
+                  color: AppColors.fkDanger,
+                  fillColor: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    child: Text(
+                      '缺少',
+                      style: GoogleFonts.manrope(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.fkDanger,
+                        letterSpacing: -0.1,
+                        height: 1.2,
+                      ),
                     ),
                   ),
                 ),
-              ),
         ],
       ),
     );
@@ -708,13 +707,12 @@ class _StepsSection extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: steps.length,
           separatorBuilder: (_, _) => const SizedBox(height: 10),
-          itemBuilder:
-              (_, index) => _StepRow(
-                index: index,
-                text: steps[index],
-                completed: completed.contains(index),
-                onTap: () => onToggleStep(index),
-              ),
+          itemBuilder: (_, index) => _StepRow(
+            index: index,
+            text: steps[index],
+            completed: completed.contains(index),
+            onTap: () => onToggleStep(index),
+          ),
         ),
       ],
     );
@@ -751,21 +749,16 @@ class _StepRow extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child:
-                completed
-                    ? const Icon(
-                      Icons.check_rounded,
-                      size: 14,
-                      color: Colors.white,
-                    )
-                    : Text(
-                      '${index + 1}',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primaryContainer,
-                      ),
+            child: completed
+                ? const Icon(Icons.check_rounded, size: 14, color: Colors.white)
+                : Text(
+                    '${index + 1}',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primaryContainer,
                     ),
+                  ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -776,10 +769,9 @@ class _StepRow extends StatelessWidget {
                 style: GoogleFonts.manrope(
                   fontSize: 14,
                   height: 1.5,
-                  color:
-                      completed
-                          ? AppColors.onSurfaceVariant
-                          : AppColors.onSurface,
+                  color: completed
+                      ? AppColors.onSurfaceVariant
+                      : AppColors.onSurface,
                   decoration: completed ? TextDecoration.lineThrough : null,
                 ),
               ),

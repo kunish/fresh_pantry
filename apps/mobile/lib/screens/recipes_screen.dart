@@ -6,6 +6,7 @@ import '../providers/custom_recipe_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/recipe_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/page_transitions.dart';
 import '../utils/safe_push.dart';
 import '../widgets/recipe_card.dart';
 import '../widgets/shared/fk_icon_button.dart';
@@ -67,7 +68,7 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
   void _openCustomRecipeForm() {
     pushRouteOnce(
       context,
-      MaterialPageRoute(builder: (_) => const CustomRecipeFormScreen()),
+      fkRoute<void>(builder: (_) => const CustomRecipeFormScreen()),
     );
   }
 
@@ -87,14 +88,13 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
     );
 
     final expiringNames = _expiringIngredientNames(inventory);
-    final expiringRecipes =
-        recommended
-            .where(
-              (r) => r.ingredients.any(
-                (ing) => recipeIngredientMatchesInventory(ing, expiringNames),
-              ),
-            )
-            .toList();
+    final expiringRecipes = recommended
+        .where(
+          (r) => r.ingredients.any(
+            (ing) => recipeIngredientMatchesInventory(ing, expiringNames),
+          ),
+        )
+        .toList();
 
     final list = switch (_tab) {
       _RecipeTab.expiring => expiringRecipes,
@@ -103,26 +103,26 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
       _RecipeTab.mine => customRecipes,
     };
 
-    final filtered =
-        list.where((r) {
-          return switch (_time) {
-            _TimeFilter.all => true,
-            _TimeFilter.fast15 => r.cookingMinutes <= 15,
-            _TimeFilter.fast30 => r.cookingMinutes <= 30,
-          };
-        }).toList();
+    final filtered = list.where((r) {
+      return switch (_time) {
+        _TimeFilter.all => true,
+        _TimeFilter.fast15 => r.cookingMinutes <= 15,
+        _TimeFilter.fast30 => r.cookingMinutes <= 30,
+      };
+    }).toList();
 
     final q = _query.trim().toLowerCase();
     final searched = q.isEmpty
         ? filtered
         : filtered
-            .where(
-              (r) =>
-                  r.name.toLowerCase().contains(q) ||
-                  r.ingredients
-                      .any((ing) => ing.name.toLowerCase().contains(q)),
-            )
-            .toList();
+              .where(
+                (r) =>
+                    r.name.toLowerCase().contains(q) ||
+                    r.ingredients.any(
+                      (ing) => ing.name.toLowerCase().contains(q),
+                    ),
+              )
+              .toList();
 
     final fetchFailed = ref
         .watch(recipesFetchProvider)
@@ -188,39 +188,34 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                 : searched.isEmpty
                 ? _EmptyState(tab: _tab, query: q)
                 : ListView.separated(
-                      padding: _listPadding,
-                      itemCount: searched.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 12),
-                      itemBuilder: (context, i) {
-                        final recipe = searched[i];
-                        final matched = matchedIngredientCountForNames(
-                          inventoryNames,
-                          recipe,
-                        );
-                        final useExpiring = _tab == _RecipeTab.expiring;
-                        return RecipeCard(
-                          recipe: recipe,
-                          matchedCount: matched,
-                          useExpiring: useExpiring,
-                          onTap:
-                              () => pushRouteOnce(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (_) =>
-                                          _tab == _RecipeTab.mine
-                                              ? CustomRecipeDetailScreen(
-                                                recipeId: recipe.id,
-                                              )
-                                              : RecipeDetailScreen(
-                                                recipe: recipe,
-                                                useExpiring: useExpiring,
-                                              ),
-                                ),
-                              ),
-                        );
-                      },
-                    ),
+                    padding: _listPadding,
+                    itemCount: searched.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
+                    itemBuilder: (context, i) {
+                      final recipe = searched[i];
+                      final matched = matchedIngredientCountForNames(
+                        inventoryNames,
+                        recipe,
+                      );
+                      final useExpiring = _tab == _RecipeTab.expiring;
+                      return RecipeCard(
+                        recipe: recipe,
+                        matchedCount: matched,
+                        useExpiring: useExpiring,
+                        onTap: () => pushRouteOnce(
+                          context,
+                          fkRoute<void>(
+                            builder: (_) => _tab == _RecipeTab.mine
+                                ? CustomRecipeDetailScreen(recipeId: recipe.id)
+                                : RecipeDetailScreen(
+                                    recipe: recipe,
+                                    useExpiring: useExpiring,
+                                  ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -514,10 +509,7 @@ class _RecipeSearchField extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
 
-  const _RecipeSearchField({
-    required this.controller,
-    required this.onChanged,
-  });
+  const _RecipeSearchField({required this.controller, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -584,9 +576,9 @@ class _RecipeErrorState extends StatelessWidget {
           children: [
             Text(
               '菜谱加载失败，请检查网络后重试',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.md),

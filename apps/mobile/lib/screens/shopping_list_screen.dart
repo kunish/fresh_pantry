@@ -13,6 +13,7 @@ import '../theme/app_theme.dart';
 import '../theme/fk_category_palette.dart';
 import '../utils/app_dialog.dart';
 import '../utils/app_snackbar.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/shared/cat_icon.dart';
 import '../widgets/shared/category_icon.dart';
 import '../widgets/shared/fk_card.dart';
@@ -263,7 +264,7 @@ class ShoppingListScreen extends ConsumerWidget {
     ref.read(intakeReviewProvider.notifier).seed(proposals);
 
     final appliedIds = await Navigator.of(context).push<Set<String>>(
-      MaterialPageRoute(
+      fkRoute<Set<String>>(
         builder: (_) => const IntakeReviewScreen(title: '已购买项入库'),
       ),
     );
