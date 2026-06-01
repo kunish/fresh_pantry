@@ -40,6 +40,14 @@ class InventoryRepo {
     return items;
   }
 
+  /// 删除某 household 作用域的全部行。接管本地数据(`''` 作用域)进入家庭后
+  /// 调用,清除被迁移走的原始本地行,避免它们残留为重复孤儿。
+  Future<void> deleteHouseholdScope(String householdId) {
+    return (_db.delete(_db.inventoryItems)
+          ..where((t) => t.householdId.equals(householdId)))
+        .go();
+  }
+
   /// 事务内替换该 household 的全部行(删除 + 批量 upsert)。
   Future<void> saveItems(String householdId, List<Ingredient> items) {
     return _db.transaction(() async {

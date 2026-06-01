@@ -144,6 +144,15 @@ class SupabaseHouseholdGateway implements HouseholdGateway {
     await _shoppingRepo.saveItems(householdId, shopping);
     await _customRecipeRepo.saveRecipes(householdId, customRecipes);
 
+    // Adoption moves local-only ('' scope) rows into the household. Without
+    // removing the originals they linger as duplicate orphans that later sync
+    // passes keep re-minting into fresh ids. Purge them once migrated.
+    if (householdId.isNotEmpty) {
+      await _inventoryRepo.deleteHouseholdScope('');
+      await _shoppingRepo.deleteHouseholdScope('');
+      await _customRecipeRepo.deleteHouseholdScope('');
+    }
+
     await _remoteRepository.upsertInventory(
       householdId,
       inventory.map((item) => item.toJson()).toList(),

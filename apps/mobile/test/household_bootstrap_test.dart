@@ -300,6 +300,49 @@ void main() {
     },
   );
 
+  test(
+    'uploadInitialData migrates local-scope rows in place, leaving no orphans',
+    () async {
+      final db = newTestDatabase();
+      addTearDown(db.close);
+      final inventoryRepo = InventoryRepo(db);
+      // A real local-only row persisted under the '' scope: the pre-join state
+      // that, before this fix, lingered as a duplicate after adoption.
+      await inventoryRepo.saveItems('', const [
+        Ingredient(
+          id: '',
+          name: 'Milk',
+          quantity: '1',
+          unit: 'box',
+          imageUrl: '',
+          freshnessPercent: 1,
+          state: FreshnessState.fresh,
+        ),
+      ]);
+      inventoryRepo.hydrate(await inventoryRepo.loadAllFor(''));
+      final remoteRepository = RecordingRemotePantryRepository();
+      final gateway = SupabaseHouseholdGateway(
+        SupabaseClient('https://example.supabase.co', 'publishable'),
+        remoteRepository,
+        inventoryRepo,
+        ShoppingRepo(db),
+        CustomRecipeRepo(db),
+      );
+
+      await gateway.uploadInitialData('household_1');
+
+      expect(
+        await inventoryRepo.loadAllFor(''),
+        isEmpty,
+        reason: 'local-scope rows must be migrated, not left as orphans',
+      );
+      expect(
+        (await inventoryRepo.loadAllFor('household_1')).single.name,
+        'Milk',
+      );
+    },
+  );
+
   test('createHousehold rejects empty household names', () async {
     final gateway = FakeBootstrapGateway();
     final controller = HouseholdSessionController(gateway);

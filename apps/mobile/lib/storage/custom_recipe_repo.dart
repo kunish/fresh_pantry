@@ -42,6 +42,13 @@ class CustomRecipeRepo {
     return recipes;
   }
 
+  /// 删除某 household 作用域的全部行(接管本地数据后清除 `''` 原始行)。
+  Future<void> deleteHouseholdScope(String householdId) {
+    return (_db.delete(_db.customRecipes)
+          ..where((t) => t.householdId.equals(householdId)))
+        .go();
+  }
+
   Future<void> saveRecipes(String householdId, List<Recipe> recipes) {
     return _db.transaction(() async {
       await (_db.delete(_db.customRecipes)

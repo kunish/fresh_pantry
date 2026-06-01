@@ -37,6 +37,13 @@ class ShoppingRepo {
     return deduplicateShoppingItems(items);
   }
 
+  /// 删除某 household 作用域的全部行(接管本地数据后清除 `''` 原始行)。
+  Future<void> deleteHouseholdScope(String householdId) {
+    return (_db.delete(_db.shoppingItems)
+          ..where((t) => t.householdId.equals(householdId)))
+        .go();
+  }
+
   Future<void> saveItems(String householdId, List<ShoppingItem> items) {
     return _db.transaction(() async {
       await (_db.delete(_db.shoppingItems)

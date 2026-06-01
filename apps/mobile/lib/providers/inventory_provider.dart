@@ -9,6 +9,7 @@ import '../data/food_categories.dart';
 import '../data/food_knowledge.dart';
 import '../storage/inventory_repo.dart';
 import '../sync/sync_enqueue.dart';
+import '../sync/sync_ids.dart';
 import '../sync/sync_operation.dart';
 import '../utils/ingredient_normalizer.dart';
 import '_persistence_queue.dart';
@@ -73,9 +74,12 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
     await _repo.saveItems(activeHouseholdId, items);
   }
 
+  /// Every inventory item is born with a stable sync UUID — local-only or not.
+  /// Blank/non-UUID ids were the root of duplicate rows: each household
+  /// transition minted a *fresh* id for the same logical item, so cloning it.
   Ingredient _withSyncId(Ingredient item) {
-    final id = syncIdFor(item.id);
-    return id == item.id ? item : item.copyWith(id: id);
+    if (isUuid(item.id)) return item;
+    return item.copyWith(id: newSyncEntityId());
   }
 
   Future<void> replaceFromRemote(List<Ingredient> items) async {
