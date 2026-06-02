@@ -71,5 +71,14 @@ void main() {
       );
       expect(recipe!.category, '其他');
     });
+
+    test('无难度行 → difficulty 0、cookingMinutes 兜底 30', () {
+      final recipe = parseHowToCookMarkdown(
+        '# 测试菜的做法\n\n## 必备原料和工具\n\n- 盐\n\n## 操作\n\n1. 做',
+        relativePath: 'vegetable_dish/测试菜.md',
+      );
+      expect(recipe!.difficulty, 0);
+      expect(recipe.cookingMinutes, 30);
+    });
   });
 }

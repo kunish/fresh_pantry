@@ -5,6 +5,7 @@
 //   git clone --depth 1 https://github.com/Anduin2017/HowToCook /tmp/HowToCook
 // 数据来源: https://github.com/Anduin2017/HowToCook (Unlicense)
 // 仅在 macOS/Linux 上运行（路径分隔符按 / 处理）。
+// 注意：默认输出路径是相对路径，请在 apps/mobile/ 目录下运行本脚本。
 import 'dart:convert';
 import 'dart:io';
 
@@ -43,6 +44,12 @@ void main(List<String> args) {
     final rel = file.path
         .substring(dishesDir.path.length + 1)
         .replaceAll('\\', '/');
+    // Skip the upstream template under dishes/template/ (it has a title and an
+    // 操作 section, so it would otherwise pass the recipe filter).
+    if (rel.startsWith('template/')) {
+      skippedNotRecipe++;
+      continue;
+    }
     final String content;
     try {
       content = file.readAsStringSync();
