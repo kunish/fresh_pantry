@@ -96,14 +96,16 @@ HowToCook 单篇 markdown 的实际结构（以「可乐鸡翅」为样例）：
 
 ```
 旧:  recipesFetchProvider(库存前3→英文词) → recipeSearchRepository.searchByName → TheMealDB(HTTP)
-新:  localRecipesProvider(读 asset json，一次性缓存) ──┐
-     recipesFetchProvider(改:不再翻译/联网) ───────────┴→ 按库存食材中文匹配 → 排序
+                                                          ↓ 探索 tab 展示搜索结果
+新:  recipesFetchProvider → localRecipeRepository.loadAll() → 全部本地中文食谱
+                                                          ↓ 探索 tab 展示全集 + 搜索框/时间筛选本地过滤
+     （按库存食材的匹配排序仍由 recommendedRecipesProvider 承担，对数据来源透明）
 ```
 
-- 新增 `LocalRecipeRepository`：从 `howtocook.json` 加载 `List<Recipe>`；提供「全部」与「按菜名/食材过滤」查询。通过 `rootBundle`（或注入的 asset 读取接口）加载，便于测试时注入假数据。
-- 新增 `localRecipesProvider`（`FutureProvider<List<Recipe>>`，加载一次并缓存）。
-- 改 `recipesFetchProvider`：数据来源切到本地库，删除 `FoodKnowledge.englishName` 翻译那段；保留「取库存食材 → 匹配 → 排序」骨架，匹配直接用中文。
-- 探索 tab 搜索框（`_query`）：改为本地按菜名/食材过滤，不再联网搜。
+- 新增 `LocalRecipeRepository`：从 `howtocook.json` 加载 `List<Recipe>` 并缓存解析结果；构造参数注入 `Future<String> Function(String key) loadString`（默认 `rootBundle.loadString`），便于测试注入假数据。
+- 新增 `localRecipeRepositoryProvider`（`Provider<LocalRecipeRepository>`）。
+- 改 `recipesFetchProvider`：从 `localRecipeRepository.loadAll()` 加载**全部** HowToCook 食谱，删除「取库存前 3 食材 → `FoodKnowledge.englishName` 翻译 → 逐词联网搜」整段逻辑。探索 tab（`_RecipeTab.explore` → `all`）本就展示全集；按库存食材的匹配排序由下游 `recommendedRecipesProvider`（现有/临期 tab）承担，无需改动。保留返回形态 `({recipes, fetchFailed})`：asset 缺失/解析失败 → `fetchFailed=true`，沿用探索 tab 现有的错误重试 UI。
+- 探索 tab 搜索框（`_query`）已是本地按菜名/食材过滤（`recipes_screen.dart:115-126`），换数据源后天然生效，无需改动。
 - 弃用并删除 TheMealDB 调用链：`services/themealdb_service.dart`、`RecipeSearchRepository` 的网络/缓存部分及其 provider 接线。`Recipe` 模型保留不动；顺带清理 `recipeDetailsCache` 的遗留存储键，避免死数据残留。
 
 下游不变：`recommendedRecipesProvider`、recipe_card、时间筛选、收藏均消费 `Recipe`，对数据来源透明。
@@ -117,19 +119,19 @@ HowToCook 单篇 markdown 的实际结构（以「可乐鸡翅」为样例）：
 | category | 上级目录名 | `meat_dish→荤菜`、`vegetable_dish→素菜`、`aquatic→水产`、`breakfast→早餐`、`staple→主食`、`soup→汤羹`、`dessert→甜品`、`drink→饮品`、`condiment→酱料` 等映射表；未知目录归「其他」 |
 | difficulty | `预估烹饪难度：★★★` | 数 ★，clamp 到 1–5 |
 | description | 首段正文 | 直接取 |
-| ingredients | `## 计算` 段列表 | 正则拆「名 + 分量」（如「鸡翅 10 ～ 12 只」→ name=鸡翅、amount=10～12只）；拆不出分量则全部进 name、amount 空 |
-| steps | `## 操作` 段有序列表 | 取顶层有序项；嵌套子贴士合并进所属步骤或忽略 |
-| cookingMinutes | 见 Gap ① | 估算 |
-| tags | 分类/难度派生 | 可选，先放分类名 |
+| ingredients | `## 必备原料和工具` 段列表 | 取纯食材名（兼容 `*` / `-` bullet）；amount 统一留空（见下方说明） |
+| steps | `## 操作` 段有序列表 | 取顶层有序项（`1. `…）；缩进的子贴士忽略 |
+| cookingMinutes | 见 Gap ① | 按难度兜底估算 |
+| tags | 分类派生 | 先放分类名 |
 | imageUrl | 见 Gap ③ | null |
 
-选用 `## 计算` 段而非 `## 必备原料和工具` 段作为食材来源，因前者带分量，信息更全；后者可能含工具项。
+**食材来源用 `## 必备原料和工具` 段，而非 `## 计算` 段。** 经实测两篇样例（可乐鸡翅、冷吃兔），`## 计算` 段格式不统一：可乐鸡翅是「鸡翅 10 ～ 12 只」（名 + 分量），冷吃兔是「盐量 = 兔肉斤数 \* 2 克」（公式），无法稳定拆出「名 + 量」。而 `## 必备原料和工具` 段两篇都是统一的纯食材名列表，最适合做库存匹配的名字来源。因此 `RecipeIngredient` 只填 `name`、`amount` 留空；detail 页对空 amount 不显示分量（可接受的降级，核心的中文化与按食材匹配不受影响）。注意 bullet 符号 `*` 与 `-` 在仓库中混用，解析需兼容。
 
 ## 7. 已知 gap 与处理
 
-- **Gap ①（时长缺结构化数据）**：HowToCook 无统一时长字段。策略：先用正则从描述抽「X 分钟」（如可乐鸡翅的「40 分钟」）；抽不到则按难度兜底估算（★→15、★★→25、★★★→40、★★★★→60、★★★★★→90）。这与现状 TheMealDB 按难度估时长同一思路，时间筛选（≤15/≤30）行为保持可用。
+- **Gap ①（时长缺结构化数据）**：HowToCook 无统一时长字段，描述里的时长格式又很杂（「40 分钟」「约需 1.5 小时」），正则抽取脆弱易错。策略：**统一按难度兜底估算** cookingMinutes（★→15、★★→25、★★★→40、★★★★→60、★★★★★→90，未知→30），放弃从描述抽取。这与现状 TheMealDB 按难度估时长同一思路，时间筛选（≤15/≤30）行为保持可用。
 - **Gap ②（食材名带修饰）**：如「鸡翅中」vs 库存「鸡翅」。现有 `recipeIngredientMatchesInventory` 的 `contains` 双向匹配已能覆盖此类（「鸡翅」⊂「鸡翅中」）。先不做额外归一化（量词/部位剥离），留作后续按实际命中率再评估。
-- **Gap ③（无图）**：`imageUrl=null`。实现时确认 recipe_card 在无图时优雅降级（占位/纯文本卡片）；TheMealDB 结果本就可能无图，应已支持，需验证。
+- **Gap ③（无图）**：`imageUrl=null`。已确认 recipe_card 通过 `RecipeImage` 的 `fallback`（primarySoft 底色 + 餐具图标）优雅降级，无需改动 recipe_card。
 
 ## 8. 测试策略
 
