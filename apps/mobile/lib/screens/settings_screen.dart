@@ -16,6 +16,7 @@ import '../providers/storage_service_provider.dart';
 import '../services/backup_service.dart';
 import '../sync/sync_providers.dart';
 import '../theme/app_theme.dart';
+import '../utils/app_dialog.dart';
 import '../utils/fk_toast.dart';
 import '../utils/page_transitions.dart';
 import '../widgets/shared/fk_card.dart';
@@ -85,25 +86,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               '当前已加入家庭共享，导入后云端同步可能用其他成员的数据覆盖刚导入的内容；'
               '如需完整恢复，建议先退出家庭共享再导入。'
         : '将覆盖当前的所有食材、购物清单、菜谱与 AI 设置。此操作不可撤销。';
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('确认导入?'),
-        content: Text(confirmMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.fkDanger),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('确认覆盖'),
-          ),
-        ],
-      ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      title: '确认导入?',
+      content: confirmMessage,
+      confirmLabel: '确认覆盖',
+      isDestructive: true,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
 
     await _withLoading('正在导入数据...', () async {
       final prefs = ref.read(sharedPreferencesProvider);
@@ -139,18 +129,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         final granted = await service.requestPermission();
         if (!mounted) return;
         if (!granted) {
-          await showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: const Text('未开启通知权限'),
-              content: const Text('系统通知权限未开启,无法发送临期提醒。请在 系统设置 → 通知 中允许。'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('好'),
-                ),
-              ],
-            ),
+          await showAppInfoDialog(
+            context,
+            title: '未开启通知权限',
+            content: '系统通知权限未开启,无法发送临期提醒。请在 系统设置 → 通知 中允许。',
           );
           return; // don't apply
         }
@@ -160,19 +142,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _showSimpleDialog(String title, String body) {
-    return showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: Text(body),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('好'),
-          ),
-        ],
-      ),
-    );
+    return showAppInfoDialog(context, title: title, content: body);
   }
 
   Future<T> _withLoading<T>(String message, Future<T> Function() run) async {
@@ -474,18 +444,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                         ),
                       ),
-                      _LinkRow(
-                        label: '冰箱布局',
-                        sub: '4 个分区已设置',
-                        icon: Icons.kitchen_outlined,
-                        onTap: () {},
-                      ),
-                      _LinkRow(
-                        label: '常备库存阈值',
-                        sub: '已为 6 种食材设置',
-                        icon: Icons.inventory_2_outlined,
-                        onTap: () {},
-                      ),
                       if (kDebugMode)
                         _LinkRow(
                           key: const Key('sentry_verify_action'),
@@ -494,12 +452,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           icon: Icons.bug_report_outlined,
                           onTap: _throwSentryTestException,
                         ),
-                      _LinkRow(
-                        label: '关于 FreshKeeper',
-                        icon: Icons.info_outline_rounded,
-                        onTap: () {},
-                        isLast: false,
-                      ),
                       _LinkRow(
                         label: '开源致谢',
                         sub: '探索菜谱数据来自 HowToCook（Unlicense）',
@@ -862,9 +814,12 @@ class _ActionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = destructive ? AppColors.fkDanger : AppColors.onSurface;
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
+    return Semantics(
+      button: true,
+      label: label,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
           vertical: 14,
@@ -899,12 +854,13 @@ class _ActionRow extends StatelessWidget {
               ),
             ),
             const Icon(
-              Icons.chevron_right,
-              size: AppSize.iconMd,
+              Icons.chevron_right_rounded,
+              size: AppSize.iconSm,
               color: AppColors.outline,
             ),
           ],
         ),
+      ),
       ),
     );
   }

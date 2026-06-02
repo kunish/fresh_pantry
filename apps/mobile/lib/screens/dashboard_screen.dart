@@ -163,11 +163,6 @@ class _DashboardHero extends ConsumerWidget {
       lowStockItemsProvider.select((items) => items.length),
     );
 
-    void openInventory(String filter) {
-      ref.read(selectedCategoryProvider.notifier).state = filter;
-      ref.navigateToTab(FkTab.fridge);
-    }
-
     return _HeroSection(
       greeting: dashboardGreetingFor(DateTime.now()),
       total: total,
@@ -175,8 +170,12 @@ class _DashboardHero extends ConsumerWidget {
       urgent: expiringCounts.urgent,
       soon: expiringCounts.soon,
       lowStock: lowStock,
-      onUrgentTap: () => openInventory(inventoryFilterNotFresh),
-      onSoonTap: () => openInventory(inventoryFilterNotFresh),
+      onUrgentTap: () => Navigator.of(
+        context,
+      ).push(fkRoute<void>(builder: (_) => const ExpiringScreen())),
+      onSoonTap: () => Navigator.of(
+        context,
+      ).push(fkRoute<void>(builder: (_) => const ExpiringScreen())),
       onLowStockTap: () => Navigator.of(
         context,
       ).push(fkRoute<void>(builder: (_) => const LowStockScreen())),
@@ -542,7 +541,7 @@ class _MiniStat extends StatelessWidget {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: accent,
               height: 1,
             ),
           ),
@@ -587,16 +586,19 @@ class _ExpiringCard extends StatelessWidget {
     final pillFg = style.fg;
     final topBorder = isExpired ? style.bg : style.fg;
 
-    return Container(
-      width: 132,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        boxShadow: AppShadows.soft,
-        border: Border(top: BorderSide(color: topBorder, width: 3)),
-      ),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
+    return GestureDetector(
+      onTap: onAdd,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: 132,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          boxShadow: AppShadows.soft,
+          border: Border(top: BorderSide(color: topBorder, width: 3)),
+        ),
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
@@ -638,6 +640,7 @@ class _ExpiringCard extends StatelessWidget {
               sm: true,
             ),
         ],
+        ),
       ),
     );
   }

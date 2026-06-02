@@ -158,9 +158,8 @@ class _IngredientDetailScreenState
       backgroundColor: AppColors.surface,
       body: detailsAsync.when(
         data: (details) => _buildBody(item, details, isInventoryItem),
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
+        loading: () =>
+            _buildBody(item, fallbackFoodDetailsFor(item), isInventoryItem),
         error: (_, _) =>
             _buildBody(item, fallbackFoodDetailsFor(item), isInventoryItem),
       ),

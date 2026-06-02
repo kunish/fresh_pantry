@@ -545,8 +545,8 @@ class _EmptyState extends StatelessWidget {
     final msg = query.isNotEmpty
         ? '没有匹配「$query」的菜谱'
         : switch (tab) {
-            _RecipeTab.expiring => '没有临期食材,先去添加几样吧',
-            _RecipeTab.available => '冰箱里加点食材,菜谱就来啦',
+            _RecipeTab.expiring => '没有临期食材，先去添加几样吧',
+            _RecipeTab.available => '冰箱里加点食材，菜谱就来啦',
             _RecipeTab.explore => '暂无可探索的菜谱',
             _RecipeTab.mine => '还没有保存的食谱，点右上角 + 创建',
           };

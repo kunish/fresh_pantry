@@ -26,6 +26,8 @@ import '../widgets/recipe_form/difficulty_stars.dart';
 import '../widgets/recipe_form/recipe_category_chips.dart';
 import '../widgets/recipe_form/recipe_form_card.dart';
 import '../widgets/recipe_form/unit_dropdown.dart';
+import '../utils/app_dialog.dart';
+import '../widgets/shared/fk_top_bar.dart';
 import '../widgets/shared/recipe_image.dart';
 import 'ai_settings_screen.dart';
 import 'custom_recipe_detail_screen.dart';
@@ -110,12 +112,64 @@ class _CustomRecipeFormScreenState
         ? recipe!.steps.map((step) => _StepEntry(text: step)).toList()
         : [_StepEntry()];
 
+    _initialFormSnapshot = _formSnapshot();
+
     if (!_isEditing) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(aiDraftProvider.notifier).clear();
         _maybeOfferClipboardUrl();
       });
     }
+  }
+
+  /// 表单初始指纹。退出前比对当前指纹即可判断是否有未保存改动 —— 用同一套序列化,
+  /// 既避开编辑态旧 amount 形态的误报,也覆盖新建态的"填了一半"场景。
+  late final String _initialFormSnapshot;
+
+  String _formSnapshot() {
+    final ingredients = _ingredientControllers
+        .map(
+          (i) =>
+              '${i.nameController.text.trim()}|'
+              '${i.quantityController.text.trim()}|${i.unit.trim()}',
+        )
+        .join(';');
+    final steps = _stepEntries
+        .map((s) => s.controller.text.trim())
+        .join(';');
+    return [
+      _nameController.text.trim(),
+      _categoryController.text.trim(),
+      _cookingMinutesController.text.trim(),
+      _difficultyController.text.trim(),
+      _descriptionController.text.trim(),
+      _coverImageSource ?? '',
+      ingredients,
+      steps,
+    ].join('');
+  }
+
+  bool _isFormDirty() => _formSnapshot() != _initialFormSnapshot;
+
+  /// `canPop: false` 时的统一退出:脏则确认丢弃,非编辑态退出时清空 AI 草稿。
+  /// 用显式 `pop()` 绕过 PopScope(maybePop 在 canPop=false 时不会真正弹出)。
+  Future<void> _handleBackRequest() async {
+    final navigator = Navigator.of(context);
+    if (_isFormDirty()) {
+      final confirmed = await showAppConfirmDialog(
+        context,
+        title: '丢弃更改',
+        content: _isEditing
+            ? '确定要丢弃对「${widget.recipe?.name ?? ''}」的修改吗？'
+            : '确定要丢弃当前填写的食谱吗？',
+        confirmLabel: '丢弃',
+        isDestructive: true,
+      );
+      if (!confirmed) return;
+    }
+    if (!mounted) return;
+    if (!_isEditing) ref.read(aiDraftProvider.notifier).clear();
+    navigator.pop();
   }
 
   @override
@@ -142,22 +196,31 @@ class _CustomRecipeFormScreenState
     final aiDraft = aiDraftState.recipeDraft;
 
     return PopScope(
+      canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (didPop && !_isEditing) {
-          ref.read(aiDraftProvider.notifier).clear();
-        }
+        if (didPop) return;
+        _handleBackRequest();
       },
       child: Stack(
         children: [
           Scaffold(
-            appBar: AppBar(title: Text(_isEditing ? '编辑食谱' : '新建食谱')),
-            body: GestureDetector(
-              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-              behavior: HitTestBehavior.translucent,
-              child: SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                child: Column(
+            body: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  FkTopBar(
+                    title: _isEditing ? '编辑食谱' : '新建食谱',
+                    onBack: () => Navigator.of(context).maybePop(),
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
+                      behavior: HitTestBehavior.translucent,
+                      child: SingleChildScrollView(
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (!_isEditing)
@@ -605,6 +668,10 @@ class _CustomRecipeFormScreenState
                 ),
               ),
             ),
+                  ),
+                ],
+              ),
+            ),
             bottomNavigationBar: Container(
               decoration: const BoxDecoration(
                 color: AppColors.surface,
@@ -679,12 +746,12 @@ class _CustomRecipeFormScreenState
     _aiBannerKey.currentState?.expand();
     _urlController.text = normalizePastedRecipeUrl(url);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        duration: const Duration(seconds: 8),
-        content: Text('检测到食谱链接：$url'),
-        action: SnackBarAction(label: '解析', onPressed: _onParseUrl),
-      ),
+    showAppSnackBar(
+      context,
+      '检测到食谱链接：$url',
+      duration: const Duration(seconds: 8),
+      actionLabel: '解析',
+      onAction: _onParseUrl,
     );
 
     Future<void>.delayed(const Duration(seconds: 9), () {
@@ -895,11 +962,13 @@ class _CustomRecipeFormScreenState
         setState(() {
           _isSaving = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('保存失败，请重试'),
-            action: SnackBarAction(label: '重试', onPressed: _saveRecipe),
-          ),
+        showAppSnackBar(
+          context,
+          '保存失败，请重试',
+          backgroundColor: AppColors.error,
+          actionTextColor: AppColors.onError,
+          actionLabel: '重试',
+          onAction: _saveRecipe,
         );
       }
       return;

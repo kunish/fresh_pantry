@@ -54,3 +54,42 @@ Future<bool> showAppConfirmDialog(
   );
   return result ?? false;
 }
+
+/// 单按钮信息提示对话框。视觉与 [showAppConfirmDialog] 对齐:`AppColors.surface`
+/// 背景、`AppRadius.xl` 圆角、PlusJakartaSans 标题、Manrope 内文。
+Future<void> showAppInfoDialog(
+  BuildContext context, {
+  required String title,
+  required String content,
+  String buttonLabel = '好',
+}) {
+  return showDialog<void>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+      ),
+      title: Text(
+        title,
+        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+      ),
+      content: Text(
+        content,
+        style: GoogleFonts.manrope(color: AppColors.onSurfaceVariant),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(
+            buttonLabel,
+            style: GoogleFonts.manrope(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}

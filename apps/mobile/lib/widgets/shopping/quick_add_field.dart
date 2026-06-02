@@ -43,7 +43,7 @@ class _QuickAddFieldState extends ConsumerState<QuickAddField> {
   void _showAddResult(String name, bool added) {
     showAppSnackBar(
       context,
-      added ? '已添加「$name」' : '「$name」已在购物清单中',
+      added ? '已将「$name」加入购物清单' : '「$name」已在购物清单中',
       backgroundColor: added ? AppColors.primary : AppColors.tertiary,
     );
   }

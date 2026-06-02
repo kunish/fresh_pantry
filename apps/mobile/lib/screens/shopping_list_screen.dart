@@ -6,7 +6,6 @@ import '../models/shopping_item.dart';
 import '../providers/intake_review_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/shopping_provider.dart';
-import '../services/ingredient_factory.dart';
 import '../services/intake_proposal_factory.dart';
 import 'intake_review_screen.dart';
 import '../theme/app_theme.dart';
@@ -182,6 +181,7 @@ class ShoppingListScreen extends ConsumerWidget {
       title: '清理已购项目',
       content: '确定要移除所有已勾选的购物项吗？',
       confirmLabel: '清理',
+      isDestructive: true,
     );
     if (!confirmed || !context.mounted) return;
     final items = ref.read(shoppingProvider);
@@ -304,19 +304,26 @@ class ShoppingListScreen extends ConsumerWidget {
     WidgetRef ref,
     ShoppingItem item,
   ) async {
-    final ingredient = IngredientFactory.fromShoppingItem(item);
-    try {
-      await ref.read(inventoryProvider.notifier).add(ingredient);
-    } catch (_) {
-      if (context.mounted) showAppSnackBar(context, '加入库存失败，请重试');
-      return;
-    }
-    if (!context.mounted) return;
-    showAppSnackBar(
-      context,
-      '已添加「${item.name}」到库存',
-      backgroundColor: AppColors.primary,
+    // 走与"一键入库"完全相同的审核流程,确保数量解析、批次合并与"应用后从
+    // 清单移除"的语义一致(此前快捷入库写死 数量1/份、不合并、不移除)。
+    final inventory = ref.read(inventoryProvider);
+    final proposals = IntakeProposalFactory.fromShoppingItems([item], inventory);
+    ref.read(intakeReviewProvider.notifier).seed(proposals);
+
+    final appliedIds = await Navigator.of(context).push<Set<String>>(
+      fkRoute<Set<String>>(
+        builder: (_) => const IntakeReviewScreen(title: '加入库存'),
+      ),
     );
+
+    // 只有当该项的入库提案(id 为 `ix_<itemId>`)真正被应用后,才从清单移除。
+    if (!context.mounted) return;
+    if (appliedIds == null || !appliedIds.contains('ix_${item.id}')) return;
+    try {
+      await ref.read(shoppingProvider.notifier).remove(item.id);
+    } catch (_) {
+      // 已入库但未能从清单清除,保留该项以便稍后重试移除。
+    }
   }
 }
 

@@ -4,6 +4,7 @@ import '../../models/proposal.dart';
 import '../../models/storage_area.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/storage_labels.dart';
+import '../shared/fk_check_circle.dart';
 import 'action_chip.dart';
 import 'inline_number_stepper.dart';
 import 'picker_sheet.dart';
@@ -72,12 +73,10 @@ class _IntakeProposalRowState extends State<IntakeProposalRow> {
         children: [
           Row(
             children: [
-              GestureDetector(
+              FkCheckCircle(
+                checked: p.selected,
                 onTap: widget.onToggleSelected,
-                child: Icon(
-                  p.selected ? Icons.check_box : Icons.check_box_outline_blank,
-                  color: p.selected ? AppColors.primary : AppColors.outline,
-                ),
+                size: 22,
               ),
               const SizedBox(width: AppSpacing.sm),
               ProvenanceBadge(origin: p.origin, userEdited: p.userEdited),

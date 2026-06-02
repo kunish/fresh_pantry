@@ -1,87 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/ingredient.dart';
 import '../../theme/app_theme.dart';
-
-class FreshnessMeter extends StatelessWidget {
-  final double percent;
-  final FreshnessState state;
-  final bool showLabel;
-
-  const FreshnessMeter({
-    super.key,
-    required this.percent,
-    required this.state,
-    this.showLabel = true,
-  });
-
-  Color get _barColor {
-    switch (state) {
-      case FreshnessState.fresh:
-        return AppColors.primary;
-      case FreshnessState.expiringSoon:
-        return AppColors.secondary;
-      case FreshnessState.urgent:
-        return AppColors.error;
-      case FreshnessState.expired:
-        return AppColors.error;
-    }
-  }
-
-  String get _label {
-    switch (state) {
-      case FreshnessState.fresh:
-        return '新鲜度 ${(percent * 100).round()}%';
-      case FreshnessState.expiringSoon:
-      case FreshnessState.urgent:
-        return '剩余 ${(percent * 100).round()}%';
-      case FreshnessState.expired:
-        return '新鲜度 0%';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-          child: LinearProgressIndicator(
-            value: state == FreshnessState.expired ? 0.0 : percent.clamp(0.0, 1.0),
-            minHeight: 6,
-            backgroundColor: AppColors.surfaceContainerHigh,
-            valueColor: AlwaysStoppedAnimation(_barColor),
-          ),
-        ),
-        if (showLabel) ...[
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '新鲜度指标',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  fontSize: AppFontSize.xs,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.5,
-                  color: AppColors.onSurfaceVariant,
-                ),
-              ),
-              Text(
-                _label.toUpperCase(),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  fontSize: AppFontSize.xs,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.5,
-                  color: _barColor,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ],
-    );
-  }
-}
 
 class GradientFreshnessMeter extends StatelessWidget {
   final double percent;
@@ -129,7 +47,7 @@ class GradientFreshnessMeter extends StatelessWidget {
                   ),
                 ),
                 FractionallySizedBox(
-                  widthFactor: percent,
+                  widthFactor: percent.clamp(0.0, 1.0),
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(

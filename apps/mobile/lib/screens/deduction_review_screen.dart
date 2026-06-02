@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/deduction_review_provider.dart';
 import '../providers/inventory_provider.dart';
+import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../utils/app_snackbar.dart';
 import '../widgets/review/base_review_screen.dart';
@@ -54,7 +55,11 @@ class _DeductionReviewScreenState extends ConsumerState<DeductionReviewScreen> {
         child: Center(
           child: Padding(
             padding: EdgeInsets.all(AppSpacing.xxl),
-            child: Text('这道菜的食材没有可扣减的库存项。', textAlign: TextAlign.center),
+            child: Text(
+              '这道菜的食材没有可扣减的库存项。',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.outline),
+            ),
           ),
         ),
       ),

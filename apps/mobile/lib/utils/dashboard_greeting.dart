@@ -15,23 +15,3 @@ String dashboardGreetingFor(DateTime now) {
   }
   return '夜深了，主厨。';
 }
-
-const _dashboardSubtitlePlaceholders = [
-  '看看今天有哪些食材值得先安排。',
-  '从库存里找一点下一餐的灵感。',
-  '把新鲜食材留给最合适的一餐。',
-  '先整理食材，再决定今天吃什么。',
-  '让冰箱和食品柜保持刚刚好的节奏。',
-];
-
-String dashboardSubtitleFor(DateTime now) {
-  final dayNumber =
-      DateTime.utc(
-        now.year,
-        now.month,
-        now.day,
-      ).difference(DateTime.utc(1970)).inDays;
-
-  final index = dayNumber % _dashboardSubtitlePlaceholders.length;
-  return _dashboardSubtitlePlaceholders[index];
-}

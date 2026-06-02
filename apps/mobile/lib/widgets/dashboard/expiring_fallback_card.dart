@@ -5,6 +5,7 @@ import '../../providers/recipe_provider.dart';
 import '../../screens/recipe_detail_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/page_transitions.dart';
+import '../../utils/safe_push.dart';
 import '../shared/fk_card.dart';
 import '../shared/pill_chip.dart';
 import '../shared/recipe_image.dart';
@@ -21,9 +22,12 @@ class ExpiringFallbackCard extends ConsumerWidget {
 
     return FkCard(
       padding: EdgeInsets.zero,
-      onTap: () => Navigator.of(
+      onTap: () => pushRouteOnce(
         context,
-      ).push(fkRoute<void>(builder: (_) => RecipeDetailScreen(recipe: recipe))),
+        fkRoute<void>(
+          builder: (_) => RecipeDetailScreen(recipe: recipe, useExpiring: true),
+        ),
+      ),
       child: SizedBox(
         height: 130,
         child: Row(

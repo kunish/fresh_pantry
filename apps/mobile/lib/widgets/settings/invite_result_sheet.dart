@@ -7,6 +7,8 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../theme/app_theme.dart';
+import '../../utils/app_snackbar.dart';
+import '../../utils/fk_toast.dart';
 
 class InviteResultSheet extends StatefulWidget {
   const InviteResultSheet({
@@ -147,16 +149,7 @@ class _InviteResultSheetState extends State<InviteResultSheet> {
   void _copyLink(BuildContext context) {
     Clipboard.setData(ClipboardData(text: widget.inviteUrl));
     Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('邀请链接已复制'),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-        ),
-      ),
-    );
+    fkToast(context, '邀请链接已复制');
   }
 
   void _shareLink(BuildContext context) {
@@ -177,7 +170,7 @@ class _InviteResultSheetState extends State<InviteResultSheet> {
         _qrBoundaryKey.currentContext?.findRenderObject()
             as RenderRepaintBoundary?;
     if (boundary == null) {
-      _showSnack(context, '二维码还未生成');
+      showAppSnackBar(context, '二维码还未生成');
       return;
     }
 
@@ -185,7 +178,7 @@ class _InviteResultSheetState extends State<InviteResultSheet> {
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
     if (!context.mounted) return;
     if (bytes == null) {
-      _showSnack(context, '二维码生成失败');
+      showAppSnackBar(context, '二维码生成失败', backgroundColor: AppColors.error);
       return;
     }
 
@@ -205,16 +198,4 @@ class _InviteResultSheetState extends State<InviteResultSheet> {
     );
   }
 
-  void _showSnack(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-        ),
-      ),
-    );
-  }
 }

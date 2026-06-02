@@ -9,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../utils/page_transitions.dart';
 import '../utils/safe_push.dart';
 import '../widgets/recipe_card.dart';
+import '../widgets/shared/fk_top_bar.dart';
 import 'custom_recipe_detail_screen.dart';
 import 'custom_recipe_form_screen.dart';
 
@@ -22,23 +23,36 @@ class MyRecipesScreen extends ConsumerWidget {
     final inventoryNames = inventoryNameSet(ref.read(inventoryProvider));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('我的食谱')),
-      body: recipes.isEmpty
-          ? const _EmptyMyRecipesState()
-          : ListView.builder(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              itemCount: recipes.length,
-              itemBuilder: (context, index) {
-                final recipe = recipes[index];
-                return _MyRecipeCard(
-                  recipe: recipe,
-                  matchedCount: matchedIngredientCountForNames(
-                    inventoryNames,
-                    recipe,
-                  ),
-                );
-              },
+      backgroundColor: AppColors.surface,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            FkTopBar(
+              title: '我的食谱',
+              onBack: () => Navigator.of(context).maybePop(),
             ),
+            Expanded(
+              child: recipes.isEmpty
+                  ? const _EmptyMyRecipesState()
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      itemCount: recipes.length,
+                      itemBuilder: (context, index) {
+                        final recipe = recipes[index];
+                        return _MyRecipeCard(
+                          recipe: recipe,
+                          matchedCount: matchedIngredientCountForNames(
+                            inventoryNames,
+                            recipe,
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           pushRouteOnce(

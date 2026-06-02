@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/proposal.dart';
 import '../../theme/app_theme.dart';
+import '../shared/fk_check_circle.dart';
 import 'action_chip.dart';
 import 'inline_number_stepper.dart';
 import 'picker_sheet.dart';
@@ -45,12 +46,10 @@ class DeductionProposalRow extends StatelessWidget {
         children: [
           Row(
             children: [
-              GestureDetector(
+              FkCheckCircle(
+                checked: p.selected,
                 onTap: onToggleSelected,
-                child: Icon(
-                  p.selected ? Icons.check_box : Icons.check_box_outline_blank,
-                  color: p.selected ? AppColors.primary : AppColors.outline,
-                ),
+                size: 22,
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(

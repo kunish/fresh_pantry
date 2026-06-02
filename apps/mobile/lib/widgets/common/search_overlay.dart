@@ -18,6 +18,7 @@ import '../../utils/page_transitions.dart';
 import '../../utils/storage_labels.dart';
 import '../shared/category_icon.dart';
 import '../shared/fk_entrance.dart';
+import '../shared/fk_pill.dart';
 import '../shared/recipe_image.dart';
 
 const _searchDebounceDuration = Duration(milliseconds: 150);
@@ -120,10 +121,15 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        GestureDetector(
-          onTap: _close,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _close();
+      },
+      child: Stack(
+        children: [
+          GestureDetector(
+            onTap: _close,
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
             child: Container(color: AppColors.onSurface.withValues(alpha: 0.4)),
@@ -162,6 +168,7 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
           ),
         ),
       ],
+      ),
     );
   }
 }
@@ -207,6 +214,7 @@ class _SearchField extends StatelessWidget {
           prefixIcon: const Icon(Icons.search, color: AppColors.primary),
           suffixIcon: IconButton(
             icon: const Icon(Icons.close, color: AppColors.outline),
+            tooltip: '清除',
             onPressed: onClose,
           ),
           filled: true,
@@ -758,12 +766,12 @@ class _InventoryResultTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = switch (item.state) {
-      FreshnessState.fresh => AppColors.primary,
-      FreshnessState.expiringSoon => AppColors.secondary,
-      FreshnessState.urgent => AppColors.error,
-      FreshnessState.expired => AppColors.error,
-    };
+    // 走中心化的状态色:expired 用填充色(珊瑚),其余用前景色,保留 urgent(锈红)
+    // 与 expired 的区分(此前 urgent/expired 都被压成 error 同色)。
+    final style = item.state.statusStyle;
+    final statusColor = item.state == FreshnessState.expired
+        ? style.bg
+        : style.fg;
 
     return ListTile(
       dense: true,

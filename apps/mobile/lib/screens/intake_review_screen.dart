@@ -47,6 +47,14 @@ class _IntakeReviewScreenState extends ConsumerState<IntakeReviewScreen> {
     final state = ref.watch(intakeReviewProvider);
     final n = ref.read(intakeReviewProvider.notifier);
 
+    // 草稿持久化失败此前只记录在 state.persistError、无人读取(静默丢失)。
+    // 复用既有 SnackBar 渠道把它显式反馈出来。
+    ref.listen(intakeReviewProvider.select((s) => s.persistError), (prev, next) {
+      if (next != null && mounted) {
+        showAppSnackBar(context, '草稿保存失败，请重试');
+      }
+    });
+
     return BaseReviewScreen(
       title: widget.title,
       items: state.proposals,

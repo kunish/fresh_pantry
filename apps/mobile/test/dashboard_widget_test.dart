@@ -215,14 +215,13 @@ void main() {
   });
 
   testWidgets(
-    'dashboard hero not-fresh stat opens fridge with not-fresh filter',
+    'dashboard hero not-fresh stat opens the tier-aware ExpiringScreen',
     (tester) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       final db = newTestDatabase();
       addTearDown(db.close);
       final inventory = [_ingredient('牛奶', state: FreshnessState.expiringSoon)];
-      late ProviderContainer container;
 
       await tester.pumpWidget(
         ProviderScope(
@@ -243,21 +242,18 @@ void main() {
               ),
             ),
           ],
-          child: Builder(
-            builder: (context) {
-              container = ProviderScope.containerOf(context);
-              return const FreshPantryApp(home: AppShell());
-            },
-          ),
+          child: const FreshPantryApp(home: AppShell()),
         ),
       );
       await tester.pumpAndSettle();
 
+      // 已过期 / 即将过期 两个统计都跳向分层的临期页(而非同一个未过滤的 fridge 列表)。
       await tester.tap(find.bySemanticsLabel('即将过期 1'));
       await tester.pumpAndSettle();
 
-      expect(container.read(navigationProvider), FkTab.fridge);
-      expect(container.read(selectedCategoryProvider), inventoryFilterNotFresh);
+      expect(find.text('临期提醒'), findsOneWidget);
+      expect(find.text('即将过期'), findsAtLeastNWidgets(1));
+      expect(find.text('牛奶'), findsOneWidget);
     },
   );
 

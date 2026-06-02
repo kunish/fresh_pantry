@@ -5,7 +5,8 @@ import '../../models/frequent_item.dart';
 import '../../providers/inventory_provider.dart';
 import '../../providers/shopping_provider.dart';
 import '../../theme/app_theme.dart';
-import '../../utils/fk_toast.dart';
+import '../../utils/app_dialog.dart';
+import '../../utils/app_snackbar.dart';
 import '../shared/cat_icon.dart';
 import '../shared/category_icon.dart';
 import '../shared/fk_card.dart';
@@ -78,29 +79,13 @@ Future<void> runBulkLowStockAdd(
   WidgetRef ref,
   List<FrequentItem> items,
 ) async {
-  final ok = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text('加入购物清单 (${items.length} 项)?'),
-      content: SingleChildScrollView(
-        child: Text(
-          items.map((i) => '${i.name} (已买 ${i.count} 次)').join('\n'),
-          style: const TextStyle(fontSize: 13),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(false),
-          child: const Text('取消'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(ctx).pop(true),
-          child: const Text('确认加入'),
-        ),
-      ],
-    ),
+  final ok = await showAppConfirmDialog(
+    context,
+    title: '加入购物清单 (${items.length} 项)?',
+    content: items.map((i) => '${i.name} (已买 ${i.count} 次)').join('\n'),
+    confirmLabel: '确认加入',
   );
-  if (ok != true || !context.mounted) return;
+  if (!ok || !context.mounted) return;
 
   final shopping = ref.read(shoppingProvider.notifier);
   var addedCount = 0;
@@ -109,11 +94,14 @@ Future<void> runBulkLowStockAdd(
       final added = await shopping.addFromSuggestion(item.name);
       if (added) addedCount++;
     } catch (_) {
-      // Skip failed adds; the toast below reports the count actually added.
+      // Skip failed adds; the snackbar below reports the count actually added.
     }
   }
   if (!context.mounted) return;
-  fkToast(context, '已加入 $addedCount 项到购物清单');
+  showAppSnackBar(
+    context,
+    addedCount > 0 ? '已添加 $addedCount 项到购物清单' : '所选项目已在购物清单中',
+  );
 }
 
 class _LowStockRow extends StatelessWidget {

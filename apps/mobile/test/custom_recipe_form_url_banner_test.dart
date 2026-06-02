@@ -106,7 +106,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('ai_draft_review_banner')), findsOneWidget);
 
-    await tester.pageBack();
+    // FkTopBar 用自绘的圆形返回按钮(非 Material BackButton),点它的图标触发返回。
+    // 解析会把草稿回填进表单 → 表单变脏 → 返回时弹出"丢弃更改"确认框。
+    await tester.tap(find.byIcon(Icons.arrow_back_ios_new_rounded));
+    await tester.pumpAndSettle();
+    expect(find.text('丢弃更改'), findsOneWidget);
+    await tester.tap(find.text('丢弃'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('ai_draft_review_banner')), findsNothing);
 

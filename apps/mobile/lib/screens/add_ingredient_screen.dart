@@ -482,6 +482,10 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
   }
 
   void _showAddedSnackBar(String name, Ingredient addedItem) {
+    // prefill 模式下添加成功后会立即 pop 路由,因此撤销闭包不能再走本 State 的
+    // `ref`/`context`(此时 widget 已销毁,读取会抛异常)。提前捕获根容器,它的
+    // 生命周期与 app 一致,pop 之后仍可安全读取/扣减。
+    final container = ProviderScope.containerOf(context, listen: false);
     showAppSnackBar(
       context,
       '已添加「$name」',
@@ -489,13 +493,14 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       actionLabel: '撤销',
       actionTextColor: AppColors.onPrimary,
       onAction: () async {
-        final index = inventoryIndexOf(ref.read(inventoryProvider), addedItem);
+        final index = inventoryIndexOf(
+          container.read(inventoryProvider),
+          addedItem,
+        );
         if (index == -1) return;
         try {
-          await ref.read(inventoryProvider.notifier).remove(index);
-        } catch (_) {
-          if (mounted) showAppSnackBar(context, '撤销失败，请重试');
-        }
+          await container.read(inventoryProvider.notifier).remove(index);
+        } catch (_) {}
       },
     );
   }
@@ -1241,9 +1246,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       return;
     } on AiException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message)));
+      showAppSnackBar(context, e.message, backgroundColor: AppColors.error);
       return;
     } finally {
       if (mounted) setState(() => _isParsing = false);
@@ -1251,9 +1254,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
 
     if (!mounted) return;
     if (drafts.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('未识别到食材')));
+      showAppSnackBar(context, '未识别到食材');
       return;
     }
     final inventory = ref.read(inventoryProvider);

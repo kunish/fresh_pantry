@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import '../utils/app_snackbar.dart';
 import '../widgets/shared/ai_busy_overlay.dart';
 import '../widgets/shared/ai_draft_field.dart';
+import '../widgets/shared/fk_top_bar.dart';
 
 class RecipeDraftReviewScreen extends ConsumerStatefulWidget {
   const RecipeDraftReviewScreen({super.key, this.regenerate});
@@ -40,9 +41,18 @@ class _RecipeDraftReviewScreenState
     // so a double-tap on 确认入库 cannot append two identical recipes.
     final busy = state.isRunning || _saving;
     return Scaffold(
-      appBar: AppBar(title: const Text('审核 AI 草稿')),
-      body: Stack(
-        children: [
+      backgroundColor: AppColors.surface,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            FkTopBar(
+              title: '审核 AI 草稿',
+              onBack: () => Navigator.of(context).maybePop(),
+            ),
+            Expanded(
+              child: Stack(
+                children: [
           ListView(
             padding: const EdgeInsets.all(AppSpacing.lg),
             children: [
@@ -124,7 +134,11 @@ class _RecipeDraftReviewScreenState
             ],
           ),
           if (state.isRunning) const Positioned.fill(child: AiBusyOverlay()),
-        ],
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.all(AppSpacing.md),

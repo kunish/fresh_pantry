@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../models/ingredient.dart';
 import '../providers/inventory_provider.dart';
@@ -343,6 +344,7 @@ class _ExpiringRow extends ConsumerWidget {
       showAppSnackBar(context, '未找到「${item.name}」库存项');
       return;
     }
+    final removed = ref.read(inventoryProvider)[index];
     try {
       await ref.read(inventoryProvider.notifier).remove(index);
     } catch (_) {
@@ -354,6 +356,15 @@ class _ExpiringRow extends ConsumerWidget {
       context,
       '「${item.name}」已标记使用',
       backgroundColor: AppColors.primary,
+      actionLabel: '撤销',
+      actionTextColor: AppColors.onPrimary,
+      onAction: () async {
+        try {
+          await ref.read(inventoryProvider.notifier).insertAt(index, removed);
+        } catch (_) {
+          if (context.mounted) showAppSnackBar(context, '撤销失败，请重试');
+        }
+      },
     );
   }
 
@@ -365,7 +376,7 @@ class _ExpiringRow extends ConsumerWidget {
       if (!context.mounted) return;
       showAppSnackBar(
         context,
-        added ? '已加入清单 · ${item.name}' : '「${item.name}」已在购物清单中',
+        added ? '已将「${item.name}」加入购物清单' : '「${item.name}」已在购物清单中',
         backgroundColor: added ? AppColors.primary : AppColors.tertiary,
       );
     } catch (_) {
@@ -432,7 +443,6 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.xl,
@@ -461,7 +471,8 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             Text(
               '没有临期食材',
-              style: tt.titleMedium?.copyWith(
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: AppFontSize.lg,
                 fontWeight: FontWeight.w700,
                 color: AppColors.onSurface,
               ),
@@ -469,7 +480,10 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             Text(
               '冰箱状态健康,继续保持!',
-              style: tt.bodySmall?.copyWith(color: AppColors.onSurfaceVariant),
+              style: GoogleFonts.manrope(
+                fontSize: AppFontSize.sm,
+                color: AppColors.onSurfaceVariant,
+              ),
             ),
           ],
         ),

@@ -52,28 +52,9 @@ class UnitDropdown extends StatelessWidget {
   }
 
   Future<String?> _promptCustomUnit(BuildContext context) {
-    final controller = TextEditingController(text: value);
     return showDialog<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('自定义单位'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(hintText: '例如：粒'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () =>
-                Navigator.of(dialogContext).pop(controller.text.trim()),
-            child: const Text('确定'),
-          ),
-        ],
-      ),
+      builder: (_) => _CustomUnitDialog(initialValue: value),
     );
   }
 
@@ -85,6 +66,51 @@ class UnitDropdown extends StatelessWidget {
       onTap: () => _openSheet(context),
       backgroundColor: AppColors.surfaceContainerLowest,
       borderColor: AppColors.outlineVariant,
+    );
+  }
+}
+
+/// Dialog body for entering a freeform unit. Kept as a StatefulWidget so the
+/// [TextEditingController] is disposed in [State.dispose] — after the dialog
+/// route is fully removed — rather than mid-exit-animation (which would touch a
+/// disposed controller).
+class _CustomUnitDialog extends StatefulWidget {
+  const _CustomUnitDialog({required this.initialValue});
+
+  final String initialValue;
+
+  @override
+  State<_CustomUnitDialog> createState() => _CustomUnitDialogState();
+}
+
+class _CustomUnitDialogState extends State<_CustomUnitDialog> {
+  late final _controller = TextEditingController(text: widget.initialValue);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('自定义单位'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        decoration: const InputDecoration(hintText: '例如：粒'),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
+          child: const Text('确定'),
+        ),
+      ],
     );
   }
 }

@@ -6,6 +6,7 @@ import '../providers/custom_recipe_provider.dart';
 import '../utils/app_dialog.dart';
 import '../utils/app_snackbar.dart';
 import '../utils/page_transitions.dart';
+import '../utils/safe_push.dart';
 import 'custom_recipe_form_screen.dart';
 import 'recipe_detail_screen.dart';
 
@@ -36,7 +37,8 @@ class CustomRecipeDetailScreen extends ConsumerWidget {
       recipe: latestRecipe,
       isCustomRecipe: true,
       onEdit: () {
-        Navigator.of(context).push(
+        pushRouteOnce(
+          context,
           fkRoute<void>(
             builder: (context) => CustomRecipeFormScreen(recipe: latestRecipe),
           ),
