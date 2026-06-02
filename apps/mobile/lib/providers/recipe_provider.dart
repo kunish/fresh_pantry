@@ -53,11 +53,12 @@ List<RecipeIngredient> missingRecipeIngredientsForNames(
       .toList();
 }
 
-/// 探索 tab 的数据源：加载全部本地 HowToCook 中文食谱。
+/// Explore-tab data source: loads ALL local HowToCook (Chinese) recipes.
 ///
-/// 返回 `({recipes, fetchFailed})` 形态以兼容探索 tab 既有的错误重试 UI：
-/// asset 缺失 / 解析失败时 recipes 为空、fetchFailed 为真。按库存食材的
-/// 匹配排序由 [recommendedRecipesProvider] 承担，对数据来源透明。
+/// Returns `({recipes, fetchFailed})` to keep the explore tab's existing
+/// retry UI: on a missing/corrupt asset, recipes is empty and fetchFailed is
+/// true. Inventory-based match ranking is handled by [recommendedRecipesProvider],
+/// which is agnostic to the data source.
 final recipesFetchProvider =
     FutureProvider<({List<Recipe> recipes, bool fetchFailed})>((ref) async {
       final repo = ref.watch(localRecipeRepositoryProvider);

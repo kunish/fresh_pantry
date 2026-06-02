@@ -46,4 +46,20 @@ void main() {
     final repo = LocalRecipeRepository(loadString: (_) async => '{}');
     expect(repo.loadAll(), throwsFormatException);
   });
+
+  test('loadAll 跳过坏条目，保留可解析的', () async {
+    // Recipe.fromJson is lenient on Map entries (uses `as String? ?? ''`
+    // default-fills), so it does not throw on a malformed map. The skip path
+    // is therefore exercised by the non-Map element (42) being filtered out
+    // by whereType<Map<String, dynamic>>(); the try/catch guard is still
+    // correct defensive code for any future stricter validation.
+    final validRecipeJson = recipe('howtocook:good').toJson();
+    final raw = jsonEncode([validRecipeJson, 42]);
+    final repo = LocalRecipeRepository(loadString: (_) async => raw);
+
+    final recipes = await repo.loadAll();
+
+    expect(recipes, hasLength(1));
+    expect(recipes.single.id, 'howtocook:good');
+  });
 }

@@ -1044,12 +1044,13 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final recipes = await container.read(recipesProvider.future);
+      final result = await container.read(recipesFetchProvider.future);
 
       expect(
-        recipes.map((r) => r.id),
+        result.recipes.map((r) => r.id),
         containsAll(['howtocook:a', 'howtocook:b']),
       );
+      expect(result.fetchFailed, isFalse);
     });
 
     test('加载失败时 recipes 为空且 fetchFailed 为真', () async {
@@ -1094,6 +1095,9 @@ Future<ProviderContainer> _containerWithInventory(
         database: db,
         inventory: inventory,
         customRecipes: customRecipes,
+      ),
+      localRecipeRepositoryProvider.overrideWithValue(
+        LocalRecipeRepository(loadString: (_) async => '[]'),
       ),
       if (recipes != null) recipesProvider.overrideWith((ref) async => recipes),
     ],

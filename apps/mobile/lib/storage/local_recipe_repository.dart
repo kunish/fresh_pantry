@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../models/recipe.dart';
@@ -23,10 +24,14 @@ class LocalRecipeRepository {
     if (decoded is! List) {
       throw const FormatException('howtocook.json must be a JSON array');
     }
-    final recipes = decoded
-        .whereType<Map<String, dynamic>>()
-        .map(Recipe.fromJson)
-        .toList(growable: false);
+    final recipes = <Recipe>[];
+    for (final entry in decoded.whereType<Map<String, dynamic>>()) {
+      try {
+        recipes.add(Recipe.fromJson(entry));
+      } catch (e) {
+        if (kDebugMode) debugPrint('Skipping malformed recipe: $e');
+      }
+    }
     _cache = recipes;
     return recipes;
   }
