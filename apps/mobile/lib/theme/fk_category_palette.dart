@@ -37,17 +37,4 @@ class FkCategoryPalette {
   };
 
   static FkCatColors of(String catId) => all[catId] ?? grain;
-
-  /// 分类中文名(与设计稿 `data.jsx::FK_CATEGORIES.name` 一致)。
-  static const Map<String, String> names = {
-    'veg': '蔬菜',
-    'fruit': '水果',
-    'meat': '肉类',
-    'sea': '海鲜',
-    'dairy': '乳制品',
-    'drink': '饮料',
-    'sauce': '调味品',
-    'grain': '主食',
-    'snack': '零食',
-  };
 }

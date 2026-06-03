@@ -155,7 +155,8 @@ class _CategoryGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = FkCategoryPalette.of(catId);
-    final name = FkCategoryPalette.names[catId] ?? catId;
+    // 分组标题用与「我的食材」一致的规范分类名,颜色/图标仍走 FK 调色板。
+    final name = foodCategoryForFkId(catId);
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.xl,

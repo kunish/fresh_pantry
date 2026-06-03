@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../data/food_categories.dart';
 import '../models/ingredient.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/navigation_provider.dart';
@@ -99,16 +98,6 @@ String _categoryCountsSignature(List<Ingredient> items) {
   final entries = counts.entries.toList()
     ..sort((a, b) => a.key.compareTo(b.key));
   return entries.map((entry) => '${entry.key}:${entry.value}').join('|');
-}
-
-String _inventoryCategoryForFkCategoryId(String catId) {
-  return switch (catId) {
-    'dairy' => FoodCategories.dairyAndEggs,
-    'veg' || 'fruit' => FoodCategories.freshProduce,
-    'meat' || 'sea' => FoodCategories.meatAndSeafood,
-    'sauce' => FoodCategories.herbsAndSpices,
-    _ => FoodCategories.other,
-  };
 }
 
 Future<void> _addToShoppingList(
@@ -257,7 +246,7 @@ class _CategorySection extends ConsumerWidget {
                   counts: categoryCounts,
                   onTap: (cat) {
                     ref.read(selectedCategoryProvider.notifier).state =
-                        _inventoryCategoryForFkCategoryId(cat);
+                        foodCategoryForFkId(cat);
                     ref.navigateToTab(FkTab.fridge);
                   },
                 ),
@@ -690,7 +679,9 @@ class _CategoryGrid extends StatelessWidget {
                   CatIcon(category: entry.key, size: 28, color: palette.ink),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    FkCategoryPalette.names[entry.key] ?? entry.key,
+                    // 标签走与「我的食材」一致的规范分类名(FoodCategories),
+                    // 颜色/图标仍用 FK 调色板,避免两处分类名对不上。
+                    foodCategoryForFkId(entry.key),
                     style: GoogleFonts.manrope(
                       fontSize: AppFontSize.xs,
                       fontWeight: FontWeight.w600,

@@ -355,9 +355,9 @@ void main() {
 
       expect(container.read(selectedCategoryProvider), inventoryFilterAll);
 
-      await tester.ensureVisible(find.text('蔬菜'));
+      await tester.ensureVisible(find.text(FoodCategories.freshProduce));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('蔬菜'));
+      await tester.tap(find.text(FoodCategories.freshProduce));
       await tester.pumpAndSettle();
 
       expect(container.read(navigationProvider), FkTab.fridge);

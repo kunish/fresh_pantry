@@ -71,6 +71,39 @@ void main() {
     expect(find.text('快过期'), findsNothing);
   });
 
+  testWidgets(
+    'dashboard category grid labels match the inventory category names',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(412, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        await _app(
+          inventory: [
+            _ingredient('牛奶', category: '乳制品'),
+            _ingredient('番茄', category: '果蔬生鲜'),
+            _ingredient('鸡肉', category: '肉类海鲜'),
+            _ingredient('大米', category: '主食'),
+          ],
+          recipes: const [],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 首页分类网格应展示与「我的食材」一致的规范分类名。
+      expect(find.text('乳品蛋类'), findsOneWidget);
+      expect(find.text('果蔬生鲜'), findsOneWidget);
+      expect(find.text('肉类海鲜'), findsOneWidget);
+      expect(find.text('其他'), findsOneWidget);
+
+      // 不应再出现设计稿细分类名(会与「我的食材」对不上)。
+      expect(find.text('乳制品'), findsNothing);
+      expect(find.text('蔬菜'), findsNothing);
+      expect(find.text('肉类'), findsNothing);
+      expect(find.text('主食'), findsNothing);
+    },
+  );
+
   testWidgets('dashboard shows category empty state', (tester) async {
     await tester.binding.setSurfaceSize(const Size(412, 1000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -142,6 +175,7 @@ Future<Widget> _app({
 Ingredient _ingredient(
   String name, {
   FreshnessState state = FreshnessState.fresh,
+  String category = '乳制品',
 }) {
   return Ingredient(
     name: name,
@@ -150,7 +184,7 @@ Ingredient _ingredient(
     imageUrl: '',
     freshnessPercent: 1,
     state: state,
-    category: '乳制品',
+    category: category,
     storage: IconType.fridge,
     expiryLabel: state == FreshnessState.fresh ? '新鲜' : '即将过期',
   );

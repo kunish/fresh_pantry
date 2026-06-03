@@ -18,6 +18,19 @@ String fkCategoryIdFor(String? category) {
   };
 }
 
+/// `fkCategoryIdFor` 的反向(粗化):把 FK 细分类 id 映回项目内 5 大类
+/// (`FoodCategories`)的规范名。供首页/库存页展示分类标签时使用,确保与
+/// 「我的食材」筛选用的同一套分类名一致(单一数据源)。
+String foodCategoryForFkId(String catId) {
+  return switch (catId) {
+    'dairy' => FoodCategories.dairyAndEggs,
+    'veg' || 'fruit' => FoodCategories.freshProduce,
+    'meat' || 'sea' => FoodCategories.meatAndSeafood,
+    'sauce' => FoodCategories.herbsAndSpices,
+    _ => FoodCategories.other,
+  };
+}
+
 /// 旧 API,保留以兼容暂未迁移的 caller。新代码请用 `CatIcon`。
 IconData categoryIconFor(String? category) {
   return switch (FoodCategories.dropdownValue(category)) {
