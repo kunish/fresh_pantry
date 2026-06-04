@@ -1,10 +1,13 @@
+import 'package:flutter/foundation.dart';
+
 import '../utils/expiry_calculator.dart';
 import 'draft_field.dart';
 import 'ingredient.dart';
 import 'storage_area.dart';
 
+@immutable
 class IngredientDraft {
-  IngredientDraft({
+  const IngredientDraft({
     required this.id,
     required this.name,
     required this.quantity,
@@ -16,13 +19,13 @@ class IngredientDraft {
   });
 
   final String id;
-  DraftField<String> name;
-  DraftField<String> quantity;
-  DraftField<String> unit;
-  DraftField<String?> category;
-  DraftField<IconType?> storage;
-  DraftField<int?> shelfLifeDays;
-  bool selected;
+  final DraftField<String> name;
+  final DraftField<String> quantity;
+  final DraftField<String> unit;
+  final DraftField<String?> category;
+  final DraftField<IconType?> storage;
+  final DraftField<int?> shelfLifeDays;
+  final bool selected;
 
   Ingredient toIngredient() {
     final days = shelfLifeDays.value;

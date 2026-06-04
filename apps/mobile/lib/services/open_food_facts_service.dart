@@ -104,7 +104,10 @@ class OpenFoodFactsService {
 
   /// Search for a product by name. Returns the best match as a [FoodSearchResult]
   /// or `null` if nothing relevant is found.
-  static Future<FoodSearchResult?> searchByName(String name) async {
+  static Future<FoodSearchResult?> searchByName(
+    String name, {
+    http.Client? client,
+  }) async {
     try {
       final uri = Uri.parse(
         '$_searchUrl'
@@ -112,7 +115,7 @@ class OpenFoodFactsService {
         '&search_simple=1&action=process&json=1&page_size=$_maxSearchResults'
         '&fields=product_name,image_front_small_url',
       );
-      final response = await _fetch(uri);
+      final response = await _fetch(uri, client: client);
 
       if (response.statusCode != 200) return null;
 

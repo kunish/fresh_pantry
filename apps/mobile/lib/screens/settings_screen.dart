@@ -6,13 +6,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../household/household_session_controller.dart';
-import '../providers/ai_settings_provider.dart';
+import '../providers/backup_controller.dart';
 import '../providers/custom_recipe_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/notification_service_provider.dart';
 import '../providers/reminder_settings_provider.dart';
 import '../providers/shopping_provider.dart';
-import '../providers/storage_service_provider.dart';
 import '../services/backup_service.dart';
 import '../sync/sync_providers.dart';
 import '../theme/app_theme.dart';
@@ -50,9 +49,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _onExportTap() async {
     late final String json;
     await _withLoading('正在导出数据...', () async {
-      final prefs = ref.read(sharedPreferencesProvider);
-      final envelope = BackupService.exportToMap(prefs);
-      json = BackupService.encodeToJson(envelope);
+      json = ref.read(backupControllerProvider).export();
       await Clipboard.setData(ClipboardData(text: json));
     });
     if (!mounted) return;
@@ -61,17 +58,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _onImportTap() async {
-    final data = await Clipboard.getData(Clipboard.kTextPlain);
-    final text = data?.text;
+    final clip = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = clip?.text;
     if (!mounted) return;
     if (text == null || text.trim().isEmpty) {
       _showSimpleDialog('剪贴板为空', '请先在另一台设备复制备份 JSON 后再试。');
       return;
     }
 
-    final Map<String, dynamic> decoded;
+    final BackupData backup;
     try {
-      decoded = BackupService.decodeFromJson(text);
+      backup = BackupService.decode(text);
     } on BackupVersionException catch (e) {
       _showSimpleDialog('备份版本不兼容', e.message);
       return;
@@ -95,22 +92,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
     if (!confirmed || !mounted) return;
 
-    await _withLoading('正在导入数据...', () async {
-      final prefs = ref.read(sharedPreferencesProvider);
-      await BackupService.importFromMap(
-        prefs,
-        decoded,
-        onImported: () async {
-          // Reload the notifiers from the freshly written prefs so stale
-          // in-memory state (and the sync engine that reads it) cannot persist
-          // the pre-import data back over the restored backup.
-          ref.invalidate(inventoryProvider);
-          ref.invalidate(shoppingProvider);
-          ref.invalidate(customRecipesProvider);
-          ref.invalidate(aiSettingsProvider);
-        },
+    try {
+      await _withLoading('正在导入数据...', () async {
+        await ref.read(backupControllerProvider).import(backup);
+      });
+    } catch (_) {
+      if (!mounted) return;
+      _showSimpleDialog(
+        '导入出错',
+        '写入本地数据时失败，可能只恢复了部分数据。请重试，或重启 App 查看当前状态。',
       );
-    });
+      return;
+    }
     if (!mounted) return;
     _showSimpleDialog('导入完成', '数据已恢复。如未刷新，请重启 App。');
   }

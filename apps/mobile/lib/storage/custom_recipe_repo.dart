@@ -7,10 +7,6 @@ import 'drift/entity_row_codec.dart';
 class CustomRecipeRepo {
   CustomRecipeRepo(this._db);
 
-  /// Legacy SharedPreferences key, retained for the one-time blob migration and
-  /// the backup/export service which still read/write the prefs snapshot.
-  static const storageKey = 'custom_recipes';
-
   final AppDatabase _db;
   List<Recipe>? _hydratedSeed;
 

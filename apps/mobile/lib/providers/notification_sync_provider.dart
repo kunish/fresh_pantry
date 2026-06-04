@@ -1,8 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/ingredient.dart';
 import '../models/reminder_settings.dart';
@@ -24,23 +21,6 @@ final expiryScheduleComputerProvider = Provider<ExpiryScheduleComputer>(
   (ref) => ExpiryScheduler.compute,
 );
 
-const _scheduledIdsKey = 'notification_sync_scheduled_ids_v1';
-
-List<int> _loadPersistedIds(SharedPreferences prefs) {
-  final raw = prefs.getString(_scheduledIdsKey);
-  if (raw == null) return const [];
-  try {
-    final list = jsonDecode(raw) as List<dynamic>;
-    return list.cast<int>();
-  } catch (_) {
-    return const [];
-  }
-}
-
-Future<void> _persistIds(SharedPreferences prefs, List<int> ids) async {
-  await prefs.setString(_scheduledIdsKey, jsonEncode(ids));
-}
-
 class NotificationSyncNotifier extends Notifier<List<int>> {
   // Single-flight guard: non-null while a resync Future is in progress.
   Future<void>? _inflight;
@@ -57,8 +37,7 @@ class NotificationSyncNotifier extends Notifier<List<int>> {
     // Seed from SharedPreferences on first build so stale OS notifications
     // scheduled in a prior session can be cancelled on the first resync.
     if (stateOrNull != null) return stateOrNull!;
-    final prefs = ref.read(sharedPreferencesProvider);
-    return _loadPersistedIds(prefs);
+    return ref.read(scheduledNotificationIdsRepoProvider).load();
   }
 
   Future<void> _resyncSafely() async {
@@ -99,8 +78,7 @@ class NotificationSyncNotifier extends Notifier<List<int>> {
     // The provider can be disposed while syncAll awaits; touching ref after that
     // gap throws UnmountedRefException, so bail instead of crashing the resync.
     if (!ref.mounted) return;
-    final prefs = ref.read(sharedPreferencesProvider);
-    await _persistIds(prefs, nextIds);
+    await ref.read(scheduledNotificationIdsRepoProvider).save(nextIds);
     if (!ref.mounted) return;
     if (!listEquals(state, nextIds)) state = nextIds;
   }

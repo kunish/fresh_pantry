@@ -28,7 +28,7 @@ import '../widgets/shared/freshness_meter.dart';
 import '../widgets/shared/pill_chip.dart';
 import '../models/proposal.dart';
 import '../services/intake_proposal_factory.dart';
-import '../services/open_food_facts_service.dart';
+import '../providers/food_details_provider.dart';
 import 'ai_settings_screen.dart';
 import 'intake_review_screen.dart';
 
@@ -238,7 +238,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
   Future<void> _lookupImage(String name) async {
     if (name.length < 2) return;
     try {
-      final result = await OpenFoodFactsService.searchByName(name);
+      final result = await ref.read(foodImageSearchProvider)(name);
       if (!mounted || _nameController.text.trim() != name) return;
       setState(() {
         _resolvedImageUrl = result?.imageUrl ?? '';
@@ -1176,9 +1176,8 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
           (widget.textParserOverride ??
           (t) => AiIngredientParser.fromText(
             t,
-            chatFn: (msgs) => AiClient.chat(
-              settings: ref.read(aiSettingsProvider),
-              messages: msgs,
+            chatFn: (msgs) => ref.read(aiChatProvider)(
+              msgs,
               responseFormat: const {'type': 'json_object'},
             ),
           ))(text.trim()),
@@ -1194,10 +1193,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
           (widget.imageParserOverride ??
           (b) => AiIngredientParser.fromImage(
             b,
-            chatFn: (msgs) => AiClient.chat(
-              settings: ref.read(aiSettingsProvider),
-              messages: msgs,
-            ),
+            chatFn: ref.read(aiChatProvider),
           ))(bytes),
     );
   }

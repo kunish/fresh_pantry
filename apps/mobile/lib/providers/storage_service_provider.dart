@@ -5,6 +5,9 @@ import '../models/recipe.dart';
 import '../models/shopping_item.dart';
 import '../storage/ai_settings_repo.dart';
 import '../storage/custom_recipe_repo.dart';
+import '../storage/intake_review_draft_repo.dart';
+import '../storage/reminder_settings_repo.dart';
+import '../storage/scheduled_notification_ids_repo.dart';
 // The drift-generated row data class is also named `ShoppingItem`, colliding
 // with the model import above. This file only needs `AppDatabase`.
 import '../storage/drift/app_database.dart' hide ShoppingItem;
@@ -39,19 +42,16 @@ final customRecipeSeedProvider = Provider<List<Recipe>?>((ref) => null);
 ///
 /// Falls back to [sharedPreferencesProvider] if not overridden — this allows
 /// existing tests that only override [sharedPreferencesProvider] to keep
-/// working without changes. Production code should override this directly
-/// via [ProviderScope] overrides in `main()`. Still used by settings/cache
-/// repos that have not migrated to Drift.
+/// working without changes. Production code overrides this directly via
+/// [ProviderScope] overrides in `main()`. Used by the prefs-backed repos
+/// (AI settings, reminder settings, intake-review draft, scheduled-id memory,
+/// favorites, food-details cache) that have not migrated to Drift.
+///
+/// Reads [sharedPreferencesProvider] directly (no catch-all): if neither this
+/// provider nor the fallback is overridden, that provider surfaces its own
+/// clear error instead of being masked by a generic one.
 final storageAdapterProvider = Provider<StorageAdapter>((ref) {
-  try {
-    final prefs = ref.read(sharedPreferencesProvider);
-    return SharedPrefsStorageAdapter(prefs);
-  } catch (_) {
-    throw UnimplementedError(
-      'Either storageAdapterProvider must be overridden, '
-      'or sharedPreferencesProvider must be available as fallback.',
-    );
-  }
+  return SharedPrefsStorageAdapter(ref.read(sharedPreferencesProvider));
 });
 
 final inventoryRepoProvider = Provider<InventoryRepo>((ref) {
@@ -84,6 +84,19 @@ final customRecipeRepoProvider = Provider<CustomRecipeRepo>((ref) {
 final aiSettingsRepoProvider = Provider<AiSettingsRepo>((ref) {
   return AiSettingsRepo(ref.read(storageAdapterProvider));
 });
+
+final reminderSettingsRepoProvider = Provider<ReminderSettingsRepo>((ref) {
+  return ReminderSettingsRepo(ref.read(storageAdapterProvider));
+});
+
+final intakeReviewDraftRepoProvider = Provider<IntakeReviewDraftRepo>((ref) {
+  return IntakeReviewDraftRepo(ref.read(storageAdapterProvider));
+});
+
+final scheduledNotificationIdsRepoProvider =
+    Provider<ScheduledNotificationIdsRepo>((ref) {
+      return ScheduledNotificationIdsRepo(ref.read(storageAdapterProvider));
+    });
 
 final syncOutboxRepoProvider = Provider<SyncOutboxRepo>((ref) {
   return SyncOutboxRepo(ref.read(appDatabaseProvider));

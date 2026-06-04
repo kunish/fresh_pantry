@@ -6,8 +6,6 @@ import 'package:fresh_pantry/storage/custom_recipe_repo.dart';
 import 'package:fresh_pantry/sync/sync_enqueue.dart';
 import 'package:fresh_pantry/sync/sync_operation.dart';
 
-const customRecipesStorageKey = CustomRecipeRepo.storageKey;
-
 class CustomRecipeNotifier extends Notifier<List<Recipe>>
     with PersistenceQueue, SyncEnqueue<List<Recipe>> {
   late CustomRecipeRepo _repo;
@@ -43,8 +41,18 @@ class CustomRecipeNotifier extends Notifier<List<Recipe>>
     return id == recipe.id ? recipe : recipe.copyWith(id: id);
   }
 
-  Future<void> replaceFromRemote(List<Recipe> recipes) {
-    return _mutate((_) => recipes);
+  /// Replaces the whole list and persists it. [rethrowOnError] false for the
+  /// sync inflow (swallow + retry); backup restore passes true so a failed
+  /// write surfaces instead of falsely reporting success. State is set only
+  /// after the write lands, so a failure leaves the prior list intact.
+  Future<void> replaceFromRemote(
+    List<Recipe> recipes, {
+    bool rethrowOnError = false,
+  }) {
+    return queuePersistence(() async {
+      await _save(recipes);
+      state = recipes;
+    }, rethrowError: rethrowOnError);
   }
 
   Future<void> add(Recipe recipe) async {

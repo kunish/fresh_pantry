@@ -6,7 +6,6 @@ import '../models/ingredient_identity.dart';
 import '../models/proposal.dart';
 import '../models/storage_area.dart';
 import '../data/food_categories.dart';
-import '../data/food_knowledge.dart';
 import '../storage/inventory_repo.dart';
 import '../sync/sync_enqueue.dart';
 import '../sync/sync_ids.dart';
@@ -17,8 +16,6 @@ import 'storage_service_provider.dart';
 
 export 'storage_service_provider.dart' show inventorySeedProvider;
 
-const inventoryItemsStorageKey = 'inventory_items';
-const addHistoryStorageKey = 'add_history';
 const inventoryFilterAll = '全部';
 const inventoryFilterNotFresh = '不新鲜';
 
@@ -93,13 +90,30 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
     return item.copyWith(id: newSyncEntityId());
   }
 
-  Future<void> replaceFromRemote(List<Ingredient> items) async {
+  /// Replaces the whole list and persists it. The sync inflow leaves
+  /// [rethrowOnError] false (a failed local write is swallowed; sync retries).
+  /// Backup restore passes true so a failed write rolls back and propagates —
+  /// a destructive "restore complete" message must never lie about data that
+  /// never reached disk.
+  Future<void> replaceFromRemote(
+    List<Ingredient> items, {
+    bool rethrowOnError = false,
+  }) async {
     final normalized = items
         .map(normalizeInventoryIngredient)
         .map(refreshIngredientFreshness)
         .toList(growable: false);
+    final prior = state;
     state = normalized;
-    await queuePersistence(() => _save(normalized));
+    try {
+      await queuePersistence(
+        () => _save(normalized),
+        rethrowError: rethrowOnError,
+      );
+    } catch (_) {
+      state = prior;
+      rethrow;
+    }
   }
 
   Future<void> add(Ingredient item) async {
@@ -114,7 +128,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
     try {
       await queuePersistence(() async {
         await _save(updated);
-        await ref.read(_addHistoryProvider.notifier).record(itemToAdd);
+        await ref.read(addHistoryProvider.notifier).record(itemToAdd);
       }, rethrowError: true);
     } catch (_) {
       state = prior;
@@ -138,7 +152,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
         if (!present.contains(name.trim().toLowerCase())) name,
     };
     if (vanished.isEmpty) return;
-    final history = ref.read(_addHistoryProvider.notifier);
+    final history = ref.read(addHistoryProvider.notifier);
     for (final name in vanished) {
       await history.forget(name);
     }
@@ -555,74 +569,31 @@ final inventoryProvider = NotifierProvider<InventoryNotifier, List<Ingredient>>(
   InventoryNotifier.new,
 );
 
+/// UI-state ViewModel over the add-history frequency memory. Holds only the
+/// derived [FrequentItem] list; all raw-map decoding and the record/forget
+/// merge logic live in [InventoryRepo] (the repo owns raw->domain).
 class _AddHistoryNotifier extends Notifier<List<FrequentItem>> {
   late InventoryRepo _repo;
 
   @override
   List<FrequentItem> build() {
     _repo = ref.read(inventoryRepoProvider);
-    return _itemsFromHistoryMap(_repo.loadHistory());
+    return _repo.loadFrequentItems();
   }
 
   Future<void> record(Ingredient item) async {
-    final history = Map<String, dynamic>.from(_repo.loadHistory());
-    final key = item.name;
-    final existing = history[key];
-    final existingCount = switch (existing) {
-      {'count': final num count} => count.toInt(),
-      num count => count.toInt(),
-      _ => 0,
-    };
-    history[key] = {
-      'count': existingCount + 1,
-      'category': FoodCategories.normalize(item.category) ?? '',
-      'storage': item.storage.name,
-      'unit': item.unit,
-    };
-    await _repo.saveHistory(history);
-    state = _itemsFromHistoryMap(history);
+    await _repo.recordAddition(item);
+    state = _repo.loadFrequentItems();
   }
 
   /// 把某个名称从补货频次记忆中抹掉(手动删除食材时调用)。不存在则 no-op。
   Future<void> forget(String name) async {
-    final history = Map<String, dynamic>.from(_repo.loadHistory());
-    if (history.remove(name) == null) return;
-    await _repo.saveHistory(history);
-    state = _itemsFromHistoryMap(history);
-  }
-
-  List<FrequentItem> _itemsFromHistoryMap(Map<String, dynamic> history) {
-    return history.entries.map((e) {
-      final value = e.value;
-      final data = value is Map<String, dynamic> ? value : const {};
-      final count = switch (value) {
-        {'count': final num count} => count.toInt(),
-        num count => count.toInt(),
-        _ => 1,
-      };
-      final category = data['category'];
-      final storageValue = data['storage'];
-      final unit = data['unit'];
-      final storageName = storageValue is String ? storageValue : 'fridge';
-      final defaults = FoodKnowledge.lookup(e.key);
-      final storage = iconTypeFromName(storageName);
-      final rememberedCategory = category is String
-          ? category
-          : defaults?.category;
-
-      return FrequentItem(
-        name: e.key,
-        category: FoodCategories.dropdownValue(rememberedCategory),
-        storage: storage,
-        unit: unit is String ? unit : '个',
-        shelfLifeDays: defaults?.shelfLifeDays,
-        count: count,
-      );
-    }).toList();
+    await _repo.forgetAddition(name);
+    state = _repo.loadFrequentItems();
   }
 }
 
-final _addHistoryProvider =
+final addHistoryProvider =
     NotifierProvider<_AddHistoryNotifier, List<FrequentItem>>(
       _AddHistoryNotifier.new,
     );
@@ -706,13 +677,13 @@ final filteredInventoryItemsProvider = Provider.autoDispose<List<Ingredient>>((
 });
 
 final frequentItemsProvider = Provider.autoDispose<List<FrequentItem>>((ref) {
-  final all = [...ref.watch(_addHistoryProvider)];
+  final all = [...ref.watch(addHistoryProvider)];
   all.sort((a, b) => b.count.compareTo(a.count));
   return all.where((i) => i.count >= 2).take(6).toList();
 });
 
 final lowStockItemsProvider = Provider.autoDispose<List<FrequentItem>>((ref) {
-  final all = ref.watch(_addHistoryProvider);
+  final all = ref.watch(addHistoryProvider);
   final inventory = ref.watch(inventoryProvider);
   final presentNames = inventory
       .map((i) => i.name.trim().toLowerCase())

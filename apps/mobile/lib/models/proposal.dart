@@ -115,12 +115,12 @@ class DeductionProposal extends Proposal {
     required super.id,
     required this.recipeIngredientName,
     required this.requiredQty,
-    required this.candidates,
+    required List<DeductionCandidate> candidates,
     required this.chosenIndex,
     required this.deductAmount,
     this.action = DeductionAction.deduct,
     super.selected,
-  });
+  }) : candidates = List.unmodifiable(candidates);
 
   factory DeductionProposal.empty({
     required String id,

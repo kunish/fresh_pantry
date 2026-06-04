@@ -13,4 +13,7 @@ abstract class StorageAdapter {
   /// Implementations should be fire-and-forget where possible; callers
   /// do not block on the returned future.
   Future<void> write(String key, String value);
+
+  /// Deletes any value stored under [key]. A no-op when [key] is absent.
+  Future<void> remove(String key);
 }

@@ -1,281 +1,159 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fresh_pantry/models/ai_settings.dart';
+import 'package:fresh_pantry/models/ingredient.dart';
+import 'package:fresh_pantry/models/recipe.dart';
+import 'package:fresh_pantry/models/shopping_item.dart';
 import 'package:fresh_pantry/services/backup_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+BackupData _sampleData() => BackupData(
+  inventory: [
+    Ingredient(
+      id: 'ing_1',
+      name: '苹果',
+      quantity: '3',
+      unit: '个',
+      imageUrl: '',
+      freshnessPercent: 1.0,
+      state: FreshnessState.fresh,
+    ),
+  ],
+  addHistory: {
+    '葱': {'count': 3, 'category': '蔬菜', 'storage': 'fridge', 'unit': '把'},
+  },
+  shopping: [
+    ShoppingItem.fromJson({'id': 'si_1', 'name': '酱油', 'category': '调料'}),
+  ],
+  customRecipes: [
+    Recipe.fromJson({
+      'id': 'r_1',
+      'name': '番茄炒蛋',
+      'ingredients': [],
+      'steps': ['打蛋'],
+    }),
+  ],
+  aiSettings: AiSettings.empty,
+);
 
 void main() {
-  group('BackupService.exportToMap', () {
-    test('returns version 1 + exportedAt ISO8601 + data object', () async {
-      SharedPreferences.setMockInitialValues({
-        'inventory_items': '[{"name":"苹果"}]',
-        'shopping_items': '[]',
-      });
-      final prefs = await SharedPreferences.getInstance();
+  group('BackupService.encode', () {
+    test('produces a version 2 envelope with exportedAt + structured data', () {
+      final root =
+          jsonDecode(BackupService.encode(_sampleData()))
+              as Map<String, dynamic>;
 
-      final map = BackupService.exportToMap(prefs);
-
-      expect(map['version'], 1);
-      expect(map['exportedAt'], isA<String>());
-      expect(DateTime.tryParse(map['exportedAt'] as String), isNotNull);
-      expect(map['data'], isA<Map<String, dynamic>>());
+      expect(root['version'], 2);
+      expect(DateTime.tryParse(root['exportedAt'] as String), isNotNull);
+      final data = root['data'] as Map<String, dynamic>;
+      expect(data['inventory'], isA<List<dynamic>>());
+      expect(data['shopping'], isA<List<dynamic>>());
+      expect(data['customRecipes'], isA<List<dynamic>>());
+      expect(data['addHistory'], isA<Map<String, dynamic>>());
     });
 
-    test('includes only present user-data keys in data', () async {
-      SharedPreferences.setMockInitialValues({
-        'inventory_items': '[{"name":"苹果"}]',
-        'shopping_items': '[]',
-        // 'add_history' absent
-        'food_details_cache': '{"should":"be skipped"}',
-      });
-      final prefs = await SharedPreferences.getInstance();
-
-      final map = BackupService.exportToMap(prefs);
-      final data = map['data'] as Map<String, dynamic>;
-
-      expect(data['inventory_items'], '[{"name":"苹果"}]');
-      expect(data['shopping_items'], '[]');
-      expect(data.containsKey('add_history'), isFalse);
-      expect(data.containsKey('food_details_cache'), isFalse,
-          reason: 'cache keys must not be backed up');
-    });
-  });
-
-  group('BackupService.encodeToJson / decodeFromJson', () {
-    test('round-trips a map back to the same shape', () {
-      final original = {
-        'version': 1,
-        'exportedAt': '2026-05-15T13:00:00.000Z',
-        'data': {
-          'inventory_items': '[{"name":"苹果"}]',
-        },
-      };
-
-      final json = BackupService.encodeToJson(original);
-      final decoded = BackupService.decodeFromJson(json);
-
-      expect(decoded, original);
+    test('is pretty-printed (indent 2)', () {
+      expect(BackupService.encode(_sampleData()), contains('\n  '));
     });
 
-    test('encodeToJson produces pretty-printed (indent 2) output', () {
-      final json = BackupService.encodeToJson({'version': 1, 'data': {}});
-      expect(json, contains('\n  '));
-    });
-
-    test('decodeFromJson throws on malformed JSON', () {
+    test('omits aiSettings when null', () {
+      final root =
+          jsonDecode(
+                BackupService.encode(
+                  BackupData(
+                    inventory: const [],
+                    addHistory: const {},
+                    shopping: const [],
+                    customRecipes: const [],
+                    aiSettings: null,
+                  ),
+                ),
+              )
+              as Map<String, dynamic>;
       expect(
-        () => BackupService.decodeFromJson('{not valid'),
-        throwsA(isA<FormatException>()),
-      );
-    });
-
-    test('decodeFromJson throws on unsupported version', () {
-      final json = BackupService.encodeToJson({'version': 99, 'data': {}});
-      expect(
-        () => BackupService.decodeFromJson(json),
-        throwsA(isA<BackupVersionException>()),
-      );
-    });
-
-    test('decodeFromJson throws when version is missing', () {
-      expect(
-        () => BackupService.decodeFromJson('{"data":{}}'),
-        throwsA(isA<BackupVersionException>()),
-      );
-    });
-
-    test('decodeFromJson throws BackupVersionException for float version', () {
-      expect(
-        () => BackupService.decodeFromJson('{"version": 1.0, "data": {}}'),
-        throwsA(isA<BackupVersionException>()),
+        (root['data'] as Map<String, dynamic>).containsKey('aiSettings'),
+        isFalse,
       );
     });
   });
 
-  group('BackupService.importFromMap', () {
-    test('writes each present user-data key back to prefs', () async {
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-
-      await BackupService.importFromMap(prefs, {
-        'version': 1,
-        'exportedAt': '2026-05-15T13:00:00.000Z',
-        'data': {
-          'inventory_items': '[{"name":"苹果"}]',
-          'shopping_items': '[]',
-        },
-      });
-
-      expect(prefs.getString('inventory_items'), '[{"name":"苹果"}]');
-      expect(prefs.getString('shopping_items'), '[]');
-      expect(prefs.getString('add_history'), isNull);
-    });
-
-    test('ignores keys outside the userDataKeys allowlist', () async {
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-
-      await BackupService.importFromMap(prefs, {
-        'version': 1,
-        'data': {
-          'inventory_items': '[]',
-          'food_details_cache': '"malicious"',
-          'unknown_key': '"hostile"',
-        },
-      });
-
-      expect(prefs.getString('inventory_items'), '[]');
-      expect(prefs.getString('food_details_cache'), isNull,
-          reason: 'cache keys must not be importable');
-      expect(prefs.getString('unknown_key'), isNull);
-    });
-
-    test('overwrites existing values', () async {
-      SharedPreferences.setMockInitialValues({
-        'inventory_items': '[{"old":true}]',
-      });
-      final prefs = await SharedPreferences.getInstance();
-
-      await BackupService.importFromMap(prefs, {
-        'version': 1,
-        'data': {'inventory_items': '[{"new":true}]'},
-      });
-
-      expect(prefs.getString('inventory_items'), '[{"new":true}]');
-    });
-
-    test('round-trips: export → encode → decode → import → same prefs', () async {
-      SharedPreferences.setMockInitialValues({
-        'inventory_items': '[{"name":"葱"}]',
-        'shopping_items': '[{"id":"si_1"}]',
-        'add_history': '{"葱":{"count":3}}',
-      });
-      final source = await SharedPreferences.getInstance();
-      final exported = BackupService.exportToMap(source);
-      final json = BackupService.encodeToJson(exported);
-
-      SharedPreferences.setMockInitialValues({});
-      final target = await SharedPreferences.getInstance();
-      final decoded = BackupService.decodeFromJson(json);
-      await BackupService.importFromMap(target, decoded);
-
-      expect(target.getString('inventory_items'), '[{"name":"葱"}]');
-      expect(target.getString('shopping_items'), '[{"id":"si_1"}]');
-      expect(target.getString('add_history'), '{"葱":{"count":3}}');
-    });
-
-    test(
-      'atomic: a corrupted inner payload throws and writes NOTHING',
-      () async {
-        SharedPreferences.setMockInitialValues({
-          'inventory_items': '[{"name":"现有食材"}]',
-          'shopping_items': '[{"id":"si_keep"}]',
-        });
-        final prefs = await SharedPreferences.getInstance();
-
-        // shopping_items is a valid list but inventory_items is truncated
-        // (no longer decodes to a JSON list).
-        expect(
-          () => BackupService.importFromMap(prefs, {
-            'version': 1,
-            'data': {
-              'shopping_items': '[{"id":"si_new"}]',
-              'inventory_items': '[{"name":"苹果"', // truncated
-            },
-          }),
-          throwsA(isA<FormatException>()),
-        );
-
-        // Nothing was written: existing good data is fully intact.
-        expect(prefs.getString('inventory_items'), '[{"name":"现有食材"}]');
-        expect(prefs.getString('shopping_items'), '[{"id":"si_keep"}]');
-      },
-    );
-
-    test('atomic: a list payload that decodes to a non-list throws', () async {
-      SharedPreferences.setMockInitialValues({
-        'inventory_items': '[{"name":"现有食材"}]',
-      });
-      final prefs = await SharedPreferences.getInstance();
+  group('BackupService encode -> decode round-trip', () {
+    test('preserves every entity by content', () {
+      final original = _sampleData();
+      final restored = BackupService.decode(BackupService.encode(original));
 
       expect(
-        () => BackupService.importFromMap(prefs, {
-          'version': 1,
-          'data': {'inventory_items': '{"not":"a list"}'},
-        }),
-        throwsA(isA<FormatException>()),
+        restored.inventory.map((i) => i.toJson()).toList(),
+        original.inventory.map((i) => i.toJson()).toList(),
       );
-
-      expect(prefs.getString('inventory_items'), '[{"name":"现有食材"}]');
-    });
-
-    test('atomic: a map payload that decodes to a non-map throws', () async {
-      SharedPreferences.setMockInitialValues({
-        'add_history': '{"葱":{"count":3}}',
-      });
-      final prefs = await SharedPreferences.getInstance();
-
+      expect(restored.addHistory, original.addHistory);
       expect(
-        () => BackupService.importFromMap(prefs, {
-          'version': 1,
-          'data': {'add_history': '[1,2,3]'},
-        }),
-        throwsA(isA<FormatException>()),
+        restored.shopping.map((s) => s.toJson()).toList(),
+        original.shopping.map((s) => s.toJson()).toList(),
       );
-
-      expect(prefs.getString('add_history'), '{"葱":{"count":3}}');
-    });
-
-    test('atomic: a non-string payload throws and writes nothing', () async {
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-
       expect(
-        () => BackupService.importFromMap(prefs, {
-          'version': 1,
-          'data': {'shopping_items': 42},
-        }),
-        throwsA(isA<FormatException>()),
+        restored.customRecipes.map((r) => r.toJson()).toList(),
+        original.customRecipes.map((r) => r.toJson()).toList(),
       );
+      expect(restored.aiSettings?.toJson(), original.aiSettings?.toJson());
+    });
+  });
 
-      expect(prefs.getString('shopping_items'), isNull);
+  group('BackupService.decode validation', () {
+    test('throws FormatException on malformed JSON', () {
+      expect(() => BackupService.decode('{not valid'), throwsFormatException);
     });
 
-    test('onImported runs only after a successful import', () async {
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      var imported = 0;
-
-      await BackupService.importFromMap(
-        prefs,
-        {
-          'version': 1,
-          'data': {'shopping_items': '[]'},
-        },
-        onImported: () async => imported++,
-      );
-
-      expect(imported, 1);
-      expect(prefs.getString('shopping_items'), '[]');
+    test('throws FormatException when the root is not an object', () {
+      expect(() => BackupService.decode('[1,2,3]'), throwsFormatException);
     });
 
-    test('onImported does NOT run when the import throws', () async {
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      var imported = 0;
+    test('throws BackupVersionException on unsupported version', () {
+      expect(
+        () => BackupService.decode('{"version": 99, "data": {}}'),
+        throwsA(isA<BackupVersionException>()),
+      );
+    });
 
-      await expectLater(
-        BackupService.importFromMap(
-          prefs,
-          {
-            'version': 1,
-            'data': {'inventory_items': '[truncated'},
-          },
-          onImported: () async => imported++,
+    test('throws BackupVersionException when version is missing', () {
+      expect(
+        () => BackupService.decode('{"data": {}}'),
+        throwsA(isA<BackupVersionException>()),
+      );
+    });
+
+    test('throws BackupVersionException for a float version', () {
+      expect(
+        () => BackupService.decode('{"version": 2.0, "data": {}}'),
+        throwsA(isA<BackupVersionException>()),
+      );
+    });
+
+    test('throws FormatException when a list payload is not a list', () {
+      expect(
+        () => BackupService.decode(
+          '{"version": 2, "data": {"inventory": {"not": "a list"}}}',
         ),
-        throwsA(isA<FormatException>()),
+        throwsFormatException,
       );
+    });
 
-      expect(imported, 0);
-      expect(prefs.getString('inventory_items'), isNull);
+    test('throws FormatException when addHistory is not a map', () {
+      expect(
+        () => BackupService.decode(
+          '{"version": 2, "data": {"addHistory": [1,2,3]}}',
+        ),
+        throwsFormatException,
+      );
+    });
+
+    test('missing payload keys decode to empty/null (never throws)', () {
+      final data = BackupService.decode('{"version": 2, "data": {}}');
+      expect(data.inventory, isEmpty);
+      expect(data.shopping, isEmpty);
+      expect(data.customRecipes, isEmpty);
+      expect(data.addHistory, isEmpty);
+      expect(data.aiSettings, isNull);
     });
   });
 }

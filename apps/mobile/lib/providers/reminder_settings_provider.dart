@@ -1,28 +1,23 @@
-import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/reminder_settings.dart';
+import '../storage/reminder_settings_repo.dart';
 import 'storage_service_provider.dart';
 
-const reminderSettingsStorageKey = 'reminder_settings_v1';
+const reminderSettingsStorageKey = ReminderSettingsRepo.storageKey;
 
 class ReminderSettingsNotifier extends Notifier<ReminderSettings> {
+  late ReminderSettingsRepo _repo;
+
   @override
   ReminderSettings build() {
-    final prefs = ref.read(sharedPreferencesProvider);
-    final raw = prefs.getString(reminderSettingsStorageKey);
-    if (raw == null) return const ReminderSettings();
-    try {
-      return ReminderSettings.fromJson(jsonDecode(raw) as Map<String, dynamic>);
-    } catch (_) {
-      return const ReminderSettings();
-    }
+    _repo = ref.read(reminderSettingsRepoProvider);
+    return _repo.load();
   }
 
   Future<void> set(ReminderSettings next) async {
     state = next;
-    final prefs = ref.read(sharedPreferencesProvider);
-    await prefs.setString(reminderSettingsStorageKey, jsonEncode(next.toJson()));
+    await _repo.save(next);
   }
 
   Future<void> update({

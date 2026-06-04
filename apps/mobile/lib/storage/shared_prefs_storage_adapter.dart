@@ -13,4 +13,9 @@ class SharedPrefsStorageAdapter implements StorageAdapter {
   Future<void> write(String key, String value) async {
     await _prefs.setString(key, value);
   }
+
+  @override
+  Future<void> remove(String key) async {
+    await _prefs.remove(key);
+  }
 }

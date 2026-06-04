@@ -1,16 +1,15 @@
-import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/ingredient_identity.dart';
 import '../models/proposal.dart';
-import '../models/storage_area.dart';
+import '../storage/intake_review_draft_repo.dart';
 import 'inventory_provider.dart';
 import 'review_notifier_base.dart';
 import 'storage_service_provider.dart';
 
-const intakeReviewDraftKey = 'intake_review_draft';
+const intakeReviewDraftKey = IntakeReviewDraftRepo.storageKey;
 
 @immutable
 class IntakeReviewState {
@@ -33,17 +32,12 @@ class IntakeReviewState {
 
 class IntakeReviewNotifier extends Notifier<IntakeReviewState>
     with ReviewNotifierBase<IntakeReviewState> {
+  late IntakeReviewDraftRepo _repo;
+
   @override
   IntakeReviewState build() {
-    final prefs = ref.read(sharedPreferencesProvider);
-    final raw = prefs.getString(intakeReviewDraftKey);
-    if (raw == null) return const IntakeReviewState();
-    try {
-      final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
-      return IntakeReviewState(proposals: list.map(_proposalFromJson).toList());
-    } catch (_) {
-      return const IntakeReviewState();
-    }
+    _repo = ref.read(intakeReviewDraftRepoProvider);
+    return IntakeReviewState(proposals: _repo.load());
   }
 
   void seed(List<IntakeProposal> proposals) {
@@ -149,51 +143,7 @@ class IntakeReviewNotifier extends Notifier<IntakeReviewState>
     );
   }
 
-  Future<void> _persistDraft() async {
-    final prefs = ref.read(sharedPreferencesProvider);
-    if (state.proposals.isEmpty) {
-      await prefs.remove(intakeReviewDraftKey);
-      return;
-    }
-    final encoded = jsonEncode(state.proposals.map(_proposalToJson).toList());
-    await prefs.setString(intakeReviewDraftKey, encoded);
-  }
-
-  Map<String, dynamic> _proposalToJson(IntakeProposal p) => {
-    'id': p.id,
-    'name': p.name,
-    'quantity': p.quantity,
-    'unit': p.unit,
-    'category': p.category,
-    'storage': p.storage.name,
-    'shelfLifeDays': p.shelfLifeDays,
-    'action': p.action.name,
-    'mergeTargetId': p.mergeTargetId,
-    'mergeTargetLabel': p.mergeTargetLabel,
-    'origin': p.origin.name,
-    'userEdited': p.userEdited,
-    'selected': p.selected,
-  };
-
-  IntakeProposal _proposalFromJson(Map<String, dynamic> j) => IntakeProposal(
-    id: j['id'] as String,
-    name: j['name'] as String? ?? '',
-    quantity: j['quantity'] as String? ?? '1',
-    unit: j['unit'] as String? ?? '个',
-    category: j['category'] as String?,
-    storage: iconTypeFromName(j['storage'] as String?),
-    shelfLifeDays: (j['shelfLifeDays'] as num?)?.toInt(),
-    action: IntakeAction.values.byName(
-      (j['action'] as String?) ?? IntakeAction.newRow.name,
-    ),
-    mergeTargetId: j['mergeTargetId'] as String?,
-    mergeTargetLabel: j['mergeTargetLabel'] as String?,
-    origin: FieldOrigin.values.byName(
-      (j['origin'] as String?) ?? FieldOrigin.ai.name,
-    ),
-    userEdited: j['userEdited'] as bool? ?? false,
-    selected: j['selected'] as bool? ?? true,
-  );
+  Future<void> _persistDraft() => _repo.save(state.proposals);
 }
 
 final intakeReviewProvider =

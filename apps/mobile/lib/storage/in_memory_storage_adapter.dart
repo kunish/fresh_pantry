@@ -10,4 +10,9 @@ class InMemoryStorageAdapter implements StorageAdapter {
   Future<void> write(String key, String value) async {
     _store[key] = value;
   }
+
+  @override
+  Future<void> remove(String key) async {
+    _store.remove(key);
+  }
 }

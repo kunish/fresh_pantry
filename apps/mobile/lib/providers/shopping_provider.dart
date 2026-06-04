@@ -12,8 +12,6 @@ import 'storage_service_provider.dart';
 
 export 'storage_service_provider.dart' show shoppingSeedProvider;
 
-const shoppingItemsStorageKey = 'shopping_items';
-
 enum ShoppingFilter { all, todo, done }
 
 class ShoppingListViewState {
@@ -112,14 +110,29 @@ class ShoppingNotifier extends Notifier<List<ShoppingItem>>
     return id == item.id ? item : item.copyWith(id: id);
   }
 
-  Future<void> replaceFromRemote(List<ShoppingItem> items) async {
+  /// Replaces the whole list and persists it. [rethrowOnError] false for the
+  /// sync inflow (swallow + retry); backup restore passes true so a failed
+  /// write rolls back and surfaces instead of falsely reporting success.
+  Future<void> replaceFromRemote(
+    List<ShoppingItem> items, {
+    bool rethrowOnError = false,
+  }) async {
     // Dedup by id (same identity rule the repo applies on load) so the
     // in-memory list cannot diverge from the persisted/reloaded list.
     final normalized = deduplicateShoppingItems(
       items.map(normalizeShoppingItem),
     );
+    final prior = state;
     state = normalized;
-    await queuePersistence(() => _save(normalized));
+    try {
+      await queuePersistence(
+        () => _save(normalized),
+        rethrowError: rethrowOnError,
+      );
+    } catch (_) {
+      state = prior;
+      rethrow;
+    }
   }
 
   Future<bool> add(ShoppingItem item) async {

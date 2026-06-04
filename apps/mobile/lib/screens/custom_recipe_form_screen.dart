@@ -803,9 +803,8 @@ class _CustomRecipeFormScreenState
     return widget.urlParserOverride ??
         (u) => AiRecipeParser.fromUrl(
           u,
-          chatFn: (msgs) => AiClient.chat(
-            settings: ref.read(aiSettingsProvider),
-            messages: msgs,
+          chatFn: (msgs) => ref.read(aiChatProvider)(
+            msgs,
             responseFormat: const {'type': 'json_object'},
           ),
         );
