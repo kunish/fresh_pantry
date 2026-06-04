@@ -384,8 +384,11 @@ class _HeroSection extends StatelessWidget {
   Widget build(BuildContext context) {
     // Header 现在是 hero 的一部分,随列表一起滚动(不再固定浮层),让蓝色一整片
     // 无缝铺到顶;滚动时既不会重叠也不会遮挡下方内容。
+    // 关掉装饰白圆斑:它叠在对角渐变上会在右上角形成一片偏亮的"光斑",明暗
+    // 非单调,首页头部看着不均/不自然(购物、详情 hero 仍保留装饰)。
     return FkHeroHeader(
       padding: EdgeInsets.zero,
+      showDecorations: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

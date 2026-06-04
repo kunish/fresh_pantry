@@ -55,6 +55,8 @@ dependencies:
   path_provider: ^2.1.4
   connectivity_plus: ^7.0.0
   workmanager: ^0.9.0+3
+  cached_network_image: ^3.4.1
+  flutter_cache_manager: ^3.4.1
 
 dev_dependencies:
   flutter_test:
@@ -98,6 +100,7 @@ flutter:
     - assets/icons/app_icon.png
     - google_fonts/
     - assets/recipes/
+    - assets/recipes/images/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

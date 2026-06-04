@@ -94,6 +94,15 @@ class ShoppingNotifier extends Notifier<List<ShoppingItem>>
     return _repo.loadAll();
   }
 
+  /// 下拉刷新：从本地 DB(按当前 household 作用域)重读。
+  ///
+  /// 不能用 `ref.invalidate(shoppingProvider)`——`build()` 返回的是启动时注入
+  /// 的一次性种子(`loadAll()` 读完即清空),重建会落回空列表(下拉刷新瞬间清空)。
+  /// 本地 DB 才是持续真相源,`loadAllFor` 内部已归一化并按 id 去重。
+  Future<void> reload() async {
+    state = await _repo.loadAllFor(activeHouseholdId);
+  }
+
   Future<void> _save(List<ShoppingItem> items) async {
     await _repo.saveItems(activeHouseholdId, items);
   }

@@ -70,6 +70,17 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
     return _repo.loadAll();
   }
 
+  /// 下拉刷新：从本地 DB(按当前 household 作用域)重读。
+  ///
+  /// 不能用 `ref.invalidate(inventoryProvider)`——`build()` 返回的是
+  /// main.dart 启动时注入的一次性种子(`loadAll()` 读完即清空),重建时种子
+  /// 已被消费,只会落回空列表(下拉刷新瞬间清空的根因)。本地 DB 才是持续的
+  /// 真相源(每次增删改与 sync 都同步写盘),所以直接重读即可,且 `loadAllFor`
+  /// 内部已按 `now` 重算新鲜度。
+  Future<void> reload() async {
+    state = await _repo.loadAllFor(activeHouseholdId);
+  }
+
   Future<void> _save(List<Ingredient> items) async {
     await _repo.saveItems(activeHouseholdId, items);
   }
@@ -116,6 +127,23 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
     );
   }
 
+  /// 手动删除食材后,把补货频次记忆里对应的名称抹掉——删除即"不要了",
+  /// 不该再在「库存不足」里提醒补货。仅对删除后库存里已无同名残留的名称生效
+  /// (大小写/空格不敏感,与 [lowStockItemsProvider] 的判定一致),所以删掉一盒
+  /// 牛奶时另一盒还在就不会误清。消费扣减/合并不走这里:吃完才是该补货的时刻。
+  Future<void> _forgetRemovedNames(Iterable<String> names) async {
+    final present = state.map((i) => i.name.trim().toLowerCase()).toSet();
+    final vanished = <String>{
+      for (final name in names)
+        if (!present.contains(name.trim().toLowerCase())) name,
+    };
+    if (vanished.isEmpty) return;
+    final history = ref.read(_addHistoryProvider.notifier);
+    for (final name in vanished) {
+      await history.forget(name);
+    }
+  }
+
   Future<void> remove(int index) async {
     if (index < 0 || index >= state.length) return;
     final removed = state[index];
@@ -135,6 +163,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
       patch: {'deletedAt': deletedAt.toIso8601String()},
       baseVersion: removed.remoteVersion,
     );
+    await _forgetRemovedNames([removed.name]);
   }
 
   /// Removes every inventory row at once (the "clear all" action). Optimistic
@@ -156,12 +185,62 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
         .toList(growable: false);
     state = const <Ingredient>[];
     try {
-      await queuePersistence(() => _save(const <Ingredient>[]), rethrowError: true);
+      await queuePersistence(
+        () => _save(const <Ingredient>[]),
+        rethrowError: true,
+      );
     } catch (_) {
       state = removed;
       rethrow;
     }
     await enqueueSyncBatch(syncOperations);
+    await _forgetRemovedNames(removed.map((item) => item.name));
+  }
+
+  /// Removes every [targets] row at once (the multi-select "batch delete").
+  ///
+  /// Each target is resolved to its live index by stable identity (so a
+  /// reordered display list never deletes the wrong row), removed optimistically
+  /// with rollback, then a delete is enqueued per row so other household members
+  /// see it too. Returns the removed items paired with their original indices,
+  /// ascending, so the caller can undo by re-inserting each at its position.
+  Future<List<({int index, Ingredient item})>> removeMany(
+    Iterable<Ingredient> targets,
+  ) async {
+    final indices = <int>{};
+    for (final target in targets) {
+      final index = inventoryIndexOf(state, target);
+      if (index != -1) indices.add(index);
+    }
+    if (indices.isEmpty) return const [];
+
+    final ascending = indices.toList()..sort();
+    final removed = [for (final i in ascending) (index: i, item: state[i])];
+
+    final prior = state;
+    final updated = [...state];
+    for (final i in ascending.reversed) {
+      updated.removeAt(i);
+    }
+    state = updated;
+    try {
+      await queuePersistence(() => _save(updated), rethrowError: true);
+    } catch (_) {
+      state = prior;
+      rethrow;
+    }
+    final deletedAt = DateTime.now().toUtc();
+    await enqueueSyncBatch([
+      for (final r in removed)
+        SyncEnqueueOp(
+          entityId: r.item.id,
+          operation: SyncOperationType.delete,
+          patch: {'deletedAt': deletedAt.toIso8601String()},
+          baseVersion: r.item.remoteVersion,
+        ),
+    ]);
+    await _forgetRemovedNames(removed.map((r) => r.item.name));
+    return removed;
   }
 
   Future<void> insertAt(int index, Ingredient item) async {
@@ -293,7 +372,8 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
       final amount = double.tryParse(p.deductAmount.trim());
       if (amount == null || amount <= 0) continue; // never silently deduct 0
       final index = _resolveDeductionRow(current, chosen);
-      if (index < 0) continue; // row gone / ambiguous -> skip the wrong-row risk
+      if (index < 0)
+        continue; // row gone / ambiguous -> skip the wrong-row risk
       deductByIndex.update(index, (v) => v + amount, ifAbsent: () => amount);
     }
 
@@ -364,7 +444,10 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
   /// local-only rows whose id is empty, falls back to the recorded positional
   /// index guarded by the captured row name, so a deduction never lands on an
   /// unrelated row. Returns -1 when the target can no longer be identified.
-  int _resolveDeductionRow(List<Ingredient> current, DeductionCandidate chosen) {
+  int _resolveDeductionRow(
+    List<Ingredient> current,
+    DeductionCandidate chosen,
+  ) {
     final id = chosen.inventoryRowId.trim();
     if (id.isNotEmpty) {
       final matches = <int>[];
@@ -377,7 +460,8 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
     final index = chosen.inventoryRowIndex;
     if (index < 0 || index >= current.length) return -1;
     final expectedName = chosen.inventoryRowName.trim().toLowerCase();
-    if (expectedName.isEmpty) return index; // no captured identity -> trust index
+    if (expectedName.isEmpty)
+      return index; // no captured identity -> trust index
     if (current[index].name.trim().toLowerCase() == expectedName) return index;
     // Index drifted; recover only if exactly one row still carries the name.
     final byName = <int>[];
@@ -471,7 +555,6 @@ final inventoryProvider = NotifierProvider<InventoryNotifier, List<Ingredient>>(
   InventoryNotifier.new,
 );
 
-
 class _AddHistoryNotifier extends Notifier<List<FrequentItem>> {
   late InventoryRepo _repo;
 
@@ -496,6 +579,14 @@ class _AddHistoryNotifier extends Notifier<List<FrequentItem>> {
       'storage': item.storage.name,
       'unit': item.unit,
     };
+    await _repo.saveHistory(history);
+    state = _itemsFromHistoryMap(history);
+  }
+
+  /// 把某个名称从补货频次记忆中抹掉(手动删除食材时调用)。不存在则 no-op。
+  Future<void> forget(String name) async {
+    final history = Map<String, dynamic>.from(_repo.loadHistory());
+    if (history.remove(name) == null) return;
     await _repo.saveHistory(history);
     state = _itemsFromHistoryMap(history);
   }

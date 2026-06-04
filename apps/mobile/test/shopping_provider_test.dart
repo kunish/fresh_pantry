@@ -22,6 +22,40 @@ Future<ProviderContainer> _container() async {
 }
 
 void main() {
+  test('reload re-reads persisted items instead of emptying them '
+      '(pull-to-refresh regression)', () async {
+    final container = await _container();
+    addTearDown(container.dispose);
+
+    final notifier = container.read(shoppingProvider.notifier);
+    // Persist rows the way startup/sync does, so disk and state agree.
+    await notifier.replaceFromRemote(const [
+      ShoppingItem(
+        id: 'milk',
+        name: '牛奶',
+        detail: '',
+        category: FoodCategories.dairyAndEggs,
+      ),
+      ShoppingItem(
+        id: 'tomato',
+        name: '番茄',
+        detail: '',
+        category: FoodCategories.freshProduce,
+      ),
+    ]);
+    expect(container.read(shoppingProvider), hasLength(2));
+
+    // The old pull-to-refresh ref.invalidate'd shoppingProvider, but build()
+    // returns a one-shot startup seed that's already consumed → it fell back
+    // to an empty list. reload() must re-read the persisted rows.
+    await notifier.reload();
+
+    expect(container.read(shoppingProvider).map((i) => i.name).toSet(), {
+      '牛奶',
+      '番茄',
+    });
+  });
+
   test('add trims item name and detail before saving state', () async {
     final container = await _container();
     addTearDown(container.dispose);

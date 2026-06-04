@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
@@ -139,9 +140,11 @@ void main() {
 
     expect(
       find.byWidgetPredicate((widget) {
-        return widget is Image &&
-            widget.image is NetworkImage &&
-            (widget.image as NetworkImage).url == imageUrl;
+        if (widget is! Image) return false;
+        final image = widget.image;
+        final provider = image is ResizeImage ? image.imageProvider : image;
+        return provider is CachedNetworkImageProvider &&
+            provider.url == imageUrl;
       }),
       findsOneWidget,
     );
@@ -169,9 +172,10 @@ void main() {
     expect(find.byType(RecipeCard), findsOneWidget);
 
     final imageFinder = find.byWidgetPredicate((widget) {
-      return widget is Image &&
-          widget.image is NetworkImage &&
-          (widget.image as NetworkImage).url == imageUrl;
+      if (widget is! Image) return false;
+      final image = widget.image;
+      final provider = image is ResizeImage ? image.imageProvider : image;
+      return provider is CachedNetworkImageProvider && provider.url == imageUrl;
     });
 
     // FK redesign: cover image is 120 wide × 130 tall (card height).

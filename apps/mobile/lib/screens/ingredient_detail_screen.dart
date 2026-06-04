@@ -215,7 +215,7 @@ class _IngredientDetailScreenState
                       if (details.description.trim().isNotEmpty) ...[
                         const SizedBox(height: 14),
                         FkCard(
-                          padding: const EdgeInsets.all(14),
+                          padding: const EdgeInsets.all(AppSpacing.lg),
                           child: Text(
                             details.description,
                             style: GoogleFonts.manrope(
@@ -650,8 +650,8 @@ class _InfoList extends StatelessWidget {
                       color: AppColors.onSurfaceVariant,
                     ),
                   ),
-                  const Spacer(),
-                  Flexible(
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
                     child: Text(
                       rows[i].$2,
                       textAlign: TextAlign.right,

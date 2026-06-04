@@ -22,6 +22,7 @@ import '../utils/expiry_calculator.dart';
 import '../utils/page_transitions.dart';
 import '../utils/storage_labels.dart';
 import '../widgets/shared/ai_busy_overlay.dart';
+import '../widgets/shared/fk_icon_button.dart';
 import '../widgets/shared/expiry_range_picker.dart';
 import '../widgets/shared/freshness_meter.dart';
 import '../widgets/shared/pill_chip.dart';
@@ -523,18 +524,11 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: !_isEditing,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop || !_isEditing) return;
-        _confirmEditBackThenPop();
-      },
-      child: Stack(
-        children: [
-          _buildForm(context),
-          if (_isParsing) const Positioned.fill(child: AiBusyOverlay()),
-        ],
-      ),
+    return Stack(
+      children: [
+        _buildForm(context),
+        if (_isParsing) const Positioned.fill(child: AiBusyOverlay()),
+      ],
     );
   }
 
@@ -552,6 +546,15 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 被 push 进来的实例(编辑 / AI 预填)可左滑返回,这里同时给出可见的
+            // 返回箭头;作为底栏 tab 的「添加」实例是栈底,canPop 为 false 不显示。
+            if (ModalRoute.of(context)?.canPop ?? false) ...[
+              FkIconButton(
+                onTap: () => Navigator.of(context).maybePop(),
+                child: const Icon(Icons.arrow_back_ios_new_rounded),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
             // Header — FK plum-ink display, more concise than the legacy copy.
             Text(
               _isEditing ? '编辑食材' : '添加食材',
@@ -1039,31 +1042,6 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     );
   }
 
-  Future<void> _confirmEditBackThenPop() async {
-    if (_editFormMatchesInitial()) {
-      if (mounted) Navigator.of(context).maybePop();
-      return;
-    }
-    final confirmed = await showAppConfirmDialog(
-      context,
-      title: '丢弃更改',
-      content: '确定要丢弃对「${widget.initialIngredient?.name ?? ''}」的修改吗？',
-      confirmLabel: '丢弃',
-      isDestructive: true,
-    );
-    if (!mounted || !confirmed) return;
-    Navigator.of(context).maybePop();
-  }
-
-  /// Edit mode is "dirty" when the form no longer matches the row being edited.
-  bool _editFormMatchesInitial() {
-    final initial = widget.initialIngredient;
-    if (initial == null) return true;
-    final name = _nameController.text.trim();
-    if (name.isEmpty) return false;
-    return _matchesInitialIngredient(_buildIngredientFromForm(name), initial);
-  }
-
   Future<void> _confirmDiscard() async {
     if (_nameController.text.isEmpty && _quantityController.text.isEmpty) {
       _discardChanges();
@@ -1089,7 +1067,9 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
       width: double.infinity,
       height: 48,
       child: TextButton(
-        onPressed: _isEditing ? _confirmEditBackThenPop : _confirmDiscard,
+        onPressed: _isEditing
+            ? () => Navigator.of(context).maybePop()
+            : _confirmDiscard,
         child: Text(
           _isEditing ? '取消' : '丢弃',
           style: GoogleFonts.plusJakartaSans(

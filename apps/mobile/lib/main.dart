@@ -29,6 +29,17 @@ import 'sync/sync_outbox_repo.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
+
+  // Sentry monitors release/profile builds only. Debug builds run on developer
+  // machines where errors already surface in the console, so reporting them
+  // (a missing --dart-define=SUPABASE_URL → BackendConfigException, a hot-reload
+  // `_CompileTimeError: Lookup failed`, etc.) just pollutes the production issue
+  // stream with environment noise. See FRESH_PANTRY-A and FRESH_PANTRY-Z.
+  if (kDebugMode) {
+    await _runFreshPantry();
+    return;
+  }
+
   final sentryConfig = SentryConfig.fromEnvironment();
   await SentryFlutter.init((options) {
     options.dsn = sentryConfig.dsn;
@@ -44,6 +55,12 @@ void main() async {
 }
 
 Future<void> _runFreshPantry() async {
+  // 放宽全局图片解码缓存上限。菜谱/食材封面(网络图)经 RecipeImage 按渲染盒
+  // 解码后每张仅几百 KB,但默认 100MB 上限在长列表 + 切 tab 往返时仍可能驱逐
+  // 已解码的封面 completer,使重建时重新走异步首帧而「闪白」。上调到 200MB 让
+  // 封面长期驻留缓存,切 tab 重建即命中、ImageCache 同步出帧不闪。
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 200 << 20;
+
   final backendConfig = BackendConfig.fromEnvironment();
   await Supabase.initialize(
     url: backendConfig.supabaseUrl,

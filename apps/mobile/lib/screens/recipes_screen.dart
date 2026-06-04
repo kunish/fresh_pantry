@@ -18,7 +18,7 @@ import 'recipe_detail_screen.dart';
 
 /// FreshKeeper 菜谱 tab — 设计稿 `screens-3.jsx::RecipesScreen`。
 ///
-/// 4-tab segmented(用临期 / 现有食材 / 探索 / 我的)+ 时间筛选(不限 / ≤15 / ≤30 分钟)。
+/// 4-tab segmented(探索 / 现有食材 / 用临期 / 我的)+ 时间筛选(不限 / ≤15 / ≤30 分钟)。
 /// "用临期" 顶部展示橙黄 banner 提醒优先使用临期食材的数量。
 enum _RecipeTab { expiring, available, explore, mine }
 
@@ -44,7 +44,7 @@ class RecipesScreen extends ConsumerStatefulWidget {
 }
 
 class _RecipesScreenState extends ConsumerState<RecipesScreen> {
-  _RecipeTab _tab = _RecipeTab.expiring;
+  _RecipeTab _tab = _RecipeTab.explore;
   _TimeFilter _time = _TimeFilter.all;
   bool _searchOpen = false;
   final _searchCtrl = TextEditingController();
@@ -249,9 +249,9 @@ class _TabRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = <(_RecipeTab, String, IconData)>[
-      (_RecipeTab.expiring, '用临期', Icons.local_fire_department_rounded),
-      (_RecipeTab.available, '现有', Icons.eco_rounded),
       (_RecipeTab.explore, '探索', Icons.menu_book_rounded),
+      (_RecipeTab.available, '现有', Icons.eco_rounded),
+      (_RecipeTab.expiring, '用临期', Icons.local_fire_department_rounded),
       (_RecipeTab.mine, '我的', Icons.bookmark_rounded),
     ];
     return Container(

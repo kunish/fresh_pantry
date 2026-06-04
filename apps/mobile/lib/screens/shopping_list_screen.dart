@@ -165,9 +165,10 @@ class ShoppingListScreen extends ConsumerWidget {
 
   Future<void> _refreshShoppingList(BuildContext context, WidgetRef ref) async {
     try {
-      ref.invalidate(shoppingProvider);
-      ref.invalidate(shoppingListViewProvider);
-      ref.read(shoppingListViewProvider);
+      // 从本地 DB 重读(派生的 shoppingListViewProvider 随之自动重算)。
+      // 不能 invalidate shoppingProvider——其 build() 依赖一次性启动种子,重建
+      // 会落回空列表,导致下拉刷新瞬间清空。
+      await ref.read(shoppingProvider.notifier).reload();
     } catch (error, stackTrace) {
       FlutterError.reportError(
         FlutterErrorDetails(
@@ -314,7 +315,9 @@ class ShoppingListScreen extends ConsumerWidget {
     // 走与"一键入库"完全相同的审核流程,确保数量解析、批次合并与"应用后从
     // 清单移除"的语义一致(此前快捷入库写死 数量1/份、不合并、不移除)。
     final inventory = ref.read(inventoryProvider);
-    final proposals = IntakeProposalFactory.fromShoppingItems([item], inventory);
+    final proposals = IntakeProposalFactory.fromShoppingItems([
+      item,
+    ], inventory);
     ref.read(intakeReviewProvider.notifier).seed(proposals);
 
     final appliedIds = await Navigator.of(context).push<Set<String>>(
@@ -809,4 +812,3 @@ class _ClearDoneButton extends StatelessWidget {
     );
   }
 }
-

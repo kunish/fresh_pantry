@@ -348,7 +348,6 @@ class _HeroSection extends StatelessWidget {
                 children: [
                   FkIconButton(
                     onTap: onBack,
-                    onImage: true,
                     child: const Icon(
                       Icons.arrow_back_ios_new_rounded,
                       size: 18,
@@ -360,7 +359,6 @@ class _HeroSection extends StatelessWidget {
                       message: '编辑食谱',
                       child: FkIconButton(
                         onTap: onEdit!,
-                        onImage: true,
                         child: const Icon(Icons.edit_outlined, size: 18),
                       ),
                     ),
@@ -371,7 +369,6 @@ class _HeroSection extends StatelessWidget {
                       message: '删除食谱',
                       child: FkIconButton(
                         onTap: onDelete!,
-                        onImage: true,
                         foregroundColor: AppColors.fkDanger,
                         child: const Icon(
                           Icons.delete_outline_rounded,
@@ -383,7 +380,6 @@ class _HeroSection extends StatelessWidget {
                   ],
                   FkIconButton(
                     onTap: onToggleFavorite,
-                    onImage: true,
                     foregroundColor: isFavorite
                         ? AppColors.fkDanger
                         : AppColors.onSurface,

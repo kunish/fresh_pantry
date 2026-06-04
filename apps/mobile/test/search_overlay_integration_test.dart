@@ -149,9 +149,12 @@ void main() {
     expect(find.text('有机全脂牛奶'), findsOneWidget);
     expect(find.textContaining('Open Food Facts 返回的牛奶详情'), findsOneWidget);
     expect(
-      find.byWidgetPredicate(
-        (widget) => widget is Image && widget.image is MemoryImage,
-      ),
+      find.byWidgetPredicate((widget) {
+        if (widget is! Image) return false;
+        final image = widget.image;
+        final provider = image is ResizeImage ? image.imageProvider : image;
+        return provider is MemoryImage;
+      }),
       findsOneWidget,
     );
 

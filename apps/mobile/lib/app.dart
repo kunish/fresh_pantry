@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'theme/app_theme.dart';
+import 'utils/page_transitions.dart';
 import 'providers/navigation_provider.dart';
 import 'providers/ai_draft_provider.dart';
 import 'screens/custom_recipe_form_screen.dart';
@@ -126,7 +127,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     if (url == null) return;
     ref.read(navigationProvider.notifier).state = 0;
     Navigator.of(context).push(
-      MaterialPageRoute(
+      fkRoute<void>(
         builder: (_) => CustomRecipeFormScreen(prefilledUrl: url),
       ),
     );

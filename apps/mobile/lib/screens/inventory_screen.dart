@@ -119,9 +119,72 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     showAppSnackBar(context, '已合并批次', backgroundColor: AppColors.primary);
   }
 
+  /// Resolves the live selection (display indices) into ingredients, guarding
+  /// against indices that drifted out of range since selection.
+  List<Ingredient> _selectedItems(List<Ingredient> displayItems) => _selected
+      .where((i) => i >= 0 && i < displayItems.length)
+      .map((i) => displayItems[i])
+      .toList();
+
+  Future<void> _deleteSelected(List<Ingredient> displayItems) async {
+    final targets = _selectedItems(displayItems);
+    setState(_selected.clear);
+    if (targets.isEmpty) return;
+
+    final List<({int index, Ingredient item})> removed;
+    try {
+      removed = await ref.read(inventoryProvider.notifier).removeMany(targets);
+    } catch (_) {
+      if (mounted) {
+        showAppSnackBar(context, '删除失败，请稍后重试', backgroundColor: AppColors.error);
+      }
+      return;
+    }
+    if (!mounted || removed.isEmpty) return;
+
+    showAppSnackBar(
+      context,
+      '已删除 ${removed.length} 件食材',
+      backgroundColor: AppColors.error,
+      actionLabel: '撤销',
+      actionTextColor: AppColors.onError,
+      // Re-insert ascending so each row lands back at its original position.
+      onAction: () async {
+        final notifier = ref.read(inventoryProvider.notifier);
+        for (final r in removed) {
+          await notifier.insertAt(r.index, r.item);
+        }
+      },
+    );
+  }
+
+  Future<void> _addSelectedToShoppingList(List<Ingredient> displayItems) async {
+    final targets = _selectedItems(displayItems);
+    setState(_selected.clear);
+    if (targets.isEmpty) return;
+
+    final shopping = ref.read(shoppingProvider.notifier);
+    var addedCount = 0;
+    for (final item in targets) {
+      try {
+        if (await shopping.addFromIngredient(item)) addedCount++;
+      } catch (_) {
+        // Skip the failed add; the summary reports the count actually added.
+      }
+    }
+    if (!mounted) return;
+    showAppSnackBar(
+      context,
+      addedCount > 0 ? '已添加 $addedCount 项到购物清单' : '所选项目已在购物清单中',
+      backgroundColor: addedCount > 0 ? AppColors.primary : AppColors.tertiary,
+    );
+  }
+
   Future<void> _onRefresh() async {
-    ref.invalidate(inventoryProvider);
-    ref.invalidate(filteredInventoryItemsProvider);
+    // 从本地 DB 重读(派生的 filteredInventoryItemsProvider 会随之自动重算)。
+    // 不能 invalidate inventoryProvider——其 build() 依赖一次性启动种子,重建
+    // 会落回空列表,导致下拉刷新瞬间清空。
+    await ref.read(inventoryProvider.notifier).reload();
   }
 
   Future<void> _clearAllIngredients() async {
@@ -244,6 +307,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                             canMerge: canMerge,
                             onCancel: () => setState(() => _selected.clear()),
                             onMerge: () => _mergeSelected(items),
+                            onAddToShopping: () =>
+                                _addSelectedToShoppingList(items),
+                            onDelete: () => _deleteSelected(items),
                           )
                         : FkTopBar(
                             title: '我的食材',
@@ -290,9 +356,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                       icon: query.isNotEmpty
                           ? Icons.search_off_rounded
                           : Icons.inventory_2_outlined,
-                      title: query.isNotEmpty
-                          ? '没有找到「$query」'
-                          : '该分类下暂无食材',
+                      title: query.isNotEmpty ? '没有找到「$query」' : '该分类下暂无食材',
                       subtitle: query.isNotEmpty ? '试试换个关键词' : '去添加一些食材吧',
                     ),
                   )
@@ -390,12 +454,16 @@ class _SelectionTopBar extends StatelessWidget {
   final bool canMerge;
   final VoidCallback onCancel;
   final VoidCallback onMerge;
+  final VoidCallback onAddToShopping;
+  final VoidCallback onDelete;
 
   const _SelectionTopBar({
     required this.selectedCount,
     required this.canMerge,
     required this.onCancel,
     required this.onMerge,
+    required this.onAddToShopping,
+    required this.onDelete,
   });
 
   @override
@@ -417,6 +485,8 @@ class _SelectionTopBar extends StatelessWidget {
           Expanded(
             child: Text(
               '已选 $selectedCount 件',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.manrope(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -424,7 +494,7 @@ class _SelectionTopBar extends StatelessWidget {
               ),
             ),
           ),
-          if (canMerge)
+          if (canMerge) ...[
             GestureDetector(
               onTap: onMerge,
               behavior: HitTestBehavior.opaque,
@@ -447,6 +517,28 @@ class _SelectionTopBar extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(width: 8),
+          ],
+          Tooltip(
+            message: '加入购物清单',
+            child: FkIconButton(
+              key: const Key('inventory_selection_add_to_shopping_button'),
+              onTap: onAddToShopping,
+              child: const Icon(Icons.add_shopping_cart_rounded),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Tooltip(
+            message: '删除所选',
+            child: FkIconButton(
+              key: const Key('inventory_selection_delete_button'),
+              onTap: onDelete,
+              child: const Icon(
+                Icons.delete_outline_rounded,
+                color: AppColors.error,
+              ),
+            ),
+          ),
         ],
       ),
     );

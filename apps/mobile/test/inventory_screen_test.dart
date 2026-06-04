@@ -10,6 +10,7 @@ import 'package:fresh_pantry/models/storage_area.dart';
 import 'package:fresh_pantry/models/food_details.dart';
 import 'package:fresh_pantry/providers/food_details_provider.dart';
 import 'package:fresh_pantry/providers/inventory_provider.dart';
+import 'package:fresh_pantry/providers/shopping_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/screens/ingredient_detail_screen.dart';
 import 'package:fresh_pantry/screens/inventory_screen.dart';
@@ -70,6 +71,79 @@ void main() {
     // 番茄 is now visible both in the search field text and the card name.
     expect(find.widgetWithText(IngredientCard, '番茄'), findsOneWidget);
     expect(find.widgetWithText(IngredientCard, '牛奶'), findsNothing);
+  });
+
+  test('reload re-reads persisted inventory instead of emptying it '
+      '(pull-to-refresh regression)', () async {
+    final db = newTestDatabase();
+    addTearDown(db.close);
+    final container = ProviderContainer(
+      overrides: testStorageOverrides(database: db),
+    );
+    addTearDown(container.dispose);
+
+    final notifier = container.read(inventoryProvider.notifier);
+    // Persist rows the way startup/sync does, so disk and state agree.
+    await notifier.replaceFromRemote([
+      _ingredient(name: '番茄', category: FoodCategories.freshProduce),
+      _ingredient(name: '牛奶', category: FoodCategories.dairyAndEggs),
+    ]);
+    expect(container.read(inventoryProvider), hasLength(2));
+
+    // The old pull-to-refresh ref.invalidate'd inventoryProvider, but
+    // build() returns a one-shot startup seed that's already consumed → it
+    // fell back to an empty list. reload() must re-read the persisted rows.
+    await notifier.reload();
+
+    expect(container.read(inventoryProvider).map((i) => i.name).toSet(), {
+      '番茄',
+      '牛奶',
+    });
+  });
+
+  testWidgets('pull-to-refresh keeps the inventory instead of clearing it', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final db = newTestDatabase();
+    addTearDown(db.close);
+    late ProviderContainer container;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          ...testStorageOverrides(database: db),
+        ],
+        child: Builder(
+          builder: (context) {
+            container = ProviderScope.containerOf(context);
+            return const MaterialApp(home: Scaffold(body: InventoryScreen()));
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Persist rows so disk matches what the user sees (mirrors startup/sync).
+    await container.read(inventoryProvider.notifier).replaceFromRemote([
+      _ingredient(name: '番茄', category: FoodCategories.freshProduce),
+      _ingredient(name: '牛奶', category: FoodCategories.dairyAndEggs),
+    ]);
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(IngredientCard, '番茄'), findsOneWidget);
+
+    // Pull to refresh: drag the scroll view down far enough to trip onRefresh.
+    await tester.fling(
+      find.byType(CustomScrollView),
+      const Offset(0, 400),
+      1200,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(IngredientCard, '番茄'), findsOneWidget);
+    expect(find.widgetWithText(IngredientCard, '牛奶'), findsOneWidget);
   });
 
   testWidgets('clear-all button wipes the inventory after confirmation', (
@@ -138,10 +212,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(
-      find.byKey(const Key('inventory_clear_all_button')),
-      findsNothing,
-    );
+    expect(find.byKey(const Key('inventory_clear_all_button')), findsNothing);
   });
 
   testWidgets('deletes the selected filtered inventory item by original index', (
@@ -569,6 +640,150 @@ void main() {
 
     expect(container.read(inventoryProvider).single.name, '樱桃番茄');
     expect(find.text('「樱桃番茄」已更新'), findsOneWidget);
+  });
+
+  testWidgets('multi-select exposes batch delete and add-to-shopping actions', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final db = newTestDatabase();
+    addTearDown(db.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          ...testStorageOverrides(
+            database: db,
+            inventory: [
+              _ingredient(name: '番茄', category: FoodCategories.freshProduce),
+              _ingredient(name: '牛奶', category: FoodCategories.dairyAndEggs),
+            ],
+          ),
+        ],
+        child: const MaterialApp(home: Scaffold(body: InventoryScreen())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.byKey(const ValueKey('inv_番茄_0')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('已选 1 件'), findsOneWidget);
+    expect(
+      find.byKey(const Key('inventory_selection_delete_button')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('inventory_selection_add_to_shopping_button')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('batch delete removes the selected items and undo restores them', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final db = newTestDatabase();
+    addTearDown(db.close);
+    late ProviderContainer container;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          ...testStorageOverrides(
+            database: db,
+            inventory: [
+              _ingredient(name: '番茄', category: FoodCategories.freshProduce),
+              _ingredient(name: '牛奶', category: FoodCategories.dairyAndEggs),
+              _ingredient(name: '米饭', category: FoodCategories.other),
+            ],
+          ),
+        ],
+        child: Builder(
+          builder: (context) {
+            container = ProviderScope.containerOf(context);
+            return const MaterialApp(home: Scaffold(body: InventoryScreen()));
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Select the first and third item (non-adjacent, to exercise indexing).
+    await tester.longPress(find.byKey(const ValueKey('inv_番茄_0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('inv_米饭_2')));
+    await tester.pumpAndSettle();
+    expect(find.text('已选 2 件'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('inventory_selection_delete_button')));
+    await tester.pumpAndSettle();
+
+    expect(container.read(inventoryProvider).map((e) => e.name), ['牛奶']);
+    expect(find.text('已删除 2 件食材'), findsOneWidget);
+
+    await tester.tap(find.text('撤销'));
+    await tester.pumpAndSettle();
+
+    expect(container.read(inventoryProvider).map((e) => e.name), [
+      '番茄',
+      '牛奶',
+      '米饭',
+    ]);
+  });
+
+  testWidgets('batch add-to-shopping pushes the selected items onto the list', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final db = newTestDatabase();
+    addTearDown(db.close);
+    late ProviderContainer container;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          ...testStorageOverrides(
+            database: db,
+            inventory: [
+              _ingredient(name: '番茄', category: FoodCategories.freshProduce),
+              _ingredient(name: '牛奶', category: FoodCategories.dairyAndEggs),
+            ],
+          ),
+        ],
+        child: Builder(
+          builder: (context) {
+            container = ProviderScope.containerOf(context);
+            return const MaterialApp(home: Scaffold(body: InventoryScreen()));
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.byKey(const ValueKey('inv_番茄_0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('inv_牛奶_1')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const Key('inventory_selection_add_to_shopping_button')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(container.read(shoppingProvider).map((e) => e.name).toSet(), {
+      '番茄',
+      '牛奶',
+    });
+    expect(find.text('已添加 2 项到购物清单'), findsOneWidget);
+    // Selection clears after the action completes.
+    expect(find.text('已选 2 件'), findsNothing);
   });
 }
 
