@@ -19,6 +19,7 @@ import '../widgets/shared/fk_card.dart';
 import '../widgets/shared/fk_dashed_border.dart';
 import '../widgets/shared/fk_icon_button.dart';
 import '../widgets/shared/fk_pill.dart';
+import '../widgets/shared/recipe_cover_fallback.dart';
 import '../widgets/shared/recipe_image.dart';
 import 'deduction_review_screen.dart';
 
@@ -308,14 +309,9 @@ class _HeroSection extends StatelessWidget {
               imageSource: recipe.imageUrl,
               fit: BoxFit.cover,
               semanticLabel: recipe.name,
-              fallback: Container(
-                color: AppColors.primarySoft,
-                alignment: Alignment.center,
-                child: const Icon(
-                  Icons.restaurant_rounded,
-                  size: 64,
-                  color: AppColors.primary,
-                ),
+              fallback: RecipeCoverFallback(
+                category: recipe.category,
+                iconSize: 64,
               ),
             ),
           ),

@@ -302,6 +302,7 @@ class _TodayRecommendationSection extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(18, 0, 18, 100),
           child: RecipeCard(
             recipe: todayRecipe,
+            layout: RecipeCardLayout.banner,
             matchedCount: matchedIngredientCountForNames(
               inventoryNames,
               todayRecipe,
@@ -591,47 +592,47 @@ class _ExpiringCard extends StatelessWidget {
         ),
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: palette.tint,
-              borderRadius: BorderRadius.circular(AppRadius.chip),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: palette.tint,
+                borderRadius: BorderRadius.circular(AppRadius.chip),
+              ),
+              child: Center(
+                child: CatIcon(category: catId, size: 36, color: palette.ink),
+              ),
             ),
-            child: Center(
-              child: CatIcon(category: catId, size: 36, color: palette.ink),
+            const SizedBox(height: 10),
+            Text(
+              item.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: AppFontSize.md,
+                fontWeight: FontWeight.w700,
+                color: AppColors.onSurface,
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            item.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: AppFontSize.md,
-              fontWeight: FontWeight.w700,
-              color: AppColors.onSurface,
+            const SizedBox(height: 2),
+            Text(
+              '${item.quantity}${item.unit}',
+              style: GoogleFonts.manrope(
+                fontSize: AppFontSize.xs,
+                color: AppColors.onSurfaceVariant,
+              ),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            '${item.quantity}${item.unit}',
-            style: GoogleFonts.manrope(
-              fontSize: AppFontSize.xs,
-              color: AppColors.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          if (item.expiryLabel != null)
-            FkPill(
-              label: item.expiryLabel!,
-              backgroundColor: pillBg,
-              foregroundColor: pillFg,
-              sm: true,
-            ),
-        ],
+            const SizedBox(height: AppSpacing.sm),
+            if (item.expiryLabel != null)
+              FkPill(
+                label: item.expiryLabel!,
+                backgroundColor: pillBg,
+                foregroundColor: pillFg,
+                sm: true,
+              ),
+          ],
         ),
       ),
     );

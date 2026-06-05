@@ -36,9 +36,7 @@ void main() {
     final db = newTestDatabase();
     addTearDown(db.close);
 
-    await tester.pumpWidget(
-      _app(prefs, const SettingsScreen(), database: db),
-    );
+    await tester.pumpWidget(_app(prefs, const SettingsScreen(), database: db));
     await tester.pumpAndSettle();
 
     // Scroll to bring the 我的食谱 link in the 更多 section into view.
@@ -138,12 +136,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    // 封面分两层渲染(模糊铺底 cover + 完整前景 contain),都用同一张图;
+    // 这里只断言「完整图」前景层,确认保存的图被完整展示。
     expect(
       find.byWidgetPredicate((widget) {
         if (widget is! Image) return false;
         final image = widget.image;
         final provider = image is ResizeImage ? image.imageProvider : image;
-        return provider is CachedNetworkImageProvider &&
+        return widget.fit == BoxFit.contain &&
+            provider is CachedNetworkImageProvider &&
             provider.url == imageUrl;
       }),
       findsOneWidget,
@@ -171,14 +172,17 @@ void main() {
 
     expect(find.byType(RecipeCard), findsOneWidget);
 
+    // 取完整图前景层(contain);封面还有一层模糊铺底(cover),用 fit 区分。
     final imageFinder = find.byWidgetPredicate((widget) {
       if (widget is! Image) return false;
       final image = widget.image;
       final provider = image is ResizeImage ? image.imageProvider : image;
-      return provider is CachedNetworkImageProvider && provider.url == imageUrl;
+      return widget.fit == BoxFit.contain &&
+          provider is CachedNetworkImageProvider &&
+          provider.url == imageUrl;
     });
 
-    // FK redesign: cover image is 120 wide × 130 tall (card height).
+    // FK redesign: 封面占 120 宽 × 130 高(卡片高度),前景完整图填满该盒子。
     expect(tester.getSize(imageFinder), const Size(120, 130));
   });
 
@@ -239,9 +243,9 @@ void main() {
     final prefs = await _prefs({});
     final db = newTestDatabase();
     addTearDown(db.close);
-    final recipe = _recipe(
-      'r1',
-    ).copyWith(ingredients: [RecipeIngredient(name: 'chicken', amount: '1份')]);
+    final recipe = _recipe('r1').copyWith(
+      ingredients: [RecipeIngredient(name: 'chicken', amount: '1份')],
+    );
 
     await tester.pumpWidget(
       _app(
@@ -438,9 +442,7 @@ void main() {
     final db = newTestDatabase();
     addTearDown(db.close);
 
-    await tester.pumpWidget(
-      _app(prefs, const MyRecipesScreen(), database: db),
-    );
+    await tester.pumpWidget(_app(prefs, const MyRecipesScreen(), database: db));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('新建食谱'));
@@ -544,15 +546,14 @@ void main() {
 
     // Only check labeled fields (those with a labelText) — unlabeled internal
     // fields like the CookingTimeRow input are excluded.
-    final labeledTextFields =
-        tester
-            .widgetList<TextField>(find.byType(TextField))
-            .where(
-              (tf) =>
-                  tf.key != const Key('recipe_url_input') &&
-                  tf.decoration?.labelText != null,
-            )
-            .toList();
+    final labeledTextFields = tester
+        .widgetList<TextField>(find.byType(TextField))
+        .where(
+          (tf) =>
+              tf.key != const Key('recipe_url_input') &&
+              tf.decoration?.labelText != null,
+        )
+        .toList();
 
     expect(labeledTextFields, isNotEmpty);
     for (final textField in labeledTextFields) {
