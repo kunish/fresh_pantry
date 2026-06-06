@@ -5,6 +5,7 @@ import '../../theme/app_theme.dart';
 import '../../providers/navigation_provider.dart';
 import '../../screens/settings_screen.dart';
 import '../../utils/page_transitions.dart';
+import '../../household/household_session_controller.dart';
 
 /// 首页 Header 固定高度 — Dashboard hero 用它换算顶部留白,使蓝色铺到状态栏
 /// 后面时问候文案不会被浮在上方的 Header 压住。
@@ -15,6 +16,11 @@ class TopAppBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final hasInvite = ref.watch(
+      householdSessionControllerProvider.select(
+        (s) => s.pendingInvitePreviews.isNotEmpty,
+      ),
+    );
     return SizedBox(
       height: kTopAppBarHeight,
       child: Padding(
@@ -51,17 +57,38 @@ class TopAppBar extends ConsumerWidget {
             ),
             Row(
               children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.settings_outlined,
-                    color: Colors.white,
-                  ),
-                  tooltip: '设置',
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      fkRoute<void>(builder: (_) => const SettingsScreen()),
-                    );
-                  },
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.settings_outlined,
+                        color: Colors.white,
+                      ),
+                      tooltip: '设置',
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          fkRoute<void>(builder: (_) => const SettingsScreen()),
+                        );
+                      },
+                    ),
+                    if (hasInvite)
+                      Positioned(
+                        right: 8,
+                        top: 10,
+                        child: IgnorePointer(
+                          child: Container(
+                            key: const ValueKey('settings_invite_badge'),
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: AppColors.fkAlert,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 IconButton(
                   icon: const Icon(Icons.search, color: Colors.white),
