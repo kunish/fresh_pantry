@@ -15,7 +15,6 @@ import '../utils/page_transitions.dart';
 import '../utils/safe_push.dart';
 import '../widgets/common/top_app_bar.dart';
 import '../widgets/dashboard/expiring_fallback_card.dart';
-import '../widgets/dashboard/household_chip.dart';
 import '../widgets/dashboard/low_stock_card.dart';
 import '../widgets/recipe_card.dart';
 import '../widgets/shared/cat_icon.dart';
@@ -399,35 +398,27 @@ class _HeroSection extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            greeting,
-                            style: GoogleFonts.manrope(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white.withValues(alpha: 0.75),
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            '你的冰箱状态',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: AppFontSize.xxl,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.4,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
+                    Text(
+                      greeting,
+                      style: GoogleFonts.manrope(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withValues(alpha: 0.75),
                       ),
                     ),
-                    const SizedBox(width: AppSpacing.sm),
-                    const HouseholdChip(),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      '你的冰箱状态',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: AppFontSize.xxl,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.4,
+                        color: Colors.white,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 22),
