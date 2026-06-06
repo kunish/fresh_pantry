@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.1.0...fresh_pantry-v1.1.1) (2026-06-06)
+
+
+### Bug Fixes
+
+* **auth:** 邮箱登录改 6 位验证码替代 magic link ([f2bdc7d](https://github.com/kunish/fresh_pantry/commit/f2bdc7dbb694e66ddf659b55b46a78eedf51d52b))
+
 ## [1.1.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.0.1...fresh_pantry-v1.1.0) (2026-06-05)
 
 
