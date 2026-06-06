@@ -4,9 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../models/shopping_item.dart';
 import '../providers/intake_review_provider.dart';
-import '../providers/inventory_provider.dart';
+import '../providers/shopping_intake_controller.dart';
 import '../providers/shopping_provider.dart';
-import '../services/intake_proposal_factory.dart';
 import 'intake_review_screen.dart';
 import '../theme/app_theme.dart';
 import '../theme/fk_category_palette.dart';
@@ -275,12 +274,10 @@ class ShoppingListScreen extends ConsumerWidget {
     final checked = all.where((i) => i.isChecked).toList();
     if (checked.isEmpty) return;
 
-    final inventory = ref.read(inventoryProvider);
-    final proposals = IntakeProposalFactory.fromShoppingItems(
-      checked,
-      inventory,
-    );
-    ref.read(intakeReviewProvider.notifier).seed(proposals);
+    final controller = ref.read(shoppingIntakeControllerProvider);
+    ref
+        .read(intakeReviewProvider.notifier)
+        .seed(controller.buildProposals(checked));
 
     final appliedIds = await Navigator.of(context).push<Set<String>>(
       fkRoute<Set<String>>(
@@ -288,23 +285,14 @@ class ShoppingListScreen extends ConsumerWidget {
       ),
     );
 
-    // Remove ONLY the checked items whose intake proposal was actually applied
-    // (proposal id is `ix_<itemId>`). A cancelled review or a deselected
-    // proposal returns no id for that item, so it stays on the list instead of
-    // being silently discarded without ever entering inventory.
+    // Remove ONLY the checked items whose intake proposal was actually applied.
+    // A cancelled review or a deselected proposal returns no id for that item,
+    // so it stays on the list instead of being silently discarded without ever
+    // entering inventory. (Ownership of the proposal-id scheme + the
+    // remove-applied rule lives in ShoppingIntakeController.)
     if (!context.mounted) return;
-    if (appliedIds == null || appliedIds.isEmpty) return;
-    final shopping = ref.read(shoppingProvider.notifier);
-    for (final item in checked) {
-      if (appliedIds.contains('ix_${item.id}')) {
-        try {
-          await shopping.remove(item.id);
-        } catch (_) {
-          // Item entered inventory but couldn't be cleared from the list;
-          // leave it checked so a later attempt can retry the removal.
-        }
-      }
-    }
+    if (appliedIds == null) return;
+    await controller.removeApplied(checked, appliedIds);
   }
 
   Future<void> _addItemToInventory(
@@ -314,11 +302,10 @@ class ShoppingListScreen extends ConsumerWidget {
   ) async {
     // 走与"一键入库"完全相同的审核流程,确保数量解析、批次合并与"应用后从
     // 清单移除"的语义一致(此前快捷入库写死 数量1/份、不合并、不移除)。
-    final inventory = ref.read(inventoryProvider);
-    final proposals = IntakeProposalFactory.fromShoppingItems([
-      item,
-    ], inventory);
-    ref.read(intakeReviewProvider.notifier).seed(proposals);
+    final controller = ref.read(shoppingIntakeControllerProvider);
+    ref
+        .read(intakeReviewProvider.notifier)
+        .seed(controller.buildProposals([item]));
 
     final appliedIds = await Navigator.of(context).push<Set<String>>(
       fkRoute<Set<String>>(
@@ -326,14 +313,11 @@ class ShoppingListScreen extends ConsumerWidget {
       ),
     );
 
-    // 只有当该项的入库提案(id 为 `ix_<itemId>`)真正被应用后,才从清单移除。
+    // 只有当该项的入库提案真正被应用后,才从清单移除(由 ShoppingIntakeController
+    // 判定并保留未能清除的项以便重试)。
     if (!context.mounted) return;
-    if (appliedIds == null || !appliedIds.contains('ix_${item.id}')) return;
-    try {
-      await ref.read(shoppingProvider.notifier).remove(item.id);
-    } catch (_) {
-      // 已入库但未能从清单清除,保留该项以便稍后重试移除。
-    }
+    if (appliedIds == null) return;
+    await controller.removeApplied([item], appliedIds);
   }
 }
 

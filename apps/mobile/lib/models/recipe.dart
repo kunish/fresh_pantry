@@ -1,3 +1,4 @@
+import '../utils/quantity_text.dart';
 import 'sync_metadata.dart';
 
 class RecipeIngredient {
@@ -25,14 +26,11 @@ class RecipeIngredient {
   static _LegacyAmountParts _parseLegacyAmount(String amount) {
     final trimmed = amount.trim();
     if (trimmed.isEmpty) return const _LegacyAmountParts('', '');
-    final match = RegExp(r'^(\d+(?:\.\d+)?)\s*(.*)$').firstMatch(trimmed);
-    if (match == null) {
+    final parsed = parseLeadingQuantity(trimmed);
+    if (parsed == null) {
       return _LegacyAmountParts('', trimmed);
     }
-    return _LegacyAmountParts(
-      match.group(1) ?? '',
-      (match.group(2) ?? '').trim(),
-    );
+    return _LegacyAmountParts(parsed.magnitude, parsed.remainder);
   }
 
   @override

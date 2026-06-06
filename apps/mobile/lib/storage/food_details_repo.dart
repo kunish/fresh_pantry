@@ -136,6 +136,25 @@ String _fallbackDescription(IconType storage, int? shelfLifeDays) {
   return '暂无联网详情，已保留本地库存中的食材信息。';
 }
 
+/// Whether [description] is a system-generated placeholder rather than a real
+/// food description (so presentation can hide it).
+///
+/// This is the single authority for "is this a placeholder?". It mirrors the
+/// templates minted by [_fallbackDescription] above and the Open Food Facts
+/// generic line in `open_food_facts_service.dart`
+/// (`'Open Food Facts 记录的$category食品。'`) — keep these three checks in sync
+/// with those producers if a template ever changes.
+bool isPlaceholderFoodDescription(String description) {
+  final trimmed = description.trim();
+  if (trimmed.isEmpty) return true;
+  if (trimmed.startsWith('Open Food Facts 记录的') && trimmed.endsWith('食品。')) {
+    return true;
+  }
+  if (trimmed.startsWith('建议存放在')) return true;
+  if (trimmed.startsWith('暂无联网详情')) return true;
+  return false;
+}
+
 String? _fallbackImageUrl(Ingredient ingredient) {
   final savedImage = ingredient.imageUrl.trim();
   if (savedImage.isNotEmpty) return savedImage;

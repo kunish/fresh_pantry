@@ -14,8 +14,8 @@ import '../../providers/search_provider.dart';
 import '../../providers/shopping_provider.dart';
 import '../../screens/ingredient_detail_screen.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/food_details_summary.dart';
 import '../../utils/page_transitions.dart';
-import '../../utils/storage_labels.dart';
 import '../shared/category_icon.dart';
 import '../shared/fk_entrance.dart';
 import '../shared/fk_pill.dart';
@@ -885,7 +885,7 @@ class _FoodDetailsResultTile extends StatelessWidget {
         ),
       ),
       subtitle: Text(
-        _foodDetailsSummary(details),
+        foodDetailsSummary(details),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: GoogleFonts.manrope(
@@ -954,35 +954,3 @@ class _ShowMoreHint extends StatelessWidget {
   }
 }
 
-String _foodDetailsSummary(FoodDetails details) {
-  final parts = <String>[];
-  final description = details.description.trim();
-  if (_isUsefulFoodDetailsDescription(description)) {
-    parts.add(description);
-  }
-
-  final category = details.category.trim();
-  if (category.isNotEmpty) {
-    parts.add(category);
-  }
-
-  parts.add('${storageLabelFor(details.storage)}保存');
-
-  final shelfLifeDays = details.shelfLifeDays;
-  if (shelfLifeDays != null && shelfLifeDays > 0) {
-    parts.add('约 $shelfLifeDays 天');
-  }
-
-  return parts.isEmpty ? '查看食材详情' : parts.join(' · ');
-}
-
-bool _isUsefulFoodDetailsDescription(String description) {
-  if (description.isEmpty) return false;
-  if (description.startsWith('Open Food Facts 记录的') &&
-      description.endsWith('食品。')) {
-    return false;
-  }
-  if (description.startsWith('建议存放在')) return false;
-  if (description.startsWith('暂无联网详情')) return false;
-  return true;
-}

@@ -20,13 +20,13 @@ import '../utils/app_dialog.dart';
 import '../utils/app_snackbar.dart';
 import '../utils/expiry_calculator.dart';
 import '../utils/page_transitions.dart';
+import '../utils/quantity_text.dart';
 import '../utils/storage_labels.dart';
 import '../widgets/shared/ai_busy_overlay.dart';
 import '../widgets/shared/fk_icon_button.dart';
 import '../widgets/shared/expiry_range_picker.dart';
 import '../widgets/shared/freshness_meter.dart';
 import '../widgets/shared/pill_chip.dart';
-import '../models/proposal.dart';
 import '../services/intake_proposal_factory.dart';
 import '../providers/food_details_provider.dart';
 import 'ai_settings_screen.dart';
@@ -715,9 +715,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
   void _stepQty(int delta) {
     final current = double.tryParse(_quantityController.text.trim()) ?? 0;
     final next = (current + delta).clamp(0.0, double.maxFinite);
-    final text = next == next.roundToDouble()
-        ? next.toInt().toString()
-        : next.toString();
+    final text = formatQuantity(next);
     _quantityController.text = text;
     _quantityController.selection = TextSelection.collapsed(
       offset: text.length,
@@ -1239,8 +1237,7 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
     // the review pipeline so the merge actually happens; the append-only
     // prefill add form would otherwise create a duplicate row. A single
     // brand-new item keeps the richer prefill form.
-    if (proposals.length == 1 &&
-        proposals.first.action == IntakeAction.newRow) {
+    if (IntakeProposalFactory.isSinglePrefill(proposals)) {
       final ingredient = drafts.first.toIngredient();
       await Navigator.of(context).push(
         fkRoute<void>(

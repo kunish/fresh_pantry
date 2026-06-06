@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/quantity_text.dart';
 
 class InlineNumberStepper extends StatelessWidget {
   const InlineNumberStepper({
@@ -65,14 +66,7 @@ class InlineNumberStepper extends StatelessWidget {
 
   void _bump(double current, int delta) {
     final next = (current + delta).clamp(min.toDouble(), max.toDouble());
-    onChanged(_format(next));
-  }
-
-  String _format(double n) {
-    if (n == n.roundToDouble()) return n.toInt().toString();
-    // Round to 2 decimals so stepping a fractional quantity never emits binary
-    // float artifacts like "1.2000000000000002" into the stored quantity.
-    return double.parse(n.toStringAsFixed(2)).toString();
+    onChanged(formatQuantity(next));
   }
 
   Widget _btn({required Key key, required IconData icon, VoidCallback? onTap}) {

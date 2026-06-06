@@ -313,6 +313,16 @@ class HouseholdSessionState {
   final List<OwnerPendingInvite> ownerPendingInvites;
   final HouseholdInvitePreview? invitePreview;
 
+  /// The currently-selected [Household] resolved from [households] +
+  /// [selectedHouseholdId], or null when nothing matches (e.g. local-only mode).
+  /// Owning the resolution here keeps views from re-deriving it inconsistently.
+  Household? get selectedHousehold {
+    for (final h in households) {
+      if (h.id == selectedHouseholdId) return h;
+    }
+    return null;
+  }
+
   HouseholdSessionState copyWith({
     String? email,
     String? currentUserId,

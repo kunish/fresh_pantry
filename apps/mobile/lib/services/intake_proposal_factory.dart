@@ -4,6 +4,7 @@ import '../models/ingredient_draft.dart';
 import '../models/proposal.dart';
 import '../models/shopping_item.dart';
 import '../models/storage_area.dart';
+import '../utils/quantity_text.dart';
 import 'proposal_planner.dart';
 
 class IntakeProposalFactory {
@@ -29,6 +30,22 @@ class IntakeProposalFactory {
         .toList();
   }
 
+  /// Whether a parsed batch should bypass the Review pipeline and go straight to
+  /// the richer prefill add-form: exactly one proposal that is a brand-new row.
+  ///
+  /// A single proposal that would merge into an existing row must still go
+  /// through Review so the merge actually happens — the append-only prefill form
+  /// would otherwise create a duplicate row.
+  static bool isSinglePrefill(List<IntakeProposal> proposals) =>
+      proposals.length == 1 && proposals.first.action == IntakeAction.newRow;
+
+  /// The Review-proposal id minted for a shopping-derived intake.
+  ///
+  /// The shopping flow uses this to tell which source rows actually applied, so
+  /// the scheme has a single owner here instead of being re-built at the call
+  /// site (which would silently break this cleanup if the scheme ever changed).
+  static String proposalIdForShoppingItem(String itemId) => 'ix_$itemId';
+
   static List<IntakeProposal> fromShoppingItems(
     List<ShoppingItem> items,
     List<Ingredient> inventory,
@@ -39,7 +56,7 @@ class IntakeProposalFactory {
       // planner's merge rule γ (name+unit+storage) can fire for non-perishables.
       final storage = _inferStorage(item.name, unit, inventory);
       return _build(
-        id: 'ix_${item.id}',
+        id: proposalIdForShoppingItem(item.id),
         name: item.name,
         quantity: qty,
         unit: unit,
@@ -96,12 +113,9 @@ class IntakeProposalFactory {
   static (String qty, String unit) _parseDetail(String detail) {
     final trimmed = detail.trim();
     if (trimmed.isEmpty) return ('1', '份');
-    final m = RegExp(r'^(\d+(?:\.\d+)?)\s*(.*)$').firstMatch(trimmed);
-    if (m == null) return ('1', trimmed);
-    return (
-      m.group(1) ?? '1',
-      (m.group(2) ?? '').trim().isEmpty ? '份' : (m.group(2) ?? '').trim(),
-    );
+    final parsed = parseLeadingQuantity(trimmed);
+    if (parsed == null) return ('1', trimmed);
+    return (parsed.magnitude, parsed.remainder.isEmpty ? '份' : parsed.remainder);
   }
 
   /// Returns the storage of the first inventory row that matches name+unit,

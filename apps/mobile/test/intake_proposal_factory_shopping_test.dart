@@ -68,4 +68,44 @@ void main() {
       expect(proposals.first.action, IntakeAction.mergeInto);
     });
   });
+
+  group('IntakeProposalFactory.isSinglePrefill', () {
+    IntakeProposal proposal(IntakeAction action) => IntakeProposal(
+          id: 'p',
+          name: '番茄',
+          quantity: '1',
+          unit: '个',
+          category: null,
+          storage: IconType.fridge,
+          shelfLifeDays: null,
+          action: action,
+        );
+
+    test('empty list → false', () {
+      expect(IntakeProposalFactory.isSinglePrefill(const []), isFalse);
+    });
+
+    test('single newRow → true (goes to prefill form)', () {
+      expect(
+        IntakeProposalFactory.isSinglePrefill([proposal(IntakeAction.newRow)]),
+        isTrue,
+      );
+    });
+
+    test('single mergeInto → false (must go through Review to merge)', () {
+      expect(
+        IntakeProposalFactory.isSinglePrefill([proposal(IntakeAction.mergeInto)]),
+        isFalse,
+      );
+    });
+
+    test('two proposals → false', () {
+      expect(
+        IntakeProposalFactory.isSinglePrefill(
+          [proposal(IntakeAction.newRow), proposal(IntakeAction.newRow)],
+        ),
+        isFalse,
+      );
+    });
+  });
 }

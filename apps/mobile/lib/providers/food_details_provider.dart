@@ -37,7 +37,7 @@ final foodDetailsClientProvider = Provider<FoodDetailsClient>(
 final foodDetailsRepositoryProvider = Provider<FoodDetailsRepository>((ref) {
   return FoodDetailsRepository(
     storage: ref.read(storageAdapterProvider),
-    client: ref.watch(foodDetailsClientProvider),
+    client: ref.read(foodDetailsClientProvider),
   );
 });
 

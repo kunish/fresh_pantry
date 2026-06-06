@@ -1,6 +1,7 @@
 import '../models/ingredient.dart';
 import '../models/proposal.dart';
 import '../models/recipe.dart';
+import '../utils/quantity_text.dart';
 import 'proposal_planner.dart';
 
 class DeductionProposalFactory {
@@ -63,21 +64,15 @@ class DeductionProposalFactory {
     final unitsCompatible =
         recipeUnit.isEmpty || rowUnit.isEmpty || recipeUnit == rowUnit;
     if (!unitsCompatible) return '1';
-    return _formatNumber(magnitude);
+    return formatQuantity(magnitude);
   }
 
   static (double?, String) _parseMagnitudeUnit(RecipeIngredient ri) {
     final structured = double.tryParse(ri.quantity.trim());
     if (structured != null) return (structured, ri.unit.trim());
-    final match = RegExp(
-      r'^(\d+(?:\.\d+)?)\s*(.*)$',
-    ).firstMatch(ri.amount.trim());
-    if (match == null) return (null, ri.unit.trim());
-    final magnitude = double.tryParse(match.group(1) ?? '');
-    final parsedUnit = (match.group(2) ?? '').trim();
-    return (magnitude, parsedUnit.isEmpty ? ri.unit.trim() : parsedUnit);
+    final parsed = parseLeadingQuantity(ri.amount.trim());
+    if (parsed == null) return (null, ri.unit.trim());
+    final magnitude = double.tryParse(parsed.magnitude);
+    return (magnitude, parsed.remainder.isEmpty ? ri.unit.trim() : parsed.remainder);
   }
-
-  static String _formatNumber(double n) =>
-      n == n.roundToDouble() ? n.toInt().toString() : n.toString();
 }

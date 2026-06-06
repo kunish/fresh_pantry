@@ -11,6 +11,7 @@ import '../sync/sync_enqueue.dart';
 import '../sync/sync_ids.dart';
 import '../sync/sync_operation.dart';
 import '../utils/ingredient_normalizer.dart';
+import '../utils/quantity_text.dart';
 import '_persistence_queue.dart';
 import 'storage_service_provider.dart';
 
@@ -414,7 +415,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
         );
       } else {
         final updatedItem = refreshIngredientFreshness(
-          existing.copyWith(quantity: _formatQuantity(remaining)),
+          existing.copyWith(quantity: formatQuantity(remaining)),
         );
         current[index] = updatedItem;
         syncOperations.add(
@@ -487,9 +488,6 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
     return byName.length == 1 ? byName.first : -1;
   }
 
-  String _formatQuantity(double n) =>
-      n == n.roundToDouble() ? n.toInt().toString() : n.toString();
-
   Ingredient _ingredientFromProposal(IntakeProposal p) {
     final shelf = p.shelfLifeDays;
     final addedAt = DateTime.now();
@@ -518,9 +516,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
   String _sumQuantity(String a, String b) {
     final na = double.tryParse(a) ?? 0;
     final nb = double.tryParse(b) ?? 0;
-    final sum = na + nb;
-    if (sum == sum.roundToDouble()) return sum.toInt().toString();
-    return sum.toString();
+    return formatQuantity(na + nb);
   }
 
   Future<void> mergeBatch(int sourceIndex, int targetIndex) async {
