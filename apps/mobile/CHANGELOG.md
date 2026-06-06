@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.1.2...fresh_pantry-v1.1.3) (2026-06-06)
+
+
+### Bug Fixes
+
+* **sentry:** 关闭 commits 关联,避免 set-commits 因缺 GitHub 集成 403 误标失败 ([46ee472](https://github.com/kunish/fresh_pantry/commit/46ee472c820ce225e63f11aa7b539ebc368848a6))
+
 ## [1.1.2](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.1.1...fresh_pantry-v1.1.2) (2026-06-06)
 
 
