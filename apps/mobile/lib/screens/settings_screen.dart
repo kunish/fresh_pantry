@@ -244,6 +244,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ? '未加入家庭'
                       : '${household?.name ?? ''} · ${householdSession.householdMembers.length} 名成员',
                   icon: Icons.home_rounded,
+                  showBadge: householdSession.pendingInvitePreviews.isNotEmpty,
                   onTap: () => Navigator.of(context).push(
                     fkRoute<void>(builder: (_) => const HouseholdScreen()),
                   ),
@@ -707,6 +708,7 @@ class _LinkRow extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   final bool isLast;
+  final bool showBadge;
 
   const _LinkRow({
     super.key,
@@ -715,6 +717,7 @@ class _LinkRow extends StatelessWidget {
     required this.icon,
     required this.onTap,
     this.isLast = false,
+    this.showBadge = false,
   });
 
   @override
@@ -774,6 +777,18 @@ class _LinkRow extends StatelessWidget {
                   ],
                 ),
               ),
+              if (showBadge) ...[
+                Container(
+                  key: const ValueKey('household_row_invite_badge'),
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: AppColors.fkAlert,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+              ],
               const Icon(
                 Icons.chevron_right_rounded,
                 size: AppSize.iconSm,
