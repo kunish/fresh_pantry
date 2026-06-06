@@ -145,4 +145,8 @@ sentry:
   # source map 仅用于 Flutter Web(需 flutter build web --source-maps);本 CI
   # 只构建 iOS,开了也无 source map 可传、反而可能让上传步骤报错,故保持关闭。
   upload_source_maps: false
+  # 默认 commits: auto 会调 set-commits --auto 把 git 提交关联到 release,这要求
+  # Sentry 组织装好 GitHub 集成且 token 有权限,否则返回 403(符号/源码已在此步
+  # 之前传完)。它只服务 suspect-commits,对崩溃符号化无帮助,故关闭。
+  commits: false
   log_level: info
