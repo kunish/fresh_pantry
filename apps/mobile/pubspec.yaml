@@ -2,7 +2,7 @@ name: fresh_pantry
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -130,7 +130,7 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
-# sentry_dart_plugin 在构建后上传 iOS dSYM 与 Dart 混淆符号(split-debug-info),
+# sentry_dart_plugin 在构建后上传 iOS dSYM 与 Dart split-debug-info 符号,
 # 让 Sentry 上的 crash / AppHang 能符号化到具体代码,而不是显示 <redacted>。
 # auth token 不写入此文件:通过环境变量 SENTRY_AUTH_TOKEN 提供
 # (该 token 需要 project:releases 权限,普通只读 token 无法上传)。
@@ -139,6 +139,10 @@ sentry:
   org: kunish
   project: fresh_pantry
   upload_debug_symbols: true
+  # 把 Dart 源码一并打进调试文件,Sentry 堆栈能直接显示出错行的源码上下文。
+  # 开源仓库源码本就公开,无泄露顾虑。
+  upload_sources: true
+  # source map 仅用于 Flutter Web(需 flutter build web --source-maps);本 CI
+  # 只构建 iOS,开了也无 source map 可传、反而可能让上传步骤报错,故保持关闭。
   upload_source_maps: false
-  upload_sources: false
   log_level: info

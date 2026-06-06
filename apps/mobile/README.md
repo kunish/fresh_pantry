@@ -20,7 +20,7 @@ flutter analyze
 flutter test
 ```
 
-## Sentry 符号上传 (dSYM / Dart 混淆符号)
+## Sentry 符号上传 (dSYM / Dart 符号 / 源码)
 
 发布版的原生帧默认显示为 `<redacted>`，因为 Sentry 缺少 iOS dSYM。crash 与
 AppHang 想符号化到具体代码，需在构建后上传调试符号。配置在 `pubspec.yaml` 的
@@ -33,12 +33,17 @@ Sentry → Settings → Auth Tokens 新建后导出：
 export SENTRY_AUTH_TOKEN=<project:releases scope token>
 ```
 
-构建并上传（`--split-debug-info` 让 Dart 帧也能符号化）：
+构建并上传（`--split-debug-info` 让 Dart 帧也能符号化；不混淆——开源代码
+无 `--obfuscate` 的必要，且少一份 symbol map 依赖更鲁棒）：
 
 ```bash
-flutter build ipa --obfuscate --split-debug-info=build/debug-info
+flutter build ipa --split-debug-info=build/debug-info
 dart run sentry_dart_plugin
 ```
 
 `dart run sentry_dart_plugin` 会上传 iOS dSYM 与 `build/debug-info` 下的 Dart
-符号。CI 里在 `flutter build` 之后加这一步即可。
+符号，并把 Dart 源码一并打包上传（`pubspec.yaml` 的 `upload_sources: true`），
+让 Sentry 堆栈直接显示出错行的源码上下文——开源仓库源码本就公开，无泄露顾虑。
+（`upload_source_maps` 仅用于 Flutter Web，本项目只发 iOS，故保持关闭。）
+**发版 CI 已自动做这一步**（见 `.github/workflows/release.yml`）：仅需在仓库
+Secrets 配置 `SENTRY_AUTH_TOKEN`（`project:releases` 权限）。

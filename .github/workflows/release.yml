@@ -72,6 +72,7 @@ jobs:
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: |
           flutter build ios --release --config-only \
+            --split-debug-info=build/debug-info \
             --build-number=${{ steps.bn.outputs.build_number }} \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
@@ -108,3 +109,11 @@ jobs:
             echo "upload attempt $attempt failed; retrying in 30s"; sleep 30
           done
           echo "upload failed after retries"; exit 1
+      # 发版之后再传符号:发版优先,符号上传失败时本步骤(job)标红可见,
+      # 但不影响已上架的构建。debug 文件按 UUID 关联,无需对齐 release。
+      # org/project 读 pubspec 的 sentry: 块;dSYM 在 archive 内、Dart 符号在
+      # build/debug-info,两者都在 plugin 默认扫描的 build/ 子树下。
+      - name: Upload Sentry debug symbols (dSYM + Dart split-debug-info)
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: dart run sentry_dart_plugin
