@@ -157,9 +157,18 @@ class _IngredientDetailScreenState
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: detailsAsync.when(
+        // While the lookup is in flight we optimistically render the local
+        // fallback so the page isn't a spinner — but its `source` is a guess
+        // ("本地食材知识库") that flips to "Open Food Facts" once the network
+        // answer lands. Provenance is the one field we genuinely don't know
+        // yet, so mark it pending instead of claiming a local origin.
         data: (details) => _buildBody(item, details, isInventoryItem),
-        loading: () =>
-            _buildBody(item, fallbackFoodDetailsFor(item), isInventoryItem),
+        loading: () => _buildBody(
+          item,
+          fallbackFoodDetailsFor(item),
+          isInventoryItem,
+          sourcePending: true,
+        ),
         error: (_, _) =>
             _buildBody(item, fallbackFoodDetailsFor(item), isInventoryItem),
       ),
@@ -169,8 +178,9 @@ class _IngredientDetailScreenState
   Widget _buildBody(
     Ingredient item,
     FoodDetails details,
-    bool isInventoryItem,
-  ) {
+    bool isInventoryItem, {
+    bool sourcePending = false,
+  }) {
     final catId = fkCategoryIdFor(item.category);
     final palette = FkCategoryPalette.of(catId);
     final statusBadge = _statusBadgeFor(item.state);
@@ -227,7 +237,11 @@ class _IngredientDetailScreenState
                         ),
                       ],
                       const SizedBox(height: 14),
-                      _InfoList(item: item, details: details),
+                      _InfoList(
+                        item: item,
+                        details: details,
+                        sourcePending: sourcePending,
+                      ),
                       const SizedBox(height: 14),
                       _ActionRow(
                         onAddToShopping: () => _addToShoppingList(item),
@@ -611,7 +625,16 @@ class _StatColumn extends StatelessWidget {
 class _InfoList extends StatelessWidget {
   final Ingredient item;
   final FoodDetails details;
-  const _InfoList({required this.item, required this.details});
+
+  /// True while the online lookup is still in flight. The optimistic body shows
+  /// a local fallback whose `source` is only a guess, so we display a neutral
+  /// placeholder rather than asserting a provenance we don't know yet.
+  final bool sourcePending;
+  const _InfoList({
+    required this.item,
+    required this.details,
+    this.sourcePending = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -619,7 +642,7 @@ class _InfoList extends StatelessWidget {
       ('分类', details.category),
       ('存放位置', storageLabelFor(item.storage)),
       if (details.shelfLifeDays != null) ('保质期建议', '${details.shelfLifeDays}天'),
-      ('来源', details.source),
+      ('来源', sourcePending ? '查询中…' : details.source),
     ];
     return FkCard(
       padding: EdgeInsets.zero,
