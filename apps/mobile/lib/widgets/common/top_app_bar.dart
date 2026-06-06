@@ -65,7 +65,7 @@ class TopAppBar extends ConsumerWidget {
                         Icons.settings_outlined,
                         color: Colors.white,
                       ),
-                      tooltip: '设置',
+                      tooltip: hasInvite ? '设置(有待处理邀请)' : '设置',
                       onPressed: () {
                         Navigator.of(context).push(
                           fkRoute<void>(builder: (_) => const SettingsScreen()),

@@ -85,6 +85,7 @@ void main() {
       find.byKey(const ValueKey('settings_invite_badge')),
       findsOneWidget,
     );
+    expect(find.byTooltip('设置(有待处理邀请)'), findsOneWidget);
   });
 
   testWidgets('settings gear has no badge without pending invites',
@@ -104,5 +105,6 @@ void main() {
       find.byKey(const ValueKey('settings_invite_badge')),
       findsNothing,
     );
+    expect(find.byTooltip('设置'), findsOneWidget);
   });
 }
