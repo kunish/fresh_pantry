@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.1.3...fresh_pantry-v1.2.0) (2026-06-07)
+
+
+### Features
+
+* **app:** 膳食计划/减废统计/营养/食谱筛选缩放/库存临期排序等多项功能 ([66f8591](https://github.com/kunish/fresh_pantry/commit/66f8591b5045ce7fa31c8389f91bfc752ad01b5d))
+* **household:** Settings 家庭共享行显示邀请红点 ([5c5397b](https://github.com/kunish/fresh_pantry/commit/5c5397b40287949a087d2412e9f6b716132ddb22))
+* **household:** 顶栏设置齿轮显示邀请红点 ([01a6d04](https://github.com/kunish/fresh_pantry/commit/01a6d0455ecaa2a7bfd68d5db7920c6156cebfc6))
+
 ## [1.1.3](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.1.2...fresh_pantry-v1.1.3) (2026-06-06)
 
 
