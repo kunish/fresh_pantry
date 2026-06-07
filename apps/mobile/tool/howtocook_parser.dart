@@ -181,7 +181,6 @@ int _parseDifficulty(List<String> lines) {
 List<RecipeIngredient> _parseIngredients(List<String> body) {
   final hasSubhead = body.any((l) => l.trim().startsWith('### '));
   final result = <RecipeIngredient>[];
-  final seen = <String>{};
   var inToolGroup = false;
   for (final line in body) {
     final t = line.trim();
@@ -193,10 +192,12 @@ List<RecipeIngredient> _parseIngredients(List<String> body) {
     final m = _bullet.firstMatch(line);
     if (m == null) continue;
     for (final name in _ingredientsFromLine(m.group(1)!.trim())) {
-      if (seen.add(name)) result.add(RecipeIngredient(name: name));
+      result.add(RecipeIngredient(name: name));
     }
   }
-  return result;
+  // Dedup via the model's single source of truth so the offline parser and the
+  // runtime recipe sources collapse 味精-style duplicates identically.
+  return dedupeRecipeIngredients(result);
 }
 
 /// 把一条原始 bullet 文本归一为食材名列表——上游常用顿号在一行里列举多个

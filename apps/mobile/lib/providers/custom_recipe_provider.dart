@@ -41,6 +41,17 @@ class CustomRecipeNotifier extends Notifier<List<Recipe>>
     return id == recipe.id ? recipe : recipe.copyWith(id: id);
   }
 
+  /// Collapses duplicate ingredient names (e.g. 味精 entered twice) before a
+  /// recipe is persisted and synced. Mirrors the load-time dedup in
+  /// `Recipe.fromJson` so the in-memory list shown right after save matches what
+  /// a reload would yield.
+  Recipe _dedupeIngredients(Recipe recipe) {
+    final deduped = dedupeRecipeIngredients(recipe.ingredients);
+    return deduped.length == recipe.ingredients.length
+        ? recipe
+        : recipe.copyWith(ingredients: deduped);
+  }
+
   /// Replaces the whole list and persists it. [rethrowOnError] false for the
   /// sync inflow (swallow + retry); backup restore passes true so a failed
   /// write surfaces instead of falsely reporting success. State is set only
@@ -56,7 +67,7 @@ class CustomRecipeNotifier extends Notifier<List<Recipe>>
   }
 
   Future<void> add(Recipe recipe) async {
-    final recipeToAdd = _withSyncId(recipe);
+    final recipeToAdd = _dedupeIngredients(_withSyncId(recipe));
     if (recipeToAdd.id.isEmpty || recipeToAdd.name.isEmpty) {
       return;
     }
@@ -79,7 +90,7 @@ class CustomRecipeNotifier extends Notifier<List<Recipe>>
       return;
     }
     final original = state[originalIndex];
-    final updatedRecipe = recipe.copyWith(id: id);
+    final updatedRecipe = _dedupeIngredients(recipe.copyWith(id: id));
     await _mutate((current) {
       final index = current.indexWhere((saved) => saved.id == id);
       final next = [...current];

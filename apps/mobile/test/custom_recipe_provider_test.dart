@@ -52,6 +52,36 @@ void main() {
       expect(saved.single.id, 'r1');
     });
 
+    test('dedupes duplicate ingredient names on add', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final db = newTestDatabase();
+      addTearDown(db.close);
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          ...testStorageOverrides(database: db),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(customRecipesProvider.notifier).add(
+            _recipe('r1').copyWith(
+              ingredients: [
+                RecipeIngredient(name: '味精', amount: '1勺'),
+                RecipeIngredient(name: '盐', amount: '2克'),
+                RecipeIngredient(name: '味精', amount: '5袋'),
+              ],
+            ),
+          );
+
+      final saved = await container
+          .read(customRecipeRepoProvider)
+          .loadAllFor('');
+      expect(saved.single.ingredients.map((i) => i.name), ['味精', '盐']);
+      expect(saved.single.ingredients.first.amount, '1勺');
+    });
+
     test('concurrent adds do not lose recipes in state or storage', () async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();

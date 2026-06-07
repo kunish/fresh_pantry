@@ -396,8 +396,12 @@ class _AddIngredientScreenState extends ConsumerState<AddIngredientScreen> {
         return;
       }
 
-      await ref.read(inventoryProvider.notifier).add(ingredient);
-      final addedItem = ref.read(inventoryProvider).last;
+      // add() may merge into an existing same-identity row rather than append,
+      // so use its return value — the trailing row is no longer guaranteed to
+      // be the one we just affected.
+      final addedItem = await ref.read(inventoryProvider.notifier).add(
+        ingredient,
+      );
 
       if (!mounted) return;
       _resetForm();

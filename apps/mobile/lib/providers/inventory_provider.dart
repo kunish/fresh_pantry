@@ -123,7 +123,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
   @override
   List<Ingredient> build() {
     _repo = ref.read(inventoryRepoProvider);
-    return _repo.loadAll();
+    return _loadConsolidated(_repo.loadAll());
   }
 
   /// 下拉刷新：从本地 DB(按当前 household 作用域)重读。
@@ -134,7 +134,9 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
   /// 真相源(每次增删改与 sync 都同步写盘),所以直接重读即可,且 `loadAllFor`
   /// 内部已按 `now` 重算新鲜度。
   Future<void> reload() async {
-    state = await _repo.loadAllFor(activeHouseholdId);
+    final plan = _planConsolidation(await _repo.loadAllFor(activeHouseholdId));
+    state = plan.rows;
+    if (plan.removed.isNotEmpty) await _persistConsolidation(plan);
   }
 
   Future<void> _save(List<Ingredient> items) async {
@@ -158,46 +160,94 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
     List<Ingredient> items, {
     bool rethrowOnError = false,
   }) async {
-    final normalized = items
-        .map(normalizeInventoryIngredient)
-        .map(refreshIngredientFreshness)
-        .toList(growable: false);
+    final plan = _planConsolidation(
+      items
+          .map(normalizeInventoryIngredient)
+          .map(refreshIngredientFreshness)
+          .toList(growable: false),
+    );
     final prior = state;
-    state = normalized;
+    state = plan.rows;
     try {
       await queuePersistence(
-        () => _save(normalized),
+        () => _save(plan.rows),
         rethrowError: rethrowOnError,
       );
     } catch (_) {
       state = prior;
       rethrow;
     }
+    // A remote/restored snapshot can still carry legacy duplicates (rows added
+    // before add() learned to merge); push the de-dup back so the whole
+    // household converges to one row instead of re-merging on every pull.
+    await _enqueueConsolidationCleanup(plan);
   }
 
-  Future<void> add(Ingredient item) async {
+  /// Adds [item] to inventory and returns the resulting row.
+  ///
+  /// A non-perishable whose name×unit×storage matches an existing row merges
+  /// into it (summing quantity) — the same ADR-0001 identity rule the Intake
+  /// flow ([applyIntakeProposals]) applies — so manually adding 白糖 twice
+  /// yields one row, not two. Perishables (new batch each time) and
+  /// non-matching items append a new row.
+  Future<Ingredient> add(Ingredient item) async {
     final normalizedItem = normalizeIngredientCategory(_withSyncId(item));
+    final mergeIndex = IngredientIdentity.resolveMergeTarget(
+      name: normalizedItem.name,
+      unit: normalizedItem.unit,
+      storage: normalizedItem.storage,
+      category: normalizedItem.category,
+      inventory: state,
+    );
+
+    if (mergeIndex >= 0) {
+      final existing = state[mergeIndex];
+      final merged = refreshIngredientFreshness(
+        existing.copyWith(
+          quantity: _sumQuantity(existing.quantity, normalizedItem.quantity),
+        ),
+      );
+      await _persistAddMutation([...state]..[mergeIndex] = merged, merged);
+      await enqueueSync(
+        entityId: merged.id,
+        operation: SyncOperationType.intake,
+        patch: merged.toJson(),
+        baseVersion: existing.remoteVersion,
+      );
+      return merged;
+    }
+
     final stampedItem = normalizedItem.addedAt == null
         ? normalizedItem.copyWith(addedAt: DateTime.now())
         : normalizedItem;
     final itemToAdd = refreshIngredientFreshness(stampedItem);
-    final prior = state;
-    final updated = [...state, itemToAdd];
-    state = updated;
-    try {
-      await queuePersistence(() async {
-        await _save(updated);
-        await ref.read(addHistoryProvider.notifier).record(itemToAdd);
-      }, rethrowError: true);
-    } catch (_) {
-      state = prior;
-      rethrow;
-    }
+    await _persistAddMutation([...state, itemToAdd], itemToAdd);
     await enqueueSync(
       entityId: itemToAdd.id,
       operation: SyncOperationType.create,
       patch: itemToAdd.toJson(),
     );
+    return itemToAdd;
+  }
+
+  /// Optimistically applies an add/merge [updated] list, records [recorded] in
+  /// the restock-frequency history, and rolls back to the prior state if the
+  /// local write fails so state and disk never diverge.
+  Future<void> _persistAddMutation(
+    List<Ingredient> updated,
+    Ingredient recorded,
+  ) async {
+    final prior = state;
+    state = updated;
+    try {
+      await queuePersistence(() async {
+        await _save(updated);
+        await ref.read(addHistoryProvider.notifier).record(recorded);
+      }, rethrowError: true);
+    } catch (_) {
+      state = prior;
+      rethrow;
+    }
   }
 
   /// 手动删除食材后,把补货频次记忆里对应的名称抹掉——删除即"不要了",
@@ -659,6 +709,134 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
     return a.isBefore(b) ? a : b;
   }
 
+  /// Consolidates a freshly loaded list for display and, when it actually merged
+  /// rows, schedules the durable cleanup (persist + sync) without blocking the
+  /// return, so the UI shows the de-duplicated list on the first frame and never
+  /// flashes the duplicates.
+  List<Ingredient> _loadConsolidated(List<Ingredient> loaded) {
+    final plan = _planConsolidation(loaded);
+    if (plan.removed.isNotEmpty) {
+      // build() is synchronous; defer the write to a microtask. state is already
+      // plan.rows (we return it below), so the persistence reads the clean list.
+      Future.microtask(() => _persistConsolidation(plan));
+    }
+    return plan.rows;
+  }
+
+  /// Collapses rows sharing the ADR-0001 non-perishable identity
+  /// (name x unit x storage) into their first occurrence, summing quantities and
+  /// keeping the earlier expiry. Perishables (distinct batches) and rows with a
+  /// non-numeric quantity are left untouched, the same guard
+  /// [IngredientIdentity.resolveMergeTarget] applies on add. Pure: touches no
+  /// state or disk. Returns the rebuilt [rows], the survivors that absorbed a
+  /// duplicate ([mergedSurvivors], needing a sync update) and the dropped
+  /// [removed] rows (needing a sync delete).
+  ({
+    List<Ingredient> rows,
+    List<Ingredient> mergedSurvivors,
+    List<Ingredient> removed,
+  })
+  _planConsolidation(List<Ingredient> items) {
+    final survivors = <Ingredient>[];
+    final survivorIndexByKey = <String, int>{};
+    final mergedKeys = <String>{};
+    final removed = <Ingredient>[];
+
+    for (final item in items) {
+      final name = item.name.trim();
+      final canMerge =
+          name.isNotEmpty &&
+          double.tryParse(item.quantity.trim()) != null &&
+          !IngredientIdentity.isPerishable(
+            category: item.category,
+            name: item.name,
+          );
+      if (!canMerge) {
+        survivors.add(item);
+        continue;
+      }
+      // NUL joins the identity parts so a name/unit containing spaces can never
+      // collide with another row's key.
+      final key =
+          '${name.toLowerCase()}\u0000${item.unit.trim()}\u0000${item.storage}';
+      final targetIndex = survivorIndexByKey[key];
+      if (targetIndex == null) {
+        survivorIndexByKey[key] = survivors.length;
+        survivors.add(item);
+        continue;
+      }
+      final target = survivors[targetIndex];
+      survivors[targetIndex] = refreshIngredientFreshness(
+        target.copyWith(
+          quantity: _sumQuantity(target.quantity, item.quantity),
+          expiryDate: _earlierExpiry(target.expiryDate, item.expiryDate),
+        ),
+      );
+      mergedKeys.add(key);
+      removed.add(item);
+    }
+
+    return (
+      rows: survivors,
+      mergedSurvivors: [
+        for (final key in mergedKeys) survivors[survivorIndexByKey[key]!],
+      ],
+      removed: removed,
+    );
+  }
+
+  /// Durably commits a consolidation [plan]: persists the current (already
+  /// consolidated) state and enqueues an update per absorbed survivor and a
+  /// delete per dropped row, mirroring [mergeBatch] so other household members
+  /// converge. Best-effort: a write failure is swallowed (the display is already
+  /// correct and the next load retries) rather than crashing startup.
+  Future<void> _persistConsolidation(
+    ({
+      List<Ingredient> rows,
+      List<Ingredient> mergedSurvivors,
+      List<Ingredient> removed,
+    })
+    plan,
+  ) async {
+    try {
+      await queuePersistence(() => _save(state), rethrowError: true);
+      await _enqueueConsolidationCleanup(plan);
+    } catch (_) {
+      // Swallowed by design: the consolidated list is already shown; the next
+      // load (build/reload) retries the persistence.
+    }
+  }
+
+  /// Enqueues the sync deltas for a consolidation: an update per absorbed
+  /// survivor and a delete per dropped row, mirroring [mergeBatch] so the server
+  /// and other household members converge to the single merged row.
+  Future<void> _enqueueConsolidationCleanup(
+    ({
+      List<Ingredient> rows,
+      List<Ingredient> mergedSurvivors,
+      List<Ingredient> removed,
+    })
+    plan,
+  ) async {
+    if (plan.removed.isEmpty) return;
+    final deletedAt = DateTime.now().toUtc();
+    await enqueueSyncBatch([
+      for (final survivor in plan.mergedSurvivors)
+        SyncEnqueueOp(
+          entityId: survivor.id,
+          operation: SyncOperationType.update,
+          patch: survivor.toJson(),
+          baseVersion: survivor.remoteVersion,
+        ),
+      for (final dropped in plan.removed)
+        SyncEnqueueOp(
+          entityId: dropped.id,
+          operation: SyncOperationType.delete,
+          patch: {'deletedAt': deletedAt.toIso8601String()},
+          baseVersion: dropped.remoteVersion,
+        ),
+    ]);
+  }
   List<Ingredient> getByCategory(String category) {
     return inventoryItemsForCategory(state, category);
   }

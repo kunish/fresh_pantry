@@ -115,6 +115,26 @@ class _LegacyAmountParts {
   final String unit;
 }
 
+/// De-duplicates a recipe's ingredients by their case-insensitive trimmed name
+/// — the list's user-facing identity — keeping the first occurrence (and its
+/// quantity/unit). The single source of truth for the rule: every recipe entry
+/// point (the offline HowToCook parser, hand-authored custom recipes, and
+/// JSON/remote load) routes through here, so no source can list 味精 twice while
+/// another stays clean. Keying matches `shoppingItemNameKey` so dedup behaves
+/// consistently across the app.
+List<RecipeIngredient> dedupeRecipeIngredients(
+  Iterable<RecipeIngredient> ingredients,
+) {
+  final seen = <String>{};
+  final result = <RecipeIngredient>[];
+  for (final ingredient in ingredients) {
+    if (seen.add(ingredient.name.trim().toLowerCase())) {
+      result.add(ingredient);
+    }
+  }
+  return result;
+}
+
 class Recipe {
   final String id;
   final String name;
@@ -222,12 +242,12 @@ class Recipe {
       difficulty: (json['difficulty'] as num?)?.toInt() ?? 0,
       cookingMinutes: (json['cookingMinutes'] as num?)?.toInt() ?? 30,
       description: json['description'] as String? ?? '',
-      ingredients:
-          (json['ingredients'] as List<dynamic>?)
-              ?.whereType<Map<String, dynamic>>()
-              .map((e) => RecipeIngredient.fromJson(e))
-              .toList() ??
-          const [],
+      ingredients: dedupeRecipeIngredients(
+        (json['ingredients'] as List<dynamic>?)
+                ?.whereType<Map<String, dynamic>>()
+                .map((e) => RecipeIngredient.fromJson(e)) ??
+            const [],
+      ),
       steps:
           (json['steps'] as List<dynamic>?)?.whereType<String>().toList() ??
           const [],

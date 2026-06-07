@@ -99,7 +99,10 @@ void main() {
   testWidgets(
     'edit save updates the provided inventory index for equal items',
     (tester) async {
-      final duplicateItem = _ingredient('重复食材');
+      // A perishable category so the two identical-name rows legitimately
+      // coexist as separate batches — non-perishables now auto-merge on load,
+      // which would otherwise collapse the pair this test relies on.
+      final duplicateItem = _ingredient('重复食材').copyWith(category: '乳品蛋类');
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       final db = newTestDatabase();
