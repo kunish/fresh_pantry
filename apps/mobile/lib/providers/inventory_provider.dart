@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import '../models/food_log_entry.dart';
 import '../models/frequent_item.dart';
 import '../models/ingredient.dart';
 import '../models/ingredient_identity.dart';
@@ -13,6 +14,7 @@ import '../sync/sync_operation.dart';
 import '../utils/ingredient_normalizer.dart';
 import '../utils/quantity_text.dart';
 import '_persistence_queue.dart';
+import 'food_log_provider.dart';
 import 'storage_service_provider.dart';
 
 export 'storage_service_provider.dart' show inventorySeedProvider;
@@ -51,8 +53,64 @@ List<Ingredient> inventoryItemsForCategory(
       .toList();
 }
 
+/// Narrows [items] to a single storage area. A null [storage] means "all
+/// areas" (no filter) — the inventory's default, unfiltered view.
+List<Ingredient> inventoryItemsForStorage(
+  List<Ingredient> items,
+  IconType? storage,
+) {
+  if (storage == null) return items;
+  return items.where((item) => item.storage == storage).toList();
+}
+
 int notFreshIngredientCount(Iterable<Ingredient> items) {
   return items.where(isNotFreshIngredient).length;
+}
+
+/// How the inventory list is ordered for display. The underlying
+/// [inventoryProvider] always stays in insertion order — sorting is a
+/// display-only concern, and delete/merge resolve rows by identity at apply
+/// time, so reordering the view never mutates the wrong row.
+enum InventorySortMode {
+  /// Insertion order — the list as the user built it. The default.
+  manual('默认'),
+
+  /// Soonest-to-expire first; items without an expiry date sink to the bottom.
+  /// The headline view for a waste-reduction pantry: act on what spoils next.
+  expiry('临期优先');
+
+  const InventorySortMode(this.label);
+
+  final String label;
+}
+
+int _compareByExpiry(Ingredient a, Ingredient b) {
+  final ea = a.expiryDate;
+  final eb = b.expiryDate;
+  if (ea == null && eb == null) return 0;
+  if (ea == null) return 1; // no shelf life sinks below dated items
+  if (eb == null) return -1;
+  return ea.compareTo(eb);
+}
+
+/// Orders [items] for display per [mode]. Display-only: callers keep the raw
+/// inventory in insertion order and resolve edits by identity, so this never
+/// touches persistence or sync.
+///
+/// [InventorySortMode.expiry] sorts by [Ingredient.expiryDate] ascending with
+/// null expiry (no shelf life) last, breaking ties by original position so the
+/// order is fully deterministic ([List.sort] is not stable on its own).
+List<Ingredient> sortedInventoryItems(
+  List<Ingredient> items,
+  InventorySortMode mode,
+) {
+  if (mode == InventorySortMode.manual) return items;
+  final indexed = [for (var i = 0; i < items.length; i++) (i, items[i])];
+  indexed.sort((a, b) {
+    final byExpiry = _compareByExpiry(a.$2, b.$2);
+    return byExpiry != 0 ? byExpiry : a.$1.compareTo(b.$1);
+  });
+  return [for (final entry in indexed) entry.$2];
 }
 
 class InventoryNotifier extends Notifier<List<Ingredient>>
@@ -159,8 +217,33 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
     }
   }
 
-  Future<void> remove(int index) async {
-    if (index < 0 || index >= state.length) return;
+  /// Records one item leaving inventory in the food log (the waste-reduction
+  /// stats source) and returns the new entry's id so the caller can reverse it
+  /// if the delete is undone. Snapshots name/category and whether it was
+  /// past-fresh at departure. A fresh UUID id avoids same-millisecond collisions
+  /// on batch removals (and is household-sync ready).
+  Future<String> _logDeparture(Ingredient item, FoodLogOutcome outcome) async {
+    final id = newSyncEntityId();
+    await ref
+        .read(foodLogProvider.notifier)
+        .record(
+          FoodLogEntry(
+            id: id,
+            name: item.name,
+            category: item.category ?? FoodCategories.other,
+            outcome: outcome,
+            loggedAt: DateTime.now(),
+            wasExpiring: isNotFreshIngredient(item),
+          ),
+        );
+    return id;
+  }
+
+  /// Removes one inventory row. When [outcome] is given the departure is logged
+  /// to the food log and its entry id is returned, so an undo can reverse the
+  /// log via [FoodLogNotifier.undoRecord]. Returns null when nothing was logged.
+  Future<String?> remove(int index, {FoodLogOutcome? outcome}) async {
+    if (index < 0 || index >= state.length) return null;
     final removed = state[index];
     final prior = state;
     final updated = [...state]..removeAt(index);
@@ -179,6 +262,8 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
       baseVersion: removed.remoteVersion,
     );
     await _forgetRemovedNames([removed.name]);
+    if (outcome == null) return null;
+    return _logDeparture(removed, outcome);
   }
 
   /// Removes every inventory row at once (the "clear all" action). Optimistic
@@ -217,11 +302,13 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
   /// Each target is resolved to its live index by stable identity (so a
   /// reordered display list never deletes the wrong row), removed optimistically
   /// with rollback, then a delete is enqueued per row so other household members
-  /// see it too. Returns the removed items paired with their original indices,
-  /// ascending, so the caller can undo by re-inserting each at its position.
-  Future<List<({int index, Ingredient item})>> removeMany(
-    Iterable<Ingredient> targets,
-  ) async {
+  /// see it too. Returns each removed item with its original index (ascending,
+  /// so the caller can undo by re-inserting at position) and the food-log entry
+  /// id it logged under (when [outcome] was given), so undo can reverse the log.
+  Future<List<({int index, Ingredient item, String? logId})>> removeMany(
+    Iterable<Ingredient> targets, {
+    FoodLogOutcome? outcome,
+  }) async {
     final indices = <int>{};
     for (final target in targets) {
       final index = inventoryIndexOf(state, target);
@@ -255,7 +342,14 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
         ),
     ]);
     await _forgetRemovedNames(removed.map((r) => r.item.name));
-    return removed;
+    return [
+      for (final r in removed)
+        (
+          index: r.index,
+          item: r.item,
+          logId: outcome == null ? null : await _logDeparture(r.item, outcome),
+        ),
+    ];
   }
 
   Future<void> insertAt(int index, Ingredient item) async {
@@ -395,6 +489,9 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
 
     final removalIndices = <int>{};
     final syncOperations = <SyncEnqueueOp>[];
+    // Rows the deduction empties out leave inventory by being cooked/used — the
+    // food log records each as a consumed departure once the write lands.
+    final consumedDepartures = <Ingredient>[];
     deductByIndex.forEach((index, totalDeduct) {
       final existing = current[index];
       final existingQty = double.tryParse(existing.quantity.trim());
@@ -404,6 +501,7 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
       final remaining = existingQty - totalDeduct;
       if (remaining <= 0) {
         removalIndices.add(index);
+        consumedDepartures.add(existing);
         final deletedAt = DateTime.now().toUtc();
         syncOperations.add(
           SyncEnqueueOp(
@@ -445,6 +543,9 @@ class InventoryNotifier extends Notifier<List<Ingredient>>
       rethrow;
     }
     await enqueueSyncBatch(syncOperations);
+    for (final item in consumedDepartures) {
+      await _logDeparture(item, FoodLogOutcome.consumed);
+    }
   }
 
   DeductionCandidate? _chosenCandidate(DeductionProposal p) {
@@ -624,11 +725,6 @@ final storageAreasProvider = Provider.autoDispose<List<StorageArea>>((ref) {
     IconType.freezer: 20,
     IconType.pantry: 50,
   };
-  const names = {
-    IconType.fridge: '冰箱',
-    IconType.freezer: '冷冻室',
-    IconType.pantry: '食品柜',
-  };
   final counts = {for (final type in IconType.values) type: 0};
 
   for (final item in items) {
@@ -639,7 +735,7 @@ final storageAreasProvider = Provider.autoDispose<List<StorageArea>>((ref) {
     final count = counts[type] ?? 0;
     final cap = maxCapacity[type]!;
     return StorageArea(
-      name: names[type]!,
+      name: storageAreaLabel(type),
       icon: type,
       itemCount: count,
       capacityPercent: (count / cap).clamp(0.0, 1.0),
@@ -649,6 +745,17 @@ final storageAreasProvider = Provider.autoDispose<List<StorageArea>>((ref) {
 
 final selectedCategoryProvider = StateProvider<String>(
   (ref) => inventoryFilterAll,
+);
+
+/// The storage area the inventory list is filtered to, or null for "all areas".
+/// Mirrors [selectedCategoryProvider]: a second, orthogonal filter dimension
+/// the user can combine with category and search (冰箱/冷冻室/食品柜).
+final selectedStorageProvider = StateProvider<IconType?>((ref) => null);
+
+/// Display ordering for the inventory list. Orthogonal to the category/storage
+/// filters; persists across tab switches like [selectedStorageProvider].
+final inventorySortModeProvider = StateProvider<InventorySortMode>(
+  (ref) => InventorySortMode.manual,
 );
 
 final filteredByCategoryProvider = Provider.autoDispose<List<Ingredient>>((
@@ -667,11 +774,18 @@ final filteredInventoryItemsProvider = Provider.autoDispose<List<Ingredient>>((
   ref,
 ) {
   final query = ref.watch(inventorySearchQueryProvider).trim().toLowerCase();
-  final items = ref.watch(filteredByCategoryProvider);
-  if (query.isEmpty) return items;
-  return items
-      .where((item) => item.name.toLowerCase().contains(query))
-      .toList();
+  // category → storage → search → sort, so the filters compose and the chosen
+  // order is applied last over the narrowed set.
+  final items = inventoryItemsForStorage(
+    ref.watch(filteredByCategoryProvider),
+    ref.watch(selectedStorageProvider),
+  );
+  final filtered = query.isEmpty
+      ? items
+      : items
+            .where((item) => item.name.toLowerCase().contains(query))
+            .toList();
+  return sortedInventoryItems(filtered, ref.watch(inventorySortModeProvider));
 });
 
 final frequentItemsProvider = Provider.autoDispose<List<FrequentItem>>((ref) {

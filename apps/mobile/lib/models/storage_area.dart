@@ -9,6 +9,14 @@ IconType iconTypeFromName(String? name) {
   };
 }
 
+/// Human-readable Chinese label for a storage area — the single source of truth
+/// shared by the inventory filter chips and [storageAreasProvider].
+String storageAreaLabel(IconType type) => switch (type) {
+  IconType.fridge => '冰箱',
+  IconType.freezer => '冷冻室',
+  IconType.pantry => '食品柜',
+};
+
 class StorageArea {
   final String name;
   final IconType icon;

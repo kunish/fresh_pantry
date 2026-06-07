@@ -25,7 +25,9 @@ import '../widgets/shared/fk_section_head.dart';
 import '../widgets/shared/fk_top_bar.dart';
 import 'ai_settings_screen.dart';
 import 'household_screen.dart';
+import 'meal_plan_screen.dart';
 import 'my_recipes_screen.dart';
+import 'waste_insights_screen.dart';
 
 /// FreshKeeper "我的" 设置页 — 设计稿 `screens-3.jsx::SettingsScreen`。
 ///
@@ -418,6 +420,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   padding: EdgeInsets.zero,
                   child: Column(
                     children: [
+                      _LinkRow(
+                        label: '本周计划',
+                        sub: '规划这周吃什么 · 一键补缺料',
+                        icon: Icons.calendar_month_rounded,
+                        onTap: () => Navigator.of(context).push(
+                          fkRoute<void>(
+                            builder: (_) => const MealPlanScreen(),
+                          ),
+                        ),
+                      ),
+                      _LinkRow(
+                        label: '减废成效',
+                        sub: '本月用掉与浪费 · 越用越省',
+                        icon: Icons.eco_outlined,
+                        onTap: () => Navigator.of(context).push(
+                          fkRoute<void>(
+                            builder: (_) => const WasteInsightsScreen(),
+                          ),
+                        ),
+                      ),
                       _LinkRow(
                         label: '我的食谱',
                         sub: '添加和管理私房菜单',

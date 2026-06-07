@@ -9,8 +9,8 @@ import '../providers/inventory_provider.dart';
 import '../providers/shopping_provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/fk_category_palette.dart';
-import '../utils/app_dialog.dart';
 import '../utils/app_snackbar.dart';
+import '../utils/food_departure_sheet.dart';
 import '../utils/page_transitions.dart';
 import '../utils/storage_labels.dart';
 import '../widgets/shared/cat_icon.dart';
@@ -28,12 +28,17 @@ class IngredientDetailResult {
     this.name,
     this.item,
     this.index,
+    this.logId,
   });
 
   final IngredientDetailResultType type;
   final String? name;
   final Ingredient? item;
   final int? index;
+
+  /// Food-log entry id this deletion recorded under, so an undo can reverse the
+  /// waste-reduction log. Null when the delete wasn't logged.
+  final String? logId;
 
   factory IngredientDetailResult.updated(String name) {
     return IngredientDetailResult._(
@@ -42,11 +47,16 @@ class IngredientDetailResult {
     );
   }
 
-  factory IngredientDetailResult.deleted(Ingredient item, int index) {
+  factory IngredientDetailResult.deleted(
+    Ingredient item,
+    int index, {
+    String? logId,
+  }) {
     return IngredientDetailResult._(
       type: IngredientDetailResultType.deleted,
       item: item,
       index: index,
+      logId: logId,
     );
   }
 }
@@ -119,23 +129,25 @@ class _IngredientDetailScreenState
     final index = inventoryIndexOf(ref.read(inventoryProvider), item);
     if (index == -1) return;
 
-    final confirmed = await showAppConfirmDialog(
+    final outcome = await showFoodDepartureOutcomeSheet(
       context,
-      title: '删除食材',
-      content: '确定要删除「${item.name}」吗？此操作不可撤销。',
-      confirmLabel: '删除',
-      isDestructive: true,
+      itemName: item.name,
     );
-    if (!mounted || !confirmed) return;
+    if (!mounted || outcome == null) return;
 
+    final String? logId;
     try {
-      await ref.read(inventoryProvider.notifier).remove(index);
+      logId = await ref
+          .read(inventoryProvider.notifier)
+          .remove(index, outcome: outcome);
     } catch (_) {
       if (mounted) showAppSnackBar(context, '删除失败，请重试');
       return;
     }
     if (!mounted) return;
-    Navigator.of(context).pop(IngredientDetailResult.deleted(item, index));
+    Navigator.of(
+      context,
+    ).pop(IngredientDetailResult.deleted(item, index, logId: logId));
   }
 
   @override
@@ -235,6 +247,10 @@ class _IngredientDetailScreenState
                             ),
                           ),
                         ),
+                      ],
+                      if (details.nutrition?.hasAny ?? false) ...[
+                        const SizedBox(height: 14),
+                        _NutritionCard(nutrition: details.nutrition!),
                       ],
                       const SizedBox(height: 14),
                       _InfoList(
@@ -619,6 +635,80 @@ class _StatColumn extends StatelessWidget {
         ],
       ],
     );
+  }
+}
+
+/// Per-100g macro nutrition card, shown only when Open Food Facts supplied at
+/// least one macro ([NutritionFacts.hasAny]). Reuses [_StatColumn] so the value
+/// styling matches the quantity/freshness card.
+class _NutritionCard extends StatelessWidget {
+  final NutritionFacts nutrition;
+  const _NutritionCard({required this.nutrition});
+
+  @override
+  Widget build(BuildContext context) {
+    final stats = <Widget>[
+      if (nutrition.energyKcal != null)
+        _StatColumn(
+          label: '热量',
+          value: _fmt(nutrition.energyKcal!),
+          unit: 'kcal',
+          valueColor: AppColors.onSurface,
+        ),
+      if (nutrition.protein != null)
+        _StatColumn(
+          label: '蛋白质',
+          value: _fmt(nutrition.protein!),
+          unit: 'g',
+          valueColor: AppColors.onSurface,
+        ),
+      if (nutrition.carbs != null)
+        _StatColumn(
+          label: '碳水',
+          value: _fmt(nutrition.carbs!),
+          unit: 'g',
+          valueColor: AppColors.onSurface,
+        ),
+      if (nutrition.fat != null)
+        _StatColumn(
+          label: '脂肪',
+          value: _fmt(nutrition.fat!),
+          unit: 'g',
+          valueColor: AppColors.onSurface,
+        ),
+    ];
+
+    return FkCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '营养成分 · 每 100g',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: AppFontSize.md,
+              fontWeight: FontWeight.w700,
+              color: AppColors.onSurface,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var i = 0; i < stats.length; i++) ...[
+                if (i > 0) const SizedBox(width: AppSpacing.md),
+                Expanded(child: stats[i]),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _fmt(double value) {
+    if (value == value.roundToDouble()) return value.toInt().toString();
+    return value.toStringAsFixed(1);
   }
 }
 

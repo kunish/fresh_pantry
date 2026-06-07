@@ -2,6 +2,7 @@ enum SyncEntityType {
   inventoryItem,
   shoppingItem,
   customRecipe,
+  mealPlanEntry,
   householdConfig,
 }
 

@@ -30,6 +30,44 @@ bool recipeIngredientMatchesInventory(
   );
 }
 
+/// Whether [recipe] contains any ingredient the user wants to avoid (忌口).
+///
+/// [exclusions] are pre-normalized keywords (trim + lowercase, owned by the
+/// dietary-preferences notifier). Matching is a substring test so a keyword like
+/// "花生" hides "花生油"/"花生酱" too — conservative on purpose, since the use case
+/// is allergy/aversion avoidance where over-hiding beats a missed match. An empty
+/// exclusion set (or empty keyword) never hides anything.
+bool recipeHasExcludedIngredient(Recipe recipe, Set<String> exclusions) {
+  if (exclusions.isEmpty) return false;
+  return recipe.ingredients.any((ingredient) {
+    final name = ingredient.name.trim().toLowerCase();
+    if (name.isEmpty) return false;
+    return exclusions.any((ex) => ex.isNotEmpty && name.contains(ex));
+  });
+}
+
+/// Distinct, non-blank recipe categories present in [recipes], ordered by how
+/// many recipes carry each (largest bucket first) so the most useful filters
+/// lead. Count ties fall back to first appearance for a deterministic order.
+/// Categories are trimmed, so "荤菜" and " 荤菜 " collapse into one bucket.
+/// Powers the recipe category filter chips.
+List<String> recipeCategoryOptions(List<Recipe> recipes) {
+  final counts = <String, int>{};
+  final firstSeen = <String, int>{};
+  for (var i = 0; i < recipes.length; i++) {
+    final category = recipes[i].category.trim();
+    if (category.isEmpty) continue;
+    counts[category] = (counts[category] ?? 0) + 1;
+    firstSeen.putIfAbsent(category, () => i);
+  }
+  final categories = counts.keys.toList();
+  categories.sort((a, b) {
+    final byCount = counts[b]!.compareTo(counts[a]!);
+    return byCount != 0 ? byCount : firstSeen[a]!.compareTo(firstSeen[b]!);
+  });
+  return categories;
+}
+
 int matchedIngredientCountForNames(Set<String> inventoryNames, Recipe recipe) {
   if (inventoryNames.isEmpty || recipe.ingredients.isEmpty) return 0;
 
@@ -51,6 +89,48 @@ List<RecipeIngredient> missingRecipeIngredientsForNames(
             !recipeIngredientMatchesInventory(ingredient, inventoryNames),
       )
       .toList();
+}
+
+/// How many distinct expiring/expired inventory names [recipe] would use up.
+/// Uses the same substring matcher as the "用临期" tab's membership test, so the
+/// count and the filter never disagree.
+int expiringIngredientCountForNames(Set<String> expiringNames, Recipe recipe) {
+  if (expiringNames.isEmpty || recipe.ingredients.isEmpty) return 0;
+  return expiringNames
+      .where(
+        (name) => recipe.ingredients.any(
+          (ing) => recipeIngredientMatchesInventory(ing, {name}),
+        ),
+      )
+      .length;
+}
+
+/// The "用临期" tab order: recipes using at least one expiring/expired item,
+/// ranked by how many distinct perishables each clears (desc) so the dish that
+/// reduces the most waste surfaces first. Ties keep [recommended]'s existing
+/// match order, so this only ever *reorders by* 临期 count — never drops a
+/// recipe the old `where` filter would have kept.
+List<Recipe> recipesRankedByExpiringUse(
+  List<Recipe> recommended,
+  Set<String> expiringNames,
+) {
+  if (expiringNames.isEmpty) return const [];
+  final using = <Recipe>[];
+  final useCount = <String, int>{};
+  final order = <String, int>{};
+  for (final recipe in recommended) {
+    final count = expiringIngredientCountForNames(expiringNames, recipe);
+    if (count == 0) continue;
+    order[recipe.id] = using.length;
+    using.add(recipe);
+    useCount[recipe.id] = count;
+  }
+  using.sort((a, b) {
+    final byCount = (useCount[b.id] ?? 0).compareTo(useCount[a.id] ?? 0);
+    if (byCount != 0) return byCount;
+    return (order[a.id] ?? 0).compareTo(order[b.id] ?? 0);
+  });
+  return using;
 }
 
 /// Explore-tab data source: loads ALL local HowToCook (Chinese) recipes.

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fresh_pantry/models/ai_settings.dart';
 import 'package:fresh_pantry/models/ingredient.dart';
+import 'package:fresh_pantry/models/meal_plan_entry.dart';
 import 'package:fresh_pantry/models/recipe.dart';
 import 'package:fresh_pantry/models/shopping_item.dart';
 import 'package:fresh_pantry/services/backup_service.dart';
@@ -33,6 +34,15 @@ BackupData _sampleData() => BackupData(
       'steps': ['打蛋'],
     }),
   ],
+  mealPlan: [
+    MealPlanEntry(
+      id: 'mp_1',
+      date: DateTime(2026, 6, 8),
+      recipeId: 'r_1',
+      recipeName: '番茄炒蛋',
+      servings: 2,
+    ),
+  ],
   aiSettings: AiSettings.empty,
 );
 
@@ -49,6 +59,7 @@ void main() {
       expect(data['inventory'], isA<List<dynamic>>());
       expect(data['shopping'], isA<List<dynamic>>());
       expect(data['customRecipes'], isA<List<dynamic>>());
+      expect(data['mealPlan'], isA<List<dynamic>>());
       expect(data['addHistory'], isA<Map<String, dynamic>>());
     });
 
@@ -65,6 +76,7 @@ void main() {
                     addHistory: const {},
                     shopping: const [],
                     customRecipes: const [],
+                    mealPlan: const [],
                     aiSettings: null,
                   ),
                 ),
@@ -94,6 +106,10 @@ void main() {
       expect(
         restored.customRecipes.map((r) => r.toJson()).toList(),
         original.customRecipes.map((r) => r.toJson()).toList(),
+      );
+      expect(
+        restored.mealPlan.map((e) => e.toJson()).toList(),
+        original.mealPlan.map((e) => e.toJson()).toList(),
       );
       expect(restored.aiSettings?.toJson(), original.aiSettings?.toJson());
     });
@@ -152,6 +168,7 @@ void main() {
       expect(data.inventory, isEmpty);
       expect(data.shopping, isEmpty);
       expect(data.customRecipes, isEmpty);
+      expect(data.mealPlan, isEmpty);
       expect(data.addHistory, isEmpty);
       expect(data.aiSettings, isNull);
     });

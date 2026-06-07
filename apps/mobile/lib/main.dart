@@ -11,6 +11,7 @@ import 'backend/backend_config_provider.dart';
 import 'config/backend_config.dart';
 import 'config/sentry_config.dart';
 import 'providers/ai_draft_provider.dart';
+import 'providers/food_log_provider.dart';
 import 'providers/invite_link_provider.dart';
 import 'providers/notification_service_provider.dart';
 import 'providers/storage_service_provider.dart';
@@ -20,7 +21,9 @@ import 'services/share_intent_service.dart';
 import 'storage/blob_to_drift_migration.dart';
 import 'storage/custom_recipe_repo.dart';
 import 'storage/drift/app_database.dart';
+import 'storage/food_log_repo.dart';
 import 'storage/inventory_repo.dart';
+import 'storage/meal_plan_repo.dart';
 import 'storage/shared_prefs_storage_adapter.dart';
 import 'storage/shopping_repo.dart';
 import 'sync/background_sync.dart';
@@ -83,6 +86,8 @@ Future<void> _runFreshPantry() async {
   final inventoryRepo = InventoryRepo(db);
   final shoppingRepo = ShoppingRepo(db);
   final customRecipeRepo = CustomRecipeRepo(db);
+  final mealPlanRepo = MealPlanRepo(db);
+  final foodLogRepo = FoodLogRepo(db);
   final outboxRepo = SyncOutboxRepo(db);
 
   // Pre-read the local-only ('') scope so the notifiers' synchronous `build()`
@@ -93,6 +98,16 @@ Future<void> _runFreshPantry() async {
   await inventoryRepo.hydrateHistory();
   shoppingRepo.hydrate(await shoppingRepo.loadAllFor(''));
   customRecipeRepo.hydrate(await customRecipeRepo.loadAllFor(''));
+  mealPlanRepo.hydrate(await mealPlanRepo.loadAllFor(''));
+  // The food log is append-only and unbounded; seed only the recent window the
+  // stats report on (the rest stays on disk for backup/sync).
+  final foodLogCutoffMs = DateTime.now()
+      .toUtc()
+      .subtract(foodLogRecentWindow)
+      .millisecondsSinceEpoch;
+  foodLogRepo.hydrate(
+    await foodLogRepo.loadRecentFor('', sinceMs: foodLogCutoffMs),
+  );
   await outboxRepo.hydratePending();
 
   // Periodic background outbox drain (Android/iOS only; a no-op elsewhere). The
@@ -111,6 +126,8 @@ Future<void> _runFreshPantry() async {
           inventoryRepoProvider.overrideWithValue(inventoryRepo),
           shoppingRepoProvider.overrideWithValue(shoppingRepo),
           customRecipeRepoProvider.overrideWithValue(customRecipeRepo),
+          mealPlanRepoProvider.overrideWithValue(mealPlanRepo),
+          foodLogRepoProvider.overrideWithValue(foodLogRepo),
           syncOutboxRepoProvider.overrideWithValue(outboxRepo),
           systemShareSourceProvider.overrideWithValue(
             createSystemShareSource(),

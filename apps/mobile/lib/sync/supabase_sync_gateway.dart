@@ -42,6 +42,7 @@ class SupabaseSyncGateway implements RemoteSyncGateway {
       SyncEntityType.inventoryItem => _pushInventoryOperation(operation),
       SyncEntityType.shoppingItem => _pushShoppingOperation(operation),
       SyncEntityType.customRecipe => _pushCustomRecipeOperation(operation),
+      SyncEntityType.mealPlanEntry => _pushMealPlanEntryOperation(operation),
       SyncEntityType.householdConfig => Future.value(),
     };
   }
@@ -98,6 +99,25 @@ class SupabaseSyncGateway implements RemoteSyncGateway {
         );
       case SyncOperationType.delete:
         await _softDeleteRemoteRow('custom_recipes', operation);
+      case SyncOperationType.intake:
+      case SyncOperationType.deduction:
+      case SyncOperationType.toggleChecked:
+        return;
+    }
+  }
+
+  Future<void> _pushMealPlanEntryOperation(SyncOperation operation) async {
+    switch (operation.operation) {
+      case SyncOperationType.create:
+      case SyncOperationType.update:
+        await _pushVersionedRow(
+          'meal_plan_entries',
+          operation,
+          rowForUpsert: mealPlanEntryRowForUpsert,
+          rowFromJson: mealPlanEntryRowFromJson,
+        );
+      case SyncOperationType.delete:
+        await _softDeleteRemoteRow('meal_plan_entries', operation);
       case SyncOperationType.intake:
       case SyncOperationType.deduction:
       case SyncOperationType.toggleChecked:

@@ -2,12 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fresh_pantry/data/food_categories.dart';
 import 'package:fresh_pantry/models/ingredient.dart';
+import 'package:fresh_pantry/models/meal_plan_entry.dart';
 import 'package:fresh_pantry/models/proposal.dart';
 import 'package:fresh_pantry/models/recipe.dart';
 import 'package:fresh_pantry/models/shopping_item.dart';
 import 'package:fresh_pantry/models/storage_area.dart';
 import 'package:fresh_pantry/providers/custom_recipe_provider.dart';
 import 'package:fresh_pantry/providers/inventory_provider.dart';
+import 'package:fresh_pantry/providers/meal_plan_provider.dart';
 import 'package:fresh_pantry/providers/shopping_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/storage/custom_recipe_repo.dart';
@@ -275,6 +277,95 @@ void main() {
     expect(operation.patch, containsPair('id', operation.entityId));
   });
 
+  test('meal plan addEntry enqueues create sync operation', () async {
+    final db = newTestDatabase();
+    addTearDown(db.close);
+    final outbox = SyncOutboxRepo(db);
+    final container = _container(database: db, outbox: outbox);
+    addTearDown(container.dispose);
+
+    await container
+        .read(mealPlanProvider.notifier)
+        .addEntry(
+          date: DateTime(2026, 6, 8),
+          recipe: const Recipe(
+            id: 'r1',
+            name: '番茄炒蛋',
+            category: '家常菜',
+            difficulty: 1,
+            cookingMinutes: 15,
+            description: '',
+            ingredients: [],
+            steps: [],
+          ),
+        );
+
+    final operation = outbox.loadPending().single;
+    expect(operation.entityType, SyncEntityType.mealPlanEntry);
+    expect(operation.entityId, matches(_uuidPattern));
+    expect(operation.operation, SyncOperationType.create);
+    expect(operation.patch, containsPair('recipeName', '番茄炒蛋'));
+    expect(operation.patch, containsPair('id', operation.entityId));
+  });
+
+  test('meal plan setDone enqueues update sync operation', () async {
+    final db = newTestDatabase();
+    addTearDown(db.close);
+    final outbox = SyncOutboxRepo(db);
+    final container = _container(
+      database: db,
+      outbox: outbox,
+      mealPlanSeed: [
+        MealPlanEntry(
+          id: _mealId,
+          date: DateTime(2026, 6, 8),
+          recipeId: 'r1',
+          recipeName: 'Soup',
+          remoteVersion: 3,
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(mealPlanProvider.notifier).setDone(_mealId, true);
+
+    final operation = outbox.loadPending().single;
+    expect(operation.entityType, SyncEntityType.mealPlanEntry);
+    expect(operation.entityId, _mealId);
+    expect(operation.operation, SyncOperationType.update);
+    expect(operation.patch, containsPair('done', true));
+    expect(operation.baseVersion, 3);
+  });
+
+  test('meal plan remove enqueues delete sync operation', () async {
+    final db = newTestDatabase();
+    addTearDown(db.close);
+    final outbox = SyncOutboxRepo(db);
+    final container = _container(
+      database: db,
+      outbox: outbox,
+      mealPlanSeed: [
+        MealPlanEntry(
+          id: _mealId,
+          date: DateTime(2026, 6, 8),
+          recipeId: 'r1',
+          recipeName: 'Soup',
+          remoteVersion: 6,
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(mealPlanProvider.notifier).remove(_mealId);
+
+    final operation = outbox.loadPending().single;
+    expect(operation.entityType, SyncEntityType.mealPlanEntry);
+    expect(operation.entityId, _mealId);
+    expect(operation.operation, SyncOperationType.delete);
+    expect(operation.patch['deletedAt'], isA<String>());
+    expect(operation.baseVersion, 6);
+  });
+
   test('local-only (no household) mutation does not enqueue', () async {
     final db = newTestDatabase();
     addTearDown(db.close);
@@ -309,12 +400,14 @@ final _uuidPattern = RegExp(
   r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
 );
 const _inventoryId = '00000000-0000-4000-8000-000000000001';
+const _mealId = '00000000-0000-4000-8000-0000000000a1';
 
 ProviderContainer _container({
   required AppDatabase database,
   required SyncOutboxRepo outbox,
   InventoryRepo? inventoryRepo,
   ShoppingRepo? shoppingRepo,
+  List<MealPlanEntry>? mealPlanSeed,
   String householdId = 'household_1',
 }) {
   return ProviderContainer(
@@ -327,6 +420,8 @@ ProviderContainer _container({
         shoppingRepo ?? ShoppingRepo(database),
       ),
       customRecipeRepoProvider.overrideWithValue(CustomRecipeRepo(database)),
+      if (mealPlanSeed != null)
+        mealPlanSeedProvider.overrideWithValue(mealPlanSeed),
       syncOutboxRepoProvider.overrideWithValue(outbox),
       selectedHouseholdIdProvider.overrideWithValue(householdId),
       syncClientIdProvider.overrideWithValue('client_1'),

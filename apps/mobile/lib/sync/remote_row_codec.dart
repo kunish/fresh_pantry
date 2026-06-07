@@ -161,3 +161,34 @@ Map<String, dynamic> customRecipeRowForUpsert(
   _applyLocalId(row, recipe['id']);
   return row;
 }
+
+// Meal-plan entries carry their fields in an opaque `payload` blob, exactly like
+// custom recipes — only id and the sync columns are real columns.
+Map<String, dynamic> mealPlanEntryRowFromJson(Map<String, dynamic> row) {
+  final payload = row['payload'];
+  final entry = payload is Map
+      ? Map<String, dynamic>.from(payload)
+      : <String, dynamic>{};
+  return {
+    ...entry,
+    'id': row['id'] ?? entry['id'],
+    'remoteVersion': _toInt0(row['version']),
+    'clientUpdatedAt': row['client_updated_at'],
+    'deletedAt': row['deleted_at'],
+  };
+}
+
+Map<String, dynamic> mealPlanEntryRowForUpsert(
+  String householdId,
+  Map<String, dynamic> entry,
+) {
+  final row = <String, dynamic>{
+    'household_id': householdId,
+    'payload': entry,
+    'version': versionForUpsert(entry['remoteVersion']),
+    'client_updated_at': entry['clientUpdatedAt'],
+    'deleted_at': entry['deletedAt'],
+  };
+  _applyLocalId(row, entry['id']);
+  return row;
+}

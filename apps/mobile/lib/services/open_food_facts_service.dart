@@ -30,7 +30,7 @@ class OpenFoodFactsService {
   static const _detailsFields =
       'product_name,generic_name,categories_tags,categories,'
       'image_front_small_url,image_front_url,image_small_url,image_url,'
-      'image_thumb_url,completeness';
+      'image_thumb_url,completeness,nutriments';
   static const _timeout = Duration(seconds: 8);
   static const _retryCount = 1;
   static const _retryDelay = Duration(milliseconds: 500);
@@ -396,7 +396,14 @@ class OpenFoodFactsService {
       shelfLifeDays: defaults?.shelfLifeDays,
       source: 'Open Food Facts',
       fetchedAt: fetchedAt,
+      nutrition: _nutritionForProduct(product),
     );
+  }
+
+  static NutritionFacts? _nutritionForProduct(Map<String, dynamic> product) {
+    final nutriments = asJsonMap(product['nutriments']);
+    if (nutriments == null) return null;
+    return NutritionFacts.fromOffNutriments(nutriments);
   }
 
   static String _descriptionForProduct(

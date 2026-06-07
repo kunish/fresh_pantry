@@ -29,6 +29,16 @@ class RecipeCard extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
   final bool useExpiring;
+
+  /// When [onToggleFavorite] is provided, a heart overlay on the cover lets the
+  /// user favorite the dish straight from the list — completing the loop with
+  /// the recipes screen's favorites-only filter. [isFavorite] drives the glyph.
+  final bool isFavorite;
+  final VoidCallback? onToggleFavorite;
+
+  /// When the 临期 badge shows, how many perishables this dish clears. Renders
+  /// "临期 · N" for N ≥ 2 to explain the 用临期 tab ranking; null/≤1 stays plain.
+  final int? expiringUseCount;
   final Object? heroTag;
   final RecipeCardLayout layout;
 
@@ -41,6 +51,9 @@ class RecipeCard extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.useExpiring = false,
+    this.isFavorite = false,
+    this.onToggleFavorite,
+    this.expiringUseCount,
     this.heroTag,
     this.layout = RecipeCardLayout.horizontal,
   });
@@ -63,7 +76,10 @@ class RecipeCard extends StatelessWidget {
               _BannerCover(
                 recipe: recipe,
                 useExpiring: useExpiring,
+                expiringUseCount: expiringUseCount,
                 heroTag: heroTag,
+                isFavorite: isFavorite,
+                onToggleFavorite: onToggleFavorite,
               ),
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.md),
@@ -95,7 +111,10 @@ class RecipeCard extends StatelessWidget {
               _Cover(
                 recipe: recipe,
                 useExpiring: useExpiring,
+                expiringUseCount: expiringUseCount,
                 heroTag: heroTag,
+                isFavorite: isFavorite,
+                onToggleFavorite: onToggleFavorite,
               ),
               Expanded(
                 child: Padding(
@@ -262,8 +281,18 @@ class _RecipeMeta extends StatelessWidget {
 class _Cover extends StatelessWidget {
   final Recipe recipe;
   final bool useExpiring;
+  final int? expiringUseCount;
   final Object? heroTag;
-  const _Cover({required this.recipe, required this.useExpiring, this.heroTag});
+  final bool isFavorite;
+  final VoidCallback? onToggleFavorite;
+  const _Cover({
+    required this.recipe,
+    required this.useExpiring,
+    this.expiringUseCount,
+    this.heroTag,
+    this.isFavorite = false,
+    this.onToggleFavorite,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -283,7 +312,21 @@ class _Cover extends StatelessWidget {
         children: [
           wrappedCover,
           if (useExpiring)
-            const Positioned(top: 8, left: 8, child: _ExpiringBadge()),
+            Positioned(
+              top: 8,
+              left: 8,
+              child: _ExpiringBadge(count: expiringUseCount),
+            ),
+          if (onToggleFavorite != null)
+            Positioned(
+              top: 6,
+              right: 6,
+              child: _FavoriteHeart(
+                recipe: recipe,
+                isFavorite: isFavorite,
+                onTap: onToggleFavorite!,
+              ),
+            ),
         ],
       ),
     );
@@ -294,11 +337,17 @@ class _Cover extends StatelessWidget {
 class _BannerCover extends StatelessWidget {
   final Recipe recipe;
   final bool useExpiring;
+  final int? expiringUseCount;
   final Object? heroTag;
+  final bool isFavorite;
+  final VoidCallback? onToggleFavorite;
   const _BannerCover({
     required this.recipe,
     required this.useExpiring,
+    this.expiringUseCount,
     this.heroTag,
+    this.isFavorite = false,
+    this.onToggleFavorite,
   });
 
   @override
@@ -316,12 +365,67 @@ class _BannerCover extends StatelessWidget {
     final wrappedCover = heroTag == null
         ? cover
         : Hero(tag: heroTag!, child: cover);
-    if (!useExpiring) return wrappedCover;
+    if (!useExpiring && onToggleFavorite == null) return wrappedCover;
     return Stack(
       children: [
         wrappedCover,
-        const Positioned(top: 10, left: 10, child: _ExpiringBadge()),
+        if (useExpiring)
+          Positioned(
+            top: 10,
+            left: 10,
+            child: _ExpiringBadge(count: expiringUseCount),
+          ),
+        if (onToggleFavorite != null)
+          Positioned(
+            top: 8,
+            right: 8,
+            child: _FavoriteHeart(
+              recipe: recipe,
+              isFavorite: isFavorite,
+              onTap: onToggleFavorite!,
+            ),
+          ),
       ],
+    );
+  }
+}
+
+/// Heart overlay on a recipe cover. Its [GestureDetector] sits above the card's
+/// own tap target, so tapping it toggles the favorite and the card's `onTap`
+/// (open-detail) never fires — the inner detector wins the gesture arena.
+class _FavoriteHeart extends StatelessWidget {
+  final Recipe recipe;
+  final bool isFavorite;
+  final VoidCallback onTap;
+  const _FavoriteHeart({
+    required this.recipe,
+    required this.isFavorite,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      key: Key('recipe_card_favorite_${recipe.id}'),
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Semantics(
+        button: true,
+        label: isFavorite ? '取消收藏 ${recipe.name}' : '收藏 ${recipe.name}',
+        child: Container(
+          padding: const EdgeInsets.all(5),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.92),
+            shape: BoxShape.circle,
+            boxShadow: AppShadows.card,
+          ),
+          child: Icon(
+            isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+            size: 15,
+            color: isFavorite ? AppColors.fkDanger : AppColors.onSurfaceVariant,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -380,10 +484,14 @@ class _CoverImage extends StatelessWidget {
 }
 
 class _ExpiringBadge extends StatelessWidget {
-  const _ExpiringBadge();
+  /// Perishables this dish clears. Shown as "临期 · N" for N ≥ 2 to explain the
+  /// 用临期 ranking; null or ≤1 keeps the plain "临期" label.
+  final int? count;
+  const _ExpiringBadge({this.count});
 
   @override
   Widget build(BuildContext context) {
+    final label = (count != null && count! >= 2) ? '临期 · $count' : '临期';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
@@ -400,7 +508,7 @@ class _ExpiringBadge extends StatelessWidget {
           ),
           const SizedBox(width: 2),
           Text(
-            '临期',
+            label,
             style: GoogleFonts.manrope(
               fontSize: 10,
               fontWeight: FontWeight.w700,

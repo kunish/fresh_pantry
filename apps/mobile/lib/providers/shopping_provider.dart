@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import '../models/ingredient.dart';
 import '../models/shopping_item.dart';
+import '../data/food_categories.dart';
 import '../data/food_knowledge.dart';
 import '../storage/shopping_item_normalizer.dart';
 import '../storage/shopping_repo.dart';
@@ -48,6 +49,16 @@ class ShoppingListViewState {
   return (checked: checked, unchecked: unchecked);
 }
 
+/// Rank of [category] in the app's canonical [FoodCategories.values] order, so
+/// shopping groups follow a predictable 乳蛋→果蔬→肉海鲜→香料→其他 sequence
+/// (store-aisle friendly). Blank / unknown categories sort last.
+int _shoppingCategoryRank(String category) {
+  final normalized = FoodCategories.normalize(category);
+  if (normalized == null) return FoodCategories.values.length;
+  final index = FoodCategories.values.indexOf(normalized);
+  return index == -1 ? FoodCategories.values.length : index;
+}
+
 Map<String, List<ShoppingItem>> groupShoppingItems(
   Iterable<ShoppingItem> items,
 ) {
@@ -55,7 +66,16 @@ Map<String, List<ShoppingItem>> groupShoppingItems(
   for (final item in items) {
     grouped.putIfAbsent(item.category, () => []).add(item);
   }
-  return grouped;
+  // Order groups by canonical category rank instead of insertion order, so the
+  // list reads in a consistent aisle sequence. Stable on ties (e.g. two raw
+  // keys normalizing to 其他) via the captured insertion index.
+  final keys = grouped.keys.toList();
+  final insertion = {for (var i = 0; i < keys.length; i++) keys[i]: i};
+  keys.sort((a, b) {
+    final byRank = _shoppingCategoryRank(a).compareTo(_shoppingCategoryRank(b));
+    return byRank != 0 ? byRank : insertion[a]!.compareTo(insertion[b]!);
+  });
+  return {for (final key in keys) key: grouped[key]!};
 }
 
 Map<String, List<ShoppingItem>> filterShoppingGroups(

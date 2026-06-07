@@ -2,7 +2,9 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
+import '../../models/food_log_entry.dart';
 import '../../models/ingredient.dart';
+import '../../models/meal_plan_entry.dart';
 import '../../models/recipe.dart';
 import '../../models/shopping_item.dart';
 import '../../sync/sync_operation.dart';
@@ -64,6 +66,40 @@ CustomRecipesCompanion recipeCompanionFor(String householdId, Recipe r) {
 
 Recipe recipeFromRow(CustomRecipe row) =>
     Recipe.fromJson(jsonDecode(row.payloadJson) as Map<String, dynamic>);
+
+// --- Meal plan ---
+MealPlanEntriesCompanion mealPlanCompanionFor(
+  String householdId,
+  MealPlanEntry e,
+) {
+  return MealPlanEntriesCompanion.insert(
+    id: e.id,
+    householdId: Value(householdId),
+    name: Value(e.recipeName),
+    remoteVersion: Value(e.remoteVersion),
+    deletedAt: Value(_epochMs(e.deletedAt)),
+    payloadJson: jsonEncode(e.toJson()),
+  );
+}
+
+MealPlanEntry mealPlanFromRow(MealPlanRow row) =>
+    MealPlanEntry.fromJson(jsonDecode(row.payloadJson) as Map<String, dynamic>);
+
+// --- Food log ---
+FoodLogEntriesCompanion foodLogCompanionFor(String householdId, FoodLogEntry e) {
+  return FoodLogEntriesCompanion.insert(
+    id: e.id,
+    householdId: Value(householdId),
+    name: Value(e.name),
+    loggedAt: Value(_epochMs(e.loggedAt)),
+    remoteVersion: Value(e.remoteVersion),
+    deletedAt: Value(_epochMs(e.deletedAt)),
+    payloadJson: jsonEncode(e.toJson()),
+  );
+}
+
+FoodLogEntry foodLogFromRow(FoodLogRow row) =>
+    FoodLogEntry.fromJson(jsonDecode(row.payloadJson) as Map<String, dynamic>);
 
 // --- Outbox ---
 SyncOutboxCompanion outboxCompanionFor(SyncOperation op) {

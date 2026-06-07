@@ -16,6 +16,8 @@ import '../utils/safe_push.dart';
 import '../widgets/common/top_app_bar.dart';
 import '../widgets/dashboard/expiring_fallback_card.dart';
 import '../widgets/dashboard/low_stock_card.dart';
+import '../widgets/dashboard/waste_insights_card.dart';
+import '../widgets/dashboard/weekly_plan_card.dart';
 import '../widgets/recipe_card.dart';
 import '../widgets/shared/cat_icon.dart';
 import '../widgets/shared/category_icon.dart';
@@ -64,6 +66,17 @@ class DashboardScreen extends ConsumerWidget {
               vertical: AppSpacing.sm,
             ),
             child: ExpiringFallbackCard(),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: 18,
+              vertical: AppSpacing.sm,
+            ),
+            child: WeeklyPlanCard(),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 18),
+            child: WasteInsightsCard(),
           ),
           _CategorySection(),
           _TodayRecommendationSection(),
@@ -246,6 +259,9 @@ class _CategorySection extends ConsumerWidget {
                   onTap: (cat) {
                     ref.read(selectedCategoryProvider.notifier).state =
                         foodCategoryForFkId(cat);
+                    // Reset the storage filter so the tapped category shows in
+                    // full, not narrowed by a storage area left selected earlier.
+                    ref.read(selectedStorageProvider.notifier).state = null;
                     ref.navigateToTab(FkTab.fridge);
                   },
                 ),

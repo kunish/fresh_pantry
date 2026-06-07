@@ -140,4 +140,65 @@ void main() {
       expect(updated.amount, '约 300g');
     });
   });
+
+  group('RecipeIngredient.scaledBy', () {
+    test('multiplies a numeric quantity and recomposes the amount', () {
+      final scaled = RecipeIngredient(
+        name: '西红柿',
+        quantity: '200',
+        unit: 'g',
+      ).scaledBy(2);
+      expect(scaled.quantity, '400');
+      expect(scaled.unit, 'g');
+      expect(scaled.amount, '400g');
+    });
+
+    test('factor of 1 is a no-op that preserves an explicit amount', () {
+      final original = RecipeIngredient(
+        name: '西红柿',
+        quantity: '200',
+        unit: 'g',
+        amount: '约 200g',
+      );
+      final scaled = original.scaledBy(1);
+      expect(scaled.amount, '约 200g');
+    });
+
+    test('leaves a non-numeric quantity ("适量") untouched', () {
+      final scaled = RecipeIngredient(
+        name: '盐',
+        quantity: '',
+        unit: '适量',
+      ).scaledBy(2);
+      expect(scaled.amount, '适量');
+    });
+
+    test('halving renders a clean decimal', () {
+      final scaled = RecipeIngredient(
+        name: '鸡蛋',
+        quantity: '3',
+        unit: '个',
+      ).scaledBy(0.5);
+      expect(scaled.quantity, '1.5');
+      expect(scaled.amount, '1.5个');
+    });
+
+    test('avoids binary float artifacts when scaling', () {
+      final scaled = RecipeIngredient(
+        name: '盐',
+        quantity: '0.1',
+        unit: 'kg',
+      ).scaledBy(3);
+      expect(scaled.amount, '0.3kg');
+    });
+
+    test('renders a whole result as an int (no trailing .0)', () {
+      final scaled = RecipeIngredient(
+        name: '面粉',
+        quantity: '2',
+        unit: '杯',
+      ).scaledBy(2.5);
+      expect(scaled.amount, '5杯');
+    });
+  });
 }

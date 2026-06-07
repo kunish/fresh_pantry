@@ -79,6 +79,9 @@ class _SearchOverlayState extends ConsumerState<SearchOverlay> {
 
   void _openInventoryResult() {
     ref.read(selectedCategoryProvider.notifier).state = inventoryFilterAll;
+    // Clear any storage filter too, or the search result could land on the
+    // fridge tab filtered to an area that hides the very item just opened.
+    ref.read(selectedStorageProvider.notifier).state = null;
     ref.navigateToTab(FkTab.fridge);
     _close();
   }

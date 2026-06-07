@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../models/ai_settings.dart';
 import '../models/ingredient.dart';
+import '../models/meal_plan_entry.dart';
 import '../models/recipe.dart';
 import '../models/shopping_item.dart';
 
@@ -24,6 +25,7 @@ class BackupData {
     required this.addHistory,
     required this.shopping,
     required this.customRecipes,
+    required this.mealPlan,
     this.aiSettings,
   });
 
@@ -34,6 +36,7 @@ class BackupData {
   final Map<String, dynamic> addHistory;
   final List<ShoppingItem> shopping;
   final List<Recipe> customRecipes;
+  final List<MealPlanEntry> mealPlan;
   final AiSettings? aiSettings;
 }
 
@@ -58,6 +61,7 @@ class BackupService {
       'addHistory': data.addHistory,
       'shopping': data.shopping.map((s) => s.toJson()).toList(),
       'customRecipes': data.customRecipes.map((r) => r.toJson()).toList(),
+      'mealPlan': data.mealPlan.map((e) => e.toJson()).toList(),
       if (data.aiSettings != null) 'aiSettings': data.aiSettings!.toJson(),
     };
     final envelope = <String, dynamic>{
@@ -104,6 +108,7 @@ class BackupService {
       addHistory: _parseMap(data, 'addHistory'),
       shopping: _parseList(data, 'shopping', ShoppingItem.fromJson),
       customRecipes: _parseList(data, 'customRecipes', Recipe.fromJson),
+      mealPlan: _parseList(data, 'mealPlan', MealPlanEntry.fromJson),
       aiSettings: _parseAiSettings(data),
     );
   }

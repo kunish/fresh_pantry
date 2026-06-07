@@ -45,11 +45,17 @@ abstract class RemotePantryRepository {
     String householdId,
     List<Map<String, dynamic>> rows,
   );
+  Future<void> upsertMealPlanEntries(
+    String householdId,
+    List<Map<String, dynamic>> rows,
+  );
   Future<List<Map<String, dynamic>>> loadShopping(String householdId);
   Future<List<Map<String, dynamic>>> loadCustomRecipes(String householdId);
+  Future<List<Map<String, dynamic>>> loadMealPlanEntries(String householdId);
   Stream<List<Map<String, dynamic>>> watchInventory(String householdId);
   Stream<List<Map<String, dynamic>>> watchShopping(String householdId);
   Stream<List<Map<String, dynamic>>> watchCustomRecipes(String householdId);
+  Stream<List<Map<String, dynamic>>> watchMealPlanEntries(String householdId);
 }
 
 class SupabaseRemotePantryRepository
@@ -418,6 +424,18 @@ class SupabaseRemotePantryRepository
   }
 
   @override
+  Future<List<Map<String, dynamic>>> loadMealPlanEntries(
+    String householdId,
+  ) async {
+    final rows = await _client
+        .from('meal_plan_entries')
+        .select()
+        .eq('household_id', householdId)
+        .isFilter('deleted_at', null);
+    return rows.map(mealPlanEntryRowFromJson).toList();
+  }
+
+  @override
   Future<void> upsertInventory(
     String householdId,
     List<Map<String, dynamic>> rows,
@@ -483,6 +501,29 @@ class SupabaseRemotePantryRepository
   }
 
   @override
+  Future<void> upsertMealPlanEntries(
+    String householdId,
+    List<Map<String, dynamic>> rows,
+  ) async {
+    if (rows.isEmpty) return;
+    final versioned = rows.where(_hasRemoteVersion).toList();
+    if (versioned.isNotEmpty) {
+      throw ArgumentError(
+        'upsertMealPlanEntries only accepts unsynced local rows; versioned '
+        'sync writes must use a conditional remote operation.',
+      );
+    }
+    await _client
+        .from('meal_plan_entries')
+        .upsert(
+          rows
+              .map((row) => mealPlanEntryRowForUpsert(householdId, row))
+              .toList(),
+          ignoreDuplicates: true,
+        );
+  }
+
+  @override
   Stream<List<Map<String, dynamic>>> watchInventory(String householdId) {
     return _client
         .from('inventory_items')
@@ -508,6 +549,17 @@ class SupabaseRemotePantryRepository
         .eq('household_id', householdId)
         .map(
           (rows) => rows.map(customRecipeRowFromJson).toList(growable: false),
+        );
+  }
+
+  @override
+  Stream<List<Map<String, dynamic>>> watchMealPlanEntries(String householdId) {
+    return _client
+        .from('meal_plan_entries')
+        .stream(primaryKey: ['id'])
+        .eq('household_id', householdId)
+        .map(
+          (rows) => rows.map(mealPlanEntryRowFromJson).toList(growable: false),
         );
   }
 

@@ -138,6 +138,7 @@ class RecordingRemotePantryRepository implements RemotePantryRepository {
   final inventoryRows = <Map<String, dynamic>>[];
   final shoppingRows = <Map<String, dynamic>>[];
   final customRecipeRows = <Map<String, dynamic>>[];
+  final mealPlanRows = <Map<String, dynamic>>[];
 
   @override
   Future<List<Household>> loadHouseholds() async => const [];
@@ -241,6 +242,26 @@ class RecordingRemotePantryRepository implements RemotePantryRepository {
     String householdId,
   ) async {
     return const [];
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> loadMealPlanEntries(
+    String householdId,
+  ) async {
+    return const [];
+  }
+
+  @override
+  Future<void> upsertMealPlanEntries(
+    String householdId,
+    List<Map<String, dynamic>> rows,
+  ) async {
+    mealPlanRows.addAll(rows);
+  }
+
+  @override
+  Stream<List<Map<String, dynamic>>> watchMealPlanEntries(String householdId) {
+    return const Stream.empty();
   }
 
   @override

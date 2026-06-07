@@ -481,16 +481,20 @@ class FakeRemotePantryRepository implements RemotePantryRepository {
     required this.inventoryRows,
     required this.shoppingRows,
     required this.customRecipeRows,
-  });
+    List<Map<String, dynamic>>? mealPlanRows,
+  }) : mealPlanRows = mealPlanRows ?? <Map<String, dynamic>>[];
 
   final List<Map<String, dynamic>> inventoryRows;
   final List<Map<String, dynamic>> shoppingRows;
   final List<Map<String, dynamic>> customRecipeRows;
+  final List<Map<String, dynamic>> mealPlanRows;
   final inventoryController =
       StreamController<List<Map<String, dynamic>>>.broadcast();
   final shoppingController =
       StreamController<List<Map<String, dynamic>>>.broadcast();
   final customRecipeController =
+      StreamController<List<Map<String, dynamic>>>.broadcast();
+  final mealPlanController =
       StreamController<List<Map<String, dynamic>>>.broadcast();
 
   @override
@@ -525,10 +529,23 @@ class FakeRemotePantryRepository implements RemotePantryRepository {
     return customRecipeController.stream;
   }
 
+  @override
+  Future<List<Map<String, dynamic>>> loadMealPlanEntries(
+    String householdId,
+  ) async {
+    return mealPlanRows;
+  }
+
+  @override
+  Stream<List<Map<String, dynamic>>> watchMealPlanEntries(String householdId) {
+    return mealPlanController.stream;
+  }
+
   Future<void> close() async {
     await inventoryController.close();
     await shoppingController.close();
     await customRecipeController.close();
+    await mealPlanController.close();
   }
 
   @override
@@ -620,6 +637,14 @@ class FakeRemotePantryRepository implements RemotePantryRepository {
     List<Map<String, dynamic>> rows,
   ) async {
     _upsertRows(customRecipeRows, rows);
+  }
+
+  @override
+  Future<void> upsertMealPlanEntries(
+    String householdId,
+    List<Map<String, dynamic>> rows,
+  ) async {
+    _upsertRows(mealPlanRows, rows);
   }
 
   @override

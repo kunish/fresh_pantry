@@ -4,6 +4,7 @@ import '../services/backup_service.dart';
 import 'ai_settings_provider.dart';
 import 'custom_recipe_provider.dart';
 import 'inventory_provider.dart';
+import 'meal_plan_provider.dart';
 import 'shopping_provider.dart';
 import 'storage_service_provider.dart';
 
@@ -26,6 +27,7 @@ class BackupController {
       addHistory: _ref.read(inventoryRepoProvider).loadHistory(),
       shopping: _ref.read(shoppingProvider),
       customRecipes: _ref.read(customRecipesProvider),
+      mealPlan: _ref.read(mealPlanProvider),
       aiSettings: _ref.read(aiSettingsProvider),
     );
     return BackupService.encode(data);
@@ -54,6 +56,9 @@ class BackupController {
     await _ref
         .read(customRecipesProvider.notifier)
         .replaceFromRemote(data.customRecipes, rethrowOnError: true);
+    await _ref
+        .read(mealPlanProvider.notifier)
+        .replaceFromRemote(data.mealPlan, rethrowOnError: true);
 
     await _ref.read(inventoryRepoProvider).saveHistory(data.addHistory);
     _ref.invalidate(addHistoryProvider);

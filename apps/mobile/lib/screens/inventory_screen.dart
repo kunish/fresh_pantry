@@ -4,12 +4,15 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../data/food_categories.dart';
 import '../models/ingredient.dart';
+import '../models/storage_area.dart';
+import '../providers/food_log_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/shopping_provider.dart';
 import '../screens/ingredient_detail_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_dialog.dart';
 import '../utils/app_snackbar.dart';
+import '../utils/food_departure_sheet.dart';
 import '../utils/page_transitions.dart';
 import '../utils/safe_push.dart';
 import '../widgets/dashboard/low_stock_card.dart';
@@ -128,15 +131,30 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
 
   Future<void> _deleteSelected(List<Ingredient> displayItems) async {
     final targets = _selectedItems(displayItems);
-    setState(_selected.clear);
-    if (targets.isEmpty) return;
+    if (targets.isEmpty) {
+      setState(_selected.clear);
+      return;
+    }
 
-    final List<({int index, Ingredient item})> removed;
+    final outcome = await showFoodDepartureOutcomeSheet(
+      context,
+      count: targets.length,
+    );
+    if (!mounted || outcome == null) return; // cancelled -> keep the selection
+    setState(_selected.clear);
+
+    final List<({int index, Ingredient item, String? logId})> removed;
     try {
-      removed = await ref.read(inventoryProvider.notifier).removeMany(targets);
+      removed = await ref
+          .read(inventoryProvider.notifier)
+          .removeMany(targets, outcome: outcome);
     } catch (_) {
       if (mounted) {
-        showAppSnackBar(context, '删除失败，请稍后重试', backgroundColor: AppColors.error);
+        showAppSnackBar(
+          context,
+          '删除失败，请稍后重试',
+          backgroundColor: AppColors.error,
+        );
       }
       return;
     }
@@ -148,11 +166,14 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       backgroundColor: AppColors.error,
       actionLabel: '撤销',
       actionTextColor: AppColors.onError,
-      // Re-insert ascending so each row lands back at its original position.
+      // Re-insert ascending so each row lands back at its original position,
+      // and reverse each row's waste-reduction log entry.
       onAction: () async {
         final notifier = ref.read(inventoryProvider.notifier);
+        final foodLog = ref.read(foodLogProvider.notifier);
         for (final r in removed) {
           await notifier.insertAt(r.index, r.item);
+          if (r.logId != null) await foodLog.undoRecord(r.logId!);
         }
       },
     );
@@ -254,6 +275,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       case IngredientDetailResultType.deleted:
         final deletedItem = result.item;
         final index = result.index;
+        final logId = result.logId;
         if (deletedItem != null && index != null) {
           showAppSnackBar(
             context,
@@ -262,7 +284,13 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             actionLabel: '撤销',
             actionTextColor: AppColors.onError,
             onAction: () {
-              ref.read(inventoryProvider.notifier).insertAt(index, deletedItem);
+              final notifier = ref.read(inventoryProvider.notifier);
+              notifier.insertAt(index, deletedItem);
+              // Reverse the waste-reduction log entry too, or an undone delete
+              // would leave a phantom consumed/wasted stat behind.
+              if (logId != null) {
+                ref.read(foodLogProvider.notifier).undoRecord(logId);
+              }
             },
           );
         }
@@ -275,10 +303,17 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       inventoryProvider.select((items) => items.length),
     );
     final selectedCategory = ref.watch(selectedCategoryProvider);
+    final selectedStorage = ref.watch(selectedStorageProvider);
+    final selectedSort = ref.watch(inventorySortModeProvider);
     final query = ref.watch(inventorySearchQueryProvider);
     final items = ref.watch(filteredInventoryItemsProvider);
     final lowStock = ref.watch(lowStockItemsProvider);
-    _pruneSelectionFor(items, '$selectedCategory\u0000$query');
+    // Storage joins the key: changing it reorders the list, so the
+    // multi-select positional indices drop (identity invariant).
+    _pruneSelectionFor(
+      items,
+      '$selectedCategory\u0000$query\u0000${selectedStorage?.name ?? ''}\u0000${selectedSort.name}',
+    );
 
     final canMerge = _canMerge(items);
     final showLowStockCta = lowStock.isNotEmpty && !_selectionMode;
@@ -348,6 +383,29 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                         ref.read(selectedCategoryProvider.notifier).state = cat,
                   ),
                 ),
+                if (inventoryCount > 0) ...[
+                  const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                  SliverToBoxAdapter(
+                    child: _StorageChipRow(
+                      selected: selectedStorage,
+                      onSelect: (storage) =>
+                          ref.read(selectedStorageProvider.notifier).state =
+                              storage,
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                  SliverToBoxAdapter(
+                    child: _SortToggle(
+                      active: selectedSort == InventorySortMode.expiry,
+                      onToggle: () =>
+                          ref
+                              .read(inventorySortModeProvider.notifier)
+                              .state = selectedSort == InventorySortMode.expiry
+                          ? InventorySortMode.manual
+                          : InventorySortMode.expiry,
+                    ),
+                  ),
+                ],
                 const SliverToBoxAdapter(child: SizedBox(height: 10)),
                 if (items.isEmpty)
                   SliverFillRemaining(
@@ -689,4 +747,136 @@ class _Chip {
   final String value;
   final int count;
   _Chip({required this.label, required this.value, required this.count});
+}
+
+/// Single pill that flips the list between insertion order and 临期优先
+/// (soonest-to-expire first). One toggle rather than a selector keeps the
+/// chrome light — "off" already means the default order.
+class _SortToggle extends StatelessWidget {
+  final bool active;
+  final VoidCallback onToggle;
+  const _SortToggle({required this.active, required this.onToggle});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        // The pill's label stays constant; the tooltip spells out what each
+        // state does so the icon never has to carry the meaning alone.
+        child: Tooltip(
+          message: active ? '已按临期排序 · 点击恢复默认顺序' : '按到期日先后排序',
+          child: GestureDetector(
+            key: const Key('inventory_sort_expiry_toggle'),
+            onTap: onToggle,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: active ? AppColors.primary : Colors.white,
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+                border: Border.all(
+                  color: active ? AppColors.primary : AppColors.hair,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    active ? Icons.schedule_rounded : Icons.swap_vert_rounded,
+                    size: 14,
+                    color: active ? Colors.white : AppColors.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    InventorySortMode.expiry.label,
+                    style: GoogleFonts.manrope(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: active ? Colors.white : AppColors.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Per-storage-area item counts, joined into a stable string so the chip row
+/// only rebuilds when a count actually changes (mirrors [_categoryChipSignature]).
+String _storageChipSignature(List<Ingredient> inventory) {
+  final counts = {for (final type in IconType.values) type: 0};
+  for (final item in inventory) {
+    counts[item.storage] = (counts[item.storage] ?? 0) + 1;
+  }
+  return [
+    'total:${inventory.length}',
+    for (final type in IconType.values) '${type.name}:${counts[type]}',
+  ].join('|');
+}
+
+/// Storage-area filter chips: 全部位置 + 冰箱/冷冻室/食品柜, each with its count.
+/// A null value selects "all areas" (no storage filter).
+class _StorageChipRow extends ConsumerWidget {
+  final IconType? selected;
+  final void Function(IconType?) onSelect;
+  const _StorageChipRow({required this.selected, required this.onSelect});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(inventoryProvider.select(_storageChipSignature));
+    final inventory = ref.read(inventoryProvider);
+    final counts = {for (final type in IconType.values) type: 0};
+    for (final item in inventory) {
+      counts[item.storage] = (counts[item.storage] ?? 0) + 1;
+    }
+
+    final options = <(String, IconType?, int)>[
+      ('全部位置', null, inventory.length),
+      for (final type in IconType.values)
+        (storageAreaLabel(type), type, counts[type]!),
+    ];
+
+    return SizedBox(
+      height: 36,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        itemCount: options.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final (label, value, count) = options[i];
+          final active = value == selected;
+          return GestureDetector(
+            onTap: () => onSelect(value),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: active ? AppColors.primary : Colors.white,
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+                border: Border.all(
+                  color: active ? AppColors.primary : AppColors.hair,
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                count > 0 ? '$label · $count' : label,
+                style: GoogleFonts.manrope(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: active ? Colors.white : AppColors.onSurface,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }

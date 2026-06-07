@@ -1,10 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/food_log_entry.dart';
 import '../models/ingredient.dart';
+import '../models/meal_plan_entry.dart';
 import '../models/recipe.dart';
 import '../models/shopping_item.dart';
 import '../storage/ai_settings_repo.dart';
 import '../storage/custom_recipe_repo.dart';
+import '../storage/food_log_repo.dart';
+import '../storage/meal_plan_repo.dart';
 import '../storage/intake_review_draft_repo.dart';
 import '../storage/reminder_settings_repo.dart';
 import '../storage/scheduled_notification_ids_repo.dart';
@@ -37,6 +41,12 @@ final shoppingSeedProvider = Provider<List<ShoppingItem>?>((ref) => null);
 
 /// Optional startup/test seed for custom recipes.
 final customRecipeSeedProvider = Provider<List<Recipe>?>((ref) => null);
+
+/// Optional startup/test seed for meal-plan entries.
+final mealPlanSeedProvider = Provider<List<MealPlanEntry>?>((ref) => null);
+
+/// Optional startup/test seed for the food-departure log (recent window).
+final foodLogSeedProvider = Provider<List<FoodLogEntry>?>((ref) => null);
 
 /// Provider for the storage adapter.
 ///
@@ -75,6 +85,24 @@ final shoppingRepoProvider = Provider<ShoppingRepo>((ref) {
 final customRecipeRepoProvider = Provider<CustomRecipeRepo>((ref) {
   final repo = CustomRecipeRepo(ref.read(appDatabaseProvider));
   final seed = ref.read(customRecipeSeedProvider);
+  if (seed != null) {
+    repo.hydrate(seed);
+  }
+  return repo;
+});
+
+final mealPlanRepoProvider = Provider<MealPlanRepo>((ref) {
+  final repo = MealPlanRepo(ref.read(appDatabaseProvider));
+  final seed = ref.read(mealPlanSeedProvider);
+  if (seed != null) {
+    repo.hydrate(seed);
+  }
+  return repo;
+});
+
+final foodLogRepoProvider = Provider<FoodLogRepo>((ref) {
+  final repo = FoodLogRepo(ref.read(appDatabaseProvider));
+  final seed = ref.read(foodLogSeedProvider);
   if (seed != null) {
     repo.hydrate(seed);
   }

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/ingredient.dart';
 import '../providers/custom_recipe_provider.dart';
+import '../providers/dietary_preferences_provider.dart';
+import '../providers/favorite_recipes_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../providers/recipe_provider.dart';
 import '../theme/app_theme.dart';
@@ -46,6 +48,12 @@ class RecipesScreen extends ConsumerStatefulWidget {
 class _RecipesScreenState extends ConsumerState<RecipesScreen> {
   _RecipeTab _tab = _RecipeTab.explore;
   _TimeFilter _time = _TimeFilter.all;
+
+  /// Selected recipe category, or null for "全部". Only applied when the active
+  /// tab actually contains that category (see build()), so a category picked on
+  /// one tab never silently empties another.
+  String? _category;
+  bool _favoritesOnly = false;
   bool _searchOpen = false;
   final _searchCtrl = TextEditingController();
   String _query = '';
@@ -73,6 +81,18 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
     );
   }
 
+  void _openDietarySheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+      ),
+      builder: (_) => const _DietaryExclusionsSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.watch(inventoryProvider.select(inventoryNamesSignature));
@@ -89,13 +109,12 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
     );
 
     final expiringNames = _expiringIngredientNames(inventory);
-    final expiringRecipes = recommended
-        .where(
-          (r) => r.ingredients.any(
-            (ing) => recipeIngredientMatchesInventory(ing, expiringNames),
-          ),
-        )
-        .toList();
+    // Rank the 用临期 tab by how many perishables each dish clears, so the most
+    // waste-reducing recipe surfaces first (not just match ratio).
+    final expiringRecipes = recipesRankedByExpiringUse(
+      recommended,
+      expiringNames,
+    );
 
     final list = switch (_tab) {
       _RecipeTab.expiring => expiringRecipes,
@@ -104,7 +123,19 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
       _RecipeTab.mine => customRecipes,
     };
 
+    // Category chips reflect the current tab's recipes; a category selected on a
+    // tab that no longer offers it is ignored (treated as 全部) rather than
+    // leaving a stuck, invisible filter.
+    final categoryOptions = recipeCategoryOptions(list);
+    final activeCategory =
+        (_category != null && categoryOptions.contains(_category))
+        ? _category
+        : null;
+
     final filtered = list.where((r) {
+      if (activeCategory != null && r.category.trim() != activeCategory) {
+        return false;
+      }
       return switch (_time) {
         _TimeFilter.all => true,
         _TimeFilter.fast15 => r.cookingMinutes <= 15,
@@ -125,6 +156,20 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
               )
               .toList();
 
+    // Honor 忌口/dietary exclusions across every tab: hide any dish whose
+    // ingredients include an avoided keyword. Empty set = no filtering.
+    final exclusions = ref.watch(dietaryExclusionsProvider);
+    final favorites = ref.watch(favoriteRecipesProvider);
+    var visible = searched;
+    if (exclusions.isNotEmpty) {
+      visible = visible
+          .where((r) => !recipeHasExcludedIngredient(r, exclusions))
+          .toList();
+    }
+    if (_favoritesOnly) {
+      visible = visible.where((r) => favorites.contains(r.id)).toList();
+    }
+
     final fetchFailed = ref
         .watch(recipesFetchProvider)
         .maybeWhen(data: (r) => r.fetchFailed, orElse: () => false);
@@ -132,10 +177,10 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
     // yet (not just explore), to avoid flashing a misleading empty state on
     // first launch; the local-only `mine` tab keeps its empty state.
     final showSkeleton =
-        allAsync.isLoading && searched.isEmpty && _tab != _RecipeTab.mine;
+        allAsync.isLoading && visible.isEmpty && _tab != _RecipeTab.mine;
     // On the explore tab, distinguish a real fetch failure from "no recipes".
     final showError =
-        fetchFailed && searched.isEmpty && _tab == _RecipeTab.explore;
+        fetchFailed && visible.isEmpty && _tab == _RecipeTab.explore;
 
     return SafeArea(
       bottom: false,
@@ -146,6 +191,19 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
             title: '智能菜谱',
             subtitle: '基于你的冰箱推荐',
             actions: [
+              FkIconButton(
+                key: const Key('recipe_dietary_action'),
+                onTap: _openDietarySheet,
+                foregroundColor: exclusions.isEmpty
+                    ? AppColors.onSurface
+                    : AppColors.primary,
+                child: Icon(
+                  exclusions.isEmpty
+                      ? Icons.no_meals_outlined
+                      : Icons.no_meals_rounded,
+                  size: 18,
+                ),
+              ),
               FkIconButton(
                 onTap: _openCustomRecipeForm,
                 child: const Icon(Icons.add_rounded, size: 18),
@@ -168,7 +226,17 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
           _TimeFilterRow(
             selected: _time,
             onSelect: (t) => setState(() => _time = t),
+            favoritesOnly: _favoritesOnly,
+            onToggleFavorites: () =>
+                setState(() => _favoritesOnly = !_favoritesOnly),
           ),
+          if (categoryOptions.isNotEmpty)
+            _CategoryFilterRow(
+              options: categoryOptions,
+              selected: activeCategory,
+              // Tapping the active category again clears it back to 全部.
+              onSelect: (c) => setState(() => _category = c),
+            ),
           if (_tab == _RecipeTab.expiring && expiringRecipes.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(
@@ -186,15 +254,21 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                 ? _RecipeErrorState(
                     onRetry: () => ref.invalidate(recipesFetchProvider),
                   )
-                : searched.isEmpty
-                ? _EmptyState(tab: _tab, query: q)
+                : visible.isEmpty
+                ? _EmptyState(
+                    tab: _tab,
+                    query: q,
+                    filtered: exclusions.isNotEmpty,
+                    favoritesOnly: _favoritesOnly,
+                    categoryActive: activeCategory != null,
+                  )
                 : ListView.separated(
                     padding: _listPadding,
-                    itemCount: searched.length,
+                    itemCount: visible.length,
                     separatorBuilder: (_, _) =>
                         const SizedBox(height: AppSpacing.md),
                     itemBuilder: (context, i) {
-                      final recipe = searched[i];
+                      final recipe = visible[i];
                       final matched = matchedIngredientCountForNames(
                         inventoryNames,
                         recipe,
@@ -205,6 +279,16 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                         recipe: recipe,
                         matchedCount: matched,
                         useExpiring: useExpiring,
+                        expiringUseCount: useExpiring
+                            ? expiringIngredientCountForNames(
+                                expiringNames,
+                                recipe,
+                              )
+                            : null,
+                        isFavorite: favorites.contains(recipe.id),
+                        onToggleFavorite: () => ref
+                            .read(favoriteRecipesProvider.notifier)
+                            .toggle(recipe.id),
                         heroTag: usesHero ? 'recipe-image-${recipe.id}' : null,
                         onTap: () => pushRouteOnce(
                           context,
@@ -350,7 +434,14 @@ class _ActiveTabIndicator extends StatelessWidget {
 class _TimeFilterRow extends StatelessWidget {
   final _TimeFilter selected;
   final void Function(_TimeFilter) onSelect;
-  const _TimeFilterRow({required this.selected, required this.onSelect});
+  final bool favoritesOnly;
+  final VoidCallback onToggleFavorites;
+  const _TimeFilterRow({
+    required this.selected,
+    required this.onSelect,
+    required this.favoritesOnly,
+    required this.onToggleFavorites,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -361,37 +452,129 @@ class _TimeFilterRow extends StatelessWidget {
     ];
     return SizedBox(
       height: 40,
-      child: ListView.separated(
+      child: ListView(
         scrollDirection: Axis.horizontal,
         padding: _timeFilterPadding,
-        itemCount: filters.length,
-        separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
-        itemBuilder: (_, i) {
-          final (value, label) = filters[i];
-          final active = value == selected;
-          return GestureDetector(
-            onTap: () => onSelect(value),
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: active ? AppColors.primary : AppColors.surface,
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-                border: Border.all(
-                  color: active ? AppColors.primary : AppColors.hair,
-                ),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                label,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: active ? AppColors.onPrimary : AppColors.onSurface,
-                ),
+        children: [
+          // Leading favorites-only toggle — a heart pill that filters every tab
+          // down to favorited dishes; independent of the single-select time row.
+          _FilterPill(
+            key: const Key('recipe_favorites_only'),
+            label: '收藏',
+            icon: favoritesOnly
+                ? Icons.favorite_rounded
+                : Icons.favorite_border_rounded,
+            active: favoritesOnly,
+            onTap: onToggleFavorites,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          for (final (value, label) in filters) ...[
+            _FilterPill(
+              label: label,
+              active: value == selected,
+              onTap: () => onSelect(value),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Horizontal category filter strip: 全部 + every category present in the
+/// current tab, ordered by [recipeCategoryOptions]. Single-select; tapping the
+/// active category again clears back to 全部. Reuses [_FilterPill] for a look
+/// consistent with the time/favorites row above it.
+class _CategoryFilterRow extends StatelessWidget {
+  final List<String> options;
+  final String? selected;
+  final void Function(String?) onSelect;
+  const _CategoryFilterRow({
+    required this.options,
+    required this.selected,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 40,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: _timeFilterPadding,
+        children: [
+          _FilterPill(
+            key: const Key('recipe_category_全部'),
+            label: '全部',
+            active: selected == null,
+            onTap: () => onSelect(null),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          for (final category in options) ...[
+            _FilterPill(
+              key: Key('recipe_category_$category'),
+              label: category,
+              active: category == selected,
+              // Re-tapping the active category clears it back to 全部.
+              onTap: () => onSelect(category == selected ? null : category),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// A pill in the recipe filter row — selected single-select time chips and the
+/// boolean favorites toggle share this look (filled when active, hairline when
+/// not).
+class _FilterPill extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final bool active;
+  final VoidCallback onTap;
+  const _FilterPill({
+    super.key,
+    required this.label,
+    required this.active,
+    required this.onTap,
+    this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = active ? AppColors.onPrimary : AppColors.onSurface;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: active ? AppColors.primary : AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          border: Border.all(
+            color: active ? AppColors.primary : AppColors.hair,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 14, color: fg),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: fg,
               ),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }
@@ -534,16 +717,143 @@ class _RecipeErrorState extends StatelessWidget {
   }
 }
 
+/// 忌口编辑器:管理「不吃的食材」关键词。新增/删除即时持久化并反映到列表过滤。
+class _DietaryExclusionsSheet extends ConsumerStatefulWidget {
+  const _DietaryExclusionsSheet();
+
+  @override
+  ConsumerState<_DietaryExclusionsSheet> createState() =>
+      _DietaryExclusionsSheetState();
+}
+
+class _DietaryExclusionsSheetState
+    extends ConsumerState<_DietaryExclusionsSheet> {
+  final _ctrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _add() {
+    final value = _ctrl.text;
+    if (value.trim().isEmpty) return;
+    ref.read(dietaryExclusionsProvider.notifier).add(value);
+    _ctrl.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final exclusions = ref.watch(dietaryExclusionsProvider);
+    final tt = Theme.of(context).textTheme;
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.xl,
+          AppSpacing.lg,
+          AppSpacing.xl,
+          AppSpacing.lg + MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '忌口 · 不吃的食材',
+              style: tt.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.onSurface,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              '含这些食材的菜谱会从所有列表中隐藏',
+              style: tt.bodySmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            if (exclusions.isNotEmpty) ...[
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  for (final keyword in exclusions)
+                    InputChip(
+                      label: Text(keyword),
+                      onDeleted: () => ref
+                          .read(dietaryExclusionsProvider.notifier)
+                          .remove(keyword),
+                      deleteIcon: const Icon(Icons.close_rounded, size: 16),
+                      backgroundColor: AppColors.surfaceContainer,
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _ctrl,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _add(),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      hintText: '例如 香菜、花生、海鲜',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                FilledButton(
+                  key: const Key('dietary_add_button'),
+                  onPressed: _add,
+                  child: const Text('添加'),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                key: const Key('dietary_done_button'),
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('完成'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _EmptyState extends StatelessWidget {
   final _RecipeTab tab;
   final String query;
+  final bool filtered;
+  final bool favoritesOnly;
+  final bool categoryActive;
 
-  const _EmptyState({required this.tab, this.query = ''});
+  const _EmptyState({
+    required this.tab,
+    this.query = '',
+    this.filtered = false,
+    this.favoritesOnly = false,
+    this.categoryActive = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final msg = query.isNotEmpty
         ? '没有匹配「$query」的菜谱'
+        : favoritesOnly
+        ? '这里还没有收藏的菜谱，点 ♥ 收藏几道吧'
+        : filtered
+        ? '忌口过滤后这里没有菜谱了，去右上角调整'
+        : categoryActive
+        ? '该分类下暂无符合条件的菜谱，换个分类试试'
         : switch (tab) {
             _RecipeTab.expiring => '没有临期食材，先去添加几样吧',
             _RecipeTab.available => '冰箱里加点食材，菜谱就来啦',

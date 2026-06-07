@@ -257,10 +257,10 @@ void main() {
 
     await tester.tap(find.text('番茄'));
     await tester.pumpAndSettle();
-    // FK redesign: delete is an icon button on the hero, dialog still has "删除" text.
+    // Delete via the hero icon button, then pick 扔了 in the departure sheet.
     await tester.tap(find.byIcon(Icons.delete_outline_rounded));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('删除').last);
+    await tester.tap(find.byKey(const ValueKey('departure-wasted')));
     await tester.pumpAndSettle();
 
     expect(container.read(inventoryProvider).map((item) => item.name), ['米饭']);
@@ -307,10 +307,10 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('inv_番茄_1')));
       await tester.pumpAndSettle();
 
-      // Delete via the hero icon button + confirm dialog.
+      // Delete via the hero icon button, then pick 扔了 in the departure sheet.
       await tester.tap(find.byIcon(Icons.delete_outline_rounded));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('删除').last);
+      await tester.tap(find.byKey(const ValueKey('departure-wasted')));
       await tester.pumpAndSettle();
 
       final items = container.read(inventoryProvider);
@@ -475,10 +475,10 @@ void main() {
 
     await tester.tap(find.text('番茄'));
     await tester.pumpAndSettle();
-    // FK redesign: delete icon button on hero + dialog "删除" confirmation.
+    // Delete via the hero icon button, then pick 扔了 in the departure sheet.
     await tester.tap(find.byIcon(Icons.delete_outline_rounded));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('删除').last);
+    await tester.tap(find.byKey(const ValueKey('departure-wasted')));
     await tester.pumpAndSettle();
 
     expect(find.text('「番茄」已删除'), findsOneWidget);
@@ -537,10 +537,10 @@ void main() {
 
     await tester.tap(find.text('番茄'));
     await tester.pumpAndSettle();
-    // FK redesign: delete icon button on hero + dialog "删除" confirmation.
+    // Delete via the hero icon button, then pick 扔了 in the departure sheet.
     await tester.tap(find.byIcon(Icons.delete_outline_rounded));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('删除').last);
+    await tester.tap(find.byKey(const ValueKey('departure-wasted')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('撤销'));
     await tester.pumpAndSettle();
@@ -722,6 +722,9 @@ void main() {
 
     await tester.tap(find.byKey(const Key('inventory_selection_delete_button')));
     await tester.pumpAndSettle();
+    // Departure sheet asks how the batch left inventory.
+    await tester.tap(find.byKey(const ValueKey('departure-wasted')));
+    await tester.pumpAndSettle();
 
     expect(container.read(inventoryProvider).map((e) => e.name), ['牛奶']);
     expect(find.text('已删除 2 件食材'), findsOneWidget);
@@ -784,6 +787,224 @@ void main() {
     expect(find.text('已添加 2 项到购物清单'), findsOneWidget);
     // Selection clears after the action completes.
     expect(find.text('已选 2 件'), findsNothing);
+  });
+
+  testWidgets('storage chips filter the grid by area with live counts', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final db = newTestDatabase();
+    addTearDown(db.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          ...testStorageOverrides(
+            database: db,
+            inventory: [
+              _ingredient(name: '番茄', category: FoodCategories.freshProduce),
+              _ingredient(
+                name: '冰淇淋',
+                category: FoodCategories.other,
+              ).copyWith(storage: IconType.freezer),
+            ],
+          ),
+        ],
+        child: const MaterialApp(home: Scaffold(body: InventoryScreen())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Default 全部位置: both areas' items are visible, chips carry counts.
+    expect(find.widgetWithText(IngredientCard, '番茄'), findsOneWidget);
+    expect(find.widgetWithText(IngredientCard, '冰淇淋'), findsOneWidget);
+    expect(find.text('全部位置 · 2'), findsOneWidget);
+    expect(find.text('冷冻室 · 1'), findsOneWidget);
+
+    // Tap 冷冻室: only the frozen item remains.
+    await tester.tap(find.text('冷冻室 · 1'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(IngredientCard, '番茄'), findsNothing);
+    expect(find.widgetWithText(IngredientCard, '冰淇淋'), findsOneWidget);
+  });
+
+  testWidgets('changing the storage filter drops the multi-select', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final db = newTestDatabase();
+    addTearDown(db.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          ...testStorageOverrides(
+            database: db,
+            inventory: [
+              _ingredient(name: '番茄', category: FoodCategories.freshProduce),
+              _ingredient(
+                name: '冰淇淋',
+                category: FoodCategories.other,
+              ).copyWith(storage: IconType.freezer),
+            ],
+          ),
+        ],
+        child: const MaterialApp(home: Scaffold(body: InventoryScreen())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.byKey(const ValueKey('inv_番茄_0')));
+    await tester.pumpAndSettle();
+    expect(find.text('已选 1 件'), findsOneWidget);
+
+    // Switching storage reorders the display list, so the positional selection
+    // must be dropped rather than silently pointing at a different row.
+    await tester.tap(find.text('冷冻室 · 1'));
+    await tester.pumpAndSettle();
+    expect(find.text('已选 1 件'), findsNothing);
+    expect(find.widgetWithText(IngredientCard, '冰淇淋'), findsOneWidget);
+  });
+
+  testWidgets('临期优先 toggle reorders the grid by soonest expiry', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final db = newTestDatabase();
+    addTearDown(db.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          ...testStorageOverrides(
+            database: db,
+            inventory: [
+              _ingredient(
+                name: '番茄',
+                category: FoodCategories.freshProduce,
+              ).copyWith(expiryDate: DateTime(2026, 12, 20)),
+              _ingredient(
+                name: '牛奶',
+                category: FoodCategories.dairyAndEggs,
+              ).copyWith(expiryDate: DateTime(2026, 12, 8)),
+              _ingredient(name: '盐', category: FoodCategories.other),
+            ],
+          ),
+        ],
+        child: const MaterialApp(home: Scaffold(body: InventoryScreen())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Default order is insertion order: 番茄 sits at display index 0.
+    expect(find.byKey(const ValueKey('inv_番茄_0')), findsOneWidget);
+
+    // Sort by expiry: soonest first (牛奶), then 番茄, with the no-expiry 盐 last.
+    await tester.tap(find.byKey(const Key('inventory_sort_expiry_toggle')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('inv_牛奶_0')), findsOneWidget);
+    expect(find.byKey(const ValueKey('inv_番茄_1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('inv_盐_2')), findsOneWidget);
+
+    // Toggle off: insertion order is restored.
+    await tester.tap(find.byKey(const Key('inventory_sort_expiry_toggle')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('inv_番茄_0')), findsOneWidget);
+  });
+
+  testWidgets('changing the sort order drops the multi-select', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final db = newTestDatabase();
+    addTearDown(db.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          ...testStorageOverrides(
+            database: db,
+            inventory: [
+              _ingredient(
+                name: '番茄',
+                category: FoodCategories.freshProduce,
+              ).copyWith(expiryDate: DateTime(2026, 12, 20)),
+              _ingredient(
+                name: '牛奶',
+                category: FoodCategories.dairyAndEggs,
+              ).copyWith(expiryDate: DateTime(2026, 12, 8)),
+            ],
+          ),
+        ],
+        child: const MaterialApp(home: Scaffold(body: InventoryScreen())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.byKey(const ValueKey('inv_番茄_0')));
+    await tester.pumpAndSettle();
+    expect(find.text('已选 1 件'), findsOneWidget);
+
+    // Sorting reorders the display list, so the positional selection must drop
+    // rather than silently point at a different row (filterKey invariant).
+    await tester.tap(find.byKey(const Key('inventory_sort_expiry_toggle')));
+    await tester.pumpAndSettle();
+    expect(find.text('已选 1 件'), findsNothing);
+  });
+
+  testWidgets('expiry sort orders within the active category filter', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final db = newTestDatabase();
+    addTearDown(db.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          ...testStorageOverrides(
+            database: db,
+            inventory: [
+              _ingredient(
+                name: '番茄',
+                category: FoodCategories.freshProduce,
+              ).copyWith(expiryDate: DateTime(2026, 12, 20)),
+              _ingredient(
+                name: '香蕉',
+                category: FoodCategories.freshProduce,
+              ).copyWith(expiryDate: DateTime(2026, 12, 5)),
+              // Soonest expiry overall, but a different category — must stay out
+              // of the sorted result, proving sort runs on the filtered subset.
+              _ingredient(
+                name: '牛奶',
+                category: FoodCategories.dairyAndEggs,
+              ).copyWith(expiryDate: DateTime(2026, 12, 1)),
+            ],
+          ),
+        ],
+        child: const MaterialApp(home: Scaffold(body: InventoryScreen())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Narrow to 果蔬生鲜 (2 items), then sort by expiry.
+    await tester.tap(find.text('${FoodCategories.freshProduce} · 2'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('inventory_sort_expiry_toggle')));
+    await tester.pumpAndSettle();
+
+    // Within the category: 香蕉 (Dec 5) before 番茄 (Dec 20); 牛奶 stays filtered out.
+    expect(find.byKey(const ValueKey('inv_香蕉_0')), findsOneWidget);
+    expect(find.byKey(const ValueKey('inv_番茄_1')), findsOneWidget);
+    expect(find.widgetWithText(IngredientCard, '牛奶'), findsNothing);
   });
 }
 

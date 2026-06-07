@@ -2,12 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fresh_pantry/models/ai_settings.dart';
 import 'package:fresh_pantry/models/ingredient.dart';
+import 'package:fresh_pantry/models/meal_plan_entry.dart';
 import 'package:fresh_pantry/models/recipe.dart';
 import 'package:fresh_pantry/models/shopping_item.dart';
 import 'package:fresh_pantry/providers/ai_settings_provider.dart';
 import 'package:fresh_pantry/providers/backup_controller.dart';
 import 'package:fresh_pantry/providers/custom_recipe_provider.dart';
 import 'package:fresh_pantry/providers/inventory_provider.dart';
+import 'package:fresh_pantry/providers/meal_plan_provider.dart';
 import 'package:fresh_pantry/providers/shopping_provider.dart';
 import 'package:fresh_pantry/providers/storage_service_provider.dart';
 import 'package:fresh_pantry/services/backup_service.dart';
@@ -48,6 +50,14 @@ BackupData _fullBackup() => BackupData(
       'steps': ['打蛋'],
     }),
   ],
+  mealPlan: [
+    MealPlanEntry(
+      id: 'mp_1',
+      date: DateTime(2026, 6, 8),
+      recipeId: 'r_1',
+      recipeName: '番茄炒蛋',
+    ),
+  ],
   aiSettings: _aiSettings,
 );
 
@@ -72,6 +82,10 @@ void main() {
     expect(container.read(shoppingProvider).map((s) => s.name), contains('酱油'));
     expect(
       container.read(customRecipesProvider).map((r) => r.name),
+      contains('番茄炒蛋'),
+    );
+    expect(
+      container.read(mealPlanProvider).map((e) => e.recipeName),
       contains('番茄炒蛋'),
     );
     expect(container.read(addHistoryProvider).map((f) => f.name), contains('葱'));

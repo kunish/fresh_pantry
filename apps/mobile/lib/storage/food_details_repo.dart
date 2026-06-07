@@ -12,7 +12,9 @@ import 'storage_adapter.dart';
 
 const foodDetailsCacheStorageKey = 'food_details_cache';
 const _localFoodDetailsSource = '本地食材知识库';
-const _foodDetailsCacheVersion = 4;
+// Bump in lockstep with FoodDetails.toJson's 'cacheVersion' — v5 added
+// nutrition, so v4 caches are stale and get re-fetched with macros.
+const _foodDetailsCacheVersion = 5;
 
 String foodDetailsCacheKeyFor(Ingredient ingredient) {
   final barcode = ingredient.barcode?.trim();

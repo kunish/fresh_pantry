@@ -5,10 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/ingredient.dart';
+import '../models/meal_plan_entry.dart';
 import '../models/recipe.dart';
 import '../models/shopping_item.dart';
 import '../providers/custom_recipe_provider.dart';
 import '../providers/inventory_provider.dart';
+import '../providers/meal_plan_provider.dart';
 import '../providers/shopping_provider.dart';
 import '../providers/storage_service_provider.dart';
 import 'remote_pantry_repository.dart';
@@ -77,11 +79,13 @@ class HouseholdContentSyncCoordinator {
       final inventoryRows = await remote.loadInventory(householdId);
       final shoppingRows = await remote.loadShopping(householdId);
       final customRecipeRows = await remote.loadCustomRecipes(householdId);
+      final mealPlanRows = await remote.loadMealPlanEntries(householdId);
       if (!_isCurrent(generation, householdId)) return;
 
       await _applyInventoryRows(inventoryRows, uploadScope);
       await _applyShoppingRows(shoppingRows, uploadScope);
       await _applyCustomRecipeRows(customRecipeRows, uploadScope);
+      await _applyMealPlanRows(mealPlanRows, uploadScope);
     } catch (error, stackTrace) {
       FlutterError.reportError(
         FlutterErrorDetails(
@@ -105,6 +109,7 @@ class HouseholdContentSyncCoordinator {
     var localInventory = _withInventorySyncIds(_ref.read(inventoryProvider));
     var localShopping = _withShoppingSyncIds(_ref.read(shoppingProvider));
     var localRecipes = _withRecipeSyncIds(_ref.read(customRecipesProvider));
+    var localMealPlan = _withMealPlanSyncIds(_ref.read(mealPlanProvider));
 
     await _ref
         .read(inventoryProvider.notifier)
@@ -113,6 +118,7 @@ class HouseholdContentSyncCoordinator {
     await _ref
         .read(customRecipesProvider.notifier)
         .replaceFromRemote(localRecipes);
+    await _ref.read(mealPlanProvider.notifier).replaceFromRemote(localMealPlan);
     if (!_isCurrent(generation, householdId)) return;
 
     final inventoryToUpload = localInventory
@@ -126,6 +132,10 @@ class HouseholdContentSyncCoordinator {
     final recipesToUpload = localRecipes
         .where(_isLocalOnlyRecipe)
         .map((recipe) => recipe.toJson())
+        .toList(growable: false);
+    final mealPlanToUpload = localMealPlan
+        .where(_isLocalOnlyMealPlanEntry)
+        .map((entry) => entry.toJson())
         .toList(growable: false);
     final scopedInventoryToUpload = inventoryToUpload
         .where(
@@ -141,6 +151,12 @@ class HouseholdContentSyncCoordinator {
     final scopedRecipesToUpload = recipesToUpload
         .where(
           (row) => uploadScope.allows(SyncEntityType.customRecipe, _rowId(row)),
+        )
+        .toList(growable: false);
+    final scopedMealPlanToUpload = mealPlanToUpload
+        .where(
+          (row) =>
+              uploadScope.allows(SyncEntityType.mealPlanEntry, _rowId(row)),
         )
         .toList(growable: false);
 
@@ -179,6 +195,18 @@ class HouseholdContentSyncCoordinator {
           .read(customRecipesProvider.notifier)
           .replaceFromRemote(localRecipes);
     }
+
+    await remote.upsertMealPlanEntries(householdId, scopedMealPlanToUpload);
+    if (!_isCurrent(generation, householdId)) return;
+    if (scopedMealPlanToUpload.isNotEmpty) {
+      localMealPlan = _markLocalMealPlanUploaded(
+        localMealPlan,
+        _rowIds(scopedMealPlanToUpload),
+      );
+      await _ref
+          .read(mealPlanProvider.notifier)
+          .replaceFromRemote(localMealPlan);
+    }
   }
 
   void _subscribeToRemote(
@@ -204,6 +232,12 @@ class HouseholdContentSyncCoordinator {
         remote.watchCustomRecipes(householdId).listen((rows) {
           if (!_isCurrent(generation, householdId)) return;
           unawaited(_applyCustomRecipeRows(rows, uploadScope));
+        }, onError: _reportStreamError),
+      )
+      ..add(
+        remote.watchMealPlanEntries(householdId).listen((rows) {
+          if (!_isCurrent(generation, householdId)) return;
+          unawaited(_applyMealPlanRows(rows, uploadScope));
         }, onError: _reportStreamError),
       );
   }
@@ -256,6 +290,31 @@ class HouseholdContentSyncCoordinator {
       uploadScope,
     );
     return _ref.read(customRecipesProvider.notifier).replaceFromRemote(recipes);
+  }
+
+  Future<void> _applyMealPlanRows(
+    List<Map<String, dynamic>> rows,
+    _LocalUploadScope uploadScope,
+  ) {
+    // Tolerant per-row decode: MealPlanEntry.fromJson throws on a missing/bad
+    // date, and one malformed remote row must not abort the whole apply.
+    final remoteEntries = <MealPlanEntry>[];
+    for (final row in visibleRemoteRows(rows)) {
+      try {
+        final entry = MealPlanEntry.fromJson(row);
+        if (entry.id.isNotEmpty && entry.recipeId.isNotEmpty) {
+          remoteEntries.add(entry);
+        }
+      } catch (_) {
+        // skip malformed remote row
+      }
+    }
+    final entries = _mergeRemoteMealPlanWithLocalOnly(
+      remoteEntries,
+      _ref.read(mealPlanProvider),
+      uploadScope,
+    );
+    return _ref.read(mealPlanProvider.notifier).replaceFromRemote(entries);
   }
 
   _LocalUploadScope _localUploadScopeFor(String householdId) {
@@ -324,6 +383,54 @@ List<Recipe> _withRecipeSyncIds(List<Recipe> recipes) {
         return recipe.copyWith(id: newSyncEntityId());
       })
       .toList(growable: false);
+}
+
+List<MealPlanEntry> _withMealPlanSyncIds(List<MealPlanEntry> entries) {
+  return entries
+      .map((entry) {
+        if (entry.id.isNotEmpty && isUuid(entry.id)) return entry;
+        return entry.copyWith(id: newSyncEntityId());
+      })
+      .toList(growable: false);
+}
+
+List<MealPlanEntry> _markLocalMealPlanUploaded(
+  List<MealPlanEntry> entries,
+  Set<String> uploadedIds,
+) {
+  return entries
+      .map((entry) {
+        if (!uploadedIds.contains(entry.id) ||
+            !_isLocalOnlyMealPlanEntry(entry)) {
+          return entry;
+        }
+        return entry.copyWith(remoteVersion: 1);
+      })
+      .toList(growable: false);
+}
+
+List<MealPlanEntry> _mergeRemoteMealPlanWithLocalOnly(
+  List<MealPlanEntry> remoteEntries,
+  List<MealPlanEntry> localEntries,
+  _LocalUploadScope uploadScope,
+) {
+  final remoteIds = remoteEntries.map((entry) => entry.id).toSet();
+  return [
+    ...remoteEntries,
+    ...localEntries.where(
+      (entry) =>
+          _isLocalOnlyMealPlanEntry(entry) &&
+          !remoteIds.contains(entry.id) &&
+          uploadScope.allows(SyncEntityType.mealPlanEntry, entry.id),
+    ),
+  ];
+}
+
+bool _isLocalOnlyMealPlanEntry(MealPlanEntry entry) {
+  return entry.remoteVersion <= 0 &&
+      entry.deletedAt == null &&
+      entry.id.isNotEmpty &&
+      entry.recipeId.isNotEmpty;
 }
 
 List<Ingredient> _markLocalInventoryUploaded(

@@ -86,4 +86,49 @@ void main() {
       );
     },
   );
+
+  group('recipesRankedByExpiringUse', () {
+    test('ranks the dish that clears the most perishables first', () {
+      final expiring = {'番茄', '青椒', '牛肉'};
+      final recommended = [
+        _recipe('one', '番茄炒蛋', ['番茄', '鸡蛋']), // clears 1
+        _recipe('three', '番茄青椒牛肉', ['番茄', '青椒', '牛肉']), // clears 3
+        _recipe('two', '青椒牛肉', ['青椒', '牛肉']), // clears 2
+      ];
+      final ranked = recipesRankedByExpiringUse(recommended, expiring);
+      expect(ranked.map((r) => r.id), ['three', 'two', 'one']);
+    });
+
+    test('keeps recommended order on ties and drops non-expiring recipes', () {
+      final expiring = {'番茄'};
+      final recommended = [
+        _recipe('keep1', '番茄汤', ['番茄', '盐']), // clears 1
+        _recipe('drop', '白米饭', ['米']), // clears 0 -> dropped
+        _recipe('keep2', '番茄炒蛋', ['番茄', '蛋']), // clears 1, ties after keep1
+      ];
+      final ranked = recipesRankedByExpiringUse(recommended, expiring);
+      expect(ranked.map((r) => r.id), ['keep1', 'keep2']);
+    });
+
+    test('returns empty when nothing is expiring', () {
+      final recommended = [
+        _recipe('a', '番茄炒蛋', ['番茄']),
+      ];
+      expect(recipesRankedByExpiringUse(recommended, <String>{}), isEmpty);
+    });
+  });
+
+  group('expiringIngredientCountForNames', () {
+    test('counts distinct expiring names via substring match', () {
+      final expiring = {'小番茄', '牛肉'};
+      // '番茄' ⊂ '小番茄' and '牛肉' == '牛肉' -> 2 distinct expiring names cleared.
+      final recipe = _recipe('r', '番茄牛肉', ['番茄', '牛肉', '蛋']);
+      expect(expiringIngredientCountForNames(expiring, recipe), 2);
+    });
+
+    test('is zero when the recipe shares no expiring item', () {
+      final recipe = _recipe('r', '白饭', ['米']);
+      expect(expiringIngredientCountForNames({'番茄'}, recipe), 0);
+    });
+  });
 }

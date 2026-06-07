@@ -78,7 +78,96 @@ void main() {
       expect(find.text('Open Food Facts'), findsOneWidget);
     },
   );
+
+  testWidgets('shows a per-100g nutrition card when Open Food Facts has macros', (
+    tester,
+  ) async {
+    final item = _milk();
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final db = newTestDatabase();
+    addTearDown(db.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          ...testStorageOverrides(database: db),
+          foodDetailsClientProvider.overrideWithValue(
+            _DeferredFoodDetailsClient(
+              Future.value(_milkDetails(const NutritionFacts(
+                energyKcal: 64,
+                protein: 3.3,
+                carbs: 4.8,
+                fat: 3.6,
+              ))),
+            ),
+          ),
+        ],
+        child: MaterialApp(home: IngredientDetailScreen(ingredient: item)),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('营养成分 · 每 100g'), findsOneWidget);
+    expect(find.text('热量'), findsOneWidget);
+    expect(find.text('64'), findsOneWidget);
+    expect(find.text('蛋白质'), findsOneWidget);
+    expect(find.text('3.3'), findsOneWidget);
+    expect(find.text('碳水'), findsOneWidget);
+    expect(find.text('脂肪'), findsOneWidget);
+  });
+
+  testWidgets('hides the nutrition card when no macros are available', (
+    tester,
+  ) async {
+    final item = _milk();
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final db = newTestDatabase();
+    addTearDown(db.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          ...testStorageOverrides(database: db),
+          foodDetailsClientProvider.overrideWithValue(
+            _DeferredFoodDetailsClient(Future.value(_milkDetails(null))),
+          ),
+        ],
+        child: MaterialApp(home: IngredientDetailScreen(ingredient: item)),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('营养成分 · 每 100g'), findsNothing);
+  });
 }
+
+Ingredient _milk() => Ingredient(
+  name: '牛奶',
+  category: FoodCategories.dairyAndEggs,
+  quantity: '1',
+  unit: '盒',
+  imageUrl: '',
+  freshnessPercent: 1,
+  state: FreshnessState.fresh,
+  expiryLabel: '新鲜',
+  storage: IconType.fridge,
+);
+
+FoodDetails _milkDetails(NutritionFacts? nutrition) => FoodDetails(
+  displayName: '牛奶',
+  description: '乳品蛋类食材',
+  imageUrl: null,
+  category: FoodCategories.dairyAndEggs,
+  storage: IconType.fridge,
+  shelfLifeDays: 7,
+  source: 'Open Food Facts',
+  fetchedAt: DateTime.utc(2026, 5, 1),
+  nutrition: nutrition,
+);
 
 class _DeferredFoodDetailsClient implements FoodDetailsClient {
   _DeferredFoodDetailsClient(this.result);

@@ -62,6 +62,27 @@ class RecipeIngredient {
     );
   }
 
+  /// Whether this ingredient carries a plain numeric magnitude that [scaledBy]
+  /// can multiply. False for measures like "适量"/"少许" or ranges like "1-2".
+  bool get isScalable => double.tryParse(quantity.trim()) != null;
+
+  /// Returns this ingredient with its numeric magnitude multiplied by [factor],
+  /// re-composing the display amount from the scaled quantity + unit.
+  ///
+  /// A [factor] of 1 is a no-op that preserves any explicit amount. Ingredients
+  /// whose quantity is not a plain number (e.g. "适量", or a range like "1-2")
+  /// are returned unchanged — scaling a non-numeric measure would be meaningless.
+  RecipeIngredient scaledBy(double factor) {
+    if (factor == 1) return this;
+    final magnitude = double.tryParse(quantity.trim());
+    if (magnitude == null) return this;
+    return RecipeIngredient(
+      name: name,
+      quantity: formatQuantity(magnitude * factor),
+      unit: unit,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {'name': name, 'quantity': quantity, 'unit': unit, 'amount': amount};
   }

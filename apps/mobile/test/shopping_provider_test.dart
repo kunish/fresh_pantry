@@ -104,4 +104,59 @@ void main() {
       expect(ids, hasLength(2));
     },
   );
+
+  test('groupShoppingItems orders categories by canonical aisle sequence', () {
+    // Inserted in a deliberately scrambled order.
+    final grouped = groupShoppingItems(const [
+      ShoppingItem(
+        id: '1',
+        name: '番茄',
+        detail: '',
+        category: FoodCategories.freshProduce,
+      ),
+      ShoppingItem(
+        id: '2',
+        name: '米',
+        detail: '',
+        category: FoodCategories.other,
+      ),
+      ShoppingItem(
+        id: '3',
+        name: '牛奶',
+        detail: '',
+        category: FoodCategories.dairyAndEggs,
+      ),
+      ShoppingItem(
+        id: '4',
+        name: '鸡胸',
+        detail: '',
+        category: FoodCategories.meatAndSeafood,
+      ),
+    ]);
+    expect(grouped.keys.toList(), [
+      FoodCategories.dairyAndEggs,
+      FoodCategories.freshProduce,
+      FoodCategories.meatAndSeafood,
+      FoodCategories.other,
+    ]);
+  });
+
+  test('groupShoppingItems keeps unknown-category groups last, stably', () {
+    final grouped = groupShoppingItems(const [
+      ShoppingItem(id: '1', name: 'x', detail: '', category: '自定义A'),
+      ShoppingItem(
+        id: '2',
+        name: 'y',
+        detail: '',
+        category: FoodCategories.freshProduce,
+      ),
+      ShoppingItem(id: '3', name: 'z', detail: '', category: '自定义B'),
+    ]);
+    // Known category first; the two unknowns keep their insertion order.
+    expect(grouped.keys.toList(), [
+      FoodCategories.freshProduce,
+      '自定义A',
+      '自定义B',
+    ]);
+  });
 }

@@ -31,7 +31,7 @@ void main() {
       expect(restored.source, original.source);
     });
 
-    test('toJson always writes cacheVersion 4', () {
+    test('toJson always writes cacheVersion 5', () {
       final details = FoodDetails(
         displayName: '牛奶',
         description: '',
@@ -42,7 +42,33 @@ void main() {
         source: 'test',
         fetchedAt: DateTime.utc(2026),
       );
-      expect(details.toJson()['cacheVersion'], 4);
+      expect(details.toJson()['cacheVersion'], 5);
+    });
+
+    test('round-trips nutrition facts when present', () {
+      final details = FoodDetails(
+        displayName: '牛奶',
+        description: '',
+        imageUrl: null,
+        category: '乳品蛋类',
+        storage: IconType.fridge,
+        shelfLifeDays: 7,
+        source: 'Open Food Facts',
+        fetchedAt: DateTime.utc(2026),
+        nutrition: const NutritionFacts(
+          energyKcal: 64,
+          protein: 3.3,
+          carbs: 4.8,
+          fat: 3.6,
+        ),
+      );
+      final restored = FoodDetails.fromJson(details.toJson());
+      expect(restored.nutrition, details.nutrition);
+      expect(restored.nutrition?.energyKcal, 64);
+    });
+
+    test('nutrition is null when absent from json', () {
+      expect(FoodDetails.fromJson({}).nutrition, isNull);
     });
 
     test('fromJson uses defaults for missing fields', () {
@@ -68,6 +94,33 @@ void main() {
         FoodDetails.fromJson(json).fetchedAt,
         DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
       );
+    });
+  });
+
+  group('NutritionFacts', () {
+    test('fromOffNutriments parses per-100g macros', () {
+      final facts = NutritionFacts.fromOffNutriments({
+        'energy-kcal_100g': 64,
+        'proteins_100g': 3.3,
+        'carbohydrates_100g': '4.8', // OFF sometimes sends strings
+        'fat_100g': 3.6,
+        'salt_100g': 0.1, // ignored
+      });
+      expect(facts, isNotNull);
+      expect(facts!.energyKcal, 64);
+      expect(facts.protein, 3.3);
+      expect(facts.carbs, 4.8);
+      expect(facts.fat, 3.6);
+      expect(facts.hasAny, isTrue);
+    });
+
+    test('fromOffNutriments returns null when no usable macro present', () {
+      expect(NutritionFacts.fromOffNutriments({'salt_100g': 0.1}), isNull);
+      expect(NutritionFacts.fromOffNutriments(const {}), isNull);
+    });
+
+    test('hasAny is false for an all-null instance', () {
+      expect(const NutritionFacts().hasAny, isFalse);
     });
   });
 

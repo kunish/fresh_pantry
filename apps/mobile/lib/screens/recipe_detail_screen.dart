@@ -4,17 +4,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../data/food_knowledge.dart';
+import '../models/meal_plan_entry.dart';
 import '../models/recipe.dart';
 import '../models/shopping_item.dart';
 import '../providers/deduction_review_provider.dart';
 import '../providers/favorite_recipes_provider.dart';
 import '../providers/inventory_provider.dart';
+import '../providers/meal_plan_provider.dart';
 import '../providers/recipe_provider.dart';
 import '../providers/shopping_provider.dart';
 import '../services/deduction_proposal_factory.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_snackbar.dart';
+import '../utils/meal_plan_day_label.dart';
 import '../utils/page_transitions.dart';
+import '../utils/quantity_text.dart';
 import '../widgets/shared/fk_card.dart';
 import '../widgets/shared/fk_dashed_border.dart';
 import '../widgets/shared/fk_icon_button.dart';
@@ -22,6 +26,7 @@ import '../widgets/shared/fk_pill.dart';
 import '../widgets/shared/recipe_cover_fallback.dart';
 import '../widgets/shared/recipe_image.dart';
 import 'deduction_review_screen.dart';
+import 'meal_plan_screen.dart';
 
 /// 设计稿 `screens-3.jsx::RecipeDetailScreen`。
 ///
@@ -54,12 +59,16 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
   final Set<int> _completedSteps = <int>{};
   bool _addingToCart = false;
 
+  /// 备料倍数:1× 即食谱原始用量,缩放只作用于展示与加购,不改存储。
+  double _scaleFactor = 1.0;
+
   @override
   void didUpdateWidget(covariant RecipeDetailScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.recipe.id != widget.recipe.id ||
         !listEquals(oldWidget.recipe.steps, widget.recipe.steps)) {
       _completedSteps.clear();
+      _scaleFactor = 1.0;
     }
   }
 
@@ -110,6 +119,38 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     showAppSnackBar(context, message);
   }
 
+  /// 弹出未来 7 天选择器,把本菜谱加入选中那天的膳食计划。
+  Future<void> _addToPlan() async {
+    final today = MealPlanEntry.dateOnly(DateTime.now());
+    final chosen = await showModalBottomSheet<DateTime>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+      ),
+      builder: (_) => _PlanDayPickerSheet(today: today),
+    );
+    if (chosen == null || !mounted) return;
+    try {
+      await ref
+          .read(mealPlanProvider.notifier)
+          .addEntry(date: chosen, recipe: widget.recipe);
+    } catch (_) {
+      if (mounted) showAppSnackBar(context, '加入计划失败，请重试');
+      return;
+    }
+    if (!mounted) return;
+    showAppSnackBar(
+      context,
+      '已加入「${mealPlanDayLabel(chosen, today)}」的计划',
+      backgroundColor: AppColors.primary,
+      actionLabel: '查看',
+      onAction: () => Navigator.of(
+        context,
+      ).push(fkRoute<void>(builder: (_) => const MealPlanScreen())),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.watch(inventoryProvider.select(inventoryNamesSignature));
@@ -139,6 +180,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             isFavorite: isFavorite,
             isCustom: widget.isCustomRecipe,
             onBack: () => Navigator.of(context).maybePop(),
+            onAddToPlan: _addToPlan,
             onToggleFavorite: () => ref
                 .read(favoriteRecipesProvider.notifier)
                 .toggle(widget.recipe.id),
@@ -229,13 +271,17 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
                   inventoryNames: inventoryNames,
                   matched: matched,
                   missingCount: missing.length,
+                  scaleFactor: _scaleFactor,
+                  onScaleChanged: (f) => setState(() => _scaleFactor = f),
                 ),
                 if (missing.isNotEmpty) ...[
                   const SizedBox(height: 10),
                   _AddMissingCta(
                     count: missing.length,
                     loading: _addingToCart,
-                    onTap: () => _addMissingToCart(missing),
+                    onTap: () => _addMissingToCart(
+                      missing.map((i) => i.scaledBy(_scaleFactor)).toList(),
+                    ),
                   ),
                 ],
                 const SizedBox(height: AppSpacing.xxl),
@@ -280,6 +326,7 @@ class _HeroSection extends StatelessWidget {
   final bool isFavorite;
   final bool isCustom;
   final VoidCallback onBack;
+  final VoidCallback onAddToPlan;
   final VoidCallback onToggleFavorite;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
@@ -289,6 +336,7 @@ class _HeroSection extends StatelessWidget {
     required this.isFavorite,
     required this.isCustom,
     required this.onBack,
+    required this.onAddToPlan,
     required this.onToggleFavorite,
     required this.onEdit,
     required this.onDelete,
@@ -374,6 +422,18 @@ class _HeroSection extends StatelessWidget {
                     ),
                     const SizedBox(width: AppSpacing.sm),
                   ],
+                  Tooltip(
+                    message: '加入膳食计划',
+                    child: FkIconButton(
+                      key: const Key('recipe_add_to_plan_action'),
+                      onTap: onAddToPlan,
+                      child: const Icon(
+                        Icons.calendar_month_outlined,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
                   FkIconButton(
                     onTap: onToggleFavorite,
                     foregroundColor: isFavorite
@@ -396,21 +456,34 @@ class _HeroSection extends StatelessWidget {
   }
 }
 
+/// 备料倍数预设:覆盖最常见的半倍/原始/双倍/三倍场景。
+const List<double> _scalePresets = [0.5, 1.0, 2.0, 3.0];
+
+String _scaleLabel(double factor) =>
+    factor == 0.5 ? '½×' : '${formatQuantity(factor)}×';
+
 class _IngredientsSection extends StatelessWidget {
   final Recipe recipe;
   final Set<String> inventoryNames;
   final int matched;
   final int missingCount;
+  final double scaleFactor;
+  final ValueChanged<double> onScaleChanged;
 
   const _IngredientsSection({
     required this.recipe,
     required this.inventoryNames,
     required this.matched,
     required this.missingCount,
+    required this.scaleFactor,
+    required this.onScaleChanged,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Only offer portion scaling when at least one ingredient carries a numeric
+    // magnitude — otherwise the control would be a dead no-op.
+    final canScale = recipe.ingredients.any((i) => i.isScalable);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -434,6 +507,10 @@ class _IngredientsSection extends StatelessWidget {
             ),
           ],
         ),
+        if (canScale) ...[
+          const SizedBox(height: 10),
+          _ScaleSelector(selected: scaleFactor, onSelect: onScaleChanged),
+        ],
         const SizedBox(height: 10),
         FkCard(
           padding: EdgeInsets.zero,
@@ -446,7 +523,7 @@ class _IngredientsSection extends StatelessWidget {
               final ingredient = recipe.ingredients[index];
               return _IngredientRow(
                 index: index,
-                ingredient: ingredient,
+                ingredient: ingredient.scaledBy(scaleFactor),
                 isAvailable: recipeIngredientMatchesInventory(
                   ingredient,
                   inventoryNames,
@@ -457,6 +534,74 @@ class _IngredientsSection extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// 备料倍数分段控件,视觉沿用 waste_insights 的 chip 行(`_WindowChip`)。
+class _ScaleSelector extends StatelessWidget {
+  const _ScaleSelector({required this.selected, required this.onSelect});
+
+  final double selected;
+  final ValueChanged<double> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: '备料倍数',
+      child: Row(
+        children: [
+          const Icon(
+            Icons.straighten_rounded,
+            size: 15,
+            color: AppColors.onSurfaceVariant,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          for (final f in _scalePresets) ...[
+            _ScaleChip(
+              label: _scaleLabel(f),
+              active: f == selected,
+              onTap: () => onSelect(f),
+            ),
+            if (f != _scalePresets.last) const SizedBox(width: AppSpacing.sm),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ScaleChip extends StatelessWidget {
+  const _ScaleChip({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: active ? AppColors.primary : AppColors.surfaceContainer,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: AppFontSize.sm,
+            fontWeight: FontWeight.w700,
+            color: active ? Colors.white : AppColors.onSurfaceVariant,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -782,6 +927,71 @@ class _StepRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 「加入计划」选择器:列出今天起 7 天,点选某天即 `Navigator.pop` 回该日期。
+class _PlanDayPickerSheet extends StatelessWidget {
+  const _PlanDayPickerSheet({required this.today});
+
+  final DateTime today;
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final days = List.generate(7, (i) => today.add(Duration(days: i)));
+    return SafeArea(
+      top: false,
+      // Scrollable so a short screen (or large text scale) scrolls the 7 days
+      // instead of overflowing the bottom sheet's bounded height.
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xl,
+            AppSpacing.lg,
+            AppSpacing.xl,
+            AppSpacing.lg,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Text(
+                '加入哪天的计划?',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: AppFontSize.lg,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.onSurface,
+                ),
+              ),
+            ),
+            for (final day in days)
+              ListTile(
+                key: ValueKey('plan-day-${MealPlanEntry.dateKey(day)}'),
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(
+                  Icons.event_outlined,
+                  color: AppColors.primary,
+                ),
+                title: Text(
+                  mealPlanDayLabel(day, today),
+                  style: tt.bodyLarge?.copyWith(color: AppColors.onSurface),
+                ),
+                trailing: Text(
+                  '${day.month}/${day.day}',
+                  style: tt.bodySmall?.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+                onTap: () => Navigator.of(context).pop(day),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
