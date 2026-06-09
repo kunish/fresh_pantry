@@ -113,4 +113,31 @@ struct CustomRecipeDraftParsedTests {
         #expect(form.steps.count == 1)
         #expect(form.steps.first?.text == "")
     }
+
+    // MARK: Reordering (Recipes #10 up/down nudges)
+
+    @Test func moveIngredientSwapsWithNeighbor() {
+        var form = CustomRecipeDraft(
+            ingredients: [.init(name: "a"), .init(name: "b"), .init(name: "c")]
+        )
+        form.moveIngredient(from: 0, by: 1) // a down
+        #expect(form.ingredients.map(\.name) == ["b", "a", "c"])
+        form.moveIngredient(from: 2, by: -1) // c up
+        #expect(form.ingredients.map(\.name) == ["b", "c", "a"])
+    }
+
+    @Test func moveIngredientOutOfBoundsIsNoOp() {
+        var form = CustomRecipeDraft(ingredients: [.init(name: "a"), .init(name: "b")])
+        form.moveIngredient(from: 0, by: -1) // off the top
+        form.moveIngredient(from: 1, by: 1)  // off the bottom
+        #expect(form.ingredients.map(\.name) == ["a", "b"])
+    }
+
+    @Test func moveStepSwapsWithNeighbor() {
+        var form = CustomRecipeDraft(steps: [.init(text: "1"), .init(text: "2"), .init(text: "3")])
+        form.moveStep(from: 1, by: 1) // 2 down
+        #expect(form.steps.map(\.text) == ["1", "3", "2"])
+        form.moveStep(from: 0, by: 5) // out of bounds → no-op
+        #expect(form.steps.map(\.text) == ["1", "3", "2"])
+    }
 }

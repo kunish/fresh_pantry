@@ -165,6 +165,27 @@ struct CustomRecipeDraft: Equatable {
         options: [.dotMatchesLineSeparators]
     )
 
+    // MARK: Reordering (up/down nudges)
+
+    /// Moves the ingredient at `index` by `offset` rows (typically ±1), swapping
+    /// with the neighbor. Out-of-bounds targets are a no-op so callers can wire
+    /// disabled-edge buttons defensively. Pure model mutation (the form persists
+    /// the reordered draft on Save), kept here to stay unit-testable.
+    mutating func moveIngredient(from index: Int, by offset: Int) {
+        let target = index + offset
+        guard ingredients.indices.contains(index), ingredients.indices.contains(target) else { return }
+        ingredients.swapAt(index, target)
+    }
+
+    /// Moves the step at `index` by `offset` rows (typically ±1), swapping with the
+    /// neighbor. Out-of-bounds targets are a no-op. The step badges renumber for
+    /// free since the form labels by enumerated offset.
+    mutating func moveStep(from index: Int, by offset: Int) {
+        let target = index + offset
+        guard steps.indices.contains(index), steps.indices.contains(target) else { return }
+        steps.swapAt(index, target)
+    }
+
     // MARK: Validation
 
     /// The trimmed, non-empty cooking steps (the ones that survive to the recipe).

@@ -511,6 +511,15 @@ struct CustomRecipeFormView: View {
             .buttonStyle(.fkPressable)
 
             if draft.ingredients.count > 1 {
+                let index = draft.ingredients.firstIndex { $0.id == row.wrappedValue.id }
+                reorderButtons(
+                    canMoveUp: (index ?? 0) > 0,
+                    canMoveDown: index.map { $0 < draft.ingredients.count - 1 } ?? false,
+                    upLabel: "上移食材",
+                    downLabel: "下移食材"
+                ) { offset in
+                    if let index { draft.moveIngredient(from: index, by: offset); clearError(.ingredients) }
+                }
                 Button {
                     draft.ingredients.removeAll { $0.id == row.wrappedValue.id }
                     clearError(.ingredients)
@@ -524,6 +533,36 @@ struct CustomRecipeFormView: View {
             }
         }
         .padding(.vertical, FkSpacing.xs)
+    }
+
+    /// A compact up/down nudge pair for reordering a row (Recipes #10). Disabled at
+    /// the list edges; the `move` closure receives -1 (up) or +1 (down).
+    private func reorderButtons(
+        canMoveUp: Bool,
+        canMoveDown: Bool,
+        upLabel: String,
+        downLabel: String,
+        move: @escaping (Int) -> Void
+    ) -> some View {
+        HStack(spacing: 2) {
+            Button { move(-1) } label: {
+                Image(systemName: "chevron.up")
+                    .font(.system(size: FkSize.iconSm, weight: .semibold))
+                    .foregroundStyle(canMoveUp ? Color.fkOnSurfaceVariant : Color.fkOutline)
+            }
+            .buttonStyle(.fkPressable)
+            .disabled(!canMoveUp)
+            .accessibilityLabel(upLabel)
+
+            Button { move(1) } label: {
+                Image(systemName: "chevron.down")
+                    .font(.system(size: FkSize.iconSm, weight: .semibold))
+                    .foregroundStyle(canMoveDown ? Color.fkOnSurfaceVariant : Color.fkOutline)
+            }
+            .buttonStyle(.fkPressable)
+            .disabled(!canMoveDown)
+            .accessibilityLabel(downLabel)
+        }
     }
 
     // MARK: 步骤
@@ -559,6 +598,15 @@ struct CustomRecipeFormView: View {
                 .onChange(of: step.wrappedValue.text) { _, _ in clearError(.steps) }
 
             if draft.steps.count > 1 {
+                let index = draft.steps.firstIndex { $0.id == step.wrappedValue.id }
+                reorderButtons(
+                    canMoveUp: (index ?? 0) > 0,
+                    canMoveDown: index.map { $0 < draft.steps.count - 1 } ?? false,
+                    upLabel: "上移步骤",
+                    downLabel: "下移步骤"
+                ) { offset in
+                    if let index { draft.moveStep(from: index, by: offset); clearError(.steps) }
+                }
                 Button {
                     draft.steps.removeAll { $0.id == step.wrappedValue.id }
                     clearError(.steps)
