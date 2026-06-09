@@ -38,6 +38,19 @@
 > 新增测试:DietPreferenceStoreTests、RecipeMatching.preferenceBoost/排序、HouseholdSessionStore 邀请方法 local-only 守卫。
 >
 > **至此除少量「low, 未复核」体验项(Waste Top 榜、备份剪贴板回退等)外,审计清单已全部回补。**
+>
+> ## 进度更新 2026-06-10(第 5 轮:用户「剩余的缺口也全部做了」→ 清空 low/未复核 项)
+>
+> 7-agent 侦察先核实每项「是否仍是真缺口」(避免重做已完成的),全部确认后实现、7-agent 对抗式 review、全量 669 测试全绿:
+> - Inventory:入库审核行**食材名称内联编辑**(tap→TextField,提交/失焦 commit;空名丢弃守卫)、临期屏**提醒状态卡**(读真实通知权限 + ReminderSettings,状态文案诚实,无跨 tab 深链)。
+> - Shopping:**分类分组折叠/展开**(`ShoppingStore.collapsedCategories` 内存态 + 可点 `CategoryHeader`,chevron 旋转 + 件数)。
+> - Waste:**最常浪费榜单**(`WasteInsightsStore.computeMostWasted`,wasted-only 降序,补在分类条形图下)、设置「更多」加**减废成效**入口。
+> - Dashboard:Hero **「· N 类」**(复用 `store.categoryCounts.count`)。
+> - Settings:**数据备份剪贴板**复制/粘贴(统一走 String 路径,导出报 UTF-8 字节数)。
+> - 对抗式 review 修 2 处:① 内联改名空名守卫(防空名入库);② 顺手修一个既有静默失效 bug —— `IntakeProposal.copyWith` 加 `clearShelfLifeDays`,让保质期 chip「未设置」档真正清空(原 `?? self` 永不清空,到 30 天卡死)。
+> 新增测试:computeMostWasted ×2、入库改名 updateProposal、clearShelfLifeDays。
+>
+> **51 项审计缺口 + 顺带发现的项已全部回补。**
 
 
 ## Recipes (11)
