@@ -96,7 +96,8 @@ private struct DeletableChip: View {
 
 /// Minimal flow layout: lays children left-to-right, wrapping to a new line when
 /// the row width is exceeded. Honors the proposed width so chips reflow.
-private struct FlowLayout: Layout {
+/// Module-internal so other Settings sections (e.g. 饮食偏好) can reuse it.
+struct FlowLayout: Layout {
     var spacing: CGFloat = FkSpacing.sm
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {

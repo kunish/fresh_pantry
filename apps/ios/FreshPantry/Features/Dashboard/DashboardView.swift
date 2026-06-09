@@ -276,7 +276,8 @@ private struct DashboardContent: View {
                 favoritesStore: dependencies.favoritesStore,
                 householdID: dependencies.householdID,
                 inventoryRepository: dependencies.inventoryRepository,
-                dietaryStore: dependencies.dietaryPreferencesStore
+                dietaryStore: dependencies.dietaryPreferencesStore,
+                dietPreferenceStore: dependencies.dietPreferenceStore
             )
             await recipes.load()
             recipesStore = recipes
@@ -284,7 +285,8 @@ private struct DashboardContent: View {
 
         // 今日推荐 = the top match-ranked recipe; 用临期 = the best expiring-cover dish.
         let available = RecipeMatching.rankedByAvailability(
-            recipes.recipes, inventoryNames: recipes.inventoryNames, expiringNames: recipes.expiringNames
+            recipes.recipes, inventoryNames: recipes.inventoryNames, expiringNames: recipes.expiringNames,
+            prefs: dependencies.dietPreferenceStore.selected
         )
         recommendation = available.first
         recommendationMatched = recommendation.map { recipes.matchedCount($0) } ?? 0

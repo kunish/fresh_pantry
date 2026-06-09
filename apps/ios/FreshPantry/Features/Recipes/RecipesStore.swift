@@ -71,6 +71,9 @@ final class RecipesStore {
     /// Optional 忌口 source — recipes containing an avoided keyword are hidden from
     /// every tab. nil disables the filter (tests / meal-plan picker pass nil).
     private let dietaryStore: DietaryPreferencesStore?
+    /// Optional 饮食偏好 source — boosts matching recipes in the 现有 ranking.
+    /// nil disables the boost (tests / meal-plan picker pass nil).
+    private let dietPreferenceStore: DietPreferenceStore?
 
     /// Merged, id-deduped recipes (bundled order first, custom appended; custom
     /// overrides a shared id in place). The parity-critical source order is never
@@ -93,7 +96,8 @@ final class RecipesStore {
         favoritesStore: FavoritesStore,
         householdID: String,
         inventoryRepository: InventoryRepository? = nil,
-        dietaryStore: DietaryPreferencesStore? = nil
+        dietaryStore: DietaryPreferencesStore? = nil,
+        dietPreferenceStore: DietPreferenceStore? = nil
     ) {
         self.localRepository = localRepository
         self.customRepository = customRepository
@@ -101,6 +105,7 @@ final class RecipesStore {
         self.householdID = householdID
         self.inventoryRepository = inventoryRepository
         self.dietaryStore = dietaryStore
+        self.dietPreferenceStore = dietPreferenceStore
     }
 
     // MARK: Loading
@@ -199,7 +204,8 @@ final class RecipesStore {
             return recipes
         case .available:
             return RecipeMatching.rankedByAvailability(
-                recipes, inventoryNames: inventoryNames, expiringNames: expiringNames
+                recipes, inventoryNames: inventoryNames, expiringNames: expiringNames,
+                prefs: dietPreferenceStore?.selected ?? []
             )
         case .expiring:
             return RecipeMatching.rankedByExpiringUse(recipes, expiringNames)

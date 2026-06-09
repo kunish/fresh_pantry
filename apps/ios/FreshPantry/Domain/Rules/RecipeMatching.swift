@@ -56,7 +56,8 @@ enum RecipeMatching {
     static func rankedByAvailability(
         _ recipes: [Recipe],
         inventoryNames: Set<String>,
-        expiringNames: Set<String>
+        expiringNames: Set<String>,
+        prefs: Set<String> = []
     ) -> [Recipe] {
         guard !inventoryNames.isEmpty else { return [] }
         let scored = recipes.enumerated().map { offset, recipe -> (offset: Int, recipe: Recipe, score: Double) in
@@ -64,7 +65,9 @@ enum RecipeMatching {
             guard matched > 0, !recipe.ingredients.isEmpty else { return (offset, recipe, 0) }
             let base = Double(matched) / Double(recipe.ingredients.count)
             let usesExpiring = recipe.ingredients.contains { expiringNames.contains($0.name.trimmed.lowercased()) }
-            return (offset, recipe, base + (usesExpiring ? 0.5 : 0))
+            // 饮食偏好 boost only REORDERS in-stock recipes (matched > 0) — never
+            // resurrects a score-0 recipe, so it can't bury 临期 dishes.
+            return (offset, recipe, base + (usesExpiring ? 0.5 : 0) + preferenceBoost(recipe, prefs))
         }
         return scored
             .filter { $0.score > 0 }
@@ -86,6 +89,58 @@ enum RecipeMatching {
             if lhs.count != rhs.count { return lhs.count > rhs.count }
             return lhs.offset < rhs.offset
         }.map(\.recipe)
+    }
+
+    /// Signals that map a 饮食偏好 preset label to recipe features. Because the
+    /// bundled corpus' tags/category never literally equal the 7 preset labels, a
+    /// label is matched via category synonyms, tag-keyword substrings, ingredient
+    /// keywords, or a cooking-time bound — NOT raw tag-overlap (which would be a
+    /// silent no-op).
+    struct PreferenceSignal {
+        var categories: Set<String> = []
+        var tagKeywords: [String] = []
+        var ingredientKeywords: [String] = []
+        var maxMinutes: Int?
+    }
+
+    /// Label → signal map (iOS-only enhancement; Flutter never consumes prefs).
+    /// 低脂/低碳水 are the weakest signals — the corpus has no nutrition data, so
+    /// they key only off category synonyms.
+    static let preferenceSignals: [String: PreferenceSignal] = [
+        "高蛋白": PreferenceSignal(ingredientKeywords: ["鸡蛋", "鸡胸", "鸡肉", "牛肉", "猪肉", "羊肉", "虾", "鱼", "豆腐", "牛奶", "豆"]),
+        "低脂": PreferenceSignal(categories: ["素菜", "汤羹"]),
+        "素食": PreferenceSignal(categories: ["素菜"]),
+        "家常菜": PreferenceSignal(categories: ["荤菜", "素菜", "主食"]),
+        "快手菜": PreferenceSignal(maxMinutes: 15),
+        "儿童餐": PreferenceSignal(categories: ["甜品", "主食"], ingredientKeywords: ["鸡蛋", "牛奶", "番茄"]),
+        "低碳水": PreferenceSignal(categories: ["荤菜", "水产"]),
+    ]
+
+    /// Additive 饮食偏好 boost for a recipe: +0.15 per selected pref the recipe
+    /// matches (category synonym / tag keyword / ingredient keyword / cook-time),
+    /// capped at 0.45 so it stays below the 临期 +0.5 emphasis. 0 for empty prefs.
+    /// Pure (no SwiftData/SwiftUI). iOS-only — NO Flutter counterpart.
+    static func preferenceBoost(_ recipe: Recipe, _ prefs: Set<String>) -> Double {
+        guard !prefs.isEmpty else { return 0 }
+        let category = recipe.category.trimmed
+        let tagsLower = recipe.tags.map { $0.trimmed.lowercased() }
+        let ingredientNames = recipe.ingredients.map { $0.name.trimmed.lowercased() }
+        var total = 0.0
+        for pref in prefs {
+            guard let signal = preferenceSignals[pref] else { continue }
+            var matched = signal.categories.contains(category)
+            if !matched {
+                matched = signal.tagKeywords.contains { kw in tagsLower.contains { $0.contains(kw.lowercased()) } }
+            }
+            if !matched {
+                matched = signal.ingredientKeywords.contains { kw in ingredientNames.contains { $0.contains(kw.lowercased()) } }
+            }
+            if !matched, let maxMinutes = signal.maxMinutes {
+                matched = recipe.cookingMinutes <= maxMinutes
+            }
+            if matched { total += 0.15 }
+        }
+        return min(total, 0.45)
     }
 
     /// The single recipe covering the MOST distinct expiring/expired names — the

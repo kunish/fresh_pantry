@@ -77,7 +77,8 @@ struct RecipesView: View {
                 favoritesStore: dependencies.favoritesStore,
                 householdID: householdID,
                 inventoryRepository: dependencies.inventoryRepository,
-                dietaryStore: dependencies.dietaryPreferencesStore
+                dietaryStore: dependencies.dietaryPreferencesStore,
+                dietPreferenceStore: dependencies.dietPreferenceStore
             )
             let customStore = CustomRecipeStore(
                 repository: dependencies.customRecipeRepository,

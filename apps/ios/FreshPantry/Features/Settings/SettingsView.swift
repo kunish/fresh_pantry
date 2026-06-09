@@ -16,6 +16,7 @@ struct SettingsView: View {
             SettingsContent(
                 reminderStore: dependencies.reminderSettingsStore,
                 dietaryStore: dependencies.dietaryPreferencesStore,
+                dietPreferenceStore: dependencies.dietPreferenceStore,
                 aiStore: dependencies.aiSettingsStore,
                 auth: dependencies.authService,
                 notifications: dependencies.notificationCoordinator,
@@ -31,6 +32,7 @@ struct SettingsView: View {
 private struct SettingsContent: View {
     let reminderStore: ReminderSettingsStore
     let dietaryStore: DietaryPreferencesStore
+    let dietPreferenceStore: DietPreferenceStore
     let aiStore: AiSettingsStore
     @Bindable var auth: AuthService
     let notifications: NotificationCoordinator
@@ -50,6 +52,7 @@ private struct SettingsContent: View {
             accountSection
             reminderSection
             dietarySection
+            dietPreferenceSection
             assistantSection
             comingSoonSection
             aboutSection
@@ -197,6 +200,26 @@ private struct SettingsContent: View {
             Text("忌口")
         } footer: {
             Text("含这些关键字的食材会在菜谱推荐中被过滤。")
+        }
+        .listRowBackground(Color.fkSurfaceContainerLowest)
+    }
+
+    // MARK: 饮食偏好
+
+    private var dietPreferenceSection: some View {
+        Section {
+            FlowLayout(spacing: FkSpacing.sm) {
+                ForEach(DietPreferenceStore.allLabels, id: \.self) { label in
+                    FkChip(label: label, isSelected: dietPreferenceStore.isSelected(label)) {
+                        dietPreferenceStore.toggle(label)
+                    }
+                }
+            }
+            .padding(.vertical, FkSpacing.xs)
+        } header: {
+            Text("饮食偏好")
+        } footer: {
+            Text("根据偏好为「现有」与「今日推荐」加权排序菜谱。")
         }
         .listRowBackground(Color.fkSurfaceContainerLowest)
     }
