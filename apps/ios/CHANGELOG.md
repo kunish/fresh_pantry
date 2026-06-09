@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.3.0...fresh_pantry-v1.4.0) (2026-06-09)
+
+
+### Features
+
+* **ios:** 回填 Flutter→iOS 平价缺口(编辑食材/缺料菜谱/采购入库/离线同步横幅) ([cde3f07](https://github.com/kunish/fresh_pantry/commit/cde3f07563d44718c214f802fb872b45546827b4))
+
 ## [1.3.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.2.1...fresh_pantry-v1.3.0) (2026-06-09)
 
 
