@@ -36,8 +36,17 @@ final class HouseholdSessionStore {
     private(set) var members: [HouseholdMember] = []
     /// The last previewed invite (populated by `previewInvite`, cleared on accept).
     private(set) var invitePreview: HouseholdInvitePreview?
+    /// Invites addressed to the signed-in user (from `list_pending_household_invites`).
+    /// Drives the "收到的邀请" reminder/list + the settings red-dot badge.
+    private(set) var pendingInvitePreviews: [HouseholdInvitePreview] = []
+    /// Open invites the OWNER of the selected household has issued, still unaccepted
+    /// (from `list_owner_pending_invites`). Drives the owner "待处理邀请" list.
+    private(set) var ownerPendingInvites: [OwnerPendingInvite] = []
     /// In-flight flag for the refresh/load reads (drives list spinners).
     private(set) var isLoading = false
+    /// In-flight flag for the pending-invites refresh (kept separate from `isLoading`
+    /// so it never fights the household-list spinner).
+    private(set) var isPendingInvitesLoading = false
     /// In-flight flag for mutating ops (create/join/leave/dissolve/invite/etc.).
     private(set) var isSubmitting = false
     /// The last user-facing error; cleared at the start of each new attempt.
@@ -112,6 +121,15 @@ final class HouseholdSessionStore {
             session.selectedHouseholdId = selectedId
             members = loadedMembers
             isLoading = false
+            // Populate the invite surfaces off the same entry point Flutter uses
+            // (refreshHouseholds). A signed-out refresh clears stale invites.
+            if isAuthenticated {
+                await refreshPendingInvites()
+                await refreshOwnerPendingInvites(session.selectedHouseholdId)
+            } else {
+                pendingInvitePreviews = []
+                ownerPendingInvites = []
+            }
         } catch {
             guard generation == refreshGeneration else { return }
             isLoading = false
@@ -224,6 +242,7 @@ final class HouseholdSessionStore {
         isSubmitting = true
         errorMessage = nil
         let preferredId = invitePreview?.householdId
+        let acceptedInviteId = invitePreview?.inviteId
         do {
             try await remote.acceptInvite(token: token)
             let loaded = try await remote.loadHouseholds()
@@ -236,8 +255,91 @@ final class HouseholdSessionStore {
             households = loaded
             session.selectedHouseholdId = selectedId
             members = loadedMembers
+            if let acceptedInviteId, !acceptedInviteId.isEmpty {
+                pendingInvitePreviews = pendingInvitePreviews.filter { $0.inviteId != acceptedInviteId }
+            }
             invitePreview = nil
             isSubmitting = false
+            // Re-sync the received-invite list/badge so the accepted one drops
+            // without waiting for the next full refresh (parity with acceptInviteById).
+            await refreshPendingInvites(excludeInviteId: acceptedInviteId)
+        } catch {
+            isSubmitting = false
+            errorMessage = Self.message(error)
+        }
+    }
+
+    // MARK: - Pending invites (received + owner-issued)
+
+    /// Reloads the invites addressed to the signed-in user. `excludeInviteId` drops
+    /// a just-accepted invite optimistically. Spinner-silent (`isPendingInvitesLoading`
+    /// only) so it never fights the household-list spinner. Mirrors the Dart
+    /// `refreshPendingInvites`.
+    func refreshPendingInvites(excludeInviteId: String? = nil) async {
+        guard let remote else { pendingInvitePreviews = []; isPendingInvitesLoading = false; return }
+        guard isAuthenticated else { pendingInvitePreviews = []; isPendingInvitesLoading = false; return }
+        isPendingInvitesLoading = true
+        errorMessage = nil
+        do {
+            let loaded = try await remote.loadPendingInvites()
+            pendingInvitePreviews = excludeInviteId.map { id in loaded.filter { $0.inviteId != id } } ?? loaded
+            isPendingInvitesLoading = false
+        } catch {
+            isPendingInvitesLoading = false
+            errorMessage = Self.message(error)
+        }
+    }
+
+    /// Reloads the open invites the owner has issued for `householdId` (empty for a
+    /// non-owner / empty id — the repo + UI gate handle that). Mirrors the Dart
+    /// `refreshOwnerPendingInvites`.
+    func refreshOwnerPendingInvites(_ householdId: String) async {
+        guard let remote else { ownerPendingInvites = []; return }
+        guard isAuthenticated else { ownerPendingInvites = []; return }
+        do {
+            ownerPendingInvites = try await remote.fetchOwnerPendingInvites(householdId)
+        } catch {
+            errorMessage = Self.message(error)
+        }
+    }
+
+    /// Accepts a pending invite by its id (the inline "接受" path) and switches to
+    /// the joined household. Mirrors the Dart `acceptInviteById`.
+    func acceptInviteById(_ inviteId: String) async {
+        guard let remote else { return }
+        let trimmed = inviteId.trimmed
+        guard !trimmed.isEmpty else { errorMessage = "邀请不存在"; return }
+        isSubmitting = true
+        errorMessage = nil
+        let preferredId = pendingInvitePreviews.first { $0.inviteId == trimmed }?.householdId
+        do {
+            try await remote.acceptInviteById(inviteId: trimmed)
+            let loaded = try await remote.loadHouseholds()
+            let selectedId = Self.pickJoined(loaded, preferred: preferredId, current: session.selectedHouseholdId)
+            let loadedMembers = try await membersFor(remote, households: loaded, selected: selectedId)
+            households = loaded
+            session.selectedHouseholdId = selectedId
+            members = loadedMembers
+            pendingInvitePreviews = pendingInvitePreviews.filter { $0.inviteId != trimmed }
+            invitePreview = nil
+            isSubmitting = false
+            await refreshPendingInvites(excludeInviteId: trimmed)
+        } catch {
+            isSubmitting = false
+            errorMessage = Self.message(error)
+        }
+    }
+
+    /// Revokes an invite the owner issued for `householdId`, then re-fetches the
+    /// owner list so the revoked row disappears. Mirrors the Dart `revokeInvite`.
+    func revokeInvite(householdId: String, inviteId: String) async {
+        guard let remote else { return }
+        isSubmitting = true
+        errorMessage = nil
+        do {
+            try await remote.revokeInvite(inviteId: inviteId)
+            isSubmitting = false
+            await refreshOwnerPendingInvites(householdId)
         } catch {
             isSubmitting = false
             errorMessage = Self.message(error)
@@ -353,7 +455,11 @@ final class HouseholdSessionStore {
             households = loaded
             session.selectedHouseholdId = selectedId
             members = loadedMembers
+            // The left/dissolved household's owner invites are gone; the user may
+            // now be addressed by pending invites for remaining households.
+            ownerPendingInvites = []
             isSubmitting = false
+            if isAuthenticated { await refreshPendingInvites() }
             return true
         } catch {
             isSubmitting = false
@@ -376,6 +482,7 @@ final class HouseholdSessionStore {
         do {
             members = try await remote.loadHouseholdMembers(id)
             isLoading = false
+            await refreshOwnerPendingInvites(id)
         } catch {
             session.selectedHouseholdId = previousId
             isLoading = false
@@ -410,6 +517,11 @@ final class HouseholdSessionStore {
     func clearError() { errorMessage = nil }
 
     // MARK: - Helpers
+
+    /// Whether a user is signed in — the iOS equivalent of the Flutter gateway's
+    /// `isAuthenticated`. Gates the invite refreshes (configured-but-signed-out →
+    /// empty lists).
+    private var isAuthenticated: Bool { auth.signedInEmail != nil }
 
     private func nextGeneration() -> Int {
         refreshGeneration += 1

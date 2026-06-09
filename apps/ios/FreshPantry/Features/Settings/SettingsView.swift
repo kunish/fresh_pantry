@@ -45,6 +45,9 @@ private struct SettingsContent: View {
     /// At-a-glance counts for the stats row (食材 / 采购 / 收藏菜谱).
     @State private var inventoryCount = 0
     @State private var shoppingCount = 0
+    /// Built when signed-in to drive the 家庭共享 row's dynamic subtitle (name · N
+    /// 名成员) and the pending-invite red dot. nil in local-only / signed-out.
+    @State private var householdStore: HouseholdSessionStore?
 
     var body: some View {
         Form {
@@ -63,8 +66,33 @@ private struct SettingsContent: View {
         .task {
             permissionGranted = await notifications.refreshPermission()
             await loadStats()
+            await loadHousehold()
         }
     }
+
+    /// Builds the household store (when a backend is configured + signed in) and
+    /// refreshes it, so the 家庭共享 row can show the live household name + member
+    /// count and the pending-invite red dot. No-op in local-only / signed-out.
+    private func loadHousehold() async {
+        guard dependencies.remotePantryRepository != nil, auth.signedInEmail != nil else {
+            householdStore = nil
+            return
+        }
+        let store = householdStore ?? HouseholdSessionStore(
+            remote: dependencies.remotePantryRepository,
+            session: dependencies.syncSession,
+            auth: auth,
+            inventory: dependencies.inventoryRepository,
+            shopping: dependencies.shoppingRepository,
+            customRecipe: dependencies.customRecipeRepository,
+            mealPlan: dependencies.mealPlanRepository
+        )
+        householdStore = store
+        await store.refreshHouseholds()
+    }
+
+    /// Count of invites addressed to the user — drives the 家庭共享 red dot.
+    private var pendingInviteCount: Int { householdStore?.pendingInvitePreviews.count ?? 0 }
 
     // MARK: 统计概览
 
@@ -104,7 +132,8 @@ private struct SettingsContent: View {
                 SettingsLinkLabel(
                     systemImage: "house.and.flag",
                     title: "家庭共享",
-                    subtitle: householdSubtitle
+                    subtitle: householdSubtitle,
+                    showBadge: pendingInviteCount > 0
                 )
             }
         } header: {
@@ -115,12 +144,19 @@ private struct SettingsContent: View {
         .listRowBackground(Color.fkSurfaceContainerLowest)
     }
 
-    /// The 家庭共享 row subtitle, reflecting whether sharing is usable yet.
+    /// The 家庭共享 row subtitle, reflecting whether sharing is usable yet. When
+    /// signed in and in a household, shows the live "name · N 名成员"; a pending
+    /// invite adds a "· N 条邀请" hint alongside the red dot.
     private var householdSubtitle: String {
         switch auth.state {
-        case .signedIn: "管理家庭成员与邀请"
-        case .localOnly: "未配置后端 · 不可用"
-        default: "登录后创建或加入家庭"
+        case .signedIn:
+            if let household = householdStore?.selectedHousehold {
+                let base = "\(household.name) · \(householdStore?.members.count ?? 0) 名成员"
+                return pendingInviteCount > 0 ? "\(base) · \(pendingInviteCount) 条邀请" : base
+            }
+            return pendingInviteCount > 0 ? "\(pendingInviteCount) 条待处理邀请" : "管理家庭成员与邀请"
+        case .localOnly: return "未配置后端 · 不可用"
+        default: return "登录后创建或加入家庭"
         }
     }
 
@@ -396,6 +432,8 @@ private struct SettingsLinkLabel: View {
     let systemImage: String
     let title: String
     let subtitle: String
+    /// Renders a red notification dot on the icon (e.g. a pending family invite).
+    var showBadge: Bool = false
 
     var body: some View {
         HStack(spacing: FkSpacing.md) {
@@ -406,6 +444,15 @@ private struct SettingsLinkLabel: View {
                 Image(systemName: systemImage)
                     .font(.system(size: FkSize.iconSm, weight: .semibold))
                     .foregroundStyle(Color.fkPrimary)
+            }
+            .overlay(alignment: .topTrailing) {
+                if showBadge {
+                    Circle()
+                        .fill(Color.fkDanger)
+                        .frame(width: 9, height: 9)
+                        .overlay(Circle().stroke(Color.fkSurfaceContainerLowest, lineWidth: 1.5))
+                        .offset(x: 3, y: -3)
+                }
             }
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)

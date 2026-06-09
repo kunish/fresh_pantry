@@ -180,4 +180,34 @@ struct HouseholdSessionStoreTests {
         // No survivors → "".
         #expect(HouseholdSessionStore.pickAfterRemoval([], removed: "b", current: "b") == "")
     }
+
+    // MARK: Pending-invite methods — local-only guards (no backend → empty, no crash)
+
+    @Test func refreshPendingInvitesNoOpWithoutBackend() async throws {
+        let (store, _) = try makeStore()
+        await store.refreshPendingInvites()
+        #expect(store.pendingInvitePreviews.isEmpty)
+        #expect(!store.isPendingInvitesLoading)
+    }
+
+    @Test func refreshOwnerPendingInvitesNoOpWithoutBackend() async throws {
+        let (store, _) = try makeStore()
+        await store.refreshOwnerPendingInvites("anything")
+        #expect(store.ownerPendingInvites.isEmpty)
+    }
+
+    @Test func acceptInviteByIdRejectsBlankAndNoOpsWithoutBackend() async throws {
+        let (store, _) = try makeStore()
+        await store.acceptInviteById("   ") // blank → no-op (guard short-circuits before remote)
+        #expect(store.pendingInvitePreviews.isEmpty)
+        await store.acceptInviteById("some-id") // no backend → no-op, no crash
+        #expect(!store.isSubmitting)
+    }
+
+    @Test func revokeInviteNoOpWithoutBackend() async throws {
+        let (store, _) = try makeStore()
+        await store.revokeInvite(householdId: "h", inviteId: "i")
+        #expect(store.ownerPendingInvites.isEmpty)
+        #expect(!store.isSubmitting)
+    }
 }

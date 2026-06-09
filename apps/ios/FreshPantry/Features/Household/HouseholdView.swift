@@ -150,6 +150,9 @@ private struct OnboardHouseholdSection: View {
 
     var body: some View {
         VStack(spacing: FkSpacing.xl) {
+            if !store.pendingInvitePreviews.isEmpty {
+                IncomingInvitesCard(store: store)
+            }
             createCard
             joinCard
         }
@@ -254,17 +257,24 @@ private struct ActiveHouseholdSection: View {
     @State private var memberToRemove: HouseholdMember?
     @State private var showDissolveConfirm = false
     @State private var showLeaveConfirm = false
+    @State private var inviteToRevoke: OwnerPendingInvite?
 
     private var isOwner: Bool { store.isOwnerOfSelected }
 
     var body: some View {
         VStack(spacing: FkSpacing.xl) {
+            if !store.pendingInvitePreviews.isEmpty {
+                IncomingInvitesCard(store: store)
+            }
             householdCard
             if store.households.count > 1 {
                 switcherCard
             }
             membersCard
             inviteCard
+            if isOwner, !store.ownerPendingInvites.isEmpty {
+                ownerPendingInvitesCard
+            }
             dangerCard
         }
         .alert("移除成员", isPresented: removeMemberBinding, presenting: memberToRemove) { member in
@@ -290,6 +300,50 @@ private struct ActiveHouseholdSection: View {
             Button("取消", role: .cancel) {}
         } message: {
             Text("离开后,你将不再看到该家庭的共享数据。")
+        }
+        .confirmationDialog("撤销邀请", isPresented: revokeInviteBinding, presenting: inviteToRevoke) { invite in
+            Button("撤销邀请", role: .destructive) {
+                Task { await store.revokeInvite(householdId: store.selectedHouseholdId, inviteId: invite.id) }
+            }
+            Button("取消", role: .cancel) {}
+        } message: { invite in
+            Text("确定撤销发给 \(invite.email.isEmpty ? "该邮箱" : invite.email) 的邀请吗?")
+        }
+    }
+
+    // MARK: Owner-issued pending invites
+
+    /// "待处理邀请" — open invites the owner has issued, each with a revoke action.
+    /// Owner-gated by the caller (`isOwner && !ownerPendingInvites.isEmpty`).
+    private var ownerPendingInvitesCard: some View {
+        FkCard {
+            VStack(alignment: .leading, spacing: FkSpacing.md) {
+                FkSectionHeader(title: "待处理邀请", count: store.ownerPendingInvites.count)
+                ForEach(store.ownerPendingInvites, id: \.id) { invite in
+                    HStack(spacing: FkSpacing.md) {
+                        Image(systemName: "envelope.badge.clock")
+                            .foregroundStyle(Color.fkPrimary)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(invite.email.isEmpty ? "开放邀请" : invite.email)
+                                .font(.fkBodyMedium)
+                                .foregroundStyle(Color.fkOnSurface)
+                            Text("待接受")
+                                .font(.fkLabelSmall)
+                                .foregroundStyle(Color.fkOnSurfaceVariant)
+                        }
+                        Spacer(minLength: 0)
+                        Button {
+                            inviteToRevoke = invite
+                        } label: {
+                            Image(systemName: "xmark.circle")
+                                .foregroundStyle(Color.fkDanger)
+                        }
+                        .buttonStyle(.fkPressable)
+                        .disabled(store.isSubmitting)
+                        .accessibilityLabel("撤销邀请")
+                    }
+                }
+            }
         }
     }
 
@@ -464,7 +518,25 @@ private struct ActiveHouseholdSection: View {
     }
 
     private func shareResult(_ url: String) -> some View {
-        VStack(alignment: .leading, spacing: FkSpacing.sm) {
+        let qr = QRCodeGenerator.image(from: url)
+        return VStack(alignment: .leading, spacing: FkSpacing.md) {
+            // Scannable QR on a white card (family members can scan to join).
+            if let qr {
+                Image(uiImage: qr)
+                    .interpolation(.none)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 200, height: 200)
+                    .padding(FkSpacing.lg)
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        RoundedRectangle(cornerRadius: FkRadius.lg, style: .continuous).fill(.white)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: FkRadius.lg, style: .continuous)
+                            .stroke(Color.fkOutlineVariant)
+                    )
+            }
             Text("邀请链接")
                 .font(.fkLabelSmall)
                 .foregroundStyle(Color.fkOnSurfaceVariant)
@@ -473,21 +545,32 @@ private struct ActiveHouseholdSection: View {
                 .foregroundStyle(Color.fkOnSurface)
                 .textSelection(.enabled)
                 .lineLimit(2)
-            HStack(spacing: FkSpacing.md) {
-                ShareLink(item: url) {
-                    Label("分享", systemImage: "square.and.arrow.up")
-                        .font(.fkLabelMedium)
-                        .foregroundStyle(Color.fkPrimary)
-                }
-                .buttonStyle(.fkPressable)
+            HStack(spacing: FkSpacing.lg) {
                 Button {
                     UIPasteboard.general.string = url
                 } label: {
-                    Label("复制", systemImage: "doc.on.doc")
+                    Label("复制链接", systemImage: "doc.on.doc")
                         .font(.fkLabelMedium)
                         .foregroundStyle(Color.fkPrimary)
                 }
                 .buttonStyle(.fkPressable)
+                ShareLink(item: url) {
+                    Label("分享链接", systemImage: "square.and.arrow.up")
+                        .font(.fkLabelMedium)
+                        .foregroundStyle(Color.fkPrimary)
+                }
+                .buttonStyle(.fkPressable)
+                if let qr {
+                    ShareLink(
+                        item: InviteQRImage(image: qr),
+                        preview: SharePreview("家庭邀请二维码", image: Image(uiImage: qr))
+                    ) {
+                        Label("分享二维码", systemImage: "qrcode")
+                            .font(.fkLabelMedium)
+                            .foregroundStyle(Color.fkPrimary)
+                    }
+                    .buttonStyle(.fkPressable)
+                }
             }
         }
         .padding(FkSpacing.md)
@@ -531,6 +614,13 @@ private struct ActiveHouseholdSection: View {
             set: { if !$0 { memberToRemove = nil } }
         )
     }
+
+    private var revokeInviteBinding: Binding<Bool> {
+        Binding(
+            get: { inviteToRevoke != nil },
+            set: { if !$0 { inviteToRevoke = nil } }
+        )
+    }
 }
 
 // MARK: - Invite preview
@@ -547,6 +637,13 @@ private struct InvitePreviewCard: View {
                 .foregroundStyle(Color.fkOnSurface)
             if !preview.ownerEmail.isEmpty {
                 Text("所有者:\(preview.ownerEmail)")
+                    .font(.fkBodySmall)
+                    .foregroundStyle(Color.fkOnSurfaceVariant)
+            }
+            // Directed invites carry the invited email — surface it so the user can
+            // confirm the invite was meant for them (Flutter parity).
+            if !preview.invitedEmail.isEmpty {
+                Text("邀请邮箱:\(preview.invitedEmail)")
                     .font(.fkBodySmall)
                     .foregroundStyle(Color.fkOnSurfaceVariant)
             }
@@ -573,6 +670,155 @@ private struct InvitePreviewCard: View {
             Text(label)
                 .font(.fkLabelSmall)
                 .foregroundStyle(Color.fkOnSurfaceVariant)
+        }
+    }
+}
+
+// MARK: - Deep-link invite preview sheet
+
+/// Identifiable route for the root invite-preview sheet (id = the raw input so the
+/// sheet identity is stable across re-renders).
+struct InvitePreviewRoute: Identifiable {
+    var id: String { input }
+    let input: String
+}
+
+/// Root-presented sheet for a household invite arriving via deep link: previews the
+/// invite (reusing `InvitePreviewCard`) and accepts it. Builds its own
+/// `HouseholdSessionStore` (the per-screen pattern — all instances drive the SAME
+/// injected `SyncSession`, the activation source of truth). On accept success it
+/// clears the router and dismisses; the root `.task(id: selectedHouseholdId)` then
+/// fires the content pull.
+struct InvitePreviewSheet: View {
+    let input: String
+
+    @Environment(AppDependencies.self) private var dependencies
+    @Environment(InviteRouter.self) private var inviteRouter
+    @Environment(\.dismiss) private var dismiss
+    @State private var store: HouseholdSessionStore?
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: FkSpacing.lg) {
+                    if let store {
+                        body(for: store)
+                    } else {
+                        ProgressView().padding(.top, FkSpacing.huge)
+                    }
+                }
+                .padding(FkSpacing.lg)
+            }
+            .background(Color.fkSurface)
+            .navigationTitle("家庭邀请")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("稍后处理") { dismiss() }
+                }
+            }
+            .tint(.fkPrimary)
+        }
+        .presentationDetents([.medium, .large])
+        .task {
+            if store == nil {
+                let store = HouseholdSessionStore(
+                    remote: dependencies.remotePantryRepository,
+                    session: dependencies.syncSession,
+                    auth: dependencies.authService,
+                    inventory: dependencies.inventoryRepository,
+                    shopping: dependencies.shoppingRepository,
+                    customRecipe: dependencies.customRecipeRepository,
+                    mealPlan: dependencies.mealPlanRepository
+                )
+                self.store = store
+                await store.previewInvite(input: input)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func body(for store: HouseholdSessionStore) -> some View {
+        if let preview = store.invitePreview {
+            InvitePreviewCard(preview: preview)
+            Button {
+                Task {
+                    await store.acceptInvite(input: input)
+                    if store.errorMessage == nil {
+                        inviteRouter.clear()
+                        dismiss()
+                    }
+                }
+            } label: {
+                HStack(spacing: FkSpacing.sm) {
+                    if store.isSubmitting {
+                        ProgressView().tint(Color.fkOnPrimary)
+                    } else {
+                        Image(systemName: "person.badge.plus")
+                    }
+                    Text(store.isSubmitting ? "加入中…" : "接受邀请")
+                }
+                .font(.fkLabelLarge)
+                .foregroundStyle(Color.fkOnPrimary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(Capsule().fill(store.isSubmitting ? Color.fkOutlineVariant : Color.fkPrimary))
+            }
+            .buttonStyle(.fkPressable)
+            .disabled(store.isSubmitting)
+        } else if store.isSubmitting {
+            ProgressView().padding(.top, FkSpacing.huge)
+        }
+        if let errorMessage = store.errorMessage {
+            HStack(spacing: FkSpacing.sm) {
+                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Color.fkDanger)
+                Text(errorMessage).font(.fkBodySmall).foregroundStyle(Color.fkDanger)
+                Spacer(minLength: 0)
+            }
+            .padding(FkSpacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: FkRadius.sm, style: .continuous).fill(Color.fkDangerSoft))
+        }
+    }
+}
+
+// MARK: - Received invites (one-tap accept)
+
+/// "收到的邀请" — invites addressed to the signed-in user, each shown as a preview
+/// card with a one-tap 接受. Rendered in both the onboard and active surfaces when
+/// `pendingInvitePreviews` is non-empty (ports the Flutter incoming-invite list).
+private struct IncomingInvitesCard: View {
+    let store: HouseholdSessionStore
+
+    var body: some View {
+        FkCard {
+            VStack(alignment: .leading, spacing: FkSpacing.md) {
+                FkSectionHeader(title: "收到的邀请", count: store.pendingInvitePreviews.count)
+                ForEach(store.pendingInvitePreviews, id: \.inviteId) { preview in
+                    VStack(alignment: .leading, spacing: FkSpacing.sm) {
+                        InvitePreviewCard(preview: preview)
+                        Button {
+                            Task { await store.acceptInviteById(preview.inviteId) }
+                        } label: {
+                            HStack(spacing: FkSpacing.sm) {
+                                if store.isSubmitting {
+                                    ProgressView().tint(Color.fkOnPrimary)
+                                } else {
+                                    Image(systemName: "person.badge.plus")
+                                }
+                                Text(store.isSubmitting ? "加入中…" : "接受邀请")
+                            }
+                            .font(.fkLabelLarge)
+                            .foregroundStyle(Color.fkOnPrimary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Capsule().fill(store.isSubmitting ? Color.fkOutlineVariant : Color.fkPrimary))
+                        }
+                        .buttonStyle(.fkPressable)
+                        .disabled(store.isSubmitting)
+                    }
+                }
+            }
         }
     }
 }
