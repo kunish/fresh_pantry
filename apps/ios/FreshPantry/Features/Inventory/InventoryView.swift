@@ -11,6 +11,10 @@ import SwiftUI
 /// SwiftData is never touched here; all scoping / sorting / filtering lives in the
 /// store.
 struct InventoryView: View {
+    /// Cross-tab drill-down intent from the 首页 食材分类 grid: a canonical category
+    /// to preset on appear. Consumed (set to nil) once applied. `RootView` owns it.
+    @Binding var pendingCategory: String?
+
     @Environment(AppDependencies.self) private var dependencies
     @State private var store: InventoryStore?
     @State private var shoppingStore: ShoppingStore?
@@ -58,6 +62,8 @@ struct InventoryView: View {
             self.shoppingStore = shopping
             await store.load()
             await shopping.load()
+            // Cold path: a drill-down intent that arrived before this tab built.
+            consumePendingCategory()
         }
         // Remote merge pulse: a household-sync apply bumps dataRevision; reload the
         // store so the visible list reflects rows pulled from other members.
@@ -67,6 +73,18 @@ struct InventoryView: View {
                 await shoppingStore?.load()
             }
         }
+        // Warm path: a drill-down intent arriving while this tab is already built.
+        .onChange(of: pendingCategory) { _, _ in consumePendingCategory() }
+    }
+
+    /// Applies a pending 首页 category drill-down to the live store (preset the
+    /// category filter, reset the storage filter), then clears the intent so a
+    /// later household reload doesn't re-apply it. No-op until the store exists.
+    private func consumePendingCategory() {
+        guard let category = pendingCategory, let store else { return }
+        store.categoryFilter = .category(category)
+        store.storageFilter = .all
+        pendingCategory = nil
     }
 
     /// Honors a `-initialRoute add` launch argument (UI snapshots / tests).
@@ -278,7 +296,7 @@ private struct InventoryContent: View {
             .padding(.horizontal, FkSpacing.lg)
             .padding(.bottom, FkSpacing.sm)
             .transition(.move(edge: .bottom).combined(with: .opacity))
-            .task(id: undo.removed.count) {
+            .task(id: undo.id) {
                 try? await Task.sleep(for: .seconds(5))
                 if !Task.isCancelled { withAnimation { batchUndo = nil } }
             }

@@ -13,6 +13,8 @@ struct RootView: View {
     }
 
     @Environment(AppDependencies.self) private var dependencies
+    @Environment(InviteRouter.self) private var inviteRouter
+    @Environment(RecipeImportRouter.self) private var recipeImportRouter
     @Environment(\.scenePhase) private var scenePhase
     @State private var selection: Section = RootView.initialSelection()
     /// Reactive reachability for the offline / 待同步 banner.
@@ -20,6 +22,11 @@ struct RootView: View {
     /// Best-effort outbox depth — refreshed at natural sync moments (foreground,
     /// remote merge, coming back online). The offline flag is fully reactive.
     @State private var pendingCount = 0
+    /// Cross-tab nav intent: a canonical food category the 首页 grid tapped, to be
+    /// consumed by the 库存 tab (preset its category filter). Cleared on consume.
+    @State private var pendingCategory: String?
+    /// Presents the global search overlay (launched from the 首页 toolbar).
+    @State private var showSearch = false
 
     var body: some View {
         // Snapshot/test hook: `-initialRoute login` renders LoginView standalone
@@ -34,7 +41,32 @@ struct RootView: View {
                 SyncStatusBanner(isOnline: connectivity.isOnline, pendingCount: pendingCount)
                 tabs
             }
+            .sheet(isPresented: $showSearch) {
+                GlobalSearchView(onSelectShopping: {
+                    showSearch = false
+                    selection = .shopping
+                })
+            }
+            // Deep-link invite: present the preview/accept sheet once the user is
+            // signed in. If signed-out, the token stays pending and re-fires after
+            // login (this binding re-evaluates on the signed-in change).
+            .sheet(item: invitePreviewBinding) { route in
+                InvitePreviewSheet(input: route.input)
+            }
         }
+    }
+
+    /// Drives the deep-link invite sheet: presents only when a token is pending AND
+    /// the user is signed in; dismissing clears the router.
+    private var invitePreviewBinding: Binding<InvitePreviewRoute?> {
+        Binding(
+            get: {
+                guard let input = inviteRouter.pendingInput,
+                      dependencies.authService.signedInEmail != nil else { return nil }
+                return InvitePreviewRoute(input: input)
+            },
+            set: { newValue in if newValue == nil { inviteRouter.clear() } }
+        )
     }
 
     /// Best-effort refresh of the outbox depth shown in the banner.
@@ -46,10 +78,17 @@ struct RootView: View {
     private var tabs: some View {
         TabView(selection: $selection) {
             Tab("首页", systemImage: "house", value: Section.home) {
-                DashboardView(onSelectShopping: { selection = .shopping })
+                DashboardView(
+                    onSelectShopping: { selection = .shopping },
+                    onSelectCategory: { category in
+                        pendingCategory = category
+                        selection = .inventory
+                    },
+                    onSearch: { showSearch = true }
+                )
             }
             Tab("库存", systemImage: "tray.full", value: Section.inventory) {
-                InventoryView()
+                InventoryView(pendingCategory: $pendingCategory)
             }
             Tab("食谱", systemImage: "book", value: Section.recipes) {
                 RecipesView()
@@ -97,6 +136,11 @@ struct RootView: View {
                 await dependencies.syncCoordinator?.pushPending()
                 await refreshPendingCount()
             }
+        }
+        // Share-extension recipe import: switch to the 食谱 tab so RecipesView
+        // consumes the pending URL and opens the pre-filled 新建食谱.
+        .onChange(of: recipeImportRouter.pendingURL) { _, url in
+            if url != nil { selection = .recipes }
         }
         // Initial reschedule on launch (the first .active may precede this view).
         .task {

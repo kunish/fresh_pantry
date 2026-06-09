@@ -37,8 +37,17 @@ final class AppDependencies {
     /// UserDefaults-backed 忌口 keywords (Settings 饮食偏好 section); also feeds
     /// future recipe filtering.
     let dietaryPreferencesStore: DietaryPreferencesStore
+    /// UserDefaults-backed 饮食偏好 presets (高蛋白/低脂/素食/…). LOCAL-first; feeds
+    /// the recommendation boost in `RecipeMatching.preferenceBoost`.
+    let dietPreferenceStore: DietPreferenceStore
     /// Keychain-backed AI provider config (apiKey is a secret → SecretStore).
     let aiSettingsStore: AiSettingsStore
+    /// Holds a household-invite deep link captured by `onOpenURL` until the UI
+    /// presents its preview/accept flow. Always built (no backend dependency).
+    let inviteRouter: InviteRouter
+    /// Holds a recipe URL handed in by the Share Extension until 食谱 can open the
+    /// pre-filled 新建食谱 import form. Always built (no backend dependency).
+    let recipeImportRouter: RecipeImportRouter
     /// Email-OTP auth state machine. `.localOnly` when no backend is configured
     /// (empty `Secrets.plist`); otherwise backed by Supabase. The next sync slice
     /// reads the shared `SupabaseClient` via `clientProvider`.
@@ -92,7 +101,10 @@ final class AppDependencies {
         self.favoritesStore = FavoritesStore()
         self.reminderSettingsStore = ReminderSettingsStore()
         self.dietaryPreferencesStore = DietaryPreferencesStore()
+        self.dietPreferenceStore = DietPreferenceStore()
         self.aiSettingsStore = AiSettingsStore(secrets: KeychainStore())
+        self.inviteRouter = InviteRouter()
+        self.recipeImportRouter = RecipeImportRouter()
         self.notificationCoordinator = NotificationCoordinator(
             service: NotificationService(),
             idsRepo: ScheduledNotificationIdsRepo(),

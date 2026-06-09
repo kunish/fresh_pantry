@@ -58,11 +58,16 @@ struct FreshPantryApp: App {
                 .modelContainer(modelContainer)
                 .environment(dependencies)
                 .environment(syncSession)
+                .environment(dependencies.inviteRouter)
+                .environment(dependencies.recipeImportRouter)
                 .onOpenURL { url in
-                    // Auth callback scheme. The OTP code flow is verified in-app,
-                    // so this is a minimal pass-through for any link-based flow
-                    // (e.g. invites in the next slice). Hand any session-bearing
-                    // URL to the SDK; non-auth links are ignored downstream.
+                    // Share-extension recipe import → capture + short-circuit
+                    // (RecipesView opens the pre-filled 新建食谱). Then invite deep
+                    // link → capture (RootView presents preview/accept). Otherwise
+                    // fall through to the SDK auth handler (OTP link flows). Each
+                    // `capture` is a no-op for URLs it doesn't own.
+                    if dependencies.recipeImportRouter.capture(url: url) { return }
+                    if dependencies.inviteRouter.capture(url: url) { return }
                     dependencies.clientProvider.handleOpenURL(url)
                 }
                 // Submit the first background-refresh request once on launch so

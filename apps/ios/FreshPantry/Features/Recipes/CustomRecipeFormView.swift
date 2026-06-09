@@ -32,6 +32,9 @@ struct CustomRecipeFormView: View {
     let aiSettingsStore: AiSettingsStore?
     /// Called after a successful save so the caller can reload its list.
     var onSaved: () -> Void = {}
+    /// A recipe URL handed in by the Share Extension — pre-fills the AI-import field
+    /// + expands the banner on first appear (create mode). nil for normal opens.
+    private let initialImportURL: String?
     /// Test seam: override the URL→RecipeDraft parser (prod builds it from
     /// `aiSettingsStore` at parse time).
     private let urlParserOverride: RecipeURLParser?
@@ -70,6 +73,7 @@ struct CustomRecipeFormView: View {
         store: CustomRecipeStore,
         aiSettingsStore: AiSettingsStore? = nil,
         onSaved: @escaping () -> Void = {},
+        initialImportURL: String? = nil,
         urlParserOverride: RecipeURLParser? = nil,
         clipboardDetector: ClipboardRecipeURLDetector? = nil
     ) {
@@ -77,6 +81,7 @@ struct CustomRecipeFormView: View {
         self.store = store
         self.aiSettingsStore = aiSettingsStore
         self.onSaved = onSaved
+        self.initialImportURL = initialImportURL
         self.urlParserOverride = urlParserOverride
         let seed = recipe.map(CustomRecipeDraft.init(recipe:)) ?? CustomRecipeDraft()
         _draft = State(initialValue: seed)
@@ -755,6 +760,16 @@ struct CustomRecipeFormView: View {
     /// pre-fills the URL so the user can parse it with one tap. Mirrors the Dart
     /// `_maybeOfferClipboardUrl`. No-op when editing, already filled, or AI is unset.
     private func offerClipboardURLIfNeeded() async {
+        // A Share-Extension URL takes priority: pre-fill + expand the banner even if
+        // AI isn't configured yet (the banner then shows the 去设置配置 AI hint).
+        if let shared = initialImportURL?.trimmed, !shared.isEmpty, !isEditing, importURL.trimmed.isEmpty {
+            withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
+                aiExpanded = true
+            }
+            importURL = shared
+            return
+        }
+
         guard showsAiImport, importURL.trimmed.isEmpty, clipboardSuggestion == nil,
               aiSettingsStore?.isConfigured == true,
               let url = await clipboardDetector.peek()

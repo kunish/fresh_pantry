@@ -50,6 +50,11 @@ targets:
         product: Supabase
       - package: Sentry
         product: Sentry
+      # Embed the share extension so 分享 from 懒饭/下厨房 opens 新建食谱 pre-filled.
+      # Plain extension (custom-scheme handoff, no App Group) → the app's own
+      # signing/entitlements are unchanged; only this bundle is added to the archive.
+      - target: ShareExtension
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kunish.freshPantry
@@ -61,6 +66,20 @@ targets:
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_STYLE: Automatic
+
+  ShareExtension:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: ShareExtension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kunish.freshPantry.ShareExtension
+        PRODUCT_NAME: ShareExtension
+        INFOPLIST_FILE: ShareExtension/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
         CODE_SIGN_STYLE: Automatic
 
   FreshPantryTests:

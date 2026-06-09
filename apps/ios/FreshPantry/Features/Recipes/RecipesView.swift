@@ -9,12 +9,16 @@ import SwiftUI
 /// the bundled HowToCook corpus is real read-only data present on every install.
 struct RecipesView: View {
     @Environment(AppDependencies.self) private var dependencies
+    @Environment(RecipeImportRouter.self) private var importRouter
     @State private var store: RecipesStore?
     /// CRUD owner for the user's custom recipes — drives the create/edit form and
     /// distinguishes custom recipes (for the detail edit/delete affordances).
     @State private var customStore: CustomRecipeStore?
     /// Presents the create form sheet (the toolbar "+").
     @State private var showCreateForm = false
+    /// A Share-Extension recipe URL to pre-fill the create form's AI import with.
+    /// nil for a normal "+" open; set when consuming a share-intent deep link.
+    @State private var importPrefillURL: String?
     /// Presents the 忌口 (avoided-ingredient) editor sheet from the toolbar.
     @State private var showDietarySheet = false
     /// Programmatic stack path. Normally empty; the `-initialRoute cook` launch
@@ -55,16 +59,19 @@ struct RecipesView: View {
                     )
                 }
             }
-            .sheet(isPresented: $showCreateForm) {
+            .sheet(isPresented: $showCreateForm, onDismiss: { importPrefillURL = nil }) {
                 if let customStore {
                     CustomRecipeFormView(
                         store: customStore,
-                        aiSettingsStore: dependencies.aiSettingsStore
-                    ) {
-                        Task { await reload() }
-                    }
+                        aiSettingsStore: dependencies.aiSettingsStore,
+                        onSaved: { Task { await reload() } },
+                        initialImportURL: importPrefillURL
+                    )
                 }
             }
+            // Share-Extension import: open the create form pre-filled with the
+            // shared recipe URL (warm path) — and once stores exist on cold start.
+            .onChange(of: importRouter.pendingURL) { _, _ in consumeImportIntent() }
         }
         // Rebuild both stores whenever the active household changes (login "" → uuid,
         // switch, or leave) so custom recipes re-scope to the new household rather
@@ -89,6 +96,8 @@ struct RecipesView: View {
             self.customStore = customStore
             await store.load()
             await customStore.load()
+            // Cold start: a share-intent URL captured before this tab built.
+            consumeImportIntent()
             #if DEBUG
             // Snapshot affordance: `-initialRoute cook` seeds the inventory,
             // picks a recipe that matches it, and pushes its detail (whose own
@@ -103,6 +112,16 @@ struct RecipesView: View {
         .onChange(of: dependencies.syncSession.dataRevision) {
             Task { await reload() }
         }
+    }
+
+    /// Consumes a pending Share-Extension recipe URL: pre-fills + opens the create
+    /// form (once the custom-recipe store exists), then clears the router so it
+    /// doesn't re-fire. No-op when nothing is pending.
+    private func consumeImportIntent() {
+        guard let url = importRouter.pendingURL, customStore != nil else { return }
+        importPrefillURL = url
+        showCreateForm = true
+        importRouter.clear()
     }
 
     /// 忌口 toolbar entry — fills + tints red when any keyword is active.
