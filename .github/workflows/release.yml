@@ -80,12 +80,17 @@ jobs:
 
       # 发版前质量门禁:跑单元测试(Debug)。失败即终止,不进 archive/上传。
       # 想省 macOS 分钟可删除本步骤(本地已跑测试时)。
+      # 动态取任一可用 iPhone 模拟器 UDID:runner 预装多个 iOS runtime,按设备名
+      # 选会撞「destination ambiguous」;按 UDID 选则唯一。app 最低 iOS 26,各 runtime 均满足。
       - name: Run tests (gate)
         run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; c=[v for rt in d for v in d[rt] if v.get('isAvailable') and v['name'].startswith('iPhone')]; print(c[0]['udid'] if c else '')")
+          if [ -z "$UDID" ]; then echo 'no available iPhone simulator'; exit 1; fi
+          echo "Using simulator UDID: $UDID"
           xcodebuild test \
             -project FreshPantry.xcodeproj \
             -scheme FreshPantry \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+            -destination "platform=iOS Simulator,id=$UDID"
 
       - name: Compute build number (UTC timestamp, monotonic)
         id: bn
