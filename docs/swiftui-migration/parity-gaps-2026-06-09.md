@@ -11,13 +11,33 @@
 > - CrossCutting **同步状态横幅**:`ConnectivityMonitor`(NWPathMonitor,反应式离线检测)+ `SyncStatusBanner`(离线/同步中·N 条待同步,挂 RootView 顶部;待同步计数为最佳努力刷新)。
 > - 低成本 parity:Dashboard 时段问候语(早安/午安/…,主厨。)、Shopping 添加重名内联反馈(修「静默关闭=假成功」)。
 >
-> **本轮明确暂缓(理由):**
-> - Recipes **#10** 食材/步骤拖拽排序:`onMove` 仅在 `List`/`EditMode` 生效,需把复杂的自定义食谱表单整体改造(高风险),自用编辑价值低。
-> - Dashboard **#4** 食材分类网格:网格本身易做,但其价值在「点分类→跳冰箱 tab 预置筛选」的跨 tab 下钻,需跨 tab 共享筛选意图状态(侵入);冰箱 tab 已有分类筛选 chip,边际价值低。
-> - CrossCutting **全局搜索浮层**(重,且各域已有按名搜索)、**系统分享 intent**(需新建 Share Extension target + App Group + entitlements;剪贴板导入已覆盖常见路径)。
-> - Settings **#2** 饮食偏好预设:推荐逻辑当前不消费 `categoryPreferences`,加了会是「死设置」;且偏家庭多人。
-> - Auth/Household **9 项**(邀请/二维码/深链/红点/待处理邀请):纯多人协作,[[project_mode_self_use]] 自用无真实用户,价值最低。
-> - 其余「low, 未复核」少量项(如 Waste Top 榜、备份剪贴板回退、Hero·N类)按价值暂留。
+> ## 进度更新 2026-06-09(第 3 轮:6-agent 侦察 → 取价值/成本高者续做 → 对抗式 review)
+>
+> 用并行只读 workflow(6 agent)逐项侦察剩余暂缓项的集成点/风险/工作量,据此续做高价值项:
+>
+> **第 3 轮新补(构建 + 全量测试通过,经对抗式 review):**
+> - Recipes **#10** 食材/步骤上下移动重排:`CustomRecipeDraft.moveIngredient/moveStep`(纯模型,可测)+ 行内 chevron.up/down 按钮(避开 List/EditMode 改造风险,取近乎全部实用价值)。
+> - Dashboard **#4** 食材分类网格 + 跨 tab 下钻:`DashboardStore.categoryCounts` + 4 列网格;点分类经 `RootView` 的 `pendingCategory` 意图(复用 `onSelectShopping` 同款闭包+@State 模式)跳 `库存` tab 并预置 `categoryFilter` / 重置 `storageFilter`(`InventoryView` 冷/热路径各自消费并清除)。
+> - CrossCutting **全局搜索浮层(Phase 1)**:`GlobalSearchStore`(库存+购物只读快照,name‖category 过滤)+ `SearchHistoryStore`(有序 [String] max 10 dedup-to-front,UserDefaults)+ `GlobalSearchView`(首页顶栏入口 → sheet;库存命中浮层内推详情、购物命中切 tab;历史面板)。**食材百科联网深链**暂缓(已在每个食材详情内可达)。
+> - **对抗式 review 修复 2 处**:① 批量删除撤销条计时器用 `BatchRemovalUndo.id`(UUID)而非 removed.count 作 task 身份(连续等量删除时计时器正确重启);② 删除 `DashboardStore.frequent`/`lowStockCount`/`DashboardSummary.lowStockCount` 死链(首页已改用 `LowStockStore`,旧链每次刷新白跑 `loadFrequentItems`)。
+>
+> **第 3 轮明确暂缓(6-agent 侦察一致结论,符合自用模式):**
+> - Settings **#2** 饮食偏好预设:**两端都是死开关**——`categoryPreferences` 被写入但零推荐逻辑消费;且 household-scoped + remote-only,自用无后端时永远为空。要做需新增「本地偏好 store + 推荐加权」(超出 parity、引入第二真相源),属产品决策非回填。
+> - CrossCutting **系统分享 intent**:需新 Share Extension target + App Group + 两个 entitlements + 改动刚稳定的 TestFlight CI;相对剪贴板自动探测(打开新建食谱即识别)仅省一次点击,是 parity 项里成本/收益最差的一项。
+> - Auth/Household **9 项**:纯两方协作,需后端 + 第二个人,[[project_mode_self_use]] 自用零价值,属 Stage 4。
+> - 其余「low, 未复核」少量项(Waste Top 榜、备份剪贴板回退、Hero·N类)按价值暂留。
+>
+> ## 进度更新 2026-06-09(第 4 轮:用户明确「剩余的包括家庭功能也做了」→ 覆盖前述自用 defer)
+>
+> 用户显式要求把剩余项(含家庭功能)全部做掉,覆盖第 3 轮按自用价值的 defer。8-agent 深度侦察 → 逐项实现 → 7-agent 对抗式 review → 全量 665 测试全绿:
+>
+> **家庭邀请簇(Auth 5 + Household 4,9 项全补)**:`HouseholdSessionStore` 接入孤儿 RPC(`pendingInvitePreviews`/`ownerPendingInvites` + `refreshPendingInvites`/`refreshOwnerPendingInvites`/`acceptInviteById`/`revokeInvite`,刷新链入 refreshHouseholds/switchHousehold/leave-dissolve)。UI:收到的邀请卡(一键接受,Onboard+Active)、Owner 待处理邀请列表+撤销(确认弹窗)、邀请二维码生成/分享(`QRCodeGenerator` CoreImage + Transferable PNG)、深链捕获(`InviteRouter` + onOpenURL 分支 + 根 `InvitePreviewSheet` + Info.plist 注册 `freshpantry://`)、设置页家庭行红点+「name · N 名成员」动态副标题、邀请预览补受邀邮箱(low #238)。
+> **饮食偏好预设(Settings #2)**:本地 `DietPreferenceStore`(UserDefaults,非 Flutter 的 household/remote 死开关)+ 7 chip + `RecipeMatching.preferenceBoost`(label→signal 映射,+0.15/项 capped 0.45,只重排不改 membership)接入 现有/今日推荐。**有意 iOS-only 增强**(Flutter 两端都不消费 categoryPreferences)。
+> **系统分享 intent(CrossCutting)**:`ShareExtension` target(scheme-only,无 App Group → 主 App 签名不变)+ `RecipeImportRouter` + onOpenURL `import-recipe` 分支 + RecipesView 预填 `CustomRecipeFormView(initialImportURL:)`。⚠️ **TestFlight 注意**:Share extension 经 responder-chain `openURL:`(私有 selector,非 widget 扩展无文档 API)交接;自用 TestFlight 风险低,但属未文档化用法——首发后留意。新增第二签名 bundle `com.kunish.freshPantry.ShareExtension`,CI 自动签名应自动 provision,首发留意。
+> **对抗式 review 修 2 处**:① Share extension `extensionContext.open` 仅 Today widget 可用 → 改 responder-chain `openURL:`(否则运行时静默失效);② `acceptInvite(input:)` 成功后补 `refreshPendingInvites` 与 Flutter/`acceptInviteById` 对齐。
+> 新增测试:DietPreferenceStoreTests、RecipeMatching.preferenceBoost/排序、HouseholdSessionStore 邀请方法 local-only 守卫。
+>
+> **至此除少量「low, 未复核」体验项(Waste Top 榜、备份剪贴板回退等)外,审计清单已全部回补。**
 
 
 ## Recipes (11)
