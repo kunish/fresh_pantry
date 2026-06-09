@@ -1,0 +1,513 @@
+import Foundation
+
+/// Household-management state machine + the activation surface for the whole sync
+/// engine. The Swift port of the Flutter `HouseholdSessionController` (minus the
+/// auth half, which lives in `AuthService`).
+///
+/// `@Observable @MainActor` so the `HouseholdView` binds directly. It owns the
+/// household list / members / invite preview, drives `SyncSession.selectedHouseholdId`
+/// (setting it is the ACTIVATION: the root `.task(id:)` starts pulling and the
+/// writer starts enqueuing against the new scope), and re-scopes local `""` data
+/// into a freshly-created household on CREATE (adoption — never on JOIN).
+///
+/// PARITY:
+/// - `selectedHouseholdId` is set on the ROOT `SyncSession` passed in (never a
+///   fresh instance — a per-screen session would silently no-op the writer).
+/// - Selection-pick logic mirrors the Dart helpers
+///   `_selectedHouseholdIdAfterRemoval` / `_selectedHouseholdIdAfterJoin`.
+/// - Generation guard (`refreshGeneration`) mirrors `_refreshHouseholdsGeneration`
+///   so a stale in-flight `refreshHouseholds` never clobbers a newer one.
+/// - Every method that touches the network guards `remote` non-nil and surfaces a
+///   failure as `errorMessage` rather than crashing; local-only mode is graceful.
+@Observable
+@MainActor
+final class HouseholdSessionStore {
+    private let remote: RemotePantryRepository?
+    private let session: SyncSession
+    private let auth: AuthService
+    private let inventory: InventoryRepository
+    private let shopping: ShoppingRepository
+    private let customRecipe: CustomRecipeRepository
+    private let mealPlan: MealPlanRepository
+
+    /// Households the signed-in user belongs to (the `households` list).
+    private(set) var households: [Household] = []
+    /// Members of the currently-selected household.
+    private(set) var members: [HouseholdMember] = []
+    /// The last previewed invite (populated by `previewInvite`, cleared on accept).
+    private(set) var invitePreview: HouseholdInvitePreview?
+    /// In-flight flag for the refresh/load reads (drives list spinners).
+    private(set) var isLoading = false
+    /// In-flight flag for mutating ops (create/join/leave/dissolve/invite/etc.).
+    private(set) var isSubmitting = false
+    /// The last user-facing error; cleared at the start of each new attempt.
+    private(set) var errorMessage: String?
+
+    /// Monotonic counter guarding the async `refreshHouseholds` race: a newer call
+    /// bumps it, so an older in-flight call's late completion is discarded.
+    private var refreshGeneration = 0
+
+    init(
+        remote: RemotePantryRepository?,
+        session: SyncSession,
+        auth: AuthService,
+        inventory: InventoryRepository,
+        shopping: ShoppingRepository,
+        customRecipe: CustomRecipeRepository,
+        mealPlan: MealPlanRepository
+    ) {
+        self.remote = remote
+        self.session = session
+        self.auth = auth
+        self.inventory = inventory
+        self.shopping = shopping
+        self.customRecipe = customRecipe
+        self.mealPlan = mealPlan
+    }
+
+    /// True when a backend is configured (household sharing is possible).
+    var isConfigured: Bool { remote != nil }
+
+    /// The active household scope (`""` = personal / local-only).
+    var selectedHouseholdId: String { session.selectedHouseholdId }
+
+    /// The selected `Household` resolved from `households` + the session scope, or
+    /// nil when nothing matches (local-only, no households, or stale id). Owning the
+    /// resolution here keeps the view from re-deriving it inconsistently (mirrors
+    /// the Dart `selectedHousehold` getter).
+    var selectedHousehold: Household? {
+        households.first { $0.id == session.selectedHouseholdId }
+    }
+
+    /// Whether the signed-in user owns the selected household (drives owner-only
+    /// affordances: remove member, dissolve, rename).
+    ///
+    /// Resolved by matching the signed-in email against the owner member row: the
+    /// local store has no user id to compare `Household.ownerId` against
+    /// (`AuthService` only exposes the email), and the member list is the
+    /// authoritative role source. Returns false in any unsigned / no-selection /
+    /// owner-email-absent case.
+    var isOwnerOfSelected: Bool {
+        guard selectedHousehold != nil, let email = auth.signedInEmail else { return false }
+        return members.contains { $0.role == "owner" && $0.email == email }
+    }
+
+    // MARK: - Refresh
+
+    /// Loads the user's households, picks the selected id (keep current if still
+    /// joined, else the first household, else `""`), projects it onto the root
+    /// session, and loads the selected household's members. Generation-guarded so a
+    /// stale in-flight refresh never overwrites a newer one.
+    func refreshHouseholds() async {
+        guard let remote else { return }
+        let generation = nextGeneration()
+        isLoading = true
+        errorMessage = nil
+        do {
+            let loaded = try await remote.loadHouseholds()
+            let selectedId = Self.pickSelected(loaded, current: session.selectedHouseholdId)
+            let loadedMembers = try await membersFor(remote, households: loaded, selected: selectedId)
+            guard generation == refreshGeneration else { return }
+            households = loaded
+            session.selectedHouseholdId = selectedId
+            members = loadedMembers
+            isLoading = false
+        } catch {
+            guard generation == refreshGeneration else { return }
+            isLoading = false
+            errorMessage = Self.message(error)
+        }
+    }
+
+    // MARK: - Create (with adoption)
+
+    /// Creates a household, ADOPTS the personal (`""` scope) local data into it (so
+    /// it becomes the household's initial content the content-sync coordinator then
+    /// uploads), and selects it. Adoption runs BEFORE the selection so the rows are
+    /// already under the household scope when `syncTo` fires.
+    func createHousehold(name: String) async {
+        guard let remote else { return }
+        let trimmed = name.trimmed
+        guard !trimmed.isEmpty else {
+            errorMessage = "家庭名称不能为空"
+            return
+        }
+        isSubmitting = true
+        errorMessage = nil
+        do {
+            let household = try await remote.createHousehold(name: trimmed)
+            // ADOPTION before selection: re-scope local-only rows into the new
+            // household so the first `syncTo` uploads them as initial content.
+            await adoptLocalDataIntoHousehold(household.id)
+            let loaded = try await remote.loadHouseholds()
+            let loadedMembers = try await membersFor(remote, households: loaded, selected: household.id)
+            households = loaded
+            session.selectedHouseholdId = household.id
+            members = loadedMembers
+            isSubmitting = false
+        } catch {
+            isSubmitting = false
+            errorMessage = Self.message(error)
+        }
+    }
+
+    /// Moves the personal (`""` scope) local rows into the household scope so they
+    /// become its initial content. Mirrors the LOCAL part of the Flutter
+    /// `uploadInitialData`: re-mint non-UUID ids, `saveX(household, rows)`, then
+    /// purge the `""` originals (so they don't linger as duplicate orphans later
+    /// passes re-mint). Only ever called on CREATE — never on JOIN.
+    ///
+    /// Each step is best-effort (`try?`): a single repo failure must not abort the
+    /// create flow or crash. The content-sync coordinator uploads whatever landed.
+    func adoptLocalDataIntoHousehold(_ id: String) async {
+        guard !id.isEmpty else { return }
+
+        let inventoryRows = ((try? await inventory.loadAllFor("")) ?? []).map(Self.reminted)
+        if !inventoryRows.isEmpty {
+            try? await inventory.saveItems(id, inventoryRows)
+            try? await inventory.deleteHouseholdScope("")
+        }
+
+        let shoppingRows = ((try? await shopping.loadAllFor("")) ?? []).map(Self.reminted)
+        if !shoppingRows.isEmpty {
+            try? await shopping.saveItems(id, shoppingRows)
+            try? await shopping.deleteHouseholdScope("")
+        }
+
+        let recipeRows = ((try? await customRecipe.loadAllFor("")) ?? []).map(Self.reminted)
+        if !recipeRows.isEmpty {
+            try? await customRecipe.saveRecipes(id, recipeRows)
+            try? await customRecipe.deleteHouseholdScope("")
+        }
+
+        let mealPlanRows = ((try? await mealPlan.loadAllFor("")) ?? []).map(Self.reminted)
+        if !mealPlanRows.isEmpty {
+            try? await mealPlan.saveEntries(id, mealPlanRows)
+            try? await mealPlan.deleteHouseholdScope("")
+        }
+    }
+
+    // MARK: - Join
+
+    /// Previews an invite (token or share URL) and stores the result for the join
+    /// confirmation. Parses the input via `InviteToken.fromInput`; an unparseable
+    /// input surfaces an error and clears the preview.
+    func previewInvite(input: String) async {
+        guard let remote else { return }
+        guard let token = InviteToken.fromInput(input) else {
+            invitePreview = nil
+            errorMessage = "邀请链接或邀请码无效"
+            return
+        }
+        isSubmitting = true
+        errorMessage = nil
+        invitePreview = nil
+        do {
+            invitePreview = try await remote.previewInvite(token: token)
+            isSubmitting = false
+        } catch {
+            isSubmitting = false
+            errorMessage = Self.message(error)
+        }
+    }
+
+    /// Accepts an invite (token or share URL) and switches to the joined household.
+    /// NO adoption on join — the joiner gets the household's existing content; the
+    /// local `""` data stays in the personal scope (mirrors Flutter). Selects the
+    /// previewed/joined household via the `_selectedHouseholdIdAfterJoin` rule.
+    func acceptInvite(input: String) async {
+        guard let remote else { return }
+        guard let token = InviteToken.fromInput(input) else {
+            errorMessage = "邀请链接或邀请码无效"
+            return
+        }
+        isSubmitting = true
+        errorMessage = nil
+        let preferredId = invitePreview?.householdId
+        do {
+            try await remote.acceptInvite(token: token)
+            let loaded = try await remote.loadHouseholds()
+            let selectedId = Self.pickJoined(
+                loaded,
+                preferred: preferredId,
+                current: session.selectedHouseholdId
+            )
+            let loadedMembers = try await membersFor(remote, households: loaded, selected: selectedId)
+            households = loaded
+            session.selectedHouseholdId = selectedId
+            members = loadedMembers
+            invitePreview = nil
+            isSubmitting = false
+        } catch {
+            isSubmitting = false
+            errorMessage = Self.message(error)
+        }
+    }
+
+    // MARK: - Invite creation
+
+    /// Creates an invite for the selected household and returns its share URL (or
+    /// nil on failure / no selection). An optional `email` binds the invite; nil /
+    /// blank yields an open link.
+    @discardableResult
+    func createInvite(email: String?) async -> String? {
+        guard let remote else { return nil }
+        let householdId = session.selectedHouseholdId
+        guard !householdId.isEmpty else {
+            errorMessage = "请先选择一个家庭"
+            return nil
+        }
+        let trimmed = email?.trimmed
+        let target = (trimmed?.isEmpty ?? true) ? nil : trimmed
+        isSubmitting = true
+        errorMessage = nil
+        do {
+            let url = try await remote.createInvite(householdId: householdId, email: target)
+            isSubmitting = false
+            return url
+        } catch {
+            isSubmitting = false
+            errorMessage = Self.message(error)
+            return nil
+        }
+    }
+
+    // MARK: - Members
+
+    /// Reloads the selected household's members.
+    func loadMembers() async {
+        guard let remote else { return }
+        let householdId = session.selectedHouseholdId
+        guard !householdId.isEmpty else {
+            members = []
+            return
+        }
+        isLoading = true
+        errorMessage = nil
+        do {
+            members = try await remote.loadHouseholdMembers(householdId)
+            isLoading = false
+        } catch {
+            isLoading = false
+            errorMessage = Self.message(error)
+        }
+    }
+
+    /// Removes a member from the selected household and reloads the member list.
+    func removeMember(_ userId: String) async {
+        guard let remote else { return }
+        let householdId = session.selectedHouseholdId
+        guard !householdId.isEmpty else { return }
+        isSubmitting = true
+        errorMessage = nil
+        do {
+            try await remote.removeMember(householdId: householdId, userId: userId)
+            members = try await remote.loadHouseholdMembers(householdId)
+            isSubmitting = false
+        } catch {
+            isSubmitting = false
+            errorMessage = Self.message(error)
+        }
+    }
+
+    // MARK: - Leave / dissolve
+
+    /// Leaves the selected household (member action) and re-resolves the selection.
+    /// Returns whether the leave succeeded.
+    @discardableResult
+    func leaveHousehold() async -> Bool {
+        await removeSelf(dissolve: false)
+    }
+
+    /// Dissolves the selected household (owner-only) and re-resolves the selection.
+    /// Returns whether the dissolve succeeded.
+    @discardableResult
+    func dissolveHousehold() async -> Bool {
+        await removeSelf(dissolve: true)
+    }
+
+    /// Shared leave/dissolve path: run the RPC, reload households, pick the
+    /// selection via `_selectedHouseholdIdAfterRemoval`, and reload members.
+    private func removeSelf(dissolve: Bool) async -> Bool {
+        guard let remote else { return false }
+        let householdId = session.selectedHouseholdId
+        guard !householdId.isEmpty else {
+            errorMessage = "家庭不存在"
+            return false
+        }
+        isSubmitting = true
+        errorMessage = nil
+        do {
+            if dissolve {
+                try await remote.dissolveHousehold(householdId)
+            } else {
+                try await remote.leaveHousehold(householdId)
+            }
+            let loaded = try await remote.loadHouseholds()
+            let selectedId = Self.pickAfterRemoval(
+                loaded,
+                removed: householdId,
+                current: session.selectedHouseholdId
+            )
+            let loadedMembers = try await membersFor(remote, households: loaded, selected: selectedId)
+            households = loaded
+            session.selectedHouseholdId = selectedId
+            members = loadedMembers
+            isSubmitting = false
+            return true
+        } catch {
+            isSubmitting = false
+            errorMessage = Self.message(error)
+            return false
+        }
+    }
+
+    // MARK: - Switch / rename
+
+    /// Switches the active household optimistically (sets the session scope, which
+    /// activates sync for the new household) then reloads its members; rolls the
+    /// selection back on a load failure (mirrors the Dart `switchHousehold`).
+    func switchHousehold(_ id: String) async {
+        guard let remote else { return }
+        let previousId = session.selectedHouseholdId
+        isLoading = true
+        errorMessage = nil
+        session.selectedHouseholdId = id
+        do {
+            members = try await remote.loadHouseholdMembers(id)
+            isLoading = false
+        } catch {
+            session.selectedHouseholdId = previousId
+            isLoading = false
+            errorMessage = Self.message(error)
+        }
+    }
+
+    /// Renames the selected household and reloads the household list so the new
+    /// name shows immediately.
+    func updateHouseholdName(_ name: String) async {
+        guard let remote else { return }
+        let householdId = session.selectedHouseholdId
+        guard !householdId.isEmpty else { return }
+        let trimmed = name.trimmed
+        guard !trimmed.isEmpty else {
+            errorMessage = "家庭名称不能为空"
+            return
+        }
+        isSubmitting = true
+        errorMessage = nil
+        do {
+            try await remote.updateHouseholdName(householdId, name: trimmed)
+            households = try await remote.loadHouseholds()
+            isSubmitting = false
+        } catch {
+            isSubmitting = false
+            errorMessage = Self.message(error)
+        }
+    }
+
+    /// Clears the current error (e.g. when the user dismisses the banner).
+    func clearError() { errorMessage = nil }
+
+    // MARK: - Helpers
+
+    private func nextGeneration() -> Int {
+        refreshGeneration += 1
+        return refreshGeneration
+    }
+
+    /// Loads members for the household the selection resolves to (or the first
+    /// household), or `[]` when there are none. Mirrors the Dart
+    /// `_loadMembersForSelectedHousehold`.
+    private func membersFor(
+        _ remote: RemotePantryRepository,
+        households: [Household],
+        selected: String
+    ) async throws -> [HouseholdMember] {
+        guard let first = households.first else { return [] }
+        let target = (!selected.isEmpty && households.contains { $0.id == selected })
+            ? selected
+            : first.id
+        return try await remote.loadHouseholdMembers(target)
+    }
+
+    /// Re-mints a domain row's id when it's not a canonical UUID (mirrors
+    /// `uploadInitialData`'s id re-minting); a valid UUID is kept as-is.
+    private static func reminted(_ item: Ingredient) -> Ingredient {
+        guard !ProposalApply.isUuid(item.id) else { return item }
+        var copy = item
+        copy.id = UUID().uuidString.lowercased()
+        return copy
+    }
+
+    private static func reminted(_ item: ShoppingItem) -> ShoppingItem {
+        guard !ProposalApply.isUuid(item.id) else { return item }
+        var copy = item
+        copy.id = UUID().uuidString.lowercased()
+        return copy
+    }
+
+    private static func reminted(_ recipe: Recipe) -> Recipe {
+        guard !ProposalApply.isUuid(recipe.id) else { return recipe }
+        var copy = recipe
+        copy.id = UUID().uuidString.lowercased()
+        return copy
+    }
+
+    private static func reminted(_ entry: MealPlanEntry) -> MealPlanEntry {
+        guard !ProposalApply.isUuid(entry.id) else { return entry }
+        var copy = entry
+        copy.id = UUID().uuidString.lowercased()
+        return copy
+    }
+
+    /// Selection pick on refresh: keep the current id if still joined, else the
+    /// first household, else `""`. Mirrors the Dart `refreshHouseholds` logic.
+    static func pickSelected(_ households: [Household], current: String) -> String {
+        if !current.isEmpty, households.contains(where: { $0.id == current }) {
+            return current
+        }
+        return households.first?.id ?? ""
+    }
+
+    /// Selection pick after a join: prefer the joined household, else keep the
+    /// current if still present, else the LAST household. Mirrors
+    /// `_selectedHouseholdIdAfterJoin`.
+    static func pickJoined(_ households: [Household], preferred: String?, current: String) -> String {
+        guard !households.isEmpty else { return "" }
+        let preferredId = preferred?.trimmed ?? ""
+        if !preferredId.isEmpty, households.contains(where: { $0.id == preferredId }) {
+            return preferredId
+        }
+        if !current.isEmpty, households.contains(where: { $0.id == current }) {
+            return current
+        }
+        return households.last?.id ?? ""
+    }
+
+    /// Selection pick after a leave/dissolve: keep the current if it wasn't removed
+    /// and is still present, else the first household, else `""`. Mirrors
+    /// `_selectedHouseholdIdAfterRemoval`.
+    static func pickAfterRemoval(_ households: [Household], removed: String, current: String) -> String {
+        guard !households.isEmpty else { return "" }
+        if !current.isEmpty, current != removed, households.contains(where: { $0.id == current }) {
+            return current
+        }
+        return households.first?.id ?? ""
+    }
+
+    /// Maps a thrown error to a user-facing message. Keeps the remote layer's
+    /// typed errors readable; falls back to the localized description.
+    private static func message(_ error: Error) -> String {
+        switch error {
+        case RemotePantryError.notSignedIn:
+            return "请先登录"
+        case let RemotePantryError.invalidArgument(_, reason):
+            return reason
+        case RemotePantryError.previewUnavailable:
+            return "邀请不存在或已过期"
+        default:
+            return error.localizedDescription
+        }
+    }
+}

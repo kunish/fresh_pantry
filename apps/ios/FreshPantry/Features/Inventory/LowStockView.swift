@@ -1,0 +1,246 @@
+import SwiftUI
+
+/// The 库存不足 (常买补货) screen, pushed from the Dashboard: the names bought ≥3
+/// times that are no longer in stock (the restock candidates), grouped by food
+/// category, each prechecked. A sticky bottom CTA adds the selected items to the
+/// shopping list and jumps to the 购物 tab.
+///
+/// Builds its own `LowStockStore` + `ShoppingStore` from the injected
+/// `AppDependencies` (the reusable feature pattern). The add respects the shopping
+/// list's name-unique dedup — only the items actually added are counted.
+struct LowStockView: View {
+    /// Switches the root tab selection to 购物 after a successful add. Injected by
+    /// the Dashboard (which receives it from `RootView`).
+    var onSelectShopping: () -> Void = {}
+
+    @Environment(AppDependencies.self) private var dependencies
+    @Environment(\.dismiss) private var dismiss
+    @State private var store: LowStockStore?
+    @State private var shoppingStore: ShoppingStore?
+    @State private var isAdding = false
+    @State private var feedback: String?
+
+    var body: some View {
+        Group {
+            if let store {
+                LowStockContent(
+                    store: store,
+                    isAdding: isAdding,
+                    onAdd: addSelected
+                )
+            } else {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.fkSurface)
+            }
+        }
+        .navigationTitle("库存不足")
+        .navigationBarTitleDisplayMode(.inline)
+        // Rebuild the primary candidate store whenever the active household changes
+        // (login "" → uuid, switch, or leave) so the list re-scopes to the new
+        // household. The ShoppingStore is transient (only for the cross-action add),
+        // rebuilt alongside so its add targets the same current scope.
+        .task(id: dependencies.householdID) {
+            let householdID = dependencies.householdID
+            let lowStock = LowStockStore(
+                repository: dependencies.inventoryRepository,
+                householdID: householdID
+            )
+            shoppingStore = ShoppingStore(
+                repository: dependencies.shoppingRepository,
+                householdID: householdID,
+                syncWriter: dependencies.syncWriter
+            )
+            self.store = lowStock
+            await lowStock.load()
+            await shoppingStore?.load()
+        }
+        // Remote merge pulse: a household-sync apply bumps dataRevision; reload so
+        // the candidate list reflects inventory/shopping pulled from other members.
+        .onChange(of: dependencies.syncSession.dataRevision) {
+            Task {
+                await store?.load()
+                await shoppingStore?.load()
+            }
+        }
+    }
+
+    /// Adds every chosen candidate to the shopping list (respecting its name-unique
+    /// dedup), counts how many actually landed, surfaces brief feedback, then jumps
+    /// to the 购物 tab and pops this screen.
+    private func addSelected() async {
+        guard let store, let shoppingStore, !isAdding else { return }
+        let chosen = store.chosenItems
+        guard !chosen.isEmpty else { return }
+
+        isAdding = true
+        var added = 0
+        for item in chosen {
+            let category = FoodKnowledge.lookup(item.name)?.category
+            if await shoppingStore.add(name: item.name, category: category) {
+                added += 1
+            }
+        }
+        isAdding = false
+
+        if added == 0 {
+            feedback = "所选项目已在购物清单中"
+            return
+        }
+        feedback = "已添加 \(added) 项到购物清单"
+        onSelectShopping()
+        dismiss()
+    }
+}
+
+/// Inner content bound to a live store. Split out so `@Bindable` can drive the
+/// per-row selection toggles.
+private struct LowStockContent: View {
+    @Bindable var store: LowStockStore
+    let isAdding: Bool
+    let onAdd: () async -> Void
+
+    var body: some View {
+        Group {
+            if !store.hasLoaded {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if store.items.isEmpty {
+                FkEmptyState(
+                    systemImage: "checkmark.seal",
+                    title: "常买的都在库存里",
+                    message: "买过 3 次以上且当前缺货的食材会出现在这里"
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                groupList
+            }
+        }
+        .background(Color.fkSurface)
+        .refreshable { await store.load() }
+        .safeAreaInset(edge: .bottom) {
+            if !store.items.isEmpty {
+                StickyAddBar(
+                    count: store.chosenItems.count,
+                    isAdding: isAdding,
+                    onTap: { Task { await onAdd() } }
+                )
+            }
+        }
+    }
+
+    private var groupList: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: FkSpacing.xl) {
+                ForEach(Array(store.groupedByCategory.enumerated()), id: \.element.category) { sectionIndex, group in
+                    VStack(alignment: .leading, spacing: FkSpacing.sm) {
+                        FkSectionHeader(title: group.category, count: group.items.count)
+                            .padding(.horizontal, FkSpacing.lg)
+
+                        LazyVStack(spacing: FkSpacing.sm) {
+                            ForEach(Array(group.items.enumerated()), id: \.element.name) { index, item in
+                                Button {
+                                    store.toggle(item.name)
+                                } label: {
+                                    FkCard {
+                                        LowStockRow(
+                                            item: item,
+                                            isSelected: store.selectedNames.contains(item.name)
+                                        )
+                                    }
+                                }
+                                .buttonStyle(.fkPressable)
+                                .fkEntrance(index: sectionIndex + index)
+                            }
+                        }
+                        .padding(.horizontal, FkSpacing.lg)
+                    }
+                }
+            }
+            .padding(.top, FkSpacing.md)
+            .padding(.bottom, FkSpacing.huge)
+        }
+    }
+}
+
+/// One candidate row: category avatar + name + "买过 N 次" stat + a check toggle.
+private struct LowStockRow: View {
+    let item: FrequentItem
+    let isSelected: Bool
+
+    var body: some View {
+        HStack(spacing: FkSpacing.md) {
+            FkCategoryAvatar(imageUrl: "", category: item.category, size: 40)
+
+            Text(item.name)
+                .font(.fkTitleMedium)
+                .foregroundStyle(Color.fkOnSurface)
+
+            Spacer(minLength: FkSpacing.sm)
+
+            Text("买过 \(item.count) 次")
+                .font(.fkBodySmall)
+                .foregroundStyle(Color.fkOnSurfaceVariant)
+
+            checkCircle
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+    }
+
+    private var checkCircle: some View {
+        ZStack {
+            Circle()
+                .fill(isSelected ? Color.fkPrimary : Color.clear)
+                .frame(width: 22, height: 22)
+            Circle()
+                .stroke(isSelected ? Color.fkPrimary : Color.fkOutlineVariant, lineWidth: 1.5)
+                .frame(width: 22, height: 22)
+            if isSelected {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(Color.fkOnPrimary)
+            }
+        }
+    }
+}
+
+/// Sticky bottom CTA: "加入购物清单 (N)". Disabled when nothing is selected or a
+/// add is in flight; shows a spinner while adding.
+private struct StickyAddBar: View {
+    let count: Int
+    let isAdding: Bool
+    let onTap: () -> Void
+
+    private var enabled: Bool { count > 0 && !isAdding }
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: FkSpacing.sm) {
+                if isAdding {
+                    ProgressView()
+                        .controlSize(.small)
+                        .tint(Color.fkOnPrimary)
+                } else {
+                    Image(systemName: "cart.badge.plus")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                Text("加入购物清单 (\(count))")
+                    .font(.fkLabelLarge)
+            }
+            .foregroundStyle(enabled ? Color.fkOnPrimary : Color.fkOutline)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, FkSpacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: FkRadius.lg, style: .continuous)
+                    .fill(enabled ? Color.fkPrimary : Color.fkSurfaceContainer)
+            )
+        }
+        .buttonStyle(.fkPressable)
+        .disabled(!enabled)
+        .padding(.horizontal, FkSpacing.lg)
+        .padding(.top, FkSpacing.sm)
+        .padding(.bottom, FkSpacing.sm)
+        .background(.bar)
+    }
+}

@@ -1,0 +1,69 @@
+name: FreshPantry
+options:
+  bundleIdPrefix: com.kunish
+  deploymentTarget:
+    iOS: "26.0"
+  developmentLanguage: zh-Hans
+  createIntermediateGroups: true
+  groupSortPosition: top
+  generateEmptyDirectories: true
+
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: "2.47.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    DEVELOPMENT_TEAM: "62HCT6Q83X"
+    MARKETING_VERSION: "1.2.1"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_UPCOMING_FEATURE_ISOLATED_DEFAULT_VALUES: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    GCC_TREAT_WARNINGS_AS_ERRORS: NO
+    ENABLE_MODULE_VERIFIER: NO
+
+targets:
+  FreshPantry:
+    type: application
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: FreshPantry
+        excludes:
+          - "Support/Secrets.example.plist"
+          # Bundled as a folder reference below (keeps the 174 HowToCook covers in a
+          # RecipeImages/ subdirectory of the .app instead of flattened into root).
+          - "Resources/RecipeImages"
+      - path: FreshPantry/Resources/RecipeImages
+        type: folder
+    dependencies:
+      - package: Supabase
+        product: Supabase
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kunish.freshPantry
+        PRODUCT_NAME: FreshPantry
+        INFOPLIST_FILE: FreshPantry/Support/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SUPPORTS_MACCATALYST: NO
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_STYLE: Automatic
+
+  FreshPantryTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: FreshPantryTests
+    dependencies:
+      - target: FreshPantry
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kunish.freshPantry.tests
+        GENERATE_INFOPLIST_FILE: YES

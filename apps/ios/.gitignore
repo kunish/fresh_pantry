@@ -1,0 +1,16 @@
+# XcodeGen output — regenerate with `xcodegen generate`
+FreshPantry.xcodeproj/
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+.swiftpm/
+*.swift.orig
+
+# Secrets — generated from CI secrets or copied from Secrets.example.plist
+FreshPantry/Support/Secrets.plist
+
+# macOS
+.DS_Store

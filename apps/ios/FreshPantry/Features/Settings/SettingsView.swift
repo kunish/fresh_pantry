@@ -1,0 +1,347 @@
+import SwiftUI
+
+/// The 设置 tab ("我的"): a grouped form over the cream surface with the locally
+/// persisted setting groups — 临期提醒 toggles, 忌口 keyword editor, an AI 助手
+/// sub-screen, and an 关于 footer with the bundle version.
+///
+/// Follows the established feature pattern: reads the shared stores off the
+/// injected `AppDependencies` (so settings stay consistent app-wide) and binds
+/// the form rows directly to them. The 更多 section links to the 数据备份
+/// export/import sub-screen.
+struct SettingsView: View {
+    @Environment(AppDependencies.self) private var dependencies
+
+    var body: some View {
+        NavigationStack {
+            SettingsContent(
+                reminderStore: dependencies.reminderSettingsStore,
+                dietaryStore: dependencies.dietaryPreferencesStore,
+                aiStore: dependencies.aiSettingsStore,
+                auth: dependencies.authService,
+                notifications: dependencies.notificationCoordinator,
+                householdID: dependencies.householdID
+            )
+            .navigationTitle("设置")
+        }
+    }
+}
+
+/// Inner content bound to the live stores (split out so `@Bindable`-free direct
+/// observation of the `@Observable` stores drives row state).
+private struct SettingsContent: View {
+    let reminderStore: ReminderSettingsStore
+    let dietaryStore: DietaryPreferencesStore
+    let aiStore: AiSettingsStore
+    @Bindable var auth: AuthService
+    let notifications: NotificationCoordinator
+    let householdID: String
+
+    /// Live OS notification-permission state, refreshed on appear and after a
+    /// grant request. Drives the 提醒 permission affordance row.
+    @State private var permissionGranted = false
+
+    var body: some View {
+        Form {
+            accountSection
+            reminderSection
+            dietarySection
+            assistantSection
+            comingSoonSection
+            aboutSection
+        }
+        .scrollContentBackground(.hidden)
+        .background(Color.fkSurface)
+        .tint(.fkPrimary)
+        .task { permissionGranted = await notifications.refreshPermission() }
+    }
+
+    // MARK: 账号
+
+    private var accountSection: some View {
+        Section {
+            NavigationLink {
+                LoginView(auth: auth)
+            } label: {
+                SettingsLinkLabel(
+                    systemImage: accountIcon,
+                    title: "账号",
+                    subtitle: accountSubtitle
+                )
+            }
+            NavigationLink {
+                HouseholdView()
+            } label: {
+                SettingsLinkLabel(
+                    systemImage: "house.and.flag",
+                    title: "家庭共享",
+                    subtitle: householdSubtitle
+                )
+            }
+        } header: {
+            Text("账号 · 家庭")
+        } footer: {
+            Text("登录后可创建或加入家庭,在成员间同步库存、采购与食谱。")
+        }
+        .listRowBackground(Color.fkSurfaceContainerLowest)
+    }
+
+    /// The 家庭共享 row subtitle, reflecting whether sharing is usable yet.
+    private var householdSubtitle: String {
+        switch auth.state {
+        case .signedIn: "管理家庭成员与邀请"
+        case .localOnly: "未配置后端 · 不可用"
+        default: "登录后创建或加入家庭"
+        }
+    }
+
+    private var accountIcon: String {
+        switch auth.state {
+        case .signedIn: "person.crop.circle.fill"
+        case .localOnly: "person.crop.circle.badge.xmark"
+        default: "person.crop.circle"
+        }
+    }
+
+    private var accountSubtitle: String {
+        switch auth.state {
+        case let .signedIn(email): email
+        case .localOnly: "未配置后端 · 本地模式"
+        default: "登录以同步家庭数据"
+        }
+    }
+
+    // MARK: 提醒
+
+    private var reminderSection: some View {
+        Section {
+            NotificationPermissionRow(
+                granted: permissionGranted,
+                onRequest: {
+                    permissionGranted = await notifications.requestPermission(householdID: householdID)
+                }
+            )
+            ReminderToggleRow(
+                store: reminderStore,
+                flag: .d1,
+                title: "提前 1 天提醒",
+                subtitle: "高优先级 · 推送 + 角标",
+                onChange: rescheduleReminders
+            )
+            ReminderToggleRow(
+                store: reminderStore,
+                flag: .d3,
+                title: "提前 3 天提醒",
+                subtitle: "标准 · 仅推送",
+                onChange: rescheduleReminders
+            )
+            ReminderToggleRow(
+                store: reminderStore,
+                flag: .d7,
+                title: "提前 7 天提醒",
+                subtitle: "轻量 · 仅角标",
+                onChange: rescheduleReminders
+            )
+            ReminderToggleRow(
+                store: reminderStore,
+                flag: .daily,
+                title: "每日 9:00 汇总",
+                subtitle: "包含临期 + 库存不足",
+                onChange: rescheduleReminders
+            )
+        } header: {
+            Text("临期提醒")
+        } footer: {
+            Text("提醒在开启系统通知权限后送达。")
+        }
+        .listRowBackground(Color.fkSurfaceContainerLowest)
+    }
+
+    /// Recompute the scheduled notification set after a reminder toggle changes.
+    private func rescheduleReminders() {
+        Task { await notifications.reschedule(householdID: householdID) }
+    }
+
+    // MARK: 忌口
+
+    private var dietarySection: some View {
+        Section {
+            DietaryExclusionEditor(store: dietaryStore)
+        } header: {
+            Text("忌口")
+        } footer: {
+            Text("含这些关键字的食材会在菜谱推荐中被过滤。")
+        }
+        .listRowBackground(Color.fkSurfaceContainerLowest)
+    }
+
+    // MARK: AI 助手
+
+    private var assistantSection: some View {
+        Section {
+            NavigationLink {
+                AiSettingsView(store: aiStore)
+            } label: {
+                SettingsLinkLabel(
+                    systemImage: "sparkles",
+                    title: "AI 助手",
+                    subtitle: aiStore.isConfigured ? "已配置 · \(aiStore.settings.model)" : "配置模型与连接"
+                )
+            }
+        } header: {
+            Text("AI 助手")
+        }
+        .listRowBackground(Color.fkSurfaceContainerLowest)
+    }
+
+    // MARK: 更多
+
+    private var comingSoonSection: some View {
+        Section {
+            NavigationLink {
+                BackupView()
+            } label: {
+                SettingsLinkLabel(
+                    systemImage: "tray.and.arrow.up",
+                    title: "数据备份",
+                    subtitle: "导出或恢复本机数据"
+                )
+            }
+        } header: {
+            Text("更多")
+        }
+        .listRowBackground(Color.fkSurfaceContainerLowest)
+    }
+
+    // MARK: 关于
+
+    private var aboutSection: some View {
+        Section {
+            HStack {
+                Text("版本")
+                    .font(.fkBodyMedium)
+                    .foregroundStyle(Color.fkOnSurface)
+                Spacer()
+                Text(AppVersion.displayString)
+                    .font(.fkBodyMedium)
+                    .foregroundStyle(Color.fkOnSurfaceVariant)
+            }
+            HStack {
+                Text("开源致谢")
+                    .font(.fkBodyMedium)
+                    .foregroundStyle(Color.fkOnSurface)
+                Spacer()
+                Text("HowToCook · Unlicense")
+                    .font(.fkBodySmall)
+                    .foregroundStyle(Color.fkOnSurfaceVariant)
+            }
+        } header: {
+            Text("关于 \(AppVersion.appName)")
+        }
+        .listRowBackground(Color.fkSurfaceContainerLowest)
+    }
+}
+
+// MARK: - Rows
+
+/// A reminder toggle row: title + caption + a `Switch` bound through the store's
+/// `ReminderFlag` accessor. Binding is built inside the `@MainActor` `body` so the
+/// store mutation never crosses an isolation boundary.
+private struct ReminderToggleRow: View {
+    let store: ReminderSettingsStore
+    let flag: ReminderSettingsStore.Flag
+    let title: String
+    let subtitle: String
+    /// Invoked after the flag persists, so reminders are rescheduled.
+    let onChange: () -> Void
+
+    var body: some View {
+        let binding = Binding(
+            get: { store.value(for: flag) },
+            set: {
+                store.setValue($0, for: flag)
+                onChange()
+            }
+        )
+        return Toggle(isOn: binding) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.fkTitleSmall)
+                    .foregroundStyle(Color.fkOnSurface)
+                Text(subtitle)
+                    .font(.fkBodySmall)
+                    .foregroundStyle(Color.fkOnSurfaceVariant)
+            }
+        }
+    }
+}
+
+/// The 提醒 permission affordance: a CTA to grant OS notification permission
+/// when ungranted, collapsing to an "已开启" status row once granted. The async
+/// request runs on tap; the parent refreshes `granted` from its result.
+private struct NotificationPermissionRow: View {
+    let granted: Bool
+    let onRequest: () async -> Void
+
+    @State private var requesting = false
+
+    var body: some View {
+        HStack(spacing: FkSpacing.md) {
+            Image(systemName: granted ? "bell.badge.fill" : "bell.slash")
+                .font(.system(size: FkSize.iconSm, weight: .semibold))
+                .foregroundStyle(granted ? Color.fkPrimary : Color.fkOnSurfaceVariant)
+                .frame(width: FkSize.settingsIconBox)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("通知权限")
+                    .font(.fkTitleSmall)
+                    .foregroundStyle(Color.fkOnSurface)
+                Text(granted ? "已开启 · 提醒可送达" : "开启后临期提醒才会送达")
+                    .font(.fkBodySmall)
+                    .foregroundStyle(Color.fkOnSurfaceVariant)
+            }
+            Spacer()
+            if granted {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(Color.fkPrimary)
+            } else {
+                Button("开启") {
+                    requesting = true
+                    Task {
+                        await onRequest()
+                        requesting = false
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.fkPrimary)
+                .disabled(requesting)
+            }
+        }
+    }
+}
+
+/// A leading-icon nav-link label matching the Flutter `_LinkRow` shape.
+private struct SettingsLinkLabel: View {
+    let systemImage: String
+    let title: String
+    let subtitle: String
+
+    var body: some View {
+        HStack(spacing: FkSpacing.md) {
+            ZStack {
+                RoundedRectangle(cornerRadius: FkRadius.sm, style: .continuous)
+                    .fill(Color.fkPrimarySoft)
+                    .frame(width: FkSize.settingsIconBox, height: FkSize.settingsIconBox)
+                Image(systemName: systemImage)
+                    .font(.system(size: FkSize.iconSm, weight: .semibold))
+                    .foregroundStyle(Color.fkPrimary)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.fkTitleSmall)
+                    .foregroundStyle(Color.fkOnSurface)
+                Text(subtitle)
+                    .font(.fkBodySmall)
+                    .foregroundStyle(Color.fkOnSurfaceVariant)
+            }
+        }
+    }
+}

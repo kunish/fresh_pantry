@@ -1,0 +1,184 @@
+import Foundation
+
+/// Selectable time window for the 减废统计 screen. `last90Days` is the cap and
+/// MUST equal `WasteInsightsStore.recentWindowDays` (90) so a query never reaches
+/// past the bounded in-memory slice the store hydrates (parity invariant #8).
+enum WasteStatsWindow: String, CaseIterable, Sendable {
+    case thisMonth
+    case last30Days
+    case last90Days
+
+    var label: String {
+        switch self {
+        case .thisMonth: return "本月"
+        case .last30Days: return "近 30 天"
+        case .last90Days: return "近 90 天"
+        }
+    }
+
+    /// The inclusive lower bound for this window relative to `now`:
+    /// thisMonth = the 1st at local midnight; last30/last90Days = now − N days.
+    func since(_ now: Date = Date()) -> Date {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .current
+        switch self {
+        case .thisMonth:
+            let comps = calendar.dateComponents([.year, .month], from: now)
+            return calendar.date(from: comps) ?? now
+        case .last30Days:
+            return calendar.date(byAdding: .day, value: -30, to: now) ?? now
+        case .last90Days:
+            return calendar.date(byAdding: .day, value: -90, to: now) ?? now
+        }
+    }
+}
+
+/// Aggregated food-departure stats for one window. All values are item COUNTS,
+/// never quantities (quantities are free-text and intentionally not summed).
+/// `useUpRate` is the headline metric; `/0` is guarded to 0 (no departures yet).
+struct FoodLogStats: Equatable, Sendable {
+    var consumed: Int
+    var wasted: Int
+    /// Consumed AND already past fresh — "抢救临期" credit.
+    var rescued: Int
+
+    static let empty = FoodLogStats(consumed: 0, wasted: 0, rescued: 0)
+
+    /// consumed + wasted (rescued is a subset of consumed, not added in).
+    var total: Int { consumed + wasted }
+
+    /// consumed / (consumed + wasted), 0 when nothing has departed (guarded /0).
+    var useUpRate: Double { total == 0 ? 0 : Double(consumed) / Double(total) }
+
+    /// 0...100 integer percent for the headline (e.g. 85 → "85% 用掉率").
+    var useUpPercent: Int { Int((useUpRate * 100).rounded()) }
+
+    var isEmpty: Bool { total == 0 }
+}
+
+/// One category's consumed-vs-wasted split, for the breakdown chart/list.
+struct WasteCategoryBreakdown: Equatable, Sendable, Identifiable {
+    let category: String
+    let consumed: Int
+    let wasted: Int
+
+    var id: String { category }
+    var total: Int { consumed + wasted }
+}
+
+/// Feature store for the 减废统计 (waste-insights) slice — the same
+/// `@Observable @MainActor` template the other features established.
+///
+/// Loads a bounded recent window of food-departure entries via
+/// `FoodLogRepository.loadRecentFor` (capped at `recentWindowDays`), then derives
+/// windowed `FoodLogStats` + a per-category consumed/wasted breakdown for the
+/// selected `WasteStatsWindow`. All aggregation is pure and lives here so it can
+/// be exercised without SwiftData; the view never touches the repo directly.
+@Observable
+@MainActor
+final class WasteInsightsStore {
+    /// Bounded hydration window (days). The widest selectable window
+    /// (`last90Days`) must not exceed this, so a query never reaches past the
+    /// loaded slice. Mirrors Flutter `foodLogRecentWindow = Duration(days: 90)`.
+    static let recentWindowDays = 90
+
+    private let repository: FoodLogRepository
+    private let householdID: String
+
+    /// All entries inside the bounded hydration window (repo order). The window
+    /// selector filters this in-memory slice; it is never re-queried per window.
+    private(set) var entries: [FoodLogEntry] = []
+    private(set) var isLoading = false
+    private(set) var hasLoaded = false
+
+    /// The active time window. Defaults to 本月 (matches the blueprint default).
+    var window: WasteStatsWindow = .thisMonth
+
+    init(repository: FoodLogRepository, householdID: String) {
+        self.repository = repository
+        self.householdID = householdID
+    }
+
+    // MARK: Loading
+
+    /// Hydrates the bounded recent window off the repo actor. A load failure
+    /// surfaces an empty slice (the screen then shows its empty state) rather
+    /// than crashing this read-only feature.
+    func load(now: Date = Date()) async {
+        isLoading = true
+        defer {
+            isLoading = false
+            hasLoaded = true
+        }
+        let cutoff = Calendar.current.date(byAdding: .day, value: -Self.recentWindowDays, to: now) ?? now
+        let sinceMs = Int(cutoff.timeIntervalSince1970 * 1000)
+        do {
+            entries = try await repository.loadRecentFor(householdID, sinceMs: sinceMs)
+        } catch {
+            entries = []
+        }
+    }
+
+    // MARK: Derived view data
+
+    /// Entries at/after the selected window's lower bound (the visible slice).
+    func windowedEntries(now: Date = Date()) -> [FoodLogEntry] {
+        let since = window.since(now)
+        return entries.filter { $0.loggedAt >= since }
+    }
+
+    /// Windowed aggregate stats (consumed / wasted / rescued / use-up rate).
+    func stats(now: Date = Date()) -> FoodLogStats {
+        Self.computeStats(windowedEntries(now: now))
+    }
+
+    /// Per-category consumed/wasted breakdown for the selected window, ordered by
+    /// `FoodCategories.values` (canonical sort), dropping categories with no
+    /// departures. Categories are normalized so legacy aliases collapse correctly.
+    func categoryBreakdown(now: Date = Date()) -> [WasteCategoryBreakdown] {
+        Self.computeCategoryBreakdown(windowedEntries(now: now))
+    }
+
+    // MARK: Pure aggregation (testable without SwiftData)
+
+    /// Tallies consumed / wasted / rescued over `entries`. `rescued` counts a
+    /// consumed entry whose batch was already expiring (`wasExpiring`).
+    static func computeStats(_ entries: [FoodLogEntry]) -> FoodLogStats {
+        var consumed = 0
+        var wasted = 0
+        var rescued = 0
+        for entry in entries {
+            if entry.isConsumed {
+                consumed += 1
+                if entry.wasExpiring { rescued += 1 }
+            } else {
+                wasted += 1
+            }
+        }
+        return FoodLogStats(consumed: consumed, wasted: wasted, rescued: rescued)
+    }
+
+    /// Per-category consumed/wasted counts, normalized + sorted by
+    /// `FoodCategories.values` position (unknown last), dropping empty categories.
+    static func computeCategoryBreakdown(_ entries: [FoodLogEntry]) -> [WasteCategoryBreakdown] {
+        var consumedBy: [String: Int] = [:]
+        var wastedBy: [String: Int] = [:]
+        for entry in entries {
+            let category = FoodCategories.dropdownValue(entry.category)
+            if entry.isConsumed {
+                consumedBy[category, default: 0] += 1
+            } else {
+                wastedBy[category, default: 0] += 1
+            }
+        }
+        let categories = Set(consumedBy.keys).union(wastedBy.keys)
+        return categories
+            .map { WasteCategoryBreakdown(category: $0, consumed: consumedBy[$0] ?? 0, wasted: wastedBy[$0] ?? 0) }
+            .sorted { lhs, rhs in
+                let lRank = FoodCategories.values.firstIndex(of: lhs.category) ?? FoodCategories.values.count
+                let rRank = FoodCategories.values.firstIndex(of: rhs.category) ?? FoodCategories.values.count
+                if lRank != rRank { return lRank < rRank }
+                return lhs.category < rhs.category
+            }
+    }
+}

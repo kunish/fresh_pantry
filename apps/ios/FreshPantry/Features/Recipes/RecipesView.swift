@@ -1,0 +1,309 @@
+import SwiftUI
+
+/// The 食谱 tab: browses the merged bundled + custom recipe corpus, with category
+/// filter chips, a name/ingredient search, a 只看收藏 toggle, and a favorite heart
+/// per card. Pull-to-refresh reloads; cards push the read-only detail screen.
+///
+/// The view builds its `RecipesStore` from the injected `AppDependencies` — the
+/// reusable feature pattern. Unlike Inventory/Shopping there is no DEBUG seed:
+/// the bundled HowToCook corpus is real read-only data present on every install.
+struct RecipesView: View {
+    @Environment(AppDependencies.self) private var dependencies
+    @State private var store: RecipesStore?
+    /// CRUD owner for the user's custom recipes — drives the create/edit form and
+    /// distinguishes custom recipes (for the detail edit/delete affordances).
+    @State private var customStore: CustomRecipeStore?
+    /// Presents the create form sheet (the toolbar "+").
+    @State private var showCreateForm = false
+    /// Programmatic stack path. Normally empty; the `-initialRoute cook` launch
+    /// hook pre-seeds it (in `.task`) so a recipe detail — and its auto-presented
+    /// deduction review — can be snapshotted directly without a tap.
+    @State private var path: [Recipe] = []
+
+    var body: some View {
+        NavigationStack(path: $path) {
+            Group {
+                if let store, let customStore {
+                    RecipesContent(
+                        store: store,
+                        customStore: customStore,
+                        favoritesStore: dependencies.favoritesStore
+                    )
+                } else {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.fkSurface)
+                }
+            }
+            .navigationTitle("食谱")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showCreateForm = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .disabled(customStore == nil)
+                    .accessibilityLabel("新建食谱")
+                }
+            }
+            .navigationDestination(for: Recipe.self) { recipe in
+                if let store, let customStore {
+                    RecipeDetailView(
+                        recipe: recipe,
+                        store: store,
+                        customStore: customStore,
+                        isCustom: customStore.recipes.contains { $0.id == recipe.id }
+                    )
+                }
+            }
+            .sheet(isPresented: $showCreateForm) {
+                if let customStore {
+                    CustomRecipeFormView(
+                        store: customStore,
+                        aiSettingsStore: dependencies.aiSettingsStore
+                    ) {
+                        Task { await reload() }
+                    }
+                }
+            }
+        }
+        // Rebuild both stores whenever the active household changes (login "" → uuid,
+        // switch, or leave) so custom recipes re-scope to the new household rather
+        // than keeping the prior scope's stale rows. (The bundled corpus is scope-free.)
+        .task(id: dependencies.householdID) {
+            let householdID = dependencies.householdID
+            let store = RecipesStore(
+                localRepository: dependencies.localRecipeRepository,
+                customRepository: dependencies.customRecipeRepository,
+                favoritesStore: dependencies.favoritesStore,
+                householdID: householdID
+            )
+            let customStore = CustomRecipeStore(
+                repository: dependencies.customRecipeRepository,
+                householdID: householdID,
+                syncWriter: dependencies.syncWriter
+            )
+            self.store = store
+            self.customStore = customStore
+            await store.load()
+            await customStore.load()
+            #if DEBUG
+            // Snapshot affordance: `-initialRoute cook` seeds the inventory,
+            // picks a recipe that matches it, and pushes its detail (whose own
+            // `-initialRoute cook` hook then presents the deduction review).
+            if RecipesView.opensCookOnLaunch, let recipe = await cookSnapshotRecipe(store) {
+                path = [recipe]
+            }
+            #endif
+        }
+        // Remote merge pulse: a household-sync apply bumps dataRevision; reload
+        // so custom recipes pulled from other household members show up.
+        .onChange(of: dependencies.syncSession.dataRevision) {
+            Task { await reload() }
+        }
+    }
+
+    /// Reloads both the merged browse list and the custom-recipe set (after an
+    /// author/edit/delete, or a remote merge pulse).
+    private func reload() async {
+        await store?.load()
+        await customStore?.load()
+    }
+
+    #if DEBUG
+    /// Honors `-initialRoute cook` for UI snapshots.
+    private static var opensCookOnLaunch: Bool {
+        let args = ProcessInfo.processInfo.arguments
+        guard let index = args.firstIndex(of: "-initialRoute"), index + 1 < args.count else {
+            return false
+        }
+        return args[index + 1] == "cook"
+    }
+
+    /// Seeds the sample inventory and returns the first loaded recipe whose
+    /// ingredients overlap it (so the deduction review has real candidates).
+    private func cookSnapshotRecipe(_ store: RecipesStore) async -> Recipe? {
+        // Sample data is for the local-only personal scope only — never seed a
+        // real household (its rows come from sync).
+        if dependencies.householdID.isEmpty {
+            await InventorySeeder.seedIfNeeded(
+                repository: dependencies.inventoryRepository,
+                householdID: dependencies.householdID
+            )
+        }
+        let inventory = (try? await dependencies.inventoryRepository.loadAllFor(dependencies.householdID)) ?? []
+        let names = Set(inventory.map { $0.name })
+        return store.recipes.first { recipe in
+            recipe.ingredients.filter { ing in
+                names.contains { $0.contains(ing.name) || ing.name.contains($0) }
+            }.count >= 2
+        }
+    }
+    #endif
+}
+
+/// Inner content bound to a live store (split out so `@Bindable` drives the
+/// search field / filter chips, and observing the shared `FavoritesStore` lets
+/// hearts re-render the moment a favorite toggles).
+private struct RecipesContent: View {
+    @Bindable var store: RecipesStore
+    /// Drives the detail edit/delete affordances + the custom-recipe distinction.
+    var customStore: CustomRecipeStore
+    /// Observed so a favorite toggle re-renders the affected hearts/cards.
+    var favoritesStore: FavoritesStore
+
+    @State private var selectedRoute: RecipeRoute?
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: FkSpacing.md) {
+                FkSearchField(text: $store.searchQuery, placeholder: "搜索菜谱或食材")
+                    .padding(.horizontal, FkSpacing.lg)
+
+                filterChips
+
+                listBody
+            }
+            .padding(.top, FkSpacing.sm)
+            .padding(.bottom, FkSpacing.huge)
+        }
+        .background(Color.fkSurface)
+        .scrollDismissesKeyboard(.immediately)
+        .refreshable {
+            await store.load()
+            await customStore.load()
+        }
+        .navigationDestination(item: $selectedRoute) { route in
+            RecipeDetailView(
+                recipe: route.recipe,
+                store: store,
+                customStore: customStore,
+                isCustom: customStore.recipes.contains { $0.id == route.recipe.id }
+            )
+        }
+    }
+
+    // MARK: Filter chips (favorites toggle + 全部 + categories)
+
+    private var filterChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: FkSpacing.sm) {
+                FavoritesChip(
+                    isOn: store.favoritesOnly,
+                    count: store.favoriteCount
+                ) { store.favoritesOnly.toggle() }
+
+                FkChip(
+                    label: "全部",
+                    isSelected: store.effectiveCategory == nil
+                ) { store.categoryFilter = nil }
+
+                ForEach(store.categoryOptions, id: \.self) { category in
+                    FkChip(
+                        label: category,
+                        isSelected: store.effectiveCategory == category
+                    ) {
+                        // Re-tap clears back to 全部 (single-select toggle).
+                        store.categoryFilter = (store.effectiveCategory == category) ? nil : category
+                    }
+                }
+            }
+            .padding(.horizontal, FkSpacing.lg)
+        }
+    }
+
+    // MARK: List / empty / loading
+
+    @ViewBuilder
+    private var listBody: some View {
+        let recipes = store.displayRecipes
+        if store.isLoading && !store.hasLoaded {
+            ProgressView()
+                .padding(.top, 80)
+        } else if recipes.isEmpty {
+            emptyState
+                .padding(.top, FkSpacing.huge)
+        } else {
+            LazyVStack(spacing: FkSpacing.md) {
+                ForEach(Array(recipes.enumerated()), id: \.element.id) { index, recipe in
+                    Button {
+                        selectedRoute = RecipeRoute(recipe: recipe)
+                    } label: {
+                        RecipeCard(
+                            recipe: recipe,
+                            isFavorite: store.isFavorite(recipe),
+                            onToggleFavorite: { store.toggleFavorite(recipe) }
+                        )
+                    }
+                    .buttonStyle(.fkPressable)
+                    .fkEntrance(index: index)
+                }
+            }
+            .padding(.horizontal, FkSpacing.lg)
+        }
+    }
+
+    private var emptyState: some View {
+        let searching = !store.searchQuery.trimmed.isEmpty
+        let title: String
+        let message: String?
+        if searching {
+            title = "没有匹配「\(store.searchQuery.trimmed)」的菜谱"
+            message = "试试换个关键词"
+        } else if store.favoritesOnly {
+            title = "还没有收藏的菜谱"
+            message = "点 ♥ 收藏几道喜欢的吧"
+        } else if store.effectiveCategory != nil {
+            title = "该分类下暂无菜谱"
+            message = "换个分类试试"
+        } else {
+            title = "暂无可探索的菜谱"
+            message = nil
+        }
+        return FkEmptyState(
+            systemImage: searching ? "magnifyingglass" : (store.favoritesOnly ? "heart" : "book"),
+            title: title,
+            message: message
+        )
+    }
+}
+
+/// Leading favorites pill — a heart that filters to favorited recipes only.
+private struct FavoritesChip: View {
+    let isOn: Bool
+    let count: Int
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: FkSpacing.xs) {
+                Image(systemName: isOn ? "heart.fill" : "heart")
+                    .font(.system(size: FkSize.iconSm, weight: .semibold))
+                Text(label)
+                    .font(.fkLabelMedium)
+            }
+            .foregroundStyle(isOn ? Color.fkOnDanger : Color.fkOnSurface)
+            .padding(.horizontal, FkSpacing.lg)
+            .padding(.vertical, 7)
+            .background(
+                Capsule()
+                    .fill(isOn ? Color.fkDanger : Color.fkSurfaceContainerLowest)
+                    .overlay(
+                        Capsule().strokeBorder(isOn ? Color.clear : Color.fkHair, lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.fkPressable)
+    }
+
+    private var label: String {
+        count > 0 ? "收藏 · \(count)" : "收藏"
+    }
+}
+
+/// `Hashable` navigation route wrapping a `Recipe`. (`Recipe` is `Hashable` by id
+/// already, but wrapping keeps the route type explicit and future-proof.)
+private struct RecipeRoute: Hashable {
+    let recipe: Recipe
+}

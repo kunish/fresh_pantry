@@ -1,0 +1,125 @@
+# Fresh Pantry — SwiftUI 重写迁移计划
+
+> 大目标:把整个 Fresh Pantry 从 Flutter 重写为**纯原生 SwiftUI**,仅支持 **iOS / iPadOS**,遵循最佳实践。
+> 这是多会话级工程。本文件是跨会话的唯一权威路线;每次推进后更新「进度」一节。
+
+## 1. 已拍板的技术决策
+
+| 维度 | 决策 | 理由 |
+| --- | --- | --- |
+| UI | SwiftUI + Observation(`@Observable`) | iOS 原生最佳实践,声明式,与 SwiftData 深度集成 |
+| 持久化 | **SwiftData** | Apple 原生,Observation 集成;自建离线同步 outbox 对齐现有语义 |
+| 同步/后端 | **从第一天起完整对等**:Supabase(Auth 邮箱 OTP + Postgres 家庭共享同步)+ Cloudflare Worker(`apps/api`,邀请深链)| 复用现有后端,无功能回退 |
+| 最低系统 | **iOS 26**,仅最新 | 可用最新 SwiftUI / SwiftData / Liquid Glass / Observation API |
+| 并发 | Swift 6 严格并发(`SWIFT_STRICT_CONCURRENCY=complete`) | 最佳实践 |
+| 工程生成 | **XcodeGen**(`apps/ios/project.yml`)| 可复现,避免 `.xcodeproj` 冲突;`.xcodeproj` 不入库 |
+| 落位 | 新建 `apps/ios` 并存,对等验证后退役 `apps/mobile`(Flutter) | 迁移期可随时回退对照 |
+
+## 2. 必须保留的锚点契约(不可改)
+
+- **bundle id** `com.kunish.freshPantry`(注意大写 `P`;URL scheme 全小写 `com.kunish.freshpantry`)
+- **DEVELOPMENT_TEAM** `62HCT6Q83X`;**显示名** `Fresh Pantry`
+- **Auth 深链** 回调 `com.kunish.freshpantry://signin-callback/`;URL name `com.kunish.freshpantry.auth`
+- **后台** `BGTaskScheduler` 标识 `fresh_pantry.periodic_sync` + `UIBackgroundModes: fetch, processing`
+- **本地通知** = 临期提醒;**权限文案** = 相机/相册(食谱封面)
+- **Supabase** URL/Publishable Key:Flutter 走 dart-define,原生改为 xcconfig/`Info.plist` 注入(勿硬编码进库)
+
+## 3. 目标工程结构(`apps/ios/FreshPantry/`)
+
+```
+App/            应用入口、根导航、DI 容器、深链/后台任务接入
+DesignSystem/   颜色/字体/间距/动效 token + 复用组件(对齐 Flutter theme + widgets)
+Models/         SwiftData @Model(对齐 Drift schema + 领域模型,逐字段)
+Persistence/    ModelContainer 装配、Repository(SwiftData 之上的领域读写 API)
+Sync/           离线 outbox + Supabase 网关 + merge 策略 + 后台刷新
+Services/       AI 解析、OpenFoodFacts、通知调度、备份、邀请深链
+Features/<名>/  各功能纵切:View + @Observable Model(库存/食谱/购物/膳食/减废/设置/家庭/Auth)
+Support/        Info.plist、entitlements、本地化
+```
+
+> 业务逻辑(Models/Persistence/Sync/Services)保持无 UI 依赖,便于单测;稳定后可抽成 `FreshPantryKit` 本地 SPM 包。
+
+## 4. 分阶段路线图
+
+- **P0 测绘**:并行精读 Flutter 各子系统 → SwiftUI 蓝图。(workflow `map-flutter-for-swiftui`)
+- **P1 脚手架**:XcodeGen 工程骨架,iOS26/Swift6,能编能跑。✅
+- **P2 设计系统**:移植 theme token + 核心复用组件(urgency 配色、卡片、徽标、空态、动效且尊重 reduce-motion)。
+- **P3 数据地基**:SwiftData `@Model` 全量(对齐 Drift schema 逐字段)+ ModelContainer + Repository 层 + 单测。
+- **P4 领域逻辑**:IngredientIdentity / Intake / Deduction / Proposal / ProposalPlanner 等核心规则(纯 Swift,可单测,对齐 ADR-0001)。
+- **P5 功能纵切**(每个端到端 + 单测,先验证架构):
+  1. 库存(Inventory + 临期 + 低库存 + 详情)
+  2. 添加/Intake Review(含粘贴导入 + AI 提案)
+  3. 食谱(列表/详情/自定义/AI 草稿;HowToCook 数据集)
+  4. 购物清单 + Shopping Intake
+  5. 膳食计划日历
+  6. 减废统计(删除追问 outcome)
+  7. 设置 + AI 设置 + 提醒
+  8. Dashboard
+- **P6 通知/后台**:UserNotifications 临期调度 + BGTaskScheduler 周期同步。
+- **P7 同步对等**:Supabase Swift SDK 接入 → 邮箱 OTP 登录 + 家庭共享 + 邀请深链 + 离线 outbox/merge 全量对齐。
+- **P8 收尾**:数据迁移路径(老用户 SQLite→SwiftData?自评)、TestFlight 部署对齐、退役 Flutter `apps/mobile`。
+
+## 5. 纪律
+
+- 任何子系统落地前先**精读真实 Flutter 源**,SwiftData 字段须与 Drift/Supabase schema **逐字段对齐**,否则破坏同步对等。
+- 每个功能纵切配 Swift Testing 单测;`xcodebuild` 模拟器构建 + 测试作为完成证据。
+- 保持业务逻辑层无 UI 依赖。
+
+## 6. 架构决策记录
+
+- **数据层形态**:域 Codable 值类型(`Ingredient`/`ShoppingItem`/`Recipe`/`MealPlanEntry`/`FoodLogEntry` 等)= JSON 同步对等的唯一真源(逐字段对齐 Flutter toJson/fromJson),SwiftData `@Model` 每表存「该域结构体(Codable 属性)+ 提取查询列(id/householdID/name/expiryDate/loggedAt/isChecked/remoteVersion/deletedAt)」,列恒由结构体派生(`apply()` 封装)。仓库用 `@ModelActor`。弃用 Flutter 的 one-shot hydrate seed(那是 Riverpod build 的权宜)。
+- **legacy 数据**:视为**全新安装**,不读旧 Flutter SQLite/SharedPreferences;数据登录后从 Supabase 同步而来。旧设备本地数据桥接(读旧 Drift)留作 **P8** 待定(同 bundle id 覆盖安装时旧数据仍在,需评估是否丢失未同步的本地 `''` 数据)。
+- **SDK 版本**(P7 接入):supabase-swift `2.47.0`、sentry-cocoa `9.16.1`。
+- **配置注入**:dart-define → gitignored `Secrets.plist`(模板 `Secrets.example.plist`;CI 从 GitHub Secrets 生成);`AppConfig` 对等移植 Dart 校验。
+
+## 7. 进度
+
+- ✅ **P0 测绘**:12 子系统蓝图落成 `docs/swiftui-migration/blueprint/`(每文件含组件细节/Swift 映射/迁移注意/开放问题)。
+- ✅ **P1 脚手架**:`apps/ios` XcodeGen 工程,iOS 26.5 模拟器 BUILD+TEST 绿;装机截图验证(暖奶油主题 + 矢车菊蓝 + 内置 Plus Jakarta/Manrope 字体 + 5 标签自适应导航)。
+- ✅ **P2 设计系统(token)**:FkColor/FkLayout/FkTypography(真实字体 + Dynamic Type)/FkMotion/FkShadow/FkCategoryPalette。复用组件(卡片/徽标/urgency/动效原语)待 P2b。
+- ✅ **配置层**:AppConfig + Secrets 机制 + 7 测试绿。
+- ✅ **P3 数据地基(已验证)**:27 Domain + 15 Persistence Swift 文件,**build + 77 测试全绿**。亲自逐表核对忠实度:FoodCategories(28 别名 + perishable 集)✅、FoodKnowledge(124 条目 + 71 英文名,键/顺序/值**零差异**)✅、quantity formatQuantity(浮点剥离)✅、expiry(四档标签 + urgentWithinDays=2)✅、IngredientIdentity(name 不敏感 / unit 敏感 / 非数值→-1)✅、Ingredient 实体(JSON 键 + 默认值 "1"/"份"/1.0/fresh/fridge)✅。架构=域 Codable 结构体(JSON 真源)+ SwiftData @Model(payloadJSON + 提取列,`apply()` 封装)+ @ModelActor 仓库。
+- ✅ **P5①库存(已验证)**:复用组件(FkCard/FkChip/FkSearchField/FkEmptyState/FkSectionHeader/FkCategoryAvatar/UrgencyBadge/FkStatusStyle/FkCategoryIcon/`.fkPressable`/FkEntrance)+ ModelContainer 接入 + `AppDependencies` DI + `InventoryStore` + Inventory 列表/详情/删 + DEBUG 播种。build + **92 测试**绿,装机截图确认(紧急度排序/存储筛选/分类色/临期标签)。**功能层模式已确立并复用**:View 在 `.task` 从 `@Environment(AppDependencies)` 构建 `@Observable @MainActor Store`,映射/排序/筛选下沉 store,不用裸 @Query;NavigationStack + navigationDestination(item:)。
+- ✅ **P5②购物清单(已验证)**:复用模式**零新增组件**;ShoppingStore + 列表(规范分区/勾选置底划线)+ 勾选/添加表单/滑删 + DEBUG 播种。**107 测试**绿,装机截图确认。修复**播种竞态**:应用级 `.task` 串行播种与视图级 `load()` 抢跑致后播种功能显示空 → 改为各功能 View `.task` 内**先播种后 load**(每功能自洽,无跨功能时序依赖)。
+- ✅ **P5③食谱浏览(已验证)**:内置 `howtocook.json`(851KB,**363/363 零跳过**)+ `LocalRecipeRepository`(actor,decode-once + LossyRecipeArray 容错)+ `FavoritesStore`(UserDefaults KV 模板:可注入 suite + JSON + 防御解码,key `favorite_recipe_ids`)+ RecipesStore(bundled+custom 按 id 去重,custom 胜)+ 列表/分类筛选/搜索/收藏/读详情 + RecipeCard。**130 测试**绿,装机截图确认。注:corpus 内 imageUrl 全 null → 分类色占位图标(AsyncImage 远程路径备用)。
+- ✅ **P5④设置(已验证)**:`KeychainStore`/`SecretStore` 协议(P7 auth token 复用,kSecAttrAccessibleAfterFirstUnlock)+ ReminderSettingsStore/DietaryPreferencesStore(UserDefaults)+ AiSettingsStore(Keychain 存整个 AiSettings)+ SettingsView(提醒开关/忌口编辑器 + FlowLayout/AI 子页)。**150 测试**绿,装机截图(默认值对齐)。注:Swift6 `@isolated(any)` 闭包转换编译器 bug → 改 enum accessor 规避;家庭/备份/通知权限渲染为"即将推出"占位。
+- ✅ **P5⑤Dashboard 首页 + 临期屏(已验证)**:DashboardStore 聚合(`async let` 双 repo,tier 计数/最近临期 cap4/购物未勾)+ 蓝 hero(fkHeroStat + MiniStat 块)+ 临期提醒预览 + ExpiringStore/ExpiringView(按 tier 分区)+ 跨 tab 切换(`onSelectShopping` 闭包改 RootView.selection)。**162 测试**绿,装机截图。**5 tab 全部真实化**。
+- ✅ **P5⑥膳食计划(已验证)**:MealPlanStore 周历(Monday-anchored,weekStart 游标 + 选中日 + 菜品圆点)+ Dashboard `DashboardRoute.mealPlan` 入口 + 食谱选择器复用 RecipesStore + 添加/完成/滑删;id `mp_<ms>`(域类型无 id factory)。**181 测试**绿,装机截图。代理自查修复 `@State` 内静态调用致启动 SIGSEGV(改 `.task` 内 seeding)。新增 `-initialRoute` 快照钩子。
+- ✅ **P4 域逻辑(已验证,核对 ProposalApply 源)**:5 文件 ProposalPlanner/IngredientFactory/IntakeProposalFactory/DeductionProposalFactory/**ProposalApply**;46 对等测试。apply 逻辑原在 Flutter `InventoryNotifier`(provider),抽为纯 `ProposalApply`(可注入 now/idGenerator seam;返回 inventory + appliedIds/consumedDepartures + **SyncIntent**)。**核对确认**:Intake apply 对 mergeInto **重调** resolveMergeTarget 比对演进 inventory(-1 退化新行);Deduction 按 id 优先/name 守卫索引解析(歧义→跳过);非数值库存不归零删;formatQuantity;聚合保序;withSyncId/isUuid 移植自 sync_ids。**227 测试**绿。
+- ✅ **P5⑦添加/Intake UI(已验证)**:IntakeController(@MainActor,ProposalApply→saveItems+recordAddition,outbox seam 留 P7)+ AddIngredientView(智能默认)+ AddIngredientForm + IntakeReviewView/Store(通用 `[IntakeProposal]`)+ 新组件(ProvenanceBadge/ProposalActionChip/FkInlineStepper/FkPickerSheet/FkFormField)+ Inventory "+" 入口。flow:manual→单提案;newRow 直接 apply,mergeInto 走审核(确认数量合并)。**240 测试**绿,截图。
+- ✅ **P5⑧做菜→扣减 UI(已验证)**:DeductionController(applyDeductionProposals→saveItems + FoodLog.append consumed,wasExpiring=state≠fresh,outbox seam 留 P7)+ DeductionReviewStore/View(候选 picker/扣减量/缺货跳过/原子 apply)+ RecipeDetail `.safeAreaInset` "做菜" CTA + AppDependencies 暴露 foodLogRepository。**250 测试**绿,截图(油→酱油 模糊匹配)。**库存增减闭环补齐**。
+- ✅ **P5⑨减废统计(已验证)**:删除追问(吃完 consumed/扔掉 wasted,InventoryStore.remove(_:outcome:) + undo 用 **point-deleteEntry**)+ WasteInsightsStore(用掉率/0 guard + 分类聚合 + 窗口)+ WasteInsightsView(hero 用掉率 + Swift Charts 分类条形 + 窗口 chip)+ Dashboard 入口 + FoodLogSeeder。**263 测试**绿,截图(本月 83%)。做菜/删除双路喂日志,无重复计数。**本地 MVP 9 屏 + 增删闭环完整。**
+- ✅ **P7-auth(同步地基,已验证)**:Supabase Swift SDK **2.47.0 在 Xcode26.5/Swift6/iOS26 解析+编译干净零 workaround**(全 6 模块)+ AuthService(@Observable @MainActor 状态机 `.localOnly/.signedOut/.codeSent/.signedIn`;邮箱 6 位 OTP verifyOTP 双类型 `.email`→`.signup` 回退,非 magic-link;AuthBackend 协议 seam 不漏 SDK 进可测层;SDK KeychainLocalStorage 自管会话)+ SupabaseClientProvider(单 client,nil=local-only)+ LoginView(设置进入)。**build + 275 测试绿**,装机截图确认 local-only 渲染。⚠️ 无真实 creds 无法验活登录(门槛=SDK 解析+编译+单测+UI 渲染,已全过)。household 数据同步引擎是当前切片。
+- ✅ **P7-sync(household 同步引擎,结构完整,见下 6 子项)**:复用已验证的 `SupabaseClientProvider.client` + `AuthBackend` + `SyncOperation`/`SyncOutboxRecord`/`SyncOutboxRepository`(loadPending/enqueue/removeAcknowledged/replaceAll)+ `ProposalApply.SyncIntent` + 域模型三元组(remoteVersion/clientUpdatedAt/deletedAt)。分层:**纯核心**(MergePolicy 三向合并/RemoteRowCodec 列表+payload/SyncRetryPolicy/SyncCoordinator 单飞+尾随重跑/LocalUploadScope/InviteToken/Household DTO,全可单测无需 creds)→ **SDK 层**(RemotePantryRepository 表 CRUD+RPC+Realtime/SupabaseSyncGateway 乐观并发推送/HouseholdContentSyncCoordinator 代差守卫/SyncSession 根 @Observable)→ **集成**(SyncWriter 接入 Intake/Deduction/Inventory/Shopping 控制器把 SyncIntent 真正入 outbox + 家庭管理 UI)。
+  - ✅ **纯核心层(已验证,356 测试绿)**:5 模块并行编写 + 逐个对抗式 parity 核对(对照 Dart 源),工作流 `fresh-pantry-sync-core`。落盘 `Sync/{MergePolicy,RemoteRowCodec,SyncRetryPolicy,SyncCoordinator,LocalUploadScope,InviteToken,Household/HouseholdModels}.swift` + 8 测试文件(81 新测试)。RemoteRowCodec/SyncCoordinator parity 零差异确认。**修复 2 parity bug**:① MergePolicy 用 `jsonEqual` 桥接 int/double(Dart `2==2.0` 真,Swift 合成 `==` 假→quantity/freshness_percent 误报冲突;仅遥测不损数据);② InviteToken 路径段补 `removingPercentEncoding` + 形状正则改 `\A…\z`(ICU `$` 匹配尾换行→`hash` 会哈希错位)。+ Column/RowMap 闭包补 `@Sendable`(Swift6 static let)+ 协调器尾随重跑测试改自旋至静默。**留置的 minor**:conflictFields 顺序(纯遥测,Dart 插入序 vs Swift 字典无序皆不对齐)、DTO 字符串字段类型不匹配 Swift 更宽松(列恒 text/uuid)、JSONDate 去空白属全局共享行为不为此改。抽象协议 `RemoteSyncGateway`/`OutboxReading` 已声明待 SDK 层 conform。
+  - ✅ **SDK 引擎层(已验证,370 测试绿)**:工作流 `fresh-pantry-sync-sdk` 4 模块并行编写 + parity+编译审查(对照 Dart 源 + 直读已解析 SDK 源验 API)。落盘 `Sync/{SyncJSONBridge(JSONValue⟷AnyJSON 无损桥,.int⟷.integer),SupabaseSyncGateway(actor:RemoteSyncGateway,FIFO 首错即停+版本乐观锁+_resolveContendedWrite 3 重试用 MergePolicy+软删),RemotePantryRepository(actor,表 load(is null 过滤)+upsert(ignoreDuplicates)+10 RPC 精确参数名+4 路 Realtime postgresChange 每事件重取全集+createHousehold/createInvite),SyncSession(@Observable @MainActor,选中家庭+稳定 per-install clientId 非 local-client),SyncOutboxRepository+OutboxReading}.swift` + 2 测试。SupabaseSyncGateway 因子代理瞬时 socket 失败由我亲自补写(byte-faithful Dart)。**关键 SDK API**:update 默认 `returning:.representation`→直接 `.execute().value` 取被改行**不能链 `.select()`**;`Int:PostgrestFilterValue`;无 maybeSingle 用 `.limit(1).first`;`AnyJSON.integer`。首次集成构建即 BUILD SUCCEEDED 零修。留 1 非阻断 deprecation:`channel.subscribe()`→可换 `subscribeWithError`。
+  - ✅ **集成层①写出路径(已验证,374 测试绿)**:聚焦代理 + 我独立 build/test 验证。新建 `Sync/SyncWriter.swift`(@MainActor,每变更点入 outbox + 踢合并推送;本地优先 no-op:空家庭/空 entityId 跳过,对齐 Dart enqueueSync)+ `DomainJSON.valueMap`(域行 Codable→`[String:JSONValue]` patch)。AppDependencies 装配 syncSession(根)/syncOutboxRepository/remotePantryRepository?/syncCoordinator?/syncWriter(有 client 时 gateway→coordinator→writer;local-only writer 带 nil coordinator);**`householdID` 改计算属性由 syncSession 派生(单一真源)**;apiBaseURL honored。FreshPantryApp 建根 SyncSession 注入 `.environment`。接通 Intake/Deduction 控制器 OUTBOX SEAM(从 syncIntents+结果行构 patch,delete 取 consumedDepartures)+ InventoryStore delete/remove(.delete)/undoRemove(.update 反删)+ ShoppingStore add(.create)/toggleChecked + MealPlanStore addDish/toggleDone/remove,6 构造点穿 syncWriter(DashboardStore/ExpiringStore 只读不接)。全部新增参数可选默认,零破坏既有测试。**写出路径接通但因尚无家庭选择 UI,enqueue 实际仍 no-op(待 UI 切片激活)。**
+  - ✅ **集成层②a读入路径(已验证,384 测试绿)**:聚焦代理 + 我独立 build/test 验证。新建 `Sync/HouseholdContentSyncCoordinator.swift`(actor,代差守卫):syncTo(id) 序列=load scope→upload-local-only(按 isLocalOnly 谓词+LocalUploadScope 过滤防跨家庭泄漏)→push.pushPending→subscribe 4 路 Realtime→bulk pull→apply;每个 async 落点过 `isCurrent(gen,householdId)`;apply 内重载 scope+local(随时演进)→merge→saveX→signalMerge 跳 MainActor bump revision;Realtime 错误由非抛出 AsyncStream 吞掉,全程 try?/do-catch-log 不崩。新建纯 `Sync/HouseholdMergePolicy.swift`(remote 为准 + 保留 isLocalOnly 的本地独有行,谓词被协调器 upload 复用单一真源)+ 10 单测。`DomainJSON.fromValueMap`(map→model);SyncSession 加 `dataRevision`+`bumpDataRevision()`;AppDependencies 加 `householdContentSync?`;RootView `.task(id: selectedHouseholdId)` 驱动 syncTo + `.onChange(scenePhase==.active)` 排空 outbox;5 功能视图 `.onChange(dataRevision)` 重载。**写入+读出双向引擎结构完整。**
+  - ✅ **集成层②b家庭管理 UI(已验证,394 测试绿)**:聚焦代理 + 我独立 build/test 验证。新建 `Features/Household/HouseholdSessionStore.swift`(@Observable @MainActor,Dart HouseholdSessionController 端口:households/members/invitePreview/selectedHousehold/isOwnerOfSelected + refreshHouseholds 代差守卫/createHousehold(+adoption 把 '' 四作用域本地数据迁入新家庭 scope 再由协调器上传,仅创建)/previewInvite/acceptInvite(仅切换不 adopt)/createInvite/loadMembers/removeMember/leave/dissolve→Bool/switchHousehold 乐观+回滚/updateHouseholdName;**设根 SyncSession.selectedHouseholdId 即激活**)+ `Features/Household/HouseholdView.swift`(四态:未配置后端空态/未登录提示接 LoginView/无家庭→建+入(粘贴邀请预览统计)/已在家庭→改名+成员列表(owner 可移除)+ShareLink 邀请+多家庭切换+离开/解散确认;暖色设计系统)+ 10 单测(adoption 迁移+清 ''、UUID 保留/非 UUID 重铸、选择规则)。SettingsView accountSection 加「家庭共享」入口。owner 判定按成员列表 email(AuthService 只暴露 email)。
+- ✅ **P7-sync household 同步对等结构完整(394 测试全绿)**:认证(OTP)→纯核心→SDK 引擎→写出路径→读入路径→家庭 UI 全链路移植 + build 验证。乐观锁/软删/FIFO 首错即停/3 重试合并/代差守卫/防跨家庭泄漏/本地优先 no-op 等 parity 不变量逐条对齐 Flutter。**唯一未做=实活联调(需真实 Supabase URL/Key 填入 gitignored Secrets.plist,仅用户可提供;我无凭据只能 build+单测验证)。** 余下 P7:背景同步(BGTaskScheduler `fresh_pantry.periodic_sync`,归 P6 通知/后台切片)。
+- ✅ **P6 通知/后台(已验证,404 测试绿,10 新 ExpiryScheduler 测试)**:聚焦代理 + 我独立 build/test 验证。新建 `Services/{ExpiryScheduler(纯,逐字对齐 Dart:本地 9:00 调度+[7,3,1] 顺序+跳过期+idFor 确定性 int32 哈希 UTF-16 码元 `(h*31+c)&0x7fffffff` 避让 id 1),NotificationService(@MainActor 包 UNUserNotificationCenter,权限/schedule/syncAll 守 64 上限/String(id) 标识),ScheduledNotificationIdsRepo(UserDefaults 存 previousIds),NotificationCoordinator(@MainActor reschedule:载库存+设置→compute→syncAll→存 id)}` + 10 测试。AppDependencies 装 notificationCoordinator;RootView ScenePhase .active+launch 重排;SettingsView 提醒区加 NotificationPermissionRow(请求权限+每次开关变更重排)。**后台同步**:FreshPantryApp `.backgroundTask(.appRefresh("fresh_pantry.periodic_sync"))` 排空 outbox+重排 BGAppRefreshTaskRequest(+15min,try? 守);Info.plist BGTaskSchedulerPermittedIdentifiers+UIBackgroundModes 已就位(P1 脚手架已含)。**P7 后台 flush 收尾。**
+- ✅ **自定义食谱编辑(已验证,419 测试绿,15 新)**:聚焦代理 + 我独立 build/test 验证。新建 `Features/Recipes/{CustomRecipeStore(@Observable CRUD:load/add/update/remove,各自入 outbox customRecipe create(baseVersion nil)/update(=remoteVersion)/delete(patch=被删行,网关派生 deleted_at);失败返 false+errorMessage 不半写;无家庭 SyncWriter no-op),CustomRecipeDraft(纯可测 validate()→[Field:String]+buildRecipe,**新建 id=lowercased UUID 非 custom_<ms> 保证干净同步**,编辑保留 id/tags/三元组),CustomRecipeFormView(基础信息/食材/步骤大表单,FkCard/FkFormField/FkChip/FkPickerSheet,内联错误+滚动到首错+脏数据丢弃确认)}` + `Domain/Rules/RecipePresets.swift`(食谱域分类/时长/单位预设,独立于 FoodCategories)+ 15 测试。RecipesView「+」开建表;RecipeDetailView 自定义食谱 toolbar Menu 编辑/删除(确认弹层)。**food customRecipe 写出实体接入,食谱 CRUD 完整。AI URL 导入+封面图留 AI 切片。**
+- ✅ **低库存(常买补货,已验证,426 测试绿,7 新)**:聚焦代理 + 我独立 build/test 验证。新建 `Features/Inventory/{LowStockStore(逐字对齐 lowStockItemsProvider:loadFrequentItems 取 count≥3 且 name trim+lower 不在当前库存,count 降序;selectedNames 默认全选+reload 保留去选;groupedByCategory FoodCategories 顺序),LowStockView(分组+逐项勾选+sticky CTA 一键加购物清单尊重名唯一去重只计真增+FkEmptyState)}` + 7 测试。DashboardStore 加 lowStockCount;DashboardView 加 `DashboardRoute.lowStock` + 入口卡(count>0 才显)+ 复用 onSelectShopping 跨 tab。**Inventory 三件套(库存/临期/低库存)完整。** 注:Swift 无 FkTopBar/FkCheckCircle→用 navigationTitle + 自建勾选圈。
+- ✅ **AI 核心 + 粘贴导入(已验证,469 测试绿,43 新)**:聚焦代理 + 我独立 build/test 验证。新建 `Services/{AiBaseURL(normalizeAiBaseUrl 归一化用户粘贴的 host/v1/chat-completions),AiJSONExtract(围栏非贪婪+内联贪婪正则提取 JSON 数组/对象→[JSONValue]/[String:JSONValue]),AiClient(AiError enum notConfigured/network/auth/parse/cancelled 逐字中文 message+AiContent/AiMessage 单 text 折叠为纯串;chat(session 注入)逐字对齐 Dart 状态码分支 401/403/429/≥500/404 提示/非200 截 120/200→choices[0].message.content),AiIngredientParser(AiChatFn @Sendable 注入解耦纯可测;fromText 修剪/5000 截断/逐字提示词;parseList 跳坏/空名,默认值,shelfLifeDays≤0→nil)}` + `Features/Inventory/{PasteImportStore(text→parser→IntakeProposalFactory.fromDrafts;chatFn 注入默认 AiClient.chat),PasteImportView(TextEditor+解析 sheet 驱动现有 IntakeReviewView,isConfigured 门控)}`。AddIngredientView 加「AI 解析文本」入口。**复用现有 IntakeReview+IntakeController(同步入 outbox)不重复 apply。** 43 测试(stub URLProtocol 验错误映射+纯解析器+工具,无需真实 key;AiClientTests @Suite(.serialized) 避 URLProtocol 进程级静态竞态)。vision/图片+食谱 URL 导入留后续切片(userWithImage/.imageURL 类型已定未用)。
+- ✅ **AI 食谱 URL 导入(已验证,518 测试绿,49 新)**:聚焦代理 + 我独立 build/test 验证。新建 `Services/{RecipePageFetcher(站点门控 isSupportedRecipeHost/ensureRecipeUrl 双处强制 lanfanapp/xiachufang 子域名放行仿冒拒绝;fetchText HTML→文本+封面图/ld+json 抽取+80000 截断+Safari UA+20s),AiRecipeParser(fromUrl 逐字提示词;requireString/Int+clamp difficulty 1-5/cookingMinutes≤0→30;malformed 食材跳过;{"error"}→AiError.parse)}` + CustomRecipeFormView 顶部「AI 导入」banner(仅新建,门控 isConfigured)+ CustomRecipeDraft.init(parsed:)+splitAmount(数字前缀+已知单位白名单,对齐 Dart 防 junk 单位)。49 测试(fake chatFn+fake fetcher 无网络/key;URLProtocol 套件 @Suite(.serialized))。imageUrl 暂不入表(无封面字段,随封面图选择器留后)。**AI 文本解析+食谱导入双路完成。**
+- ✅ **AI 图片识别(已验证,522 测试绿,4 新)**:聚焦代理 + 我独立 build/test 验证。`AiIngredientParser.fromImage`(base64 data URL+逐字视觉提示词,复用现有 parseList)+ PasteImportStore.parseImage(抽共享 run(emptyMessage:parse:),文本/图片同驱动 proposals/isParsing/errorMessage 零重复)+ `Features/Inventory/ImageImportView.swift`(PhotosUI.PhotosPicker 相册非相机,ImageIO 缩略图降采样 max1024/q0.7 保 EXIF,isConfigured 门控,复用 IntakeReviewView)+ AddIngredientView「拍照/相册识别」入口。无需新 Info.plist key。4 测试(fake chatFn 验 image_url data URL payload)。**AI 集群(文本/图片食材识别 + 食谱 URL 导入)完成。**
+- ✅ **OpenFoodFacts 营养(已验证,548 测试绿,26 新)**:聚焦代理 + 我独立 build/test 验证。新建 `Services/{FetchWithRetry(GET+重试 8s/1 次/500ms),OpenFoodFactsService(逐字移植 lookupDetails barcode→name 双路+searchalicious 回退+~50 条 categoryMapping 首匹配+bestProduct 质量分 image80/completeness30/name 匹配+productToFoodDetails+searchTermsFor 含 FoodKnowledge 英文名+isPlaceholderFoodDescription),FoodDetailsClient(协议+OpenFoodFactsDetailsClient)}` + `Persistence/Repositories/FoodDetailsRepository(@ModelActor 缓存,cacheVersion 不符即未命中 invariant#9)` + `Features/Inventory/{FoodDetailsStore(@Observable 缓存优先→未命中查网 idle/loading/loaded/notFound/error),NutritionCard(FkCard per-100g 能量/蛋白/碳水/脂肪)}`。AppDeps 装 foodDetailsRepository+foodDetailsClient(恒建无需 key);IngredientDetailView 自动查(.task 缓存优先,命中免费、未命中查一次)渲染 OFF 产品卡+营养卡。复用现有 NutritionFacts.fromOffNutriments。26 测试(stub URLProtocol 验查询/选优/分类/营养/缓存)。条码相机扫描需真机留后。
+- ✅ **同步 id 修正(已验证,548 测试绿)**:ShoppingItem.newId + MealPlanStore.newId 从 `si_<ms>`/`mp_<ms>` 改为 **lowercased UUID**(同库存 withSyncId / 自定义食谱已修正模式)。根因:非 UUID 本地 id 上传时 applyLocalId 略过→DB 生成不同 UUID→本地行被当独有重复加;UUID-at-creation 保证 local id==remote id 干净对账。3 个断言旧前缀的测试改为断言 `ProposalApply.isUuid`。FoodLogEntry `fl_<ms>` 不同步,留。
+- ✅ **数据备份/恢复(已验证,567 测试绿,19 新)**:聚焦代理 + 我独立 build/test 验证。新建 `Domain/Models/BackupData.swift`(inventory/addHistory/shopping/customRecipes/mealPlan/aiSettings?,排除 food-details 缓存)+ `Services/BackupService.swift`(纯 enum,backupVersion=2,encode 信封{version/exportedAt ISO8601 UTC/data},2 空格美化+sortedKeys;decode 严格校验 version==2 否则 BackupError.version、root/data 非对象→.format、严格 int 版本拒 bool/double/string;**解码先于写防部分覆盖** invariant#8)+ `Features/Settings/{BackupController(@MainActor 读/写各仓库),BackupView(导出 ShareLink temp 文件+导入 fileImporter+覆盖确认弹层+BackupError 中文映射+成功 bump dataRevision 刷新)}`。SettingsView「数据备份」从 ComingSoonRow 改 NavigationLink。19 测试(往返全字段+aiSettings 有无+addHistory 逐字+9 条严格拒)。
+- ✅ **食谱封面图 + 条码扫描(已验证,577 测试绿,10 新)**:聚焦代理 + 我独立 build/test 验证。**封面图(完全可验)**:`Services/RecipeCoverStore`(PhotosUI 选图→ImageIO 降采样 max1024/q0.7→持久化 `…/Application Support/RecipeCovers/<id>.jpg`→返 `file://` absoluteString;远程封面不上传字节,file:// 路径随 payload 同步但他端不解析=Flutter 同限)+ CustomRecipeDraft 加 imageUrl(init(recipe:)/init(parsed:) AI 远程封面/buildRecipe 贯通)+ CustomRecipeFormView「封面图片」区(选/换/移除,AsyncImage 兼 file://+http)。6 测试。**条码(可编译需真机)**:`Features/Inventory/BarcodeScannerView`(VisionKit DataScannerViewController,isScanningAvailable=isSupported&&isAvailable 守卫,模拟器降级「请在真机使用」不崩)+ AddIngredientView「扫码添加」(不可用显「需真机」)→ OFF lookupDetails(barcode)→ 预填现有表单(nil→仅置 barcode+「未找到」);AddIngredientForm 加 barcode 字段+纯 prefill(from:barcode:)；IntakeProposal/ProposalApply 加 barcode 可选字段(新行携带,合并不覆盖)。4 测试。Info.plist 相机/相册 key 已存无需改。
+- ✅ **SwiftUI 重写功能实质全部完成(577 测试 / 51 套件,本会话 263→577)**:所有 21+ Flutter 屏 + 整个家庭共享同步子系统 + 完整 AI 集群(文本/图片食材识别+食谱 URL 导入)+ P6 通知后台 + OFF 营养 + 备份恢复 + 封面图/条码,全部 build + 单测独立验证,18 增量零返工。
+- ✅ **同步子系统端到端对抗式加固(已验证,578 测试绿)**:实活联调前去风险。工作流 `fresh-pantry-sync-hardening-review` 5 只读审查者各追一端到端流(写出/读入/家庭 adoption/乐观并发/id+编解码)对照 Dart+10 不变量+triage 去重。**结论:子系统整体稳健**;14 原始发现 triage 核实 3 真修复、其余有据误报丢弃(含"软删缺失"误报——Swift watch 经 loadX 在 SQL 源 `.is(deleted_at,nil)` 过滤,软删正确传播)。**我直接修 3 处+加回归测试**:①**critical** ShoppingStore.delete 漏 `.delete` 入队→补+回归测试 `deleteEnqueuesSoftDeleteSyncOp`;②**major** uploadLocalOnly 上传后标记 remoteVersion=1+保存(关闭上传↔拉取间编辑丢失窄窗,镜像 Dart _markLocalXUploaded);③**major** watch refetch 改可选,失败跳过 yield(瞬时抖动不再清空本地已同步行)。build+578 绿。
+- ✅ **凭据接通 + 后端契约验证(2026-06-09,我经 Supabase MCP 自取)**:Supabase 项目 `fresh_pantry` ref `nkugeupizmphbeicykpj`(ACTIVE_HEALTHY),URL+publishable key 已写入 gitignored `Secrets.plist` 并重新构建。装机截图确认登录屏从「未配置后端·本地模式」**变为真实邮箱登录表单(发送验证码)**——凭据端到端接通,app 进入认证模式。**后端契约逐项核对匹配**:public schema 9 表全 RLS 启用(profiles/households/household_members/household_invites/inventory_items/shopping_items/custom_recipes/sync_events/meal_plan_entries)+ 10 个 RPC 名称/参数与移植的 RemotePantryRepository **逐字一致**(accept_household_invite[_by_id]/preview/list_pending/list_owner_pending/list_household_members/remove_household_member/revoke/leave/dissolve)。**已有真实数据可验拉取**:households 1/inventory_items 37/shopping_items 39/custom_recipes 1/meal_plan_entries 3。
+- ✅ **端到端实活同步验证成功(2026-06-09,用户授权后我自动完成)**:用邮箱 OTP 登录(kunish.butt@gmail.com,你的账号——you.rate.me 不属任何家庭+OTP 发往读不到的邮箱,故改用同人的 kunish.butt,是「我的家庭」成员且 Gmail MCP 可读其验证码)。流程:debug 登录钩子发 OTP→从你 Gmail 读 6 位码(自定义 SMTP mail@kunish.eu.org)→verifyOTP 登录(Supabase auth 日志确认 /verify 200)→**截图确认库存 tab 从本地播种数据变为「我的家庭」的 7 件真实库存(菜籽油/醋/白糖/盐/味精/老抽/鸡精,全部·7 冰箱·3 食品柜·4,与后端逐项精确匹配)**。**整个家庭共享同步(OTP 登录+会话+家庭选择+JWT 鉴权查询+数据拉取+UI 渲染)端到端跑通。**
+  - **实活验证暴露并修复 6 个真实 bug(均 build/单测无法捕获,只在真实 auth/sync 下现形)**:① 功能视图 store 不随 householdID 重建(登录后同步数据不显示)→`.task(id: householdID)` 重建 + 播种仅给 "" 个人作用域;② 会话未在 app 根恢复(restore() 只在 LoginView)→RootView 加根级 restore;③ `restoreSessionEmail` 用同步 `currentSession`(启动瞬间为 nil)→改 `await auth.session`;④ 登录后未自动选家庭(Flutter AuthGate 行为)→RootView `.task(id: signedInEmail)` 自动 refreshHouseholds;⑤ **根因** `KeychainLocalStorage` 在未签名模拟器 build 无法持久化会话→`auth.session` 解析失败→SDK 的 `adapt()` 用 `try? await getAccessToken()` **静默退回 anon key**→RLS 返回空 households→选不到家庭。修:模拟器(`#if targetEnvironment(simulator)`)用 `UserDefaultsAuthStorage`,真机仍 `KeychainLocalStorage`(加密);⑥ 防御性 `ensureSessionReady()`(首次鉴权查询前 await 会话就绪)。诊断手段:os_log AUTOSELECT(sessionReady/households/selectedId)+ Supabase MCP api/auth/postgres 日志 + RLS 模拟 + 直查 households 行核对解码。**579 测试仍绿。** debug 登录钩子 `-debugAuthEmail/-debugAuthVerify/-debugAuthCode`(DEBUG+launch-arg 门控)保留供后续自动化。
+- ⬜ **真正余下**:① 退役 Flutter `apps/mobile`(同步对等已实活验证,可进行——但建议保留至充分回归);② 条码相机扫描真机验证(需设备)。**SwiftUI 重写功能完整 + 同步实活验证通过 = 迁移实质达成。**
+- ⬜ 待办跟踪:`Ingredient` 未 Hashable(详情用 InventoryRoute 包装,后续考虑集中加 Hashable);仓库 FetchDescriptor 无序(显示排序兜底,P7 同步需评估是否加 order 列保插入序不变量①);urgency 标签本切用 临期/紧急,Flutter 原文是 即将过期/快过期(后续按真实 UI 校准)。
+- ⬜ 下一步:P5 余下(添加/Intake+P4 proposal→食谱(含 howtocook.json 资源)→膳食→减废→设置→Dashboard)→ P6 通知/后台 → P7 Supabase 同步对等 → P8 legacy/退役 Flutter。**注:功能代理须串行(各自跑 xcodegen+xcodebuild,并行会撞构建);或用 worktree 隔离。**
+
+_构建命令:_
+```bash
+cd apps/ios && xcodegen generate
+xcodebuild build -project FreshPantry.xcodeproj -scheme FreshPantry \
+  -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+  CODE_SIGNING_ALLOWED=NO
+```
