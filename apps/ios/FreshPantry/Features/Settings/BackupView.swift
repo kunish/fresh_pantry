@@ -16,6 +16,11 @@ struct BackupView: View {
     /// The export blob written to a temp file, ready to share. Rebuilt on demand.
     @State private var exportFile: BackupFile?
     @State private var exporting = false
+    /// The in-flight export task, cancelled when the screen goes away — an export
+    /// is pure read work, useless once nobody is there to share it. The import
+    /// task is deliberately NOT tracked: cancelling a half-applied import would
+    /// strand partially-written data, so it must run to completion.
+    @State private var exportTask: Task<Void, Never>?
 
     @State private var importing = false
     /// The backup JSON awaiting the overwrite confirmation — sourced from EITHER a
@@ -61,6 +66,7 @@ struct BackupView: View {
         } message: {
             Text("导入将覆盖本机当前的库存、采购、食谱、膳食计划等数据,确定继续?")
         }
+        .onDisappear { exportTask?.cancel() }
     }
 
     // MARK: 导出
@@ -108,10 +114,11 @@ struct BackupView: View {
         guard let controller else { return }
         exporting = true
         status = nil
-        Task {
+        exportTask = Task {
             defer { exporting = false }
             do {
                 let json = try await controller.exportBackup()
+                guard !Task.isCancelled else { return }
                 exportFile = try BackupFile.write(json)
             } catch {
                 status = .failure("导出失败,请重试")
@@ -125,10 +132,11 @@ struct BackupView: View {
         guard let controller else { return }
         exporting = true
         status = nil
-        Task {
+        exportTask = Task {
             defer { exporting = false }
             do {
                 let json = try await controller.exportBackup()
+                guard !Task.isCancelled else { return }
                 UIPasteboard.general.string = json
                 let bytes = json.data(using: .utf8)?.count ?? 0
                 status = .success("已复制 \(bytes) 字节,粘贴到备忘录/邮件即可保存")

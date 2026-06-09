@@ -68,6 +68,7 @@ private struct MealPlanContent: View {
     @State private var shoppingStore: ShoppingStore?
     @State private var isAddingMissing = false
     @State private var toast: String?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var missingNames: [String] {
         MealPlanMissing.missingIngredientNames(
@@ -171,7 +172,9 @@ private struct MealPlanContent: View {
                 .transition(.move(edge: .top).combined(with: .opacity))
                 .task(id: toast) {
                     try? await Task.sleep(for: .seconds(2))
-                    if !Task.isCancelled { withAnimation { self.toast = nil } }
+                    if !Task.isCancelled {
+                        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { self.toast = nil }
+                    }
                 }
         }
     }
@@ -207,7 +210,7 @@ private struct MealPlanContent: View {
             let category = FoodKnowledge.lookup(name)?.category
             if await shoppingStore.add(name: name, category: category) { added += 1 }
         }
-        withAnimation {
+        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
             toast = added > 0 ? "已加入 \(added) 样食材到购物清单" : "缺的食材都已在购物清单中"
         }
     }

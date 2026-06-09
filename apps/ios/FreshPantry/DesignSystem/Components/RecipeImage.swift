@@ -119,7 +119,9 @@ enum RecipeImageStore {
 
     /// Decodes + downsamples via ImageIO (handles jpeg/png/webp). Falls back to a
     /// plain `UIImage(data:)` decode if the source can't produce a thumbnail.
-    private static func downsample(_ data: Data) -> UIImage? {
+    /// Internal so `RemoteThumbnailStore` (avatar-sized remote food images) shares
+    /// the same decode path instead of growing a third ImageIO copy.
+    static func downsample(_ data: Data, maxPixel: Int = maxPixel) -> UIImage? {
         guard let imageSource = CGImageSourceCreateWithData(data as CFData, nil) else {
             return UIImage(data: data)
         }

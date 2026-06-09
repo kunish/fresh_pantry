@@ -102,6 +102,7 @@ struct InventoryView: View {
 private struct InventoryContent: View {
     @Bindable var store: InventoryStore
     let shoppingStore: ShoppingStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var selectedIngredient: Ingredient?
     @State private var showClearConfirm = false
@@ -298,7 +299,9 @@ private struct InventoryContent: View {
             .transition(.move(edge: .bottom).combined(with: .opacity))
             .task(id: undo.id) {
                 try? await Task.sleep(for: .seconds(5))
-                if !Task.isCancelled { withAnimation { batchUndo = nil } }
+                if !Task.isCancelled {
+                    withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { batchUndo = nil }
+                }
             }
         }
     }
@@ -339,7 +342,7 @@ private struct InventoryContent: View {
         let undo = await store.deleteMany(selectedItems)
         exitSelection()
         if let undo {
-            withAnimation { batchUndo = undo }
+            withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { batchUndo = undo }
         }
     }
 
@@ -353,7 +356,7 @@ private struct InventoryContent: View {
         }
         let count = selectedKeys.count
         exitSelection()
-        withAnimation {
+        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
             toast = added > 0 ? "已添加 \(added)/\(count) 项到购物清单" : "所选食材已在购物清单中"
         }
     }
@@ -365,7 +368,7 @@ private struct InventoryContent: View {
         let count = selectedKeys.count
         let ok = await store.mergeBatch(selectedItems)
         exitSelection()
-        withAnimation {
+        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
             toast = ok ? "已合并 \(count) 个批次" : "合并失败"
         }
     }
@@ -519,14 +522,16 @@ private struct InventoryContent: View {
                 .transition(.move(edge: .top).combined(with: .opacity))
                 .task(id: toast) {
                     try? await Task.sleep(for: .seconds(2))
-                    if !Task.isCancelled { withAnimation { self.toast = nil } }
+                    if !Task.isCancelled {
+                        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { self.toast = nil }
+                    }
                 }
         }
     }
 
     private func addToShopping(_ item: Ingredient) async {
         let added = await shoppingStore.add(name: item.name, category: item.category)
-        withAnimation {
+        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
             toast = added ? "已将「\(item.name)」加入购物清单" : "「\(item.name)」已在购物清单中"
         }
     }

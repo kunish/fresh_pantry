@@ -246,7 +246,16 @@ actor RemotePantryRepository {
                     table: table,
                     filter: .eq("household_id", value: hid)
                 )
-                await channel.subscribe()
+                do {
+                    try await channel.subscribeWithError()
+                } catch {
+                    // Realtime is an accelerator, not the source of truth (the
+                    // bulk pull + outbox still reconcile) — log and fall through:
+                    // the stream just never yields, and a channel failure never
+                    // crashes (invariant #9). Same behavior the deprecated
+                    // error-swallowing `subscribe()` had, minus the silence.
+                    log.error("Realtime subscribe failed: \(channelName, privacy: .public) \(error.localizedDescription, privacy: .public)")
+                }
 
                 for await _ in changes {
                     if Task.isCancelled { break }

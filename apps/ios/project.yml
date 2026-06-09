@@ -110,3 +110,24 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kunish.freshPantry.tests
         GENERATE_INFOPLIST_FILE: YES
+
+# 显式共享 scheme:本地与 CI 都用 `-scheme FreshPantry`。此前依赖 Xcode GUI 打开时
+# autocreate 的 user scheme,`xcodegen generate` 重建工程后即丢失("contains no
+# schemes"),命令行构建/测试无 scheme 可用 — 显式声明保证每次生成都可复现。
+schemes:
+  FreshPantry:
+    build:
+      targets:
+        FreshPantry: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - FreshPantryTests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

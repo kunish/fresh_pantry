@@ -32,6 +32,10 @@ actor HouseholdContentSyncCoordinator {
     private var generation = 0
     /// The four realtime-subscription tasks; cancelled + cleared on switch/stop.
     private var subscriptionTasks: [Task<Void, Never>] = []
+    /// The in-flight `startSync` task. The generation guard already drops a stale
+    /// run's writes; cancelling it as well stops the stale run's remaining network
+    /// calls instead of letting them run to completion.
+    private var syncTask: Task<Void, Never>?
 
     init(
         remote: RemotePantryRepository,
@@ -63,7 +67,7 @@ actor HouseholdContentSyncCoordinator {
         let gen = generation
         cancelSubscriptions()
         if householdId.isEmpty { return }
-        Task { await startSync(householdId, gen) }
+        syncTask = Task { await startSync(householdId, gen) }
     }
 
     /// Cancels all realtime subscriptions and stops reconciliation. Used on app
@@ -109,6 +113,8 @@ actor HouseholdContentSyncCoordinator {
             await applyShoppingRows(shoppingRows, householdId, gen)
             await applyCustomRecipeRows(recipeRows, householdId, gen)
             await applyMealPlanRows(mealPlanRows, householdId, gen)
+        } catch is CancellationError {
+            // A household switch / stop cancelled this run — not an error.
         } catch {
             Self.logger.error("while syncing household content: \(error.localizedDescription, privacy: .public)")
         }
@@ -310,6 +316,8 @@ actor HouseholdContentSyncCoordinator {
     }
 
     private func cancelSubscriptions() {
+        syncTask?.cancel()
+        syncTask = nil
         for task in subscriptionTasks { task.cancel() }
         subscriptionTasks.removeAll()
     }

@@ -907,7 +907,7 @@ struct CustomRecipeFormView: View {
         case .steps:
             anchor = .steps
         }
-        withAnimation {
+        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
             proxy.scrollTo(anchor, anchor: .top)
         }
     }

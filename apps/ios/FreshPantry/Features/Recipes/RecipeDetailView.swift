@@ -17,6 +17,7 @@ struct RecipeDetailView: View {
 
     @Environment(AppDependencies.self) private var dependencies
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// Built when "做菜" is tapped (inventory loaded → proposals via the factory),
     /// then presented as a review sheet. nil while idle. Wrapped because a bare
     /// array isn't `Identifiable` for `.sheet(item:)`.
@@ -187,7 +188,9 @@ struct RecipeDetailView: View {
                 .transition(.move(edge: .top).combined(with: .opacity))
                 .task(id: toast) {
                     try? await Task.sleep(for: .seconds(2))
-                    if !Task.isCancelled { withAnimation { self.toast = nil } }
+                    if !Task.isCancelled {
+                        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { self.toast = nil }
+                    }
                 }
         }
     }
@@ -320,6 +323,10 @@ struct RecipeDetailView: View {
         if !recipe.ingredients.isEmpty {
             let hasInventory = !inventoryNames.isEmpty
             let matched = RecipeMatching.matchedCount(inventoryNames, recipe)
+            // Bind the derived lists once — the rows, separator count, and the
+            // add-missing button all share a single evaluation per render.
+            let ingredients = scaledIngredients
+            let missingCount = missingIngredients.count
             VStack(alignment: .leading, spacing: FkSpacing.sm) {
                 HStack {
                     FkSectionHeader(title: "食材清单", count: recipe.ingredients.count)
@@ -335,16 +342,16 @@ struct RecipeDetailView: View {
                 }
                 FkCard(padding: 0) {
                     VStack(spacing: 0) {
-                        ForEach(Array(scaledIngredients.enumerated()), id: \.offset) { index, ingredient in
+                        ForEach(Array(ingredients.enumerated()), id: \.offset) { index, ingredient in
                             ingredientRow(ingredient, hasInventory: hasInventory)
-                            if index < scaledIngredients.count - 1 {
+                            if index < ingredients.count - 1 {
                                 Rectangle().fill(Color.fkHair).frame(height: 0.5)
                             }
                         }
                     }
                 }
-                if hasInventory, !missingIngredients.isEmpty {
-                    addMissingButton
+                if hasInventory, missingCount > 0 {
+                    addMissingButton(missingCount: missingCount)
                 }
             }
             .padding(.horizontal, FkSpacing.lg)
@@ -408,14 +415,14 @@ struct RecipeDetailView: View {
     }
 
     /// "加购缺少的 N 件" — adds all missing ingredients to the shopping list.
-    private var addMissingButton: some View {
+    private func addMissingButton(missingCount: Int) -> some View {
         Button {
             Task { await addMissingToShopping() }
         } label: {
             HStack(spacing: FkSpacing.sm) {
                 Image(systemName: "cart.badge.plus")
                     .font(.system(size: 14, weight: .semibold))
-                Text(isAddingMissing ? "加入中…" : "一键加购缺少的 \(missingIngredients.count) 件")
+                Text(isAddingMissing ? "加入中…" : "一键加购缺少的 \(missingCount) 件")
                     .font(.fkLabelLarge)
             }
             .foregroundStyle(Color.fkPrimaryContainer)
@@ -439,7 +446,7 @@ struct RecipeDetailView: View {
             let category = FoodKnowledge.lookup(ingredient.name)?.category
             if await shoppingStore.add(name: ingredient.name, category: category) { added += 1 }
         }
-        withAnimation {
+        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
             toast = added > 0 ? "已添加 \(added) 项到购物清单" : "缺少的食材已在购物清单中"
         }
     }
@@ -452,7 +459,7 @@ struct RecipeDetailView: View {
         guard let mealPlanStore else { return }
         let ok = await mealPlanStore.addDish(recipe: recipe, date: day)
         showPlanPicker = false
-        withAnimation {
+        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
             toast = ok ? "已加入 \(PlanDayPickerSheet.dayLabel(day)) 的膳食计划" : "加入计划失败,请重试"
         }
     }
@@ -496,7 +503,7 @@ struct RecipeDetailView: View {
     private func stepRow(index: Int, number: Int, text: String) -> some View {
         let checked = checkedSteps.contains(index)
         return Button {
-            withAnimation(.easeOut(duration: 0.15)) {
+            withAnimation(FkMotion.animation(.easeOut(duration: 0.15), reduceMotion: reduceMotion)) {
                 if checked { checkedSteps.remove(index) } else { checkedSteps.insert(index) }
             }
         } label: {

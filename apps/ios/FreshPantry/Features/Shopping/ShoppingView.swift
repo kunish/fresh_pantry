@@ -63,6 +63,7 @@ struct ShoppingView: View {
 private struct ShoppingContent: View {
     @Bindable var store: ShoppingStore
     @Environment(AppDependencies.self) private var dependencies
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var isAddingItem = false
     /// Drives the intake-review push; `reviewSource` is the rows sent so the
@@ -175,7 +176,7 @@ private struct ShoppingContent: View {
                             count: section.items.count,
                             collapsed: store.isCollapsed(section.category)
                         ) {
-                            withAnimation(.easeOut(duration: 0.18)) { store.toggleCollapsed(section.category) }
+                            withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { store.toggleCollapsed(section.category) }
                         }
                     }
                 }
@@ -231,7 +232,7 @@ private struct ShoppingContent: View {
                 Button("撤销") {
                     Task {
                         await store.restore(undo)
-                        withAnimation { pendingUndo = nil }
+                        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { pendingUndo = nil }
                     }
                 }
                 .font(.fkLabelLarge)
@@ -250,7 +251,9 @@ private struct ShoppingContent: View {
             .transition(.move(edge: .bottom).combined(with: .opacity))
             .task(id: undo.id) {
                 try? await Task.sleep(for: .seconds(4))
-                if !Task.isCancelled { withAnimation { pendingUndo = nil } }
+                if !Task.isCancelled {
+                    withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { pendingUndo = nil }
+                }
             }
         }
     }
@@ -291,7 +294,7 @@ private struct ShoppingContent: View {
 
     private func deleteWithUndo(_ item: ShoppingItem) async {
         guard await store.delete(item) else { return }
-        withAnimation { pendingUndo = item }
+        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { pendingUndo = item }
     }
 
     private func clearChecked() async {
@@ -329,7 +332,8 @@ private struct ShoppingProgressCard: View {
                         .foregroundStyle(Color.white.opacity(0.85))
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Text("\(done)")
-                            .font(.system(size: 34, weight: .heavy, design: .rounded))
+                            // .largeTitle (34pt base) so the stat scales with Dynamic Type.
+                            .font(.system(.largeTitle, design: .rounded, weight: .heavy))
                             .foregroundStyle(.white)
                         Text("/ \(total) 项")
                             .font(.fkBodyMedium)

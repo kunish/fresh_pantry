@@ -57,12 +57,13 @@ private struct WasteInsightsContent: View {
     @Bindable var store: WasteInsightsStore
 
     var body: some View {
-        ScrollView {
+        let summary = store.summary()
+        return ScrollView {
             VStack(spacing: FkSpacing.lg) {
                 WindowSelector(selected: $store.window)
                     .padding(.horizontal, FkSpacing.lg)
 
-                body(stats: store.stats(), breakdown: store.categoryBreakdown(), mostWasted: store.mostWasted())
+                body(stats: summary.stats, breakdown: summary.breakdown, mostWasted: summary.mostWasted)
             }
             .padding(.top, FkSpacing.sm)
             .padding(.bottom, FkSpacing.huge)

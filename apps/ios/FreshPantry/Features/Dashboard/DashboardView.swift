@@ -127,6 +127,7 @@ private struct DashboardContent: View {
     var onSelectCategory: (String) -> Void = { _ in }
 
     @Environment(AppDependencies.self) private var dependencies
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// View-local secondary stats for the entry-card subtitles (kept out of the
     /// DashboardStore to avoid widening its init): waste use-up + meal-plan summary.
     @State private var wasteStats: FoodLogStats?
@@ -272,7 +273,9 @@ private struct DashboardContent: View {
                 .transition(.move(edge: .top).combined(with: .opacity))
                 .task(id: toast) {
                     try? await Task.sleep(for: .seconds(2))
-                    if !Task.isCancelled { withAnimation { self.toast = nil } }
+                    if !Task.isCancelled {
+                        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { self.toast = nil }
+                    }
                 }
         }
     }
@@ -365,7 +368,7 @@ private struct DashboardContent: View {
             let category = FoodKnowledge.lookup(item.name)?.category
             if await shoppingStore.add(name: item.name, category: category) { added += 1 }
         }
-        withAnimation {
+        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
             toast = added > 0 ? "已添加 \(added) 项到购物清单" : "常买缺货项已在购物清单中"
         }
     }
@@ -373,7 +376,7 @@ private struct DashboardContent: View {
     private func addToShopping(_ item: Ingredient) async {
         guard let shoppingStore else { return }
         let added = await shoppingStore.add(name: item.name, category: item.category)
-        withAnimation {
+        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
             toast = added ? "已将「\(item.name)」加入购物清单" : "「\(item.name)」已在购物清单中"
         }
     }

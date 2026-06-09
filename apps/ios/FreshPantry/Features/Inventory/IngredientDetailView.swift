@@ -73,6 +73,7 @@ struct IngredientDetailView: View {
                 } label: {
                     Image(systemName: "trash")
                 }
+                .accessibilityLabel("删除")
                 .tint(.fkDanger)
                 .disabled(isDeleting)
             }
@@ -182,7 +183,9 @@ struct IngredientDetailView: View {
                 .transition(.move(edge: .top).combined(with: .opacity))
                 .task(id: toast) {
                     try? await Task.sleep(for: .seconds(2))
-                    if !Task.isCancelled { withAnimation { self.toast = nil } }
+                    if !Task.isCancelled {
+                        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { self.toast = nil }
+                    }
                 }
         }
     }
@@ -203,7 +206,7 @@ struct IngredientDetailView: View {
         }
         guard let shoppingStore else { return }
         let added = await shoppingStore.add(name: ingredient.name, category: ingredient.category)
-        withAnimation {
+        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
             toast = added ? "已将「\(ingredient.name)」加入购物清单" : "「\(ingredient.name)」已在购物清单中"
         }
     }

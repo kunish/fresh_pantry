@@ -145,6 +145,24 @@ final class WasteInsightsStore {
         Self.computeMostWasted(windowedEntries(now: now))
     }
 
+    /// All three windowed aggregates for one render pass. A single `now` and a
+    /// single window filter back every aggregate, so a body evaluation doesn't
+    /// re-filter `entries` per derived value.
+    struct Summary {
+        let stats: FoodLogStats
+        let breakdown: [WasteCategoryBreakdown]
+        let mostWasted: [WasteCategoryCount]
+    }
+
+    func summary(now: Date = Date()) -> Summary {
+        let windowed = windowedEntries(now: now)
+        return Summary(
+            stats: Self.computeStats(windowed),
+            breakdown: Self.computeCategoryBreakdown(windowed),
+            mostWasted: Self.computeMostWasted(windowed)
+        )
+    }
+
     // MARK: Pure aggregation (testable without SwiftData)
 
     /// Tallies consumed / wasted / rescued over `entries`. `rescued` counts a

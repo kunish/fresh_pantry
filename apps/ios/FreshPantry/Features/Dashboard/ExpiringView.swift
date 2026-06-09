@@ -103,6 +103,7 @@ private struct ExpiringContent: View {
 
     @State private var selectedIngredient: Ingredient?
     @State private var toast: String?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(spacing: FkSpacing.md) {
@@ -172,7 +173,9 @@ private struct ExpiringContent: View {
             actionButton("加购", systemImage: "cart.badge.plus", tint: Color.fkOnSurfaceVariant) {
                 Task {
                     let message = await onAddToShopping(item)
-                    if !message.isEmpty { withAnimation { toast = message } }
+                    if !message.isEmpty {
+                        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { toast = message }
+                    }
                 }
             }
         }
@@ -219,7 +222,9 @@ private struct ExpiringContent: View {
                 .transition(.move(edge: .top).combined(with: .opacity))
                 .task(id: toast) {
                     try? await Task.sleep(for: .seconds(2))
-                    if !Task.isCancelled { withAnimation { self.toast = nil } }
+                    if !Task.isCancelled {
+                        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { self.toast = nil }
+                    }
                 }
         }
     }
