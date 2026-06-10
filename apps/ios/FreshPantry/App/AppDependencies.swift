@@ -26,6 +26,10 @@ final class AppDependencies {
     /// SwiftData cache for Open Food Facts food details + per-100g nutrition.
     /// Always built — OFF is a public API needing no backend/key.
     let foodDetailsRepository: FoodDetailsRepository
+    /// Device-local barcode → product learning store (name + category by
+    /// barcode). Powers the scan fast-path (local hit > OFF > manual). NOT
+    /// synced — see `BarcodeMemoryRecord` for the per-device scope decision.
+    let barcodeMemoryRepository: BarcodeMemoryRepository
     /// Best-effort OFF lookup client (barcode-first, then name search). The DI
     /// seam the ingredient-detail nutrition card builds its store from.
     let foodDetailsClient: FoodDetailsClient
@@ -51,6 +55,16 @@ final class AppDependencies {
     /// Holds a recipe URL handed in by the Share Extension until 食谱 can open the
     /// pre-filled 新建食谱 import form. Always built (no backend dependency).
     let recipeImportRouter: RecipeImportRouter
+    /// Holds a tapped expiry-notification id until the Dashboard pushes the 临期
+    /// screen. Producer = `notificationService.onTap` (wired below); consumer =
+    /// `DashboardView`. Always built (local notifications need no backend).
+    let notificationTapRouter: NotificationTapRouter
+    /// Maintains the Core Spotlight index (库存食材 + 食谱 surfaced in system
+    /// search). Always built — Spotlight is a local system service, no backend.
+    let spotlightIndexer: SpotlightIndexer
+    /// Holds a tapped Spotlight result's parsed id until `RootView` routes it to
+    /// the owning tab. Producer = `FreshPantryApp.onContinueUserActivity`.
+    let spotlightRouter: SpotlightRouter
     /// Email-OTP auth state machine. `.localOnly` when no backend is configured
     /// (empty `Secrets.plist`); otherwise backed by Supabase. The next sync slice
     /// reads the shared `SupabaseClient` via `clientProvider`.
@@ -77,6 +91,10 @@ final class AppDependencies {
     /// op + kick a push. In local-only mode it records ops (no coordinator → no
     /// push) so writes flush once a backend / household is wired.
     let syncWriter: SyncWriter
+    /// The single `NotificationService` instance (delegate of the shared
+    /// notification center). Exposed so tests can drive the tap chain; app code
+    /// schedules through `notificationCoordinator` instead.
+    let notificationService: NotificationService
     /// Drives local expiry-reminder notifications (permission + scheduling).
     /// Always built — local notifications need no backend; gated only by the OS
     /// permission grant inside the service.
@@ -100,6 +118,7 @@ final class AppDependencies {
         self.mealPlanRepository = MealPlanRepository(modelContainer: modelContainer)
         self.localRecipeRepository = LocalRecipeRepository()
         self.foodDetailsRepository = FoodDetailsRepository(modelContainer: modelContainer)
+        self.barcodeMemoryRepository = BarcodeMemoryRepository(modelContainer: modelContainer)
         self.foodDetailsClient = OpenFoodFactsDetailsClient()
         self.favoritesStore = FavoritesStore()
         self.reminderSettingsStore = ReminderSettingsStore()
@@ -109,8 +128,20 @@ final class AppDependencies {
         self.appearanceStore = AppearanceStore()
         self.inviteRouter = InviteRouter()
         self.recipeImportRouter = RecipeImportRouter()
+        let notificationTapRouter = NotificationTapRouter()
+        self.notificationTapRouter = notificationTapRouter
+        self.spotlightIndexer = SpotlightIndexer()
+        self.spotlightRouter = SpotlightRouter()
+        let notificationService = NotificationService()
+        // NOTIFICATION TAP → ROUTER: installed here (not in a view) so a
+        // cold-start tap is captured as soon as the center delegate is live —
+        // `didReceive` can arrive before any view exists. The handler runs on
+        // the main actor (see `NotificationService.handleTap`); capturing the
+        // router rather than `self` avoids a container↔service retain cycle.
+        notificationService.setOnTap { id in notificationTapRouter.capture(id: id) }
+        self.notificationService = notificationService
         self.notificationCoordinator = NotificationCoordinator(
-            service: NotificationService(),
+            service: notificationService,
             idsRepo: ScheduledNotificationIdsRepo(),
             inventory: self.inventoryRepository,
             reminderSettings: self.reminderSettingsStore

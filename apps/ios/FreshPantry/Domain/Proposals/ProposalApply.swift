@@ -254,7 +254,8 @@ enum ProposalApply {
                     storage: p.storage,
                     expiryDate: expiryDate,
                     addedAt: addedAt,
-                    shelfLifeDays: shelf
+                    shelfLifeDays: shelf,
+                    tags: p.tags
                 )
             ),
             now: now

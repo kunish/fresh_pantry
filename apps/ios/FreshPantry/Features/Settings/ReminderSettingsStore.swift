@@ -32,6 +32,25 @@ final class ReminderSettingsStore {
     func setRemindD7(_ value: Bool) { update(settings.copyWith(remindD7: value)) }
     func setRemindDaily(_ value: Bool) { update(settings.copyWith(remindDaily: value)) }
 
+    /// Sets the local delivery time for all reminders. Hour + minute mutate
+    /// together (the DatePicker emits both) so each change persists once.
+    func setReminderTime(hour: Int, minute: Int) {
+        update(settings.copyWith(reminderHour: hour, reminderMinute: minute))
+    }
+
+    /// Toggles summary-only mode: per-item reminders off, daily summary kept as
+    /// the lone recall channel (enforced in `ExpiryScheduler`).
+    func setSummaryOnly(_ value: Bool) { update(settings.copyWith(summaryOnly: value)) }
+
+    /// Toggles the do-not-disturb window on/off.
+    func setQuietHoursEnabled(_ value: Bool) { update(settings.copyWith(quietHoursEnabled: value)) }
+
+    /// Sets the quiet-window bounds. Start + end mutate together (one picker
+    /// edit at a time still persists once) so the window stays coherent.
+    func setQuietHours(startHour: Int, endHour: Int) {
+        update(settings.copyWith(quietStartHour: startHour, quietEndHour: endHour))
+    }
+
     /// Replaces the whole value (used by backup import in a later phase).
     func set(_ next: ReminderSettings) { update(next) }
 

@@ -15,6 +15,8 @@ struct RootView: View {
     @Environment(AppDependencies.self) private var dependencies
     @Environment(InviteRouter.self) private var inviteRouter
     @Environment(RecipeImportRouter.self) private var recipeImportRouter
+    @Environment(NotificationTapRouter.self) private var notificationTapRouter
+    @Environment(SpotlightRouter.self) private var spotlightRouter
     @Environment(\.scenePhase) private var scenePhase
     @State private var selection: Section = RootView.initialSelection()
     /// Reactive reachability for the offline / 待同步 banner.
@@ -22,9 +24,19 @@ struct RootView: View {
     /// Best-effort outbox depth — refreshed at natural sync moments (foreground,
     /// remote merge, coming back online). The offline flag is fully reactive.
     @State private var pendingCount = 0
+    /// Per-row 「待同步」 visibility: the set of entityIDs with a queued outbox op,
+    /// shared down to the 库存 / 购物 lists. Refreshed at the SAME moments as
+    /// `pendingCount` so the global banner and the per-row badges never disagree.
+    @State private var pendingSync: PendingSyncStatusStore?
     /// Cross-tab nav intent: a canonical food category the 首页 grid tapped, to be
     /// consumed by the 库存 tab (preset its category filter). Cleared on consume.
     @State private var pendingCategory: String?
+    /// Spotlight deep-link intent: the ingredient id whose detail the 库存 tab
+    /// should push. Cleared on consume (same ownership model as `pendingCategory`).
+    @State private var pendingIngredientID: String?
+    /// Spotlight deep-link intent: the recipe id whose detail the 食谱 tab should
+    /// push. Cleared on consume.
+    @State private var pendingRecipeID: String?
     /// Presents the global search overlay (launched from the 首页 toolbar).
     @State private var showSearch = false
 
@@ -69,10 +81,40 @@ struct RootView: View {
         )
     }
 
-    /// Best-effort refresh of the outbox depth shown in the banner.
+    /// Best-effort refresh of the outbox depth shown in the banner AND the
+    /// per-row 「待同步」 set behind the list badges — kept on the same trigger so
+    /// the global count and the per-row badges stay consistent. The per-row store
+    /// is seeded once in the `.task` below; until then this is a no-op for it.
     @MainActor
     private func refreshPendingCount() async {
         pendingCount = (try? await dependencies.syncOutboxRepository.loadPending().count) ?? 0
+        await pendingSync?.refresh()
+    }
+
+    /// Composite Spotlight-reindex trigger: fires on household switch AND on
+    /// every remote-merge pulse (plus once on appear, covering launch).
+    private var spotlightReindexKey: String {
+        "\(dependencies.syncSession.selectedHouseholdId)#\(dependencies.syncSession.dataRevision)"
+    }
+
+    /// Rebuilds both Spotlight domains from the active household's rows. A
+    /// failed load SKIPS that domain's rebuild (keeping the last good index)
+    /// rather than wiping it with an empty list. Index errors themselves are
+    /// logged + swallowed inside the indexer (Spotlight is an enhancement, not
+    /// a core path). Local-only mutations don't pulse `dataRevision`, so the
+    /// index can lag until the next launch/sync — accepted: Spotlight is a
+    /// re-engagement entry point, not a live mirror.
+    @MainActor
+    private func reindexSpotlight() async {
+        let householdID = dependencies.syncSession.selectedHouseholdId
+        let indexer = dependencies.spotlightIndexer
+        if let inventory = try? await dependencies.inventoryRepository.loadAllFor(householdID) {
+            await indexer.reindexInventory(inventory)
+        }
+        if let custom = try? await dependencies.customRecipeRepository.loadAllFor(householdID) {
+            let bundled = await dependencies.localRecipeRepository.loadAll()
+            await indexer.reindexRecipes(RecipesStore.merge(bundled: bundled, custom: custom))
+        }
     }
 
     private var tabs: some View {
@@ -88,10 +130,13 @@ struct RootView: View {
                 )
             }
             Tab("库存", systemImage: "tray.full", value: Section.inventory) {
-                InventoryView(pendingCategory: $pendingCategory)
+                InventoryView(
+                    pendingCategory: $pendingCategory,
+                    pendingIngredientID: $pendingIngredientID
+                )
             }
             Tab("食谱", systemImage: "book", value: Section.recipes) {
-                RecipesView()
+                RecipesView(pendingRecipeID: $pendingRecipeID)
             }
             Tab("购物", systemImage: "cart", value: Section.shopping) {
                 ShoppingView()
@@ -101,6 +146,19 @@ struct RootView: View {
             }
         }
         .tabViewStyle(.sidebarAdaptable)
+        // SHARE the per-row sync-status store down to the 库存 / 购物 lists. Seeded
+        // in the `.task` below (not here) so building it from the live outbox
+        // actor never mutates @State during a body pass. Optional → descendants
+        // read nil for the first frame (no badge), then the seeded store.
+        .environment(pendingSync)
+        // SEED the per-row sync-status store once from the outbox actor, then do
+        // the first read so badges reflect any startup backlog. Idempotent.
+        .task {
+            if pendingSync == nil {
+                pendingSync = PendingSyncStatusStore(outbox: dependencies.syncOutboxRepository)
+            }
+            await pendingSync?.refresh()
+        }
         // DRIVE CONTENT SYNC: reconcile local⇄remote for the selected household.
         // Re-runs on every household switch (and once on launch); the coordinator
         // no-ops when the household is unchanged. nil in local-only mode.
@@ -130,6 +188,12 @@ struct RootView: View {
         .onChange(of: dependencies.syncSession.dataRevision) {
             Task { await refreshPendingCount() }
         }
+        // An outbound push finished (SyncWriter pulse): re-read the outbox so a
+        // just-synced row's 待同步 badge clears without waiting for a foreground
+        // round-trip. Lighter than dataRevision — refreshes only the badges.
+        .onChange(of: dependencies.syncSession.pendingSyncRevision) {
+            Task { await refreshPendingCount() }
+        }
         .onChange(of: connectivity.isOnline) { _, online in
             guard online else { return }
             Task {
@@ -141,6 +205,42 @@ struct RootView: View {
         // consumes the pending URL and opens the pre-filled 新建食谱.
         .onChange(of: recipeImportRouter.pendingURL) { _, url in
             if url != nil { selection = .recipes }
+        }
+        // Spotlight result tap: switch to the owning tab and hand it the model
+        // id (the tab pushes the detail). `.task(id:)` — not `.onChange` — so a
+        // cold-start tap captured before this view appeared is still consumed.
+        // Consuming HERE is safe (unlike the notification-tap case) because the
+        // pending-…ID binding persists the intent until the tab applies it.
+        .task(id: spotlightRouter.pendingItem) {
+            guard let item = spotlightRouter.consume() else { return }
+            switch item {
+            case .ingredient(let id):
+                pendingIngredientID = id
+                selection = .inventory
+            case .recipe(let id):
+                pendingRecipeID = id
+                selection = .recipes
+            }
+        }
+        // SPOTLIGHT INDEX: rebuild on launch, on household switch, and after
+        // every remote-merge pulse (dataRevision). The 500 ms sleep is the
+        // debounce — `.task(id:)` cancels the in-flight task on each pulse, so
+        // a burst of revisions coalesces into a single rebuild of the final
+        // state. Whole-domain rebuilds also guarantee a household switch drops
+        // the previous household's entries from the index.
+        .task(id: spotlightReindexKey) {
+            try? await Task.sleep(for: .milliseconds(500))
+            guard !Task.isCancelled else { return }
+            await reindexSpotlight()
+        }
+        // Notification tap (临期提醒/每日汇总): switch to 首页 so DashboardView —
+        // the consumer — pushes the 临期 screen. Deliberately NOT consumed here:
+        // a cold-start tap can be captured before this view exists (no onChange
+        // fires, but the initial selection is already 首页), so the Dashboard's
+        // `.task(id:)` is the one guaranteed reader. This onChange only covers
+        // the "app already open on another tab" case.
+        .onChange(of: notificationTapRouter.pendingTap) { _, id in
+            if id != nil { selection = .home }
         }
         // Initial reschedule on launch (the first .active may precede this view).
         .task {

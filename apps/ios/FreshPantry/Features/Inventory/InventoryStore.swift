@@ -39,6 +39,10 @@ final class InventoryStore {
 
     var storageFilter: StorageFilter = .all
     var categoryFilter: CategoryFilter = .all
+    /// Active tag filter. nil = 全部标签 (no tag restriction). Matched case-
+    /// insensitively against each row's (already-canonical) tags so a stale
+    /// selection from a differently-cased option still resolves.
+    var selectedTag: String?
     var searchQuery: String = ""
 
     init(
@@ -365,14 +369,37 @@ final class InventoryStore {
 
     // MARK: Derived view data
 
-    /// The list the view renders: category/state filter → storage filter → name
-    /// search → urgency sort.
+    /// The list the view renders: category/state filter → storage filter → tag
+    /// filter → name search → urgency sort.
     var displayItems: [Ingredient] {
         let filtered = items
             .filter(matchesCategoryFilter)
             .filter(matchesStorageFilter)
+            .filter(matchesTagFilter)
             .filter(matchesSearch)
         return sortByUrgency(filtered)
+    }
+
+    /// The tag chips to surface, derived from the CURRENT inventory: every tag in
+    /// use, ordered by frequency (most-used first), ties broken alphabetically so
+    /// the row is stable across reloads. Empty when no row carries a tag (the view
+    /// hides the whole row, leaving no dead control).
+    var tagOptions: [String] {
+        var counts: [String: Int] = [:]        // lowercased key -> count
+        var display: [String: String] = [:]    // lowercased key -> first-seen casing
+        for item in items {
+            for tag in item.tags {
+                let key = tag.lowercased()
+                counts[key, default: 0] += 1
+                if display[key] == nil { display[key] = tag }
+            }
+        }
+        return counts.keys
+            .sorted { lhs, rhs in
+                if counts[lhs]! != counts[rhs]! { return counts[lhs]! > counts[rhs]! }
+                return display[lhs]! < display[rhs]!
+            }
+            .map { display[$0]! }
     }
 
     /// Count of items matching a category filter, for the chip badges.
@@ -383,7 +410,8 @@ final class InventoryStore {
     /// True when there are stored items but the active filter/search hides them
     /// (drives the "no results" vs "empty pantry" copy).
     var hasActiveQuery: Bool {
-        !searchQuery.trimmed.isEmpty || storageFilter != .all || categoryFilter != .all
+        !searchQuery.trimmed.isEmpty || storageFilter != .all
+            || categoryFilter != .all || selectedTag != nil
     }
 
     /// Count of items in each storage area, for the filter-chip badges.
@@ -413,6 +441,12 @@ final class InventoryStore {
         case .notFresh: return item.state != .fresh
         case let .category(category): return FoodCategories.dropdownValue(item.category) == category
         }
+    }
+
+    private func matchesTagFilter(_ item: Ingredient) -> Bool {
+        guard let selectedTag else { return true }
+        let target = selectedTag.lowercased()
+        return item.tags.contains { $0.lowercased() == target }
     }
 
     private func matchesSearch(_ item: Ingredient) -> Bool {

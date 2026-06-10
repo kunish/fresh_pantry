@@ -64,6 +64,9 @@ private struct ShoppingContent: View {
     @Bindable var store: ShoppingStore
     @Environment(AppDependencies.self) private var dependencies
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Shared per-row sync-status set (injected at the tab root). Optional so a
+    /// standalone preview / snapshot render — which doesn't inject it — is safe.
+    @Environment(PendingSyncStatusStore.self) private var pendingSync: PendingSyncStatusStore?
 
     @State private var isAddingItem = false
     /// Drives the intake-review push; `reviewSource` is the rows sent so the
@@ -73,6 +76,9 @@ private struct ShoppingContent: View {
     /// The just-deleted row, surfaced in a transient undo banner.
     @State private var pendingUndo: ShoppingItem?
     @State private var showClearConfirm = false
+    /// Row whose 数量 detail is being edited (sheet route — `ShoppingItem`
+    /// itself isn't Identifiable, mirroring the `ReviewRoute` pattern).
+    @State private var editRoute: ShoppingDetailEditRoute?
 
     var body: some View {
         Group {
@@ -86,6 +92,13 @@ private struct ShoppingContent: View {
             }
         }
         .background(Color.fkSurface)
+        // Keep the 「待同步」 badges fresh: any items change — a reload or a check-
+        // off / edit / delete, each of which reassigns `items` — re-reads the
+        // pending outbox set so a just-queued row's badge appears (and a synced
+        // one's clears) without waiting for a sync pulse.
+        .onChange(of: store.items) {
+            Task { await pendingSync?.refresh() }
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -98,6 +111,9 @@ private struct ShoppingContent: View {
         }
         .sheet(isPresented: $isAddingItem) {
             ShoppingAddSheet(store: store)
+        }
+        .sheet(item: $editRoute) { route in
+            ShoppingDetailEditSheet(store: store, item: route.item)
         }
         .navigationDestination(item: $reviewRoute) { route in
             IntakeReviewView(proposals: route.proposals, title: "已购买项入库") { outcome in
@@ -149,7 +165,7 @@ private struct ShoppingContent: View {
                     Section {
                         if !store.isCollapsed(section.category) {
                             ForEach(section.items, id: \.id) { item in
-                                ShoppingRow(item: item) {
+                                ShoppingRow(item: item, showsPendingBadge: showsPendingBadge(for: item)) {
                                     Task { await store.toggleChecked(item) }
                                 }
                                 .listRowBackground(Color.fkSurfaceContainerLowest)
@@ -162,10 +178,24 @@ private struct ShoppingContent: View {
                                     .tint(Color.fkPrimary)
                                 }
                                 .swipeActions(edge: .trailing) {
+                                    // Delete stays FIRST so full-swipe keeps deleting.
                                     Button(role: .destructive) {
                                         Task { await deleteWithUndo(item) }
                                     } label: {
                                         Label("删除", systemImage: "trash")
+                                    }
+                                    Button {
+                                        editRoute = ShoppingDetailEditRoute(item: item)
+                                    } label: {
+                                        Label("编辑", systemImage: "pencil")
+                                    }
+                                    .tint(Color.fkPrimaryDeep)
+                                }
+                                .contextMenu {
+                                    Button {
+                                        editRoute = ShoppingDetailEditRoute(item: item)
+                                    } label: {
+                                        Label("编辑数量", systemImage: "pencil")
                                     }
                                 }
                             }
@@ -303,6 +333,14 @@ private struct ShoppingContent: View {
         }
     }
 
+    /// Whether `item` carries a 「待同步」 badge: only in 家庭模式 (a real household is
+    /// selected — local-only writes never enqueue) AND when the row's id has a
+    /// queued outbox op.
+    private func showsPendingBadge(for item: ShoppingItem) -> Bool {
+        guard !dependencies.householdID.isEmpty, let pendingSync else { return false }
+        return pendingSync.isPending(item.id)
+    }
+
     // MARK: Empty state
 
     private var emptyState: some View {
@@ -431,6 +469,8 @@ private struct ShoppingFilterChips: View {
 /// optional detail (quantity text). Checked → struck-through + dimmed.
 private struct ShoppingRow: View {
     let item: ShoppingItem
+    /// 家庭模式下该行有未上传的本地改动时为 true — drives the trailing 「待同步」 badge.
+    var showsPendingBadge: Bool = false
     let onToggle: () -> Void
 
     var body: some View {
@@ -464,6 +504,10 @@ private struct ShoppingRow: View {
             }
 
             Spacer(minLength: FkSpacing.sm)
+
+            if showsPendingBadge {
+                PendingSyncBadge()
+            }
         }
         .padding(.vertical, FkSpacing.xs)
         .opacity(item.isChecked ? 0.45 : 1)
@@ -542,8 +586,112 @@ private struct ShoppingAddSheet: View {
                 dismiss()
             } else {
                 // Rejected as a duplicate — keep the sheet open and say so rather
-                // than closing as if it worked.
+                // than closing as if it worked. (A same-unit duplicate would have
+                // merged its quantity into the existing row and returned true.)
                 addError = "「\(trimmedName)」已在购物清单中"
+            }
+        }
+    }
+}
+
+/// Identifiable sheet route for the 数量 edit (id = the row's stable id so the
+/// sheet identity survives store reloads).
+private struct ShoppingDetailEditRoute: Identifiable {
+    var id: String { item.id }
+    let item: ShoppingItem
+}
+
+/// 编辑数量 sheet: read-only name + free-text detail field. While the draft
+/// parses to a leading number, an `FkInlineStepper` (step 1, floor 0) offers
+/// quick − / + bumps, writing back through `QuantityText.formatQuantity` so
+/// float noise never reaches the stored detail. Blank saves are allowed —
+/// clearing the quantity is a legitimate edit.
+private struct ShoppingDetailEditSheet: View {
+    let store: ShoppingStore
+    let item: ShoppingItem
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var detail: String
+    @State private var isSaving = false
+    /// Inline save-failure notice — set when `updateDetail` reports false (row
+    /// deleted by another member mid-edit, or persist failed), so the sheet
+    /// never closes as if the edit stuck (mirrors `ShoppingAddSheet.addError`).
+    @State private var saveError: String?
+
+    init(store: ShoppingStore, item: ShoppingItem) {
+        self.store = store
+        self.item = item
+        _detail = State(initialValue: item.detail)
+    }
+
+    /// Leading quantity + unit of the current draft; nil hides the stepper
+    /// (free-text like "适量" stays free-text).
+    private var parsedDetail: (magnitude: String, remainder: String)? {
+        QuantityText.parseLeadingQuantity(detail.trimmed)
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("食材") {
+                    Text(item.name)
+                        .foregroundStyle(Color.fkOnSurfaceVariant)
+                }
+                Section("数量") {
+                    TextField("数量，如：2 个", text: $detail)
+                        .onChange(of: detail) { _, _ in saveError = nil }
+                    if let parsed = parsedDetail {
+                        HStack {
+                            Text("快速调整")
+                                .font(.fkBodySmall)
+                                .foregroundStyle(Color.fkOnSurfaceVariant)
+                            Spacer(minLength: FkSpacing.sm)
+                            FkInlineStepper(
+                                value: parsed.magnitude,
+                                suffix: parsed.remainder.isEmpty ? nil : parsed.remainder
+                            ) { next in
+                                detail = parsed.remainder.isEmpty ? next : "\(next) \(parsed.remainder)"
+                            }
+                        }
+                    }
+                }
+                if let saveError {
+                    Section {
+                        Label(saveError, systemImage: "exclamationmark.circle")
+                            .font(.fkBodySmall)
+                            .foregroundStyle(Color.fkDanger)
+                    }
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(Color.fkSurface)
+            .navigationTitle("编辑数量")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("取消") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("保存") { save() }
+                        .disabled(isSaving)
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
+    private func save() {
+        isSaving = true
+        Task {
+            let saved = await store.updateDetail(item, detail: detail)
+            isSaving = false
+            if saved {
+                dismiss()
+            } else {
+                // Keep the sheet open and say so rather than closing as if it
+                // worked (the row may have been deleted by another member while
+                // this sheet was open, or the persist failed).
+                saveError = "保存失败，该食材可能已被移除"
             }
         }
     }

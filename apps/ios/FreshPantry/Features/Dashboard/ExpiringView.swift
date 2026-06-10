@@ -14,15 +14,20 @@ struct ExpiringView: View {
     @State private var store: ExpiringStore?
     @State private var inventoryStore: InventoryStore?
     @State private var shoppingStore: ShoppingStore?
+    /// CRUD owner for custom recipes — the 清冰箱 generation saves through it (same
+    /// outbox path as the manual / URL-import authoring) and the form reloads it.
+    @State private var customStore: CustomRecipeStore?
     /// Live OS notification-permission state, for the reminder-status card.
     @State private var remindersGranted = false
 
     var body: some View {
         Group {
-            if let store, let inventoryStore {
+            if let store, let inventoryStore, let customStore {
                 ExpiringContent(
                     store: store,
                     inventoryStore: inventoryStore,
+                    customStore: customStore,
+                    aiSettingsStore: dependencies.aiSettingsStore,
                     reminderSettings: dependencies.reminderSettingsStore.settings,
                     remindersGranted: remindersGranted,
                     onConsume: consume,
@@ -55,12 +60,19 @@ struct ExpiringView: View {
                 householdID: householdID,
                 syncWriter: dependencies.syncWriter
             )
+            let custom = CustomRecipeStore(
+                repository: dependencies.customRecipeRepository,
+                householdID: householdID,
+                syncWriter: dependencies.syncWriter
+            )
             self.store = expiring
             self.inventoryStore = inventory
             self.shoppingStore = shopping
+            self.customStore = custom
             await expiring.load()
             await inventory.load()
             await shopping.load()
+            await custom.load()
             remindersGranted = await dependencies.notificationCoordinator.refreshPermission()
         }
         // Remote merge pulse: a household-sync apply bumps dataRevision; reload
@@ -96,6 +108,10 @@ struct ExpiringView: View {
 private struct ExpiringContent: View {
     let store: ExpiringStore
     let inventoryStore: InventoryStore
+    /// CRUD owner the generated recipe saves through (outbox-synced).
+    let customStore: CustomRecipeStore
+    /// AI provider config — gates the 清冰箱 button + supplies the chat settings.
+    let aiSettingsStore: AiSettingsStore
     let reminderSettings: ReminderSettings
     let remindersGranted: Bool
     let onConsume: (Ingredient) async -> Void
@@ -103,6 +119,16 @@ private struct ExpiringContent: View {
 
     @State private var selectedIngredient: Ingredient?
     @State private var toast: String?
+    /// True while the 清冰箱 AI generation is running (blocks re-tap + shows spinner).
+    @State private var isGenerating = false
+    /// Inline 清冰箱 failure message (network / parse / not-configured), surfaced
+    /// under the button. Cleared on a fresh attempt. nil ⇒ no error.
+    @State private var generateError: String?
+    /// The freshly generated draft awaiting user review in the form sheet. Setting
+    /// it presents the sheet; cleared on dismiss. Wrapped in an `Identifiable`
+    /// route since `RecipeDraft` is a transient model with no id (same pattern as
+    /// Recipes' `RecipeRoute`).
+    @State private var generatedDraft: GeneratedDraftRoute?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -132,11 +158,22 @@ private struct ExpiringContent: View {
         .navigationDestination(item: $selectedIngredient) { ingredient in
             IngredientDetailView(ingredient: ingredient, store: inventoryStore)
         }
+        .sheet(item: $generatedDraft) { route in
+            CustomRecipeFormView(
+                store: customStore,
+                aiSettingsStore: aiSettingsStore,
+                onSaved: { Task { await customStore.load() } },
+                initialGeneratedDraft: route.draft
+            )
+        }
     }
 
     private var tierList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: FkSpacing.xl) {
+                clearFridgeCard
+                    .padding(.horizontal, FkSpacing.lg)
+
                 ForEach(Array(store.tiers.enumerated()), id: \.element.id) { sectionIndex, tier in
                     VStack(alignment: .leading, spacing: FkSpacing.sm) {
                         tierHeader(tier)
@@ -161,6 +198,109 @@ private struct ExpiringContent: View {
             }
             .padding(.top, FkSpacing.md)
             .padding(.bottom, FkSpacing.huge)
+        }
+    }
+
+    // MARK: 清冰箱 AI generation
+
+    /// The "AI 生成清冰箱食谱" card — surfaced atop the tier list (so it only shows
+    /// when there ARE expiring items). Generates a recipe from the临期 names; when
+    /// AI isn't configured the button stays tappable but routes the inline error to
+    /// 去 设置 › AI 助手 配置 (reusing `AiError.notConfigured.message`), rather than
+    /// vanishing — the value prompt stays visible.
+    private var clearFridgeCard: some View {
+        FkCard(background: .fkPrimarySoft) {
+            VStack(alignment: .leading, spacing: FkSpacing.sm) {
+                HStack(spacing: FkSpacing.sm) {
+                    Image(systemName: "wand.and.stars")
+                        .font(.system(size: FkSize.iconSm, weight: .semibold))
+                        .foregroundStyle(Color.fkPrimary)
+                    Text("AI 清冰箱食谱")
+                        .font(.fkTitleSmall)
+                        .foregroundStyle(Color.fkOnSurface)
+                    Spacer(minLength: 0)
+                }
+                Text("用现有临期食材现场生成一道家常菜，省得到处翻菜谱。")
+                    .font(.fkBodySmall)
+                    .foregroundStyle(Color.fkOnSurfaceVariant)
+
+                Button {
+                    Task { await generate() }
+                } label: {
+                    HStack(spacing: FkSpacing.xs) {
+                        if isGenerating {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 13, weight: .semibold))
+                        }
+                        Text(isGenerating ? "生成中…" : "AI 生成清冰箱食谱")
+                            .font(.fkLabelLarge)
+                    }
+                    .foregroundStyle(Color.fkOnPrimary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: FkRadius.chip, style: .continuous)
+                            .fill(Color.fkPrimary)
+                    )
+                }
+                .buttonStyle(.fkPressable)
+                .disabled(isGenerating)
+
+                if let generateError {
+                    Text(generateError)
+                        .font(.fkBodySmall)
+                        .foregroundStyle(Color.fkDanger)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+        }
+    }
+
+    /// The临期 ingredient names fed to the generator (the non-fresh rows currently
+    /// shown), de-duplicated downstream by the generator's `sanitize`.
+    private var expiringNames: [String] {
+        store.sortedItems.map(\.name)
+    }
+
+    /// Runs the 清冰箱 generation: builds the chat call from the AI settings, asks
+    /// `AiRecipeGenerator` for a draft, and on success presents the form sheet
+    /// pre-filled for review. Failures (not-configured / network / parse) surface
+    /// their Chinese `AiError.message` inline under the button — never silent.
+    private func generate() async {
+        guard !isGenerating else { return }
+        generateError = nil
+
+        let settings = aiSettingsStore.settings
+        guard settings.isConfigured else {
+            generateError = AiError.notConfigured.message + "，请在 设置 › AI 助手 配置后再试。"
+            return
+        }
+
+        let names = expiringNames
+        guard !names.isEmpty else {
+            generateError = "暂无临期食材可用于生成。"
+            return
+        }
+
+        isGenerating = true
+        defer { isGenerating = false }
+
+        do {
+            let draft = try await AiRecipeGenerator.fromIngredients(names) { messages in
+                try await AiClient.chat(
+                    settings: settings,
+                    messages: messages,
+                    responseFormat: ["type": .string("json_object")]
+                )
+            }
+            generatedDraft = GeneratedDraftRoute(draft: draft)
+        } catch let error as AiError {
+            generateError = error.message
+        } catch {
+            generateError = "生成失败：\(error.localizedDescription)"
         }
     }
 
@@ -244,6 +384,14 @@ private struct ExpiringContent: View {
     }
 }
 
+/// `Identifiable` route wrapping a generated `RecipeDraft` so it can drive
+/// `.sheet(item:)` (the transient `RecipeDraft` has no id of its own). Each
+/// generation gets a fresh id so re-generating re-presents the sheet.
+private struct GeneratedDraftRoute: Identifiable {
+    let id = UUID()
+    let draft: RecipeDraft
+}
+
 /// At-a-glance reminder-status card atop the 临期 screen (ports the Flutter
 /// `_RemindShortcut`). Unlike Flutter's decorative hardcoded copy, this reads the
 /// REAL OS permission + the live `ReminderSettings`. No deep-link to Settings:
@@ -284,7 +432,13 @@ private struct RemindStatusCard: View {
         if !offsets.isEmpty {
             parts.append("提前 " + offsets.map(String.init).joined(separator: "·") + " 天")
         }
-        if settings.remindDaily { parts.append("每日 9:00 汇总") }
+        // Gate on `dailySummaryEnabled` (the scheduler's truth source: summaryOnly
+        // forces it on even with remindDaily off) and use the configured time —
+        // never the old hardcoded 9:00 — so the card never claims "未设置提醒时机"
+        // while a summary actually fires.
+        if settings.dailySummaryEnabled {
+            parts.append("每日 \(settings.reminderTimeLabel) 汇总")
+        }
         return parts.isEmpty ? "未设置提醒时机" : parts.joined(separator: " · ")
     }
 }

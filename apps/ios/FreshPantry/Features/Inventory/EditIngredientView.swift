@@ -43,6 +43,7 @@ struct EditIngredientView: View {
                     categoryField
                     storageField
                     shelfLifeField
+                    tagsField
                 }
                 .padding(FkSpacing.lg)
             }
@@ -176,6 +177,12 @@ struct EditIngredientView: View {
                         .foregroundStyle(Color.fkOnSurfaceVariant)
                 }
             }
+        }
+    }
+
+    private var tagsField: some View {
+        FkFormField(label: "标签") {
+            IngredientTagsEditor(tags: $form.tags)
         }
     }
 

@@ -33,6 +33,9 @@ struct IntakeProposal: Proposal {
     /// detail lookup keys off the barcode directly. A merge keeps the existing
     /// row's barcode (no overwrite).
     var barcode: String?
+    /// User-defined tags to stamp onto a resulting NEW inventory row (manual add).
+    /// A merge keeps the existing batch's tags (no overwrite), mirroring barcode.
+    var tags: [String]
 
     init(
         id: String,
@@ -48,7 +51,8 @@ struct IntakeProposal: Proposal {
         origin: FieldOrigin = .ai,
         userEdited: Bool = false,
         selected: Bool = true,
-        barcode: String? = nil
+        barcode: String? = nil,
+        tags: [String] = []
     ) {
         self.id = id
         self.name = name
@@ -64,6 +68,7 @@ struct IntakeProposal: Proposal {
         self.userEdited = userEdited
         self.selected = selected
         self.barcode = barcode
+        self.tags = tags
     }
 
     /// `origin` and `id` are preserved (never overridden).
@@ -97,7 +102,8 @@ struct IntakeProposal: Proposal {
             origin: origin,
             userEdited: userEdited ?? self.userEdited,
             selected: selected ?? self.selected,
-            barcode: barcode
+            barcode: barcode,
+            tags: tags
         )
     }
 }

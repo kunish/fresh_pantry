@@ -18,13 +18,14 @@ struct EditIngredientFormTests {
         shelfLifeDays: Int? = nil,
         barcode: String? = nil,
         imageUrl: String = "",
+        tags: [String] = [],
         remoteVersion: Int = 0
     ) -> Ingredient {
         Ingredient(
             id: id, name: name, quantity: quantity, unit: unit, imageUrl: imageUrl,
             freshnessPercent: 1.0, state: .fresh, category: category, barcode: barcode,
             storage: storage, expiryDate: expiryDate, addedAt: addedAt,
-            shelfLifeDays: shelfLifeDays, remoteVersion: remoteVersion
+            shelfLifeDays: shelfLifeDays, tags: tags, remoteVersion: remoteVersion
         )
     }
 
@@ -140,5 +141,19 @@ struct EditIngredientFormTests {
         let form = EditIngredientForm(makeItem(quantity: "5"))
         form.quantity = "   "
         #expect(form.buildEdited().quantity == "1")
+    }
+
+    // MARK: Tags
+
+    @Test func seedsTagsFromOriginal() {
+        let form = EditIngredientForm(makeItem(tags: ["囤货", "孩子的"]))
+        #expect(form.tags == ["囤货", "孩子的"])
+    }
+
+    @Test func buildEditedCarriesNormalizedTags() {
+        let form = EditIngredientForm(makeItem(tags: ["囤货"]))
+        form.tags = [" 待用完 ", "待用完", "", "孩子的"] // raw editor input
+        let edited = form.buildEdited()
+        #expect(edited.tags == ["待用完", "孩子的"]) // trimmed / deduped / blank-dropped
     }
 }

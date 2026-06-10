@@ -1,4 +1,5 @@
 import BackgroundTasks
+import CoreSpotlight
 import SwiftData
 import SwiftUI
 
@@ -69,6 +70,8 @@ struct FreshPantryApp: App {
                 .environment(syncSession)
                 .environment(dependencies.inviteRouter)
                 .environment(dependencies.recipeImportRouter)
+                .environment(dependencies.notificationTapRouter)
+                .environment(dependencies.spotlightRouter)
                 .onOpenURL { url in
                     // Share-extension recipe import → capture + short-circuit
                     // (RecipesView opens the pre-filled 新建食谱). Then invite deep
@@ -79,14 +82,45 @@ struct FreshPantryApp: App {
                     if dependencies.inviteRouter.capture(url: url) { return }
                     dependencies.clientProvider.handleOpenURL(url)
                 }
+                // Spotlight result tap: stash the parsed item id; RootView
+                // consumes it and routes to the owning tab's detail screen.
+                .onContinueUserActivity(CSSearchableItemActionType) { activity in
+                    guard let identifier =
+                        activity.userInfo?[CSSearchableItemActivityIdentifier] as? String
+                    else { return }
+                    dependencies.spotlightRouter.capture(identifier: identifier)
+                }
                 // Submit the first background-refresh request once on launch so
                 // iOS can schedule an opportunistic flush even before the first
                 // background transition.
                 .task { Self.scheduleAppRefresh() }
+                // INTENT ADD HANDOFF: drain the names captured by
+                // `AddToShoppingListIntent` once the active household is resolved
+                // (keyed on `householdID` so a cold-start drain runs AFTER sign-in
+                // picks the household, never into the local-only "" scope). Re-runs
+                // on every household switch so a name enqueued under one scope is
+                // applied to whatever scope is now active.
+                .task(id: dependencies.householdID) {
+                    await IntentAddDrainer.drain(dependencies: dependencies)
+                }
                 // Re-arm the background request when leaving the foreground (each
-                // BGTask is one-shot — it must resubmit itself, see below).
+                // BGTask is one-shot — it must resubmit itself, see below). On
+                // return to foreground, drain any add enqueued by the intent while
+                // the app was suspended (the `.task(id:)` above won't re-fire if the
+                // household is unchanged).
                 .onChange(of: scenePhase) { _, phase in
-                    if phase == .background { Self.scheduleAppRefresh() }
+                    if phase == .background {
+                        Self.scheduleAppRefresh()
+                    } else if phase == .active {
+                        Task { await IntentAddDrainer.drain(dependencies: dependencies) }
+                    }
+                }
+                // In-process nudge from `AddToShoppingListIntent` (openAppWhenRun):
+                // drains the just-enqueued name THIS session even when no `.active`
+                // transition fires after the enqueue (app already active, or
+                // `.active` fired before `perform()`).
+                .onReceive(NotificationCenter.default.publisher(for: .intentDidEnqueueShoppingAdd)) { _ in
+                    Task { await IntentAddDrainer.drain(dependencies: dependencies) }
                 }
             // DEBUG sample seeding is done by each feature view's own `.task`
             // (seed-then-load), so data is guaranteed present before the view

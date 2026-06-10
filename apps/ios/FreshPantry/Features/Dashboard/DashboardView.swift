@@ -19,6 +19,7 @@ struct DashboardView: View {
     var onSearch: () -> Void = {}
 
     @Environment(AppDependencies.self) private var dependencies
+    @Environment(NotificationTapRouter.self) private var tapRouter
     @State private var store: DashboardStore?
     /// Programmatic stack path. Normally empty; the `-initialRoute` launch hook
     /// pre-seeds it (in `.task`) so a pushed screen (e.g. 膳食计划) can be
@@ -90,6 +91,16 @@ struct DashboardView: View {
         // so the dashboard reflects inventory/shopping pulled from other members.
         .onChange(of: dependencies.syncSession.dataRevision) {
             Task { await store?.load() }
+        }
+        // NOTIFICATION TAP → push 临期. `.task(id:)` rather than `.onChange` so
+        // BOTH cold-start orders work: a tap captured BEFORE this view exists
+        // fires on appear, and a tap arriving while visible fires on the id
+        // change. Attached to the NavigationStack (not the store-gated content)
+        // so it runs even while the `store == nil` loading branch is showing.
+        .task(id: tapRouter.pendingTap) {
+            guard tapRouter.pendingTap != nil else { return }
+            tapRouter.consume()
+            if path.last != .expiring { path.append(.expiring) }
         }
     }
 }

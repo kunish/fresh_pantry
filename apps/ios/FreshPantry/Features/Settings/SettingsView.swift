@@ -189,41 +189,57 @@ private struct SettingsContent: View {
                     permissionGranted = await notifications.requestPermission(householdID: householdID)
                 }
             )
-            ReminderToggleRow(
-                store: reminderStore,
-                flag: .d1,
-                title: "提前 1 天提醒",
-                subtitle: "高优先级 · 推送 + 角标",
-                onChange: rescheduleReminders
-            )
-            ReminderToggleRow(
-                store: reminderStore,
-                flag: .d3,
-                title: "提前 3 天提醒",
-                subtitle: "标准 · 仅推送",
-                onChange: rescheduleReminders
-            )
-            ReminderToggleRow(
-                store: reminderStore,
-                flag: .d7,
-                title: "提前 7 天提醒",
-                subtitle: "轻量 · 仅角标",
-                onChange: rescheduleReminders
-            )
-            ReminderToggleRow(
-                store: reminderStore,
-                flag: .daily,
-                title: "每日 9:00 汇总",
-                subtitle: "包含临期 + 库存不足",
-                onChange: rescheduleReminders
-            )
+            // Per-item + daily toggles are hidden under 仅每日汇总: in that mode
+            // `enabledOffsetDays` is [] and the daily summary is forced on, so
+            // leaving these tappable would let the user flip switches that have
+            // no effect (and a daily row reading OFF while a summary still fires).
+            if !reminderStore.settings.summaryOnly {
+                ReminderToggleRow(
+                    store: reminderStore,
+                    flag: .d1,
+                    title: "提前 1 天提醒",
+                    subtitle: "高优先级 · 推送 + 角标",
+                    onChange: rescheduleReminders
+                )
+                ReminderToggleRow(
+                    store: reminderStore,
+                    flag: .d3,
+                    title: "提前 3 天提醒",
+                    subtitle: "标准 · 仅推送",
+                    onChange: rescheduleReminders
+                )
+                ReminderToggleRow(
+                    store: reminderStore,
+                    flag: .d7,
+                    title: "提前 7 天提醒",
+                    subtitle: "轻量 · 仅角标",
+                    onChange: rescheduleReminders
+                )
+                ReminderToggleRow(
+                    store: reminderStore,
+                    flag: .daily,
+                    title: "每日 \(reminderTimeLabel) 汇总",
+                    subtitle: "包含临期 + 库存不足",
+                    onChange: rescheduleReminders
+                )
+            }
+            ReminderTimeRow(store: reminderStore, onChange: rescheduleReminders)
+            SummaryOnlyRow(store: reminderStore, onChange: rescheduleReminders)
+            QuietHoursToggleRow(store: reminderStore, onChange: rescheduleReminders)
+            if reminderStore.settings.quietHoursEnabled {
+                QuietHoursTimeRow(store: reminderStore, onChange: rescheduleReminders)
+            }
         } header: {
             Text("临期提醒")
         } footer: {
-            Text("提醒在开启系统通知权限后送达。")
+            Text("提醒在开启系统通知权限后送达。开启「仅每日汇总」可关闭逐条临期推送、只保留一条汇总;免打扰时段内逐条提醒不再打扰。")
         }
         .listRowBackground(Color.fkSurfaceContainerLowest)
     }
+
+    /// "9:00"-style label of the user-chosen reminder time. Delegates to the
+    /// model's single-source label (shared with the Dashboard reminder card).
+    private var reminderTimeLabel: String { reminderStore.settings.reminderTimeLabel }
 
     /// Recompute the scheduled notification set after a reminder toggle changes.
     private func rescheduleReminders() {
@@ -419,6 +435,160 @@ private struct ReminderToggleRow: View {
                     .foregroundStyle(Color.fkOnSurfaceVariant)
             }
         }
+    }
+}
+
+/// The 提醒时间 row: a compact hour-and-minute `DatePicker` bound through the
+/// store's `setReminderTime`. Only time-of-day components round-trip — the date
+/// part of the binding is a throwaway anchor on "today". Mirrors
+/// `ReminderToggleRow`: the binding is built inside the `@MainActor` `body`,
+/// and `onChange` reschedules after the time persists.
+private struct ReminderTimeRow: View {
+    let store: ReminderSettingsStore
+    /// Invoked after the time persists, so reminders are rescheduled.
+    let onChange: () -> Void
+
+    var body: some View {
+        let calendar = Calendar.current
+        let binding = Binding(
+            get: {
+                calendar.date(
+                    bySettingHour: store.settings.reminderHour,
+                    minute: store.settings.reminderMinute,
+                    second: 0,
+                    of: Date()
+                ) ?? Date()
+            },
+            set: { newDate in
+                let comps = calendar.dateComponents([.hour, .minute], from: newDate)
+                store.setReminderTime(
+                    hour: comps.hour ?? ReminderSettings.defaultReminderHour,
+                    minute: comps.minute ?? ReminderSettings.defaultReminderMinute
+                )
+                onChange()
+            }
+        )
+        return DatePicker(selection: binding, displayedComponents: .hourAndMinute) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("提醒时间")
+                    .font(.fkTitleSmall)
+                    .foregroundStyle(Color.fkOnSurface)
+                Text("临期提醒与每日汇总的送达时间")
+                    .font(.fkBodySmall)
+                    .foregroundStyle(Color.fkOnSurfaceVariant)
+            }
+        }
+        .datePickerStyle(.compact)
+    }
+}
+
+/// The 仅每日汇总 row: a `Switch` that, when on, suppresses every per-item
+/// reminder and keeps only the daily summary. Mirrors `ReminderToggleRow`'s
+/// binding-in-`body` pattern; `onChange` reschedules after the flag persists.
+private struct SummaryOnlyRow: View {
+    let store: ReminderSettingsStore
+    /// Invoked after the flag persists, so reminders are rescheduled.
+    let onChange: () -> Void
+
+    var body: some View {
+        let binding = Binding(
+            get: { store.settings.summaryOnly },
+            set: {
+                store.setSummaryOnly($0)
+                onChange()
+            }
+        )
+        return Toggle(isOn: binding) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("仅每日汇总")
+                    .font(.fkTitleSmall)
+                    .foregroundStyle(Color.fkOnSurface)
+                Text("关闭逐条临期推送 · 每天只发一条汇总")
+                    .font(.fkBodySmall)
+                    .foregroundStyle(Color.fkOnSurfaceVariant)
+            }
+        }
+    }
+}
+
+/// The 免打扰时段 enable row: a `Switch` that turns the do-not-disturb window on
+/// or off. When on, the `QuietHoursTimeRow` appears beneath it.
+private struct QuietHoursToggleRow: View {
+    let store: ReminderSettingsStore
+    /// Invoked after the flag persists, so reminders are rescheduled.
+    let onChange: () -> Void
+
+    var body: some View {
+        let binding = Binding(
+            get: { store.settings.quietHoursEnabled },
+            set: {
+                store.setQuietHoursEnabled($0)
+                onChange()
+            }
+        )
+        return Toggle(isOn: binding) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("免打扰时段")
+                    .font(.fkTitleSmall)
+                    .foregroundStyle(Color.fkOnSurface)
+                Text("此时段内逐条临期提醒不再打扰")
+                    .font(.fkBodySmall)
+                    .foregroundStyle(Color.fkOnSurfaceVariant)
+            }
+        }
+    }
+}
+
+/// The 免打扰起止 row: two compact hour `DatePicker`s (start / end) bound through
+/// the store's `setQuietHours`. Only the hour component round-trips — minute is
+/// pinned to 0 (the suppression check is hour-granular). Both bindings are built
+/// inside the `@MainActor` `body`; `onChange` reschedules after each edit.
+private struct QuietHoursTimeRow: View {
+    let store: ReminderSettingsStore
+    /// Invoked after the time persists, so reminders are rescheduled.
+    let onChange: () -> Void
+
+    var body: some View {
+        let calendar = Calendar.current
+        let startBinding = Binding(
+            get: { hourDate(store.settings.quietStartHour, calendar) },
+            set: { newDate in
+                store.setQuietHours(
+                    startHour: calendar.component(.hour, from: newDate),
+                    endHour: store.settings.quietEndHour
+                )
+                onChange()
+            }
+        )
+        let endBinding = Binding(
+            get: { hourDate(store.settings.quietEndHour, calendar) },
+            set: { newDate in
+                store.setQuietHours(
+                    startHour: store.settings.quietStartHour,
+                    endHour: calendar.component(.hour, from: newDate)
+                )
+                onChange()
+            }
+        )
+        return VStack(spacing: FkSpacing.xs) {
+            DatePicker(selection: startBinding, displayedComponents: .hourAndMinute) {
+                Text("开始")
+                    .font(.fkTitleSmall)
+                    .foregroundStyle(Color.fkOnSurface)
+            }
+            .datePickerStyle(.compact)
+            DatePicker(selection: endBinding, displayedComponents: .hourAndMinute) {
+                Text("结束")
+                    .font(.fkTitleSmall)
+                    .foregroundStyle(Color.fkOnSurface)
+            }
+            .datePickerStyle(.compact)
+        }
+    }
+
+    /// A throwaway "today at `hour`:00" anchor — only the hour round-trips.
+    private func hourDate(_ hour: Int, _ calendar: Calendar) -> Date {
+        calendar.date(bySettingHour: hour, minute: 0, second: 0, of: Date()) ?? Date()
     }
 }
 

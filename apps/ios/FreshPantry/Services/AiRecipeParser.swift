@@ -16,6 +16,21 @@ enum AiRecipeParser {
         + "description, imageUrl (可空；如果网页内容包含“封面图片”，优先使用该 URL), "
         + "ingredients ([{name, amount}]), steps (string array)。"
 
+    /// System prompt for the OCR-text path. The input is raw recognized text from
+    /// a photographed / screenshotted recipe — lines may be out of order, broken
+    /// mid-word, or carry OCR garble — so the model is told to TIDY the mess into
+    /// the SAME recipe JSON schema the URL importer uses (so one `mapToDraft`
+    /// handles both). No `imageUrl` field here: a photo has no cover URL to lift.
+    /// Chinese, per the product requirement. Do NOT add fields without teaching
+    /// `mapToDraft` about them.
+    static let fromTextSystemPrompt =
+        "你是食谱整理助手。用户会提供一段从纸质菜谱或截图 OCR 识别出来的杂乱文本，"
+        + "可能有错别字、断行、顺序混乱或多余内容。请把它整理成一份结构化食谱。"
+        + "尽量纠正明显的识别错误，合理拆分食材与步骤；只根据提供的文本工作，不要编造原文没有的内容。"
+        + "只返回 JSON，不要前后文。如果文本不足以抽取出食谱，返回 {\"error\":\"...\"}。"
+        + "JSON 字段：name, category, cookingMinutes (int 分钟), difficulty (int 1-5), "
+        + "description, ingredients ([{name, amount}]), steps (string array)。"
+
     /// Normalizes + gates the URL, fetches the page, runs the LLM, and parses the
     /// result into a `RecipeDraft`. `pageFetcher` is injectable so tests run with
     /// NO network/key. Throws `AiError.parse` on malformed / missing JSON and
@@ -34,6 +49,45 @@ enum AiRecipeParser {
         ]
 
         let raw = try await chatFn(messages)
+        return try mapToDraft(raw, sourceUrl: normalized)
+    }
+
+    /// Builds the user-message text wrapping the OCR'd recipe text. Exposed (not
+    /// inlined) so the prompt construction — "must carry the recognized text" — is
+    /// unit-testable WITHOUT the network. Trims surrounding whitespace; the body is
+    /// passed through verbatim so the model sees exactly what OCR produced.
+    static func buildFromTextUserPrompt(_ text: String) -> String {
+        "食谱文本（OCR 识别，可能有误）：\n\(text.trimmingCharacters(in: .whitespacesAndNewlines))"
+    }
+
+    /// Extracts a structured `RecipeDraft` from a block of free-form recipe text —
+    /// the photo-import (OCR) path. Mirrors `fromUrl`/`fromIngredients`: feed the
+    /// text to the LLM under the OCR system prompt, then funnel the raw reply
+    /// through the SHARED `mapToDraft` (no source URL — a photo isn't imported from
+    /// a page). `chatFn` is injectable so tests run with NO network/key. Throws
+    /// `AiError.parse("食谱文本为空")` when the input is blank (parity with the other
+    /// parsers' empty-input guard); propagates the parser's `AiError.parse` on
+    /// malformed / missing JSON and surfaces an AI-reported `error` field.
+    static func fromText(_ text: String, chatFn: AiChatFn) async throws -> RecipeDraft {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { throw AiError.parse("食谱文本为空") }
+
+        let messages: [AiMessage] = [
+            .text("system", fromTextSystemPrompt),
+            .text("user", buildFromTextUserPrompt(trimmed)),
+        ]
+        let raw = try await chatFn(messages)
+        return try mapToDraft(raw, sourceUrl: nil)
+    }
+
+    /// Maps a raw LLM reply (the shared recipe JSON schema) into a `RecipeDraft`,
+    /// applying the field coercion + INVARIANT #12 clamps. The single source of
+    /// truth for "recipe JSON → draft": both the URL importer and the clear-fridge
+    /// generator funnel their raw replies through here, so they share ONE schema
+    /// and one set of tolerant-field rules. `sourceUrl` is the import provenance
+    /// (nil for a generated recipe). Throws `AiError.parse` on malformed / missing
+    /// JSON and surfaces an AI-reported `error` field as `AiError.parse("AI 报告：…")`.
+    static func mapToDraft(_ raw: String, sourceUrl: String?) throws -> RecipeDraft {
         guard let json = extractJsonObjectWithFallbacks(raw) else {
             throw AiError.parse("AI 返回不是合法 JSON")
         }
@@ -42,7 +96,7 @@ enum AiRecipeParser {
         }
 
         return RecipeDraft(
-            sourceUrl: normalized,
+            sourceUrl: sourceUrl,
             name: .ai(try requireString(json, "name")),
             category: .ai(try requireString(json, "category")),
             cookingMinutes: .ai(try requireInt(json, "cookingMinutes")),

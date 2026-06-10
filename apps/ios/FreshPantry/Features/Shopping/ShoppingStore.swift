@@ -96,15 +96,17 @@ final class ShoppingStore {
 
     /// Adds a new item (name required; detail optional; category defaulted via
     /// `FoodKnowledge` when not supplied). Name-unique per the repo's
-    /// case-insensitive dedup. Returns whether a row was added (false when the
-    /// name is blank or already present).
+    /// case-insensitive dedup — but a duplicate name no longer always rejects:
+    /// when both details parse to the same unit the quantities merge into the
+    /// existing row (see `mergeQuantity`). Returns whether a row was added or
+    /// merged (false when the name is blank or the duplicate couldn't merge).
     @discardableResult
     func add(name: String, detail: String = "", category: String? = nil) async -> Bool {
         let trimmedName = name.trimmed
         guard !trimmedName.isEmpty else { return false }
         let key = ShoppingItemNormalizer.nameKey(trimmedName)
-        guard !items.contains(where: { ShoppingItemNormalizer.nameKey($0.name) == key }) else {
-            return false
+        if let duplicateIndex = items.firstIndex(where: { ShoppingItemNormalizer.nameKey($0.name) == key }) {
+            return await mergeQuantity(into: duplicateIndex, addedDetail: detail.trimmed)
         }
         let resolvedCategory = FoodCategories.normalize(category) ?? FoodKnowledge.categoryFor(trimmedName)
         let item = ShoppingItem(
@@ -121,6 +123,72 @@ final class ShoppingStore {
                 operation: .create,
                 patch: patch,
                 baseVersion: nil
+            )
+        }
+        return true
+    }
+
+    /// 同名自动聚合: a duplicate-name add merges into the existing row instead
+    /// of appending — the repo's name-unique dedup means a second row with the
+    /// same name must never reach `saveItems`. Merges ONLY when both details
+    /// parse via `QuantityText` AND the unit remainders match (trimmed,
+    /// case-insensitive); anything else (blank/free-text detail, unit mismatch)
+    /// keeps the historical duplicate rejection so quantities are never guessed.
+    private func mergeQuantity(into index: Int, addedDetail: String) async -> Bool {
+        guard !addedDetail.isEmpty else { return false }
+        let existing = items[index]
+        guard
+            let current = QuantityText.parseLeadingQuantity(existing.detail.trimmed),
+            let added = QuantityText.parseLeadingQuantity(addedDetail),
+            current.remainder.lowercased() == added.remainder.lowercased(),
+            let currentValue = Double(current.magnitude),
+            let addedValue = Double(added.magnitude)
+        else { return false }
+
+        let summed = QuantityText.formatQuantity(currentValue + addedValue)
+        // The existing row's unit spelling wins — we're updating that row.
+        // Re-adding means "need to buy again": a checked (已购) row flips back
+        // to unchecked, or the merged quantity would hide at the bottom of the
+        // 已购 bucket (invisible under the 待购 filter) and later inflate the
+        // 入库 amount.
+        let merged = existing.copyWith(
+            detail: current.remainder.isEmpty ? summed : "\(summed) \(current.remainder)",
+            isChecked: false
+        )
+        var next = items
+        next[index] = merged
+        guard await persist(next) else { return false }
+        if let patch = DomainJSON.valueMap(merged) {
+            await syncWriter?.enqueue(
+                entityType: .shoppingItem,
+                entityId: merged.id,
+                operation: .update,
+                patch: patch,
+                baseVersion: existing.remoteVersion
+            )
+        }
+        return true
+    }
+
+    /// Rewrites a row's free-text detail (数量/备注) by stable id identity —
+    /// blank is allowed (clearing the quantity is a legitimate edit). Persists
+    /// and enqueues a full-row `.update` carrying the prior `remoteVersion` for
+    /// optimistic-concurrency merge. Returns whether a row was updated.
+    @discardableResult
+    func updateDetail(_ target: ShoppingItem, detail: String) async -> Bool {
+        guard let index = items.firstIndex(where: { $0.id == target.id }) else { return false }
+        let current = items[index]
+        let updated = current.copyWith(detail: detail.trimmed)
+        var next = items
+        next[index] = updated
+        guard await persist(next) else { return false }
+        if let patch = DomainJSON.valueMap(updated) {
+            await syncWriter?.enqueue(
+                entityType: .shoppingItem,
+                entityId: updated.id,
+                operation: .update,
+                patch: patch,
+                baseVersion: current.remoteVersion
             )
         }
         return true

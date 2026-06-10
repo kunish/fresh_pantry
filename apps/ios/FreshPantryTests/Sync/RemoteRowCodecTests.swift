@@ -35,6 +35,7 @@ struct RemoteRowCodecTests {
         #expect(domain["expiryDate"] == .null)
         #expect(domain["addedAt"] == .null)
         #expect(domain["shelfLifeDays"] == .null)
+        #expect(domain["tags"] == .null) // pass-through; model decode turns null -> []
         #expect(domain["remoteVersion"] == .int(0)) // _toInt0
         #expect(domain["clientUpdatedAt"] == .null)
         #expect(domain["deletedAt"] == .null)
@@ -95,6 +96,7 @@ struct RemoteRowCodecTests {
         #expect(row["state"] == .string("fresh")) // _orFresh
         #expect(row["storage"] == .string("fridge")) // _orFridge (encode default)
         #expect(row["expiry_date"] == .null)
+        #expect(row["tags"] == .array([])) // _orEmptyArray (encode default for the not-null jsonb column)
         #expect(row["version"] == .int(1)) // versionForUpsert(null) -> 1
         #expect(row["client_updated_at"] == .null)
         #expect(row["deleted_at"] == .null)
@@ -118,6 +120,7 @@ struct RemoteRowCodecTests {
             "expiryDate": .string("2026-06-12T00:00:00.000Z"),
             "addedAt": .string("2026-06-09T00:00:00.000Z"),
             "shelfLifeDays": .int(3),
+            "tags": .array([.string("囤货"), .string("孩子的")]),
             "remoteVersion": .int(7),
             "clientUpdatedAt": .string("2026-06-09T02:00:00.000Z"),
             "deletedAt": .null,
@@ -132,6 +135,7 @@ struct RemoteRowCodecTests {
         var expected = item
         expected["storage"] = .string("freezer")
         #expect(domain == expected)
+        #expect(domain["tags"] == .array([.string("囤货"), .string("孩子的")])) // round-trips intact
     }
 
     // MARK: - Shopping
@@ -388,13 +392,13 @@ struct RemoteRowCodecTests {
     private static let inventoryDomainKeys: Set<String> = [
         "id", "name", "quantity", "unit", "imageUrl", "freshnessPercent", "state",
         "expiryLabel", "category", "barcode", "storage", "expiryDate", "addedAt",
-        "shelfLifeDays", "remoteVersion", "clientUpdatedAt", "deletedAt",
+        "shelfLifeDays", "tags", "remoteVersion", "clientUpdatedAt", "deletedAt",
     ]
 
     private static let inventoryRowKeys: Set<String> = [
         "household_id", "id", "name", "quantity", "unit", "image_url",
         "freshness_percent", "state", "expiry_label", "category", "barcode",
-        "storage", "expiry_date", "added_at", "shelf_life_days", "version",
+        "storage", "expiry_date", "added_at", "shelf_life_days", "tags", "version",
         "client_updated_at", "deleted_at",
     ]
 

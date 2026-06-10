@@ -8,15 +8,69 @@ import Foundation
 /// masked to a positive int31 so identifiers stay stable across launches. The
 /// daily-summary slot reserves id `1`; any per-item hash that collides with it
 /// is bumped by one.
+///
+/// Delivery time is the user-chosen `settings.reminderHour/Minute` (default
+/// 09:00, see `ReminderSettings.defaultReminderHour`). The id hash deliberately
+/// excludes the time fields: a time change keeps every id stable, so the
+/// coordinator's cancel + re-add reschedule moves all slots to the new time
+/// without orphaning previously scheduled requests.
+///
+/// NOISE REDUCTION:
+/// - `summaryOnly` suppresses every per-item D-N slot (via the empty
+///   `enabledOffsetDays`) and forces the daily summary on, so the user keeps a
+///   single recall channel instead of being flooded by per-item pushes.
+/// - Quiet hours DROP any per-item slot whose fire time lands inside the window.
+///   Dropping (rather than deferring) is intentional: the per-item id hash
+///   excludes the time, so shifting the fire time would still resolve to the
+///   same id and muddy the partition cancel/retain logic; "do not disturb" also
+///   reads most cleanly as "do not fire", and the daily summary already covers
+///   anything missed. The daily summary itself is SHIFTED out of the window
+///   (never dropped) so the lone recall channel is never silenced.
 enum ExpiryScheduler {
-    /// 09:00 local — when reminders fire.
-    static let dailySummaryHour = 9
     /// Reserved id for the single recurring daily-summary slot.
     static let dailySummaryId = 1
 
+    /// Splits the previously scheduled ids into (cancel, retain) for a
+    /// reschedule. An id is RETAINED when it is still derivable from the live
+    /// inventory under the current settings but absent from `next` — that
+    /// combination means its slot was dropped only because its fire time is
+    /// already past *today* (e.g. the user just moved the reminder time from
+    /// 20:00 to 9:00 at 10:00). Cancelling such an id would silently kill a
+    /// still-pending request scheduled at the OLD time — the last reminder a
+    /// D-1 item will ever get. Ids no longer derivable (row deleted, expiry
+    /// changed, offset disabled, summary-only mode, or suppressed by quiet
+    /// hours) cancel as before; retained ids whose request already fired are
+    /// harmless no-ops to keep. Pure — testable without the notification center.
+    static func partitionPreviousIds(
+        _ previous: [Int],
+        next: [ScheduledNotification],
+        inventory: [Ingredient],
+        settings: ReminderSettings,
+        calendar: Calendar = .current
+    ) -> (cancel: [Int], retain: [Int]) {
+        let nextIds = Set(next.map(\.id))
+        var stillValid: Set<Int> = []
+        // Mirror `compute`'s per-item suppression so ids dropped by summaryOnly
+        // (empty offsets) or quiet hours are NOT mistaken for "past-only" drops
+        // and therefore cancel rather than retain. The past-time check is the
+        // ONLY filter intentionally omitted here — that is the retain case.
+        for ing in inventory where ing.expiryDate != nil {
+            for offset in settings.enabledOffsetDays {
+                guard let slot = slotDate(for: ing, offset: offset, settings: settings, calendar: calendar),
+                      !settings.isWithinQuietHours(hour: calendar.component(.hour, from: slot))
+                else { continue }
+                stillValid.insert(idFor(ing, offset: offset))
+            }
+        }
+        let retain = previous.filter { stillValid.contains($0) && !nextIds.contains($0) }
+        let retained = Set(retain)
+        return (previous.filter { !retained.contains($0) }, retain)
+    }
+
     /// Builds the full notification set: per-item D-N reminders (in the
     /// settings' largest-first [7,3,1] offset order) plus the optional daily
-    /// summary. Slots not strictly after `now` are dropped (already past).
+    /// summary. Slots not strictly after `now` are dropped (already past), as
+    /// are per-item slots that land inside an active quiet-hours window.
     static func compute(
         inventory: [Ingredient],
         settings: ReminderSettings,
@@ -25,27 +79,18 @@ enum ExpiryScheduler {
     ) -> [ScheduledNotification] {
         var out: [ScheduledNotification] = []
 
-        // Per-item D-N notifications.
+        // Per-item D-N notifications. `enabledOffsetDays` is empty in
+        // summary-only mode, so this loop emits nothing there. `slotDate` is the
+        // single source of truth for slot derivation (nil expiry / bad
+        // components → nil → skip).
         for ing in inventory {
-            guard let expiry = ing.expiryDate else { continue }
-            let expiryComponents = calendar.dateComponents([.year, .month, .day], from: expiry)
-            guard let year = expiryComponents.year,
-                  let month = expiryComponents.month,
-                  let day = expiryComponents.day
-            else { continue }
-
             for offset in settings.enabledOffsetDays {
-                // `day - offset` underflow is normalized by `calendar.date(from:)`,
-                // matching Dart `DateTime(y, m, d - offset, 9, 0)`.
-                var slot = DateComponents()
-                slot.year = year
-                slot.month = month
-                slot.day = day - offset
-                slot.hour = dailySummaryHour
-                slot.minute = 0
-                guard let scheduledDate = calendar.date(from: slot),
-                      scheduledDate > now
-                else { continue }
+                guard let scheduledDate = slotDate(
+                    for: ing, offset: offset, settings: settings, calendar: calendar
+                ), scheduledDate > now else { continue }
+                // Suppress slots that land inside the do-not-disturb window.
+                let hour = calendar.component(.hour, from: scheduledDate)
+                guard !settings.isWithinQuietHours(hour: hour) else { continue }
 
                 out.append(ScheduledNotification(
                     id: idFor(ing, offset: offset),
@@ -57,24 +102,77 @@ enum ExpiryScheduler {
             }
         }
 
-        // Daily summary — single recurring slot at the next local 09:00.
-        if settings.remindDaily {
+        // Daily summary — single recurring slot at the next local reminder time.
+        // Forced on in summary-only mode (the lone recall channel). When the
+        // reminder time itself lands inside the quiet window, the summary is
+        // shifted to the window end rather than dropped.
+        if settings.dailySummaryEnabled {
             var today = calendar.dateComponents([.year, .month, .day], from: now)
-            today.hour = dailySummaryHour
-            today.minute = 0
-            if let today9 = calendar.date(from: today) {
-                let next = today9 > now ? today9 : calendar.date(byAdding: .day, value: 1, to: today9) ?? today9
+            today.hour = settings.reminderHour
+            today.minute = settings.reminderMinute
+            if let todaySlot = calendar.date(from: today) {
+                let base = todaySlot > now
+                    ? todaySlot
+                    : calendar.date(byAdding: .day, value: 1, to: todaySlot) ?? todaySlot
+                let scheduled = shiftedOutOfQuietHours(base, settings: settings, calendar: calendar)
                 out.append(ScheduledNotification(
                     id: dailySummaryId,
                     title: "每日临期提醒",
                     body: "查看今天到期 / 已过期食材",
-                    scheduledAt: next,
+                    scheduledAt: scheduled,
                     kind: .dailySummary
                 ))
             }
         }
 
         return out
+    }
+
+    /// The local fire date for an ingredient's D-N slot: `offset` days before
+    /// the expiry day at the user's reminder time. `day - offset` underflow is
+    /// normalized by `calendar.date(from:)`, matching Dart `DateTime(y, m,
+    /// d - offset, h, m)`. nil only if the expiry has no day components.
+    private static func slotDate(
+        for ing: Ingredient,
+        offset: Int,
+        settings: ReminderSettings,
+        calendar: Calendar
+    ) -> Date? {
+        guard let expiry = ing.expiryDate else { return nil }
+        let e = calendar.dateComponents([.year, .month, .day], from: expiry)
+        guard let year = e.year, let month = e.month, let day = e.day else { return nil }
+        var slot = DateComponents()
+        slot.year = year
+        slot.month = month
+        slot.day = day - offset
+        slot.hour = settings.reminderHour
+        slot.minute = settings.reminderMinute
+        return calendar.date(from: slot)
+    }
+
+    /// If `date` lands inside the active quiet window, advance it to the window
+    /// end (the first non-quiet hour, minute zeroed); otherwise returns `date`
+    /// unchanged. Used for the daily summary so it is never silenced. Bounded:
+    /// scans at most 24 hours forward.
+    private static func shiftedOutOfQuietHours(
+        _ date: Date,
+        settings: ReminderSettings,
+        calendar: Calendar
+    ) -> Date {
+        guard settings.isWithinQuietHours(hour: calendar.component(.hour, from: date)) else {
+            return date
+        }
+        // Set the summary to the quiet window's end hour, on whichever day keeps
+        // it strictly after `date` (handles the wrap-midnight case where the
+        // window end is "tomorrow morning").
+        var end = calendar.dateComponents([.year, .month, .day], from: date)
+        end.hour = settings.quietEndHour
+        end.minute = 0
+        guard var candidate = calendar.date(from: end) else { return date }
+        if candidate <= date {
+            candidate = calendar.date(byAdding: .day, value: 1, to: candidate) ?? candidate
+        }
+        return candidate
     }
 
     /// Deterministic id from ingredient id + name + storage + addedAt +

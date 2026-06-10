@@ -8,14 +8,20 @@ import SwiftUI
 /// reusable feature pattern. Unlike Inventory/Shopping there is no DEBUG seed:
 /// the bundled HowToCook corpus is real read-only data present on every install.
 struct RecipesView: View {
+    /// Spotlight deep-link intent: the recipe id whose detail to push once the
+    /// corpus is loaded. Consumed (set to nil) once applied. `RootView` owns it.
+    @Binding var pendingRecipeID: String?
+
     @Environment(AppDependencies.self) private var dependencies
     @Environment(RecipeImportRouter.self) private var importRouter
     @State private var store: RecipesStore?
     /// CRUD owner for the user's custom recipes — drives the create/edit form and
     /// distinguishes custom recipes (for the detail edit/delete affordances).
     @State private var customStore: CustomRecipeStore?
-    /// Presents the create form sheet (the toolbar "+").
+    /// Presents the create form sheet (the toolbar "+" › 手动新建).
     @State private var showCreateForm = false
+    /// Presents the 拍照导入食谱 sheet (the toolbar "+" › 拍照导入).
+    @State private var showPhotoImport = false
     /// A Share-Extension recipe URL to pre-fill the create form's AI import with.
     /// nil for a normal "+" open; set when consuming a share-intent deep link.
     @State private var importPrefillURL: String?
@@ -25,6 +31,11 @@ struct RecipesView: View {
     /// hook pre-seeds it (in `.task`) so a recipe detail — and its auto-presented
     /// deduction review — can be snapshotted directly without a tap.
     @State private var path: [Recipe] = []
+    /// Pushed detail route. Owned here (vs `RecipesContent`) so the Spotlight
+    /// deep link drives the SAME `navigationDestination(item:)` as a card tap —
+    /// two parallel push mechanisms on one stack (item + bound path) interleave
+    /// unpredictably when both are live.
+    @State private var selectedRoute: RecipeRoute?
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -33,7 +44,8 @@ struct RecipesView: View {
                     RecipesContent(
                         store: store,
                         customStore: customStore,
-                        favoritesStore: dependencies.favoritesStore
+                        favoritesStore: dependencies.favoritesStore,
+                        selectedRoute: $selectedRoute
                     )
                 } else {
                     ProgressView()
@@ -69,6 +81,15 @@ struct RecipesView: View {
                     )
                 }
             }
+            .sheet(isPresented: $showPhotoImport) {
+                if let customStore {
+                    RecipePhotoImportView(
+                        store: customStore,
+                        aiSettingsStore: dependencies.aiSettingsStore,
+                        onSaved: { Task { await reload() } }
+                    )
+                }
+            }
             // Share-Extension import: open the create form pre-filled with the
             // shared recipe URL (warm path) — and once stores exist on cold start.
             .onChange(of: importRouter.pendingURL) { _, _ in consumeImportIntent() }
@@ -96,8 +117,9 @@ struct RecipesView: View {
             self.customStore = customStore
             await store.load()
             await customStore.load()
-            // Cold start: a share-intent URL captured before this tab built.
+            // Cold start: intents captured before this tab built/loaded.
             consumeImportIntent()
+            consumePendingRecipe()
             #if DEBUG
             // Snapshot affordance: `-initialRoute cook` seeds the inventory,
             // picks a recipe that matches it, and pushes its detail (whose own
@@ -112,6 +134,22 @@ struct RecipesView: View {
         .onChange(of: dependencies.syncSession.dataRevision) {
             Task { await reload() }
         }
+        // Warm path for the Spotlight deep link (cold path = the `.task` above).
+        .onChange(of: pendingRecipeID) { _, _ in consumePendingRecipe() }
+    }
+
+    /// Applies a pending Spotlight deep link: pushes the matching recipe's
+    /// detail via `selectedRoute` — the same `navigationDestination(item:)` a
+    /// card tap uses, so a deep link arriving while a detail is already open
+    /// swaps it in place instead of fighting the bound `path`. Waits for the
+    /// initial load (`hasLoaded`) so a cold-start intent resolves against the
+    /// real corpus; consumed even when the id no longer resolves (custom recipe
+    /// deleted elsewhere) so a stale intent can't re-fire on a later reload.
+    private func consumePendingRecipe() {
+        guard let id = pendingRecipeID, let store, store.hasLoaded else { return }
+        pendingRecipeID = nil
+        guard let match = store.recipes.first(where: { $0.id == id }) else { return }
+        selectedRoute = RecipeRoute(recipe: match)
     }
 
     /// Consumes a pending Share-Extension recipe URL: pre-fills + opens the create
@@ -137,10 +175,20 @@ struct RecipesView: View {
         .accessibilityLabel("忌口设置")
     }
 
-    /// "+" new-custom-recipe toolbar entry.
+    /// "+" toolbar entry — a menu offering manual authoring or 拍照导入 (OCR + AI
+    /// structuring of a photographed / screenshotted recipe).
     private var createToolbarButton: some View {
-        Button {
-            showCreateForm = true
+        Menu {
+            Button {
+                showCreateForm = true
+            } label: {
+                Label("手动新建", systemImage: "square.and.pencil")
+            }
+            Button {
+                showPhotoImport = true
+            } label: {
+                Label("拍照导入食谱", systemImage: "text.viewfinder")
+            }
         } label: {
             Image(systemName: "plus")
         }
@@ -197,7 +245,9 @@ private struct RecipesContent: View {
     /// Observed so a favorite toggle re-renders the affected hearts/cards.
     var favoritesStore: FavoritesStore
 
-    @State private var selectedRoute: RecipeRoute?
+    /// Hoisted to `RecipesView` so the Spotlight deep link and a card tap share
+    /// one push mechanism (see the owner's comment).
+    @Binding var selectedRoute: RecipeRoute?
 
     var body: some View {
         ScrollView {

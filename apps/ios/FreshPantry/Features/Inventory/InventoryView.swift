@@ -14,16 +14,26 @@ struct InventoryView: View {
     /// Cross-tab drill-down intent from the 首页 食材分类 grid: a canonical category
     /// to preset on appear. Consumed (set to nil) once applied. `RootView` owns it.
     @Binding var pendingCategory: String?
+    /// Spotlight deep-link intent: the ingredient id whose detail to push once
+    /// rows are loaded. Consumed (set to nil) once applied. `RootView` owns it.
+    @Binding var pendingIngredientID: String?
 
     @Environment(AppDependencies.self) private var dependencies
     @State private var store: InventoryStore?
     @State private var shoppingStore: ShoppingStore?
+    /// Detail push target — owned here (vs `InventoryContent`) so the Spotlight
+    /// deep link drives the same `navigationDestination` as a row tap.
+    @State private var selectedIngredient: Ingredient?
 
     var body: some View {
         NavigationStack {
             Group {
                 if let store, let shoppingStore {
-                    InventoryContent(store: store, shoppingStore: shoppingStore)
+                    InventoryContent(
+                        store: store,
+                        shoppingStore: shoppingStore,
+                        selectedIngredient: $selectedIngredient
+                    )
                 } else {
                     ProgressView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -62,8 +72,9 @@ struct InventoryView: View {
             self.shoppingStore = shopping
             await store.load()
             await shopping.load()
-            // Cold path: a drill-down intent that arrived before this tab built.
+            // Cold path: intents that arrived before this tab built/loaded.
             consumePendingCategory()
+            consumePendingIngredient()
         }
         // Remote merge pulse: a household-sync apply bumps dataRevision; reload the
         // store so the visible list reflects rows pulled from other members.
@@ -75,6 +86,8 @@ struct InventoryView: View {
         }
         // Warm path: a drill-down intent arriving while this tab is already built.
         .onChange(of: pendingCategory) { _, _ in consumePendingCategory() }
+        // Warm path for the Spotlight deep link (cold path = the `.task` above).
+        .onChange(of: pendingIngredientID) { _, _ in consumePendingIngredient() }
     }
 
     /// Applies a pending 首页 category drill-down to the live store (preset the
@@ -85,6 +98,17 @@ struct InventoryView: View {
         store.categoryFilter = .category(category)
         store.storageFilter = .all
         pendingCategory = nil
+    }
+
+    /// Applies a pending Spotlight deep link: pushes the matching row's detail.
+    /// Waits for the initial load (`hasLoaded`) so a cold-start intent resolves
+    /// against real rows; the intent is consumed even when the row no longer
+    /// exists (deleted on another device) so a stale id can't re-fire later.
+    private func consumePendingIngredient() {
+        guard let id = pendingIngredientID, let store, store.hasLoaded else { return }
+        pendingIngredientID = nil
+        guard let match = store.items.first(where: { $0.id == id }) else { return }
+        selectedIngredient = match
     }
 
     /// Honors a `-initialRoute add` launch argument (UI snapshots / tests).
@@ -102,9 +126,16 @@ struct InventoryView: View {
 private struct InventoryContent: View {
     @Bindable var store: InventoryStore
     let shoppingStore: ShoppingStore
+    /// Owned by `InventoryView` so the Spotlight deep link can push the same
+    /// detail destination a row tap does.
+    @Binding var selectedIngredient: Ingredient?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(AppDependencies.self) private var dependencies
+    /// Shared per-row sync-status set (injected at the tab root). Optional so a
+    /// standalone preview / snapshot render — which doesn't inject it — is safe
+    /// (nil → no badges, never a trap).
+    @Environment(PendingSyncStatusStore.self) private var pendingSync: PendingSyncStatusStore?
 
-    @State private var selectedIngredient: Ingredient?
     @State private var showClearConfirm = false
     @State private var toast: String?
     /// Multi-select mode (long-press to enter): the selected rows' identity keys.
@@ -123,6 +154,7 @@ private struct InventoryContent: View {
 
                 categoryChips
                 storageChips
+                tagChips
 
                 listBody
             }
@@ -132,6 +164,13 @@ private struct InventoryContent: View {
         .background(Color.fkSurface)
         .scrollDismissesKeyboard(.immediately)
         .refreshable { await store.load() }
+        // Keep the 「待同步」 badges fresh: any items change — a reload or an
+        // in-place mutation (delete / edit / merge), each of which reassigns
+        // `items` — re-reads the pending outbox set so a just-queued row's badge
+        // appears (and a synced one's clears) without waiting for a sync pulse.
+        .onChange(of: store.items) {
+            Task { await pendingSync?.refresh() }
+        }
         .toolbar { toolbarContent }
         .sheet(isPresented: $isAddingPresented) {
             AddIngredientView { Task { await store.load() } }
@@ -421,6 +460,44 @@ private struct InventoryContent: View {
         }
     }
 
+    // MARK: Tag filter chips
+
+    /// 标签筛选行 — dynamic from the inventory's in-use tags (frequency-then-name
+    /// ordered). The whole row is hidden when no row carries a tag, so there's no
+    /// dead "全部标签" control on a tag-free pantry.
+    @ViewBuilder
+    private var tagChips: some View {
+        // Keep the active selection visible even if it dropped out of the in-use
+        // set (e.g. its last row was deleted), so the user can always clear it.
+        let options = chipTags
+        if !options.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: FkSpacing.sm) {
+                    FkChip(label: "全部标签", isSelected: store.selectedTag == nil) {
+                        store.selectedTag = nil
+                    }
+                    ForEach(options, id: \.self) { tag in
+                        FkChip(label: tag, isSelected: store.selectedTag == tag) {
+                            // Tap the active tag again to clear it (back to 全部标签).
+                            store.selectedTag = store.selectedTag == tag ? nil : tag
+                        }
+                    }
+                }
+                .padding(.horizontal, FkSpacing.lg)
+            }
+        }
+    }
+
+    /// In-use tags, with the active selection appended when it's no longer in the
+    /// derived set (so a stale filter still has a clearable chip).
+    private var chipTags: [String] {
+        var options = store.tagOptions
+        if let selected = store.selectedTag, !options.contains(selected) {
+            options.append(selected)
+        }
+        return options
+    }
+
     // MARK: List / empty / loading
 
     @ViewBuilder
@@ -458,6 +535,9 @@ private struct InventoryContent: View {
                             .foregroundStyle(selected ? Color.fkPrimary : Color.fkOutline)
                     }
                     IngredientRow(ingredient: item)
+                    if showsPendingBadge(for: item) {
+                        PendingSyncBadge()
+                    }
                 }
                 .contentShape(Rectangle())
                 .onTapGesture {
@@ -482,6 +562,15 @@ private struct InventoryContent: View {
                 enterSelection(with: item)
             }
         }
+    }
+
+    /// Whether `item` carries a 「待同步」 badge: only in 家庭模式 (a real household
+    /// is selected — local-only writes never enqueue, so a badge there would be
+    /// noise) AND when the row's id has a queued outbox op. A freshly-created
+    /// local row (blank id) never matches.
+    private func showsPendingBadge(for item: Ingredient) -> Bool {
+        guard !dependencies.householdID.isEmpty, let pendingSync else { return false }
+        return pendingSync.isPending(item.id)
     }
 
     private func buyAgainButton(_ item: Ingredient) -> some View {

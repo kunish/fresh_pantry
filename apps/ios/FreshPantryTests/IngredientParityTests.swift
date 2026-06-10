@@ -76,4 +76,63 @@ struct IngredientParityTests {
         let ingredient = try decode(#"{"name":"x"}"#)
         #expect(ingredient.id.isEmpty) // local-only / never-synced
     }
+
+    // MARK: Tags (custom labels)
+
+    @Test func tagsDefaultToEmptyWhenAbsent() throws {
+        let ingredient = try decode(#"{"name":"牛奶"}"#)
+        #expect(ingredient.tags.isEmpty)
+    }
+
+    @Test func tagsDefaultToEmptyWhenNullOrWrongType() throws {
+        // Lenient decode: null / non-array both collapse to [] (no throw).
+        #expect(try decode(#"{"name":"x","tags":null}"#).tags.isEmpty)
+        #expect(try decode(#"{"name":"x","tags":"oops"}"#).tags.isEmpty)
+    }
+
+    @Test func tagsRoundTripAndNormalizeOnDecode() throws {
+        // Raw blob with padding, a blank, and a case-dup → canonical on read.
+        let ingredient = try decode(#"{"name":"x","tags":["  囤货 ","","BBQ","bbq","孩子的"]}"#)
+        #expect(ingredient.tags == ["囤货", "BBQ", "孩子的"]) // trimmed, blank dropped, dedup first-casing
+    }
+
+    @Test func tagsNormalizationOwnedByModelInit() {
+        // The value-type entry point canonicalizes too (not just decode).
+        let ingredient = Ingredient(
+            name: "x", quantity: "1", unit: "份", imageUrl: "",
+            freshnessPercent: 1.0, state: .fresh,
+            tags: [" 待用完", "待用完", "  ", "孩子的"]
+        )
+        #expect(ingredient.tags == ["待用完", "孩子的"])
+    }
+
+    @Test func toJsonAlwaysWritesTagsKey() throws {
+        let ingredient = Ingredient(
+            name: "x", quantity: "1", unit: "份", imageUrl: "",
+            freshnessPercent: 1.0, state: .fresh, tags: ["囤货"]
+        )
+        let json = try DomainJSON.encodeToString(ingredient)
+        #expect(json.contains("\"tags\":[\"囤货\"]"))
+    }
+
+    @Test func tagsSurviveFullRoundTrip() throws {
+        let original = Ingredient(
+            name: "鸡胸", quantity: "1", unit: "份", imageUrl: "",
+            freshnessPercent: 1.0, state: .fresh, tags: ["囤货", "孩子的"]
+        )
+        let decoded = try DomainJSON.decode(Ingredient.self, from: DomainJSON.encodeToString(original))
+        #expect(decoded.tags == ["囤货", "孩子的"])
+        #expect(decoded == original) // tags participate in value equality
+    }
+
+    @Test func copyWithTagsReplacesAndNormalizes() {
+        let original = Ingredient(
+            name: "x", quantity: "1", unit: "份", imageUrl: "",
+            freshnessPercent: 1.0, state: .fresh, tags: ["旧"]
+        )
+        let updated = original.copyWith(tags: ["新 ", "新", "另一个"])
+        #expect(updated.tags == ["新", "另一个"]) // re-normalized through init
+        // Omitting tags preserves the existing list.
+        #expect(original.copyWith(name: "y").tags == ["旧"])
+    }
 }

@@ -178,6 +178,10 @@ extension RemoteRowCodec {
     /// Defaults a null/absent checked flag to false.
     fileprivate static func orFalse(_ v: JSONValue?) -> JSONValue { isNull(v) ? .bool(false) : v! }
 
+    /// Defaults a null/absent value to an empty JSON array (encode of `tags` so the
+    /// not-null jsonb column never receives null).
+    fileprivate static func orEmptyArray(_ v: JSONValue?) -> JSONValue { isNull(v) ? .array([]) : v! }
+
     /// Coerces any numeric encoding to a Double, defaulting null/non-numeric to
     /// 1.0 (decode of `freshness_percent`).
     fileprivate static func toDouble1(_ v: JSONValue?) -> JSONValue {
@@ -244,6 +248,10 @@ extension RemoteRowCodec {
         Column("expiry_date", "expiryDate"),
         Column("added_at", "addedAt"),
         Column("shelf_life_days", "shelfLifeDays"),
+        // jsonb array ⇄ [String]. Encode defaults null/absent to an empty array so
+        // the not-null `tags` column is always satisfied; decode passes through
+        // (the domain model's lenient decode turns null into []).
+        Column("tags", "tags", encode: orEmptyArray),
         versionCol,
         clientUpdatedCol,
         deletedCol,

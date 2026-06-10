@@ -19,7 +19,9 @@ final class NotificationService: NSObject {
 
     /// Tap handler, invoked with the integer id parsed from the request
     /// identifier. Set via `setOnTap` after the center delegate is installed.
-    private var onTap: ((Int) -> Void)?
+    /// Explicitly `@MainActor`: it is always invoked from `handleTap` on the
+    /// main actor, and the wiring closure captures main-actor state.
+    private var onTap: (@MainActor (Int) -> Void)?
 
     private(set) var isInitialized = false
     private(set) var permissionGranted = false
@@ -35,10 +37,18 @@ final class NotificationService: NSObject {
         isInitialized = true
     }
 
-    /// Registers a tap handler. Parsed int ids let the app deep-link from a
-    /// tapped expiry notification (wired by a later navigation slice).
-    func setOnTap(_ handler: @escaping (Int) -> Void) {
+    /// Registers a tap handler. Wired by `AppDependencies` to
+    /// `NotificationTapRouter.capture`, so a tapped expiry notification
+    /// deep-links into the 临期 screen.
+    func setOnTap(_ handler: @escaping @MainActor (Int) -> Void) {
         onTap = handler
+    }
+
+    /// Core of the delegate's `didReceive`, extracted so tests can drive the
+    /// tap chain without forging a `UNNotificationResponse`: forwards the
+    /// tapped notification's integer id to the registered handler.
+    func handleTap(id: Int) {
+        onTap?(id)
     }
 
     // MARK: Permission
@@ -64,7 +74,8 @@ final class NotificationService: NSObject {
 
     /// Schedules a single notification. Expiry items fire once at their exact
     /// local date/time (skipped if already past); the daily summary fires
-    /// repeating at 09:00. No-op until permission is granted.
+    /// repeating at the user-chosen reminder time. No-op until permission is
+    /// granted.
     func schedule(_ n: ScheduledNotification) async {
         guard permissionGranted else { return }
 
@@ -83,9 +94,10 @@ final class NotificationService: NSObject {
             )
             trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
         case .dailySummary:
-            var components = DateComponents()
-            components.hour = ExpiryScheduler.dailySummaryHour
-            components.minute = 0
+            // Repeat daily at the hour/minute carried by `scheduledAt` (computed
+            // by ExpiryScheduler from the reminder settings) — the single source
+            // of truth for the delivery time; no global constant to drift from.
+            let components = calendar.dateComponents([.hour, .minute], from: n.scheduledAt)
             trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
         }
 
@@ -138,6 +150,6 @@ extension NotificationService: UNUserNotificationCenterDelegate {
         let identifier = response.notification.request.identifier
         completionHandler()
         guard let id = Int(identifier) else { return }
-        Task { @MainActor [weak self] in self?.onTap?(id) }
+        Task { @MainActor [weak self] in self?.handleTap(id: id) }
     }
 }

@@ -47,14 +47,22 @@ final class NotificationCoordinator {
     /// it with the OS: cancels the previously-scheduled ids, schedules the new
     /// set (capped to the OS pending limit), then persists the new ids. A read
     /// failure leaves existing notifications untouched rather than wiping them.
+    ///
+    /// Ids dropped from the desired set ONLY because their slot time is already
+    /// past today (the reminder time just moved earlier) are retained instead of
+    /// cancelled — their pending request still fires once at the old time. See
+    /// `ExpiryScheduler.partitionPreviousIds`.
     func reschedule(householdID: String) async {
         guard let items = try? await inventory.loadAllFor(householdID) else { return }
-        let next = ExpiryScheduler.compute(
+        let settings = reminderSettings.settings
+        let next = ExpiryScheduler.compute(inventory: items, settings: settings, now: Date())
+        let (cancel, retain) = ExpiryScheduler.partitionPreviousIds(
+            idsRepo.load(),
+            next: next,
             inventory: items,
-            settings: reminderSettings.settings,
-            now: Date()
+            settings: settings
         )
-        await service.syncAll(next, previousIds: idsRepo.load())
-        idsRepo.save(next.map(\.id))
+        await service.syncAll(next, previousIds: cancel)
+        idsRepo.save(next.map(\.id) + retain)
     }
 }

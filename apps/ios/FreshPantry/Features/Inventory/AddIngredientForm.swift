@@ -23,6 +23,10 @@ final class AddIngredientForm {
     /// nil for a hand-started add. Flows onto the proposal → resulting row so the
     /// scanned product keeps its barcode for later detail lookups.
     var barcode: String?
+    /// User-defined tags for the new row. Canonicalized (trim/dedupe/empty-drop)
+    /// by `Ingredient.normalizeTags` at proposal-build time, mirroring how the
+    /// model shapes them — so the editor can hold raw input freely.
+    var tags: [String] = []
 
     /// Per-field "user touched this" flags — once set, autofill leaves the field
     /// alone so a later name change can't stomp a deliberate choice.
@@ -121,6 +125,40 @@ final class AddIngredientForm {
         setShelfLife(details.shelfLifeDays)
     }
 
+    /// Seeds the shelf-life from an EXPIRY date recognized off a packaging photo
+    /// (OCR → `ExpiryDateParser`). The form stores days-from-now, so the absolute
+    /// expiry is converted to whole calendar days from `now`; the result is pinned
+    /// as user-edited so a later name-commit autofill can't stomp the scanned value.
+    ///
+    /// Returns the resolved positive day count on success so the caller can confirm
+    /// inline, or nil when the date is already in the past / today (a stale label —
+    /// we don't silently set a 0/negative shelf life; the caller prompts a manual
+    /// fix). Pure (no SwiftUI / Vision) so it's unit-testable.
+    @discardableResult
+    func prefillExpiry(date: Date, now: Date = Date()) -> Int? {
+        let days = ExpiryCalculator.calendarDaysBetween(now, date)
+        guard days > 0 else { return nil }
+        setShelfLife(days)
+        return days
+    }
+
+    /// Seeds the form from a device-local barcode-memory hit (the user scanned +
+    /// saved this product before on this device). We learned name + category, so
+    /// fill those (category pinned as edited so a name-commit autofill can't stomp
+    /// it) and let `applySmartDefaults` fill storage/shelf-life from the name — we
+    /// never learned those, so the knowledge-base defaults are the best source.
+    /// The barcode is always recorded so the resulting row keeps its identity.
+    func prefill(fromLocalName name: String, category: String, barcode: String) {
+        let trimmedBarcode = barcode.trimmed
+        self.barcode = trimmedBarcode.isEmpty ? nil : trimmedBarcode
+
+        let trimmedName = name.trimmed
+        guard !trimmedName.isEmpty else { return }
+        self.name = trimmedName
+        setCategory(category)
+        applySmartDefaults()
+    }
+
     // MARK: Validation / proposal building
 
     /// The form can produce a proposal only with a non-empty name.
@@ -156,7 +194,8 @@ final class AddIngredientForm {
             mergeTargetId: proposal.mergeTargetId,
             mergeTargetLabel: proposal.mergeTargetLabel,
             origin: .user,
-            barcode: (trimmedBarcode?.isEmpty == false) ? trimmedBarcode : nil
+            barcode: (trimmedBarcode?.isEmpty == false) ? trimmedBarcode : nil,
+            tags: Ingredient.normalizeTags(tags)
         )
     }
 

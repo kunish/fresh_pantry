@@ -23,6 +23,9 @@ final class EditIngredientForm {
     var unit: String
     var category: String
     var storage: IconType
+    /// User-defined tags, seeded from the original row. Canonicalized by
+    /// `Ingredient.normalizeTags` on `buildEdited` (the editor holds raw input).
+    var tags: [String]
     /// nil = 不过期 (no expiry). Drives the shelf-life chip selection.
     private(set) var shelfLifeDays: Int?
     /// The resolved expiry anchor: the original date until the user changes the
@@ -39,6 +42,7 @@ final class EditIngredientForm {
         unit = item.unit.trimmed.isEmpty ? "个" : item.unit
         category = FoodCategories.dropdownValue(item.category)
         storage = item.storage
+        tags = item.tags
         expiryDate = item.expiryDate
         // Seed shelf-life: saved value, else derive from the remaining window
         // (mirrors Flutter's `initial.shelfLifeDays ?? daysUntilExpiry(expiry)`).
@@ -129,6 +133,7 @@ final class EditIngredientForm {
             expiryDate: expiryDate,
             addedAt: original.addedAt,
             shelfLifeDays: shelfLifeDays,
+            tags: Ingredient.normalizeTags(tags),
             remoteVersion: original.remoteVersion,
             clientUpdatedAt: original.clientUpdatedAt,
             deletedAt: original.deletedAt

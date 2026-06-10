@@ -48,6 +48,18 @@ final class SyncSession {
     /// sync coordinator after a successful local write of merged remote rows.
     func bumpDataRevision() { dataRevision += 1 }
 
+    /// A lightweight "an outbound push just ran" pulse — bumped by `SyncWriter`
+    /// after the enqueue-triggered push completes. Distinct from `dataRevision`
+    /// so observers can refresh ONLY the per-item 待同步 badges (re-reading the
+    /// outbox) without forcing every feature store to reload. Without it, a row's
+    /// badge would stay lit after a successful background push until the next
+    /// foreground / reconnect / inbound merge.
+    private(set) var pendingSyncRevision: Int = 0
+
+    /// Signals that an outbound push cycle finished (ops were acked or left
+    /// queued); observers re-read the pending-outbox set to converge the badges.
+    func bumpPendingSyncRevision() { pendingSyncRevision += 1 }
+
     /// - Parameters:
     ///   - selectedHouseholdId: initial scope (`""` = local-only).
     ///   - defaults: the store the client id is persisted in. Injectable so

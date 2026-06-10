@@ -1,4 +1,6 @@
+import PhotosUI
 import SwiftUI
+import os
 
 /// Manual add-ingredient form, presented as a sheet from the 库存 toolbar "+".
 ///
@@ -29,6 +31,7 @@ struct AddIngredientView: View {
     @State private var showStoragePicker = false
     @State private var showPasteImport = false
     @State private var showImageImport = false
+    @State private var showReceiptImport = false
     @State private var showScanner = false
     @State private var showScannerUnavailable = false
     @State private var isLookingUpBarcode = false
@@ -36,7 +39,18 @@ struct AddIngredientView: View {
     @State private var customShelfLife = ""
     /// 常购食材 quick-fill chips, loaded from the add-history frequency memory.
     @State private var frequentItems: [FrequentItem] = []
+    /// Photo picked for the "拍照识别保质期" OCR flow; nil between picks.
+    @State private var pickedExpiryPhoto: PhotosPickerItem?
+    /// True while the expiry photo is being OCR'd + parsed (blocks a re-pick).
+    @State private var isRecognizingExpiry = false
+    /// Inline notice under the shelf-life field after an expiry scan — a success
+    /// hint or a "未识别到日期，请手动填写" failure. Never silent, never auto-filled.
+    @State private var expiryScanNotice: ExpiryScanNotice?
     @FocusState private var nameFocused: Bool
+
+    /// Barcode-memory is a convenience cache, never a data path: failures here
+    /// degrade to OFF / manual and are only logged (debug), never surfaced.
+    private static let barcodeLogger = Logger(subsystem: "com.kunish.freshPantry", category: "barcode-memory")
 
     private var controller: IntakeController {
         IntakeController(
@@ -52,6 +66,7 @@ struct AddIngredientView: View {
                 VStack(spacing: FkSpacing.lg) {
                     pasteImportButton
                     imageImportButton
+                    receiptImportButton
                     scanButton
                     if let barcodeNotice {
                         FkBarcodeNotice(message: barcodeNotice)
@@ -61,6 +76,7 @@ struct AddIngredientView: View {
                     categoryField
                     storageField
                     shelfLifeField
+                    tagsField
                     frequentItemsSection
                 }
                 .padding(FkSpacing.lg)
@@ -81,6 +97,10 @@ struct AddIngredientView: View {
             }
             .navigationDestination(item: $reviewRoute) { route in
                 IntakeReviewView(proposals: route.proposals, title: "确认入库") { _ in
+                    // The merge path also confirmed a save → learn the barcode
+                    // before tearing down (the form still holds it). Fire-and-
+                    // forget so dismissal isn't gated on the convenience write.
+                    Task { await learnScannedBarcode() }
                     onApplied()
                     dismiss()
                 }
@@ -114,6 +134,12 @@ struct AddIngredientView: View {
             }
             .sheet(isPresented: $showImageImport) {
                 ImageImportView(aiSettings: dependencies.aiSettingsStore.settings) {
+                    onApplied()
+                    dismiss()
+                }
+            }
+            .sheet(isPresented: $showReceiptImport) {
+                ReceiptImportView(aiSettings: dependencies.aiSettingsStore.settings) {
                     onApplied()
                     dismiss()
                 }
@@ -241,6 +267,35 @@ struct AddIngredientView: View {
         .buttonStyle(.fkPressable)
     }
 
+    /// "扫小票入库" entry point — pick/shoot a shopping receipt, OCR it on-device,
+    /// then feed the text into the SAME AI text-parse → review chain. Routes to a
+    /// "去配置" note inside the sheet when no AI provider is configured (the parse
+    /// step needs the LLM), mirroring the other AI import flows.
+    private var receiptImportButton: some View {
+        Button {
+            nameFocused = false
+            showReceiptImport = true
+        } label: {
+            HStack(spacing: FkSpacing.sm) {
+                Image(systemName: "doc.text.viewfinder")
+                Text("扫小票入库")
+                    .font(.fkLabelLarge)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.fkOutline)
+            }
+            .foregroundStyle(Color.fkPrimary)
+            .padding(FkSpacing.md)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: FkRadius.md, style: .continuous)
+                    .fill(Color.fkPrimarySoft)
+            )
+        }
+        .buttonStyle(.fkPressable)
+    }
+
     /// "扫码添加" entry point — opens the live barcode scanner when this device
     /// supports it, else surfaces a "请在真机使用" alert (never a black screen /
     /// crash on the simulator). On a scan the barcode is looked up on OFF and the
@@ -339,11 +394,13 @@ struct AddIngredientView: View {
                                 isSelected: form.shelfLifeDays == days
                             ) {
                                 customShelfLife = ""
+                                expiryScanNotice = nil
                                 form.setShelfLife(days)
                             }
                         }
                         FkChip(label: "不过期", isSelected: form.shelfLifeDays == nil && customShelfLife.isEmpty) {
                             customShelfLife = ""
+                            expiryScanNotice = nil
                             form.setShelfLife(nil)
                         }
                     }
@@ -364,6 +421,7 @@ struct AddIngredientView: View {
                         )
                         .onChange(of: customShelfLife) { _, value in
                             if let days = Int(value.trimmed), days > 0 {
+                                expiryScanNotice = nil
                                 form.setShelfLife(days)
                             }
                         }
@@ -371,7 +429,50 @@ struct AddIngredientView: View {
                         .font(.fkBodyMedium)
                         .foregroundStyle(Color.fkOnSurfaceVariant)
                 }
+                scanExpiryButton
+                if let expiryScanNotice {
+                    FkExpiryScanNotice(notice: expiryScanNotice)
+                }
             }
+        }
+    }
+
+    /// "拍照识别保质期" entry — pick a packaging photo, OCR it on-device
+    /// (`TextRecognizer`), parse the most likely expiry (`ExpiryDateParser`), and
+    /// prefill the shelf-life. No AI provider needed (recognition is fully local).
+    /// A miss surfaces an inline "请手动填写" notice and never blocks the form.
+    private var scanExpiryButton: some View {
+        PhotosPicker(
+            selection: $pickedExpiryPhoto,
+            matching: .images,
+            photoLibrary: .shared()
+        ) {
+            HStack(spacing: FkSpacing.xs) {
+                if isRecognizingExpiry {
+                    ProgressView().controlSize(.small)
+                } else {
+                    Image(systemName: "text.viewfinder")
+                        .font(.system(size: 13, weight: .semibold))
+                }
+                Text(isRecognizingExpiry ? "识别中…" : "拍照识别保质期")
+                    .font(.fkLabelMedium)
+            }
+            .foregroundStyle(Color.fkPrimary)
+            .padding(.horizontal, FkSpacing.md)
+            .padding(.vertical, 7)
+            .background(Capsule().fill(Color.fkPrimarySoft))
+        }
+        .buttonStyle(.fkPressable)
+        .disabled(isRecognizingExpiry)
+        .onChange(of: pickedExpiryPhoto) { _, item in
+            guard let item else { return }
+            Task { await handlePickedExpiryPhoto(item) }
+        }
+    }
+
+    private var tagsField: some View {
+        FkFormField(label: "标签") {
+            IngredientTagsEditor(tags: $form.tags)
         }
     }
 
@@ -385,10 +486,14 @@ struct AddIngredientView: View {
 
     // MARK: Barcode scan
 
-    /// Looks the scanned barcode up on Open Food Facts and prefills the form in
-    /// place (reusing the manual add path — the user reviews + taps 添加). On a
-    /// nil OFF result the form keeps just the barcode + shows a gentle notice so
-    /// the user can still fill it in by hand.
+    /// Resolves a scanned barcode and prefills the form in place by priority:
+    /// device-local memory (a product saved here before) → Open Food Facts →
+    /// manual fallback. Reuses the manual add path (the user reviews + taps 添加).
+    ///
+    /// Local memory wins so a re-scan of a常买 product is instant + offline, and
+    /// an OFF miss no longer dead-ends the user — they land in the form with just
+    /// the barcode prefilled. The local lookup is best-effort: a failure is logged
+    /// (debug) and silently degrades to the OFF lookup.
     private func handleScannedBarcode(_ code: String) async {
         let barcode = code.trimmed
         guard !barcode.isEmpty else { return }
@@ -396,11 +501,124 @@ struct AddIngredientView: View {
         isLookingUpBarcode = true
         defer { isLookingUpBarcode = false }
 
-        let details = await OpenFoodFactsService.lookupDetails(name: "", barcode: barcode)
-        form.prefill(from: details, barcode: barcode)
-        barcodeNotice = details == nil ? "未找到该条码的产品信息，请手动补充。" : nil
+        var localMemory: BarcodeMemory?
+        do {
+            localMemory = try await dependencies.barcodeMemoryRepository.lookup(barcode)
+        } catch {
+            Self.barcodeLogger.debug("barcode-memory lookup failed: \(error.localizedDescription, privacy: .public)")
+        }
+
+        // Only hit the network when local memory missed (avoids a needless OFF
+        // round-trip for a product we already learned).
+        let offDetails = localMemory == nil
+            ? await OpenFoodFactsService.lookupDetails(name: "", barcode: barcode)
+            : nil
+
+        switch BarcodeScanResolution.decide(barcode: barcode, localMemory: localMemory, offDetails: offDetails) {
+        case let .localMemory(name, category):
+            form.prefill(fromLocalName: name, category: category, barcode: barcode)
+            barcodeNotice = "已套用上次录入的信息，可直接保存或修改。"
+        case let .openFoodFacts(details):
+            form.prefill(from: details, barcode: barcode)
+            barcodeNotice = nil
+        case .manualFallback:
+            form.prefill(from: nil, barcode: barcode)
+            barcodeNotice = "未找到该条码的产品信息，请手动补充。"
+        case .invalid:
+            break
+        }
         nameFocused = false
     }
+
+    /// Learns the scanned product after a successful save: remembers
+    /// barcode → name + category on THIS device so the next scan fills instantly.
+    /// Only fires when the form carries a scanned barcode. Best-effort — a write
+    /// failure is logged (debug) and swallowed (it must never break a save that
+    /// already persisted). No-op for hand-started adds (no barcode).
+    private func learnScannedBarcode() async {
+        guard let barcode = form.barcode?.trimmed, !barcode.isEmpty else { return }
+        let name = form.name.trimmed
+        guard !name.isEmpty else { return }
+        do {
+            try await dependencies.barcodeMemoryRepository.upsert(
+                barcode: barcode,
+                name: name,
+                category: FoodCategories.dropdownValue(form.category)
+            )
+        } catch {
+            Self.barcodeLogger.debug("barcode-memory upsert failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    // MARK: Expiry OCR
+
+    /// Longest edge (px) the picked photo is downscaled to before OCR — bounds the
+    /// Vision decode cost without losing the (usually large) printed date glyphs.
+    private static let maxExpiryImageDimension = 1600
+
+    /// Loads the picked packaging photo, runs on-device OCR + the pure expiry parser,
+    /// and prefills the shelf-life. Every failure mode is surfaced inline (load /
+    /// no-text / no-date / past-date), never silent and never an invented value, so
+    /// the user always knows to fall back to manual entry. Resets the picker
+    /// selection at the end so the SAME photo can be re-picked after a retry.
+    private func handlePickedExpiryPhoto(_ item: PhotosPickerItem) async {
+        nameFocused = false
+        expiryScanNotice = nil
+        isRecognizingExpiry = true
+        defer {
+            isRecognizingExpiry = false
+            pickedExpiryPhoto = nil
+        }
+
+        let data: Data?
+        do {
+            data = try await item.loadTransferable(type: Data.self)
+        } catch {
+            expiryScanNotice = .failure("读取照片失败：\(error.localizedDescription)")
+            return
+        }
+        guard let data, !data.isEmpty else {
+            expiryScanNotice = .failure("读取照片失败，请重试。")
+            return
+        }
+
+        // Downscale off the main actor so a large photo never blocks the UI; fall
+        // back to the original bytes if re-encode fails (OCR can still try).
+        let maxDimension = Self.maxExpiryImageDimension
+        let prepared = await Task.detached {
+            ImageDownscaler.jpegData(from: data, maxDimension: maxDimension)
+        }.value ?? data
+
+        let lines: [String]
+        do {
+            lines = try await TextRecognizer.recognizeLines(from: prepared)
+        } catch let error as TextRecognizer.RecognizeError {
+            // OCR found no usable text (or couldn't decode) → manual-entry prompt.
+            expiryScanNotice = .failure(error == .noText ? Self.noDateMessage : error.message)
+            return
+        } catch {
+            expiryScanNotice = .failure("识别失败：\(error.localizedDescription)")
+            return
+        }
+
+        let text = lines.joined(separator: "\n")
+        guard let expiry = ExpiryDateParser.parse(text) else {
+            expiryScanNotice = .failure(Self.noDateMessage)
+            return
+        }
+        guard let days = form.prefillExpiry(date: expiry) else {
+            // Parsed a date, but it's today / already past — a stale label. Tell the
+            // user rather than silently setting a 0/negative shelf life.
+            expiryScanNotice = .failure("识别到的日期已过期，请确认或手动填写。")
+            return
+        }
+        customShelfLife = ""
+        expiryScanNotice = .success("已识别到期日，约 \(days) 天后过期，可直接保存或修改。")
+    }
+
+    /// Shared "no date found" copy — keeps the OCR-no-text and parser-no-date paths
+    /// pointing the user at manual entry with one consistent message.
+    private static let noDateMessage = "未识别到日期，请手动填写。"
 
     // MARK: Submit
 
@@ -423,6 +641,7 @@ struct AddIngredientView: View {
 
         let outcome = await controller.apply([proposal])
         if outcome.persisted {
+            await learnScannedBarcode()
             onApplied()
             dismiss()
         }
@@ -447,6 +666,48 @@ private struct FkBarcodeNotice: View {
         .background(
             RoundedRectangle(cornerRadius: FkRadius.md, style: .continuous)
                 .fill(Color.fkPrimarySoft)
+        )
+    }
+}
+
+/// Outcome of an expiry-date OCR scan, surfaced inline under the shelf-life field.
+/// A success carries the confirming hint; a failure carries the manual-entry
+/// prompt. Either way the user is informed — the scan never silently no-ops.
+enum ExpiryScanNotice: Equatable {
+    case success(String)
+    case failure(String)
+}
+
+/// Inline notice row for the "拍照识别保质期" flow — a green-tinted confirmation on
+/// success or a danger-tinted "请手动填写" prompt on failure. Mirrors the styling of
+/// `FkBarcodeNotice` / `FkImageImportNotice`.
+private struct FkExpiryScanNotice: View {
+    let notice: ExpiryScanNotice
+
+    private var isSuccess: Bool {
+        if case .success = notice { return true }
+        return false
+    }
+
+    private var message: String {
+        switch notice {
+        case let .success(text), let .failure(text): return text
+        }
+    }
+
+    var body: some View {
+        HStack(alignment: .top, spacing: FkSpacing.sm) {
+            Image(systemName: isSuccess ? "checkmark.circle" : "exclamationmark.triangle")
+                .foregroundStyle(isSuccess ? Color.fkPrimary : Color.fkDanger)
+            Text(message)
+                .font(.fkBodyMedium)
+                .foregroundStyle(Color.fkOnSurface)
+            Spacer(minLength: 0)
+        }
+        .padding(FkSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: FkRadius.md, style: .continuous)
+                .fill(isSuccess ? Color.fkPrimarySoft : Color.fkDangerSoft)
         )
     }
 }

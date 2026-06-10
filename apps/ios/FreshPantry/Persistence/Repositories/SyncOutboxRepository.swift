@@ -17,6 +17,22 @@ actor SyncOutboxRepository {
         try modelContext.fetchCount(FetchDescriptor<SyncOutboxRecord>())
     }
 
+    /// The distinct `entityID`s that currently have at least one queued (not yet
+    /// acknowledged) outbox operation. Powers the per-row 「待同步」 badge: the UI
+    /// pulls this ONCE per refresh and tests membership locally, instead of a
+    /// per-row query.
+    ///
+    /// Returns a `Sendable Set<String>` (value, no `@Model` crosses the actor
+    /// boundary). Fetches only the `entityID` projection column via the existing
+    /// `SyncOutboxRecord` — no payload decode, so it stays cheap even with a deep
+    /// offline backlog. Blank ids are dropped (they can't match a real row).
+    func pendingEntityIDs() throws -> Set<String> {
+        var descriptor = FetchDescriptor<SyncOutboxRecord>()
+        descriptor.propertiesToFetch = [\.entityID]
+        let records = try modelContext.fetch(descriptor)
+        return Set(records.map(\.entityID).filter { !$0.isEmpty })
+    }
+
     /// Insert-or-update by id.
     func enqueue(_ op: SyncOperation) throws {
         let id = op.id

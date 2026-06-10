@@ -35,6 +35,12 @@ struct CustomRecipeFormView: View {
     /// A recipe URL handed in by the Share Extension — pre-fills the AI-import field
     /// + expands the banner on first appear (create mode). nil for normal opens.
     private let initialImportURL: String?
+    /// An already-AI-generated draft to pre-fill the editable form with (create
+    /// mode only) — the 清冰箱 generator's outcome. The user reviews + edits the
+    /// fields, then saves through the same `CustomRecipeStore` path as a manual or
+    /// URL-imported recipe. nil for normal opens. Takes priority over
+    /// `recipe`/`initialImportURL` for the initial draft seed.
+    private let initialGeneratedDraft: RecipeDraft?
     /// Test seam: override the URL→RecipeDraft parser (prod builds it from
     /// `aiSettingsStore` at parse time).
     private let urlParserOverride: RecipeURLParser?
@@ -74,6 +80,7 @@ struct CustomRecipeFormView: View {
         aiSettingsStore: AiSettingsStore? = nil,
         onSaved: @escaping () -> Void = {},
         initialImportURL: String? = nil,
+        initialGeneratedDraft: RecipeDraft? = nil,
         urlParserOverride: RecipeURLParser? = nil,
         clipboardDetector: ClipboardRecipeURLDetector? = nil
     ) {
@@ -82,10 +89,23 @@ struct CustomRecipeFormView: View {
         self.aiSettingsStore = aiSettingsStore
         self.onSaved = onSaved
         self.initialImportURL = initialImportURL
+        self.initialGeneratedDraft = initialGeneratedDraft
         self.urlParserOverride = urlParserOverride
-        let seed = recipe.map(CustomRecipeDraft.init(recipe:)) ?? CustomRecipeDraft()
+        // Seed precedence: a generated draft (清冰箱) > an edited recipe > a blank
+        // create form. A generated draft only applies in create mode (`recipe == nil`).
+        let seed: CustomRecipeDraft
+        if let recipe {
+            seed = CustomRecipeDraft(recipe: recipe)
+        } else if let initialGeneratedDraft {
+            seed = CustomRecipeDraft(parsed: initialGeneratedDraft)
+        } else {
+            seed = CustomRecipeDraft()
+        }
         _draft = State(initialValue: seed)
-        _initialDraft = State(initialValue: seed)
+        // A generated draft starts DIRTY (baseline = a blank form) so dismissing
+        // without saving prompts the discard confirm — parity with the URL import,
+        // where the parse fills `draft` while the baseline stays blank.
+        _initialDraft = State(initialValue: initialGeneratedDraft != nil && recipe == nil ? CustomRecipeDraft() : seed)
         _clipboardDetector = State(initialValue: clipboardDetector ?? ClipboardRecipeURLDetector())
     }
 

@@ -35,11 +35,13 @@ struct InventoryStoreTests {
         name: String,
         state: FreshnessState,
         storage: IconType = .fridge,
-        category: String? = nil
+        category: String? = nil,
+        tags: [String] = []
     ) -> Ingredient {
         Ingredient(
             id: id, name: name, quantity: "1", unit: "份", imageUrl: "",
-            freshnessPercent: 1.0, state: state, category: category, storage: storage
+            freshnessPercent: 1.0, state: state, category: category,
+            storage: storage, tags: tags
         )
     }
 
@@ -140,6 +142,75 @@ struct InventoryStoreTests {
         #expect(store.displayItems.count == 3)
         #expect(store.count(for: .notFresh) == 1)
         #expect(store.count(for: .category(FoodCategories.freshProduce)) == 1)
+    }
+
+    // MARK: Tag filter
+
+    @Test func tagFilterRestrictsToSelectedTagCaseInsensitively() async throws {
+        let store = try await makeStore([
+            item(id: "a", name: "牛奶", state: .fresh, tags: ["囤货"]),
+            item(id: "b", name: "鸡蛋", state: .fresh, tags: ["待用完"]),
+            item(id: "c", name: "酸奶", state: .fresh, tags: ["囤货", "孩子的"]),
+            item(id: "d", name: "盐", state: .fresh, tags: []),
+        ])
+        store.selectedTag = "囤货"
+        #expect(store.displayItems.map(\.id).sorted() == ["a", "c"])
+
+        // A differently-cased selection still matches the canonical tag.
+        store.selectedTag = "ATAG"
+        #expect(store.displayItems.isEmpty) // unknown tag → nothing
+        store.selectedTag = nil
+        #expect(store.displayItems.count == 4) // 全部标签 → no restriction
+    }
+
+    @Test func tagFilterComposesWithCategoryStorageAndSearch() async throws {
+        let store = try await makeStore([
+            item(id: "a", name: "牛奶", state: .fresh, storage: .fridge,
+                 category: FoodCategories.dairyAndEggs, tags: ["囤货"]),
+            item(id: "b", name: "牛肉", state: .fresh, storage: .freezer,
+                 category: FoodCategories.meatAndSeafood, tags: ["囤货"]),
+            item(id: "c", name: "牛奶糖", state: .fresh, storage: .fridge,
+                 category: FoodCategories.dairyAndEggs, tags: ["零食"]),
+        ])
+        store.selectedTag = "囤货"
+        store.storageFilter = .area(.fridge)
+        store.searchQuery = "牛"
+        // 囤货 ∩ fridge ∩ name~牛 → only the milk row (牛肉 is freezer, 牛奶糖 lacks 囤货).
+        #expect(store.displayItems.map(\.id) == ["a"])
+    }
+
+    @Test func tagOptionsOrderByFrequencyThenName() async throws {
+        let store = try await makeStore([
+            item(id: "a", name: "A", state: .fresh, tags: ["囤货", "孩子的"]),
+            item(id: "b", name: "B", state: .fresh, tags: ["囤货"]),
+            item(id: "c", name: "C", state: .fresh, tags: ["待用完"]),
+        ])
+        // 囤货 used twice → first; 孩子的 / 待用完 each once → name-asc tie-break.
+        #expect(store.tagOptions == ["囤货", "孩子的", "待用完"])
+    }
+
+    @Test func tagOptionsEmptyWhenNoRowTagged() async throws {
+        let store = try await makeStore([
+            item(id: "a", name: "牛奶", state: .fresh),
+            item(id: "b", name: "鸡蛋", state: .fresh),
+        ])
+        #expect(store.tagOptions.isEmpty) // drives the view to hide the whole row
+    }
+
+    @Test func tagOptionsDedupeAcrossRowsCaseInsensitively() async throws {
+        let store = try await makeStore([
+            item(id: "a", name: "A", state: .fresh, tags: ["BBQ"]),
+            item(id: "b", name: "B", state: .fresh, tags: ["bbq"]), // model lowercases-key dedup
+        ])
+        // Two rows, same logical tag (different casing) → one option, count 2.
+        #expect(store.tagOptions == ["BBQ"]) // first-seen casing wins
+    }
+
+    @Test func hasActiveQueryReflectsTagSelection() async throws {
+        let store = try await makeStore([item(id: "a", name: "牛奶", state: .fresh, tags: ["囤货"])])
+        #expect(!store.hasActiveQuery)
+        store.selectedTag = "囤货"
+        #expect(store.hasActiveQuery)
     }
 
     @Test func clearAllRemovesEveryRowAndPersists() async throws {

@@ -40,6 +40,14 @@ struct RecipeDetailView: View {
     @State private var mealPlanStore: MealPlanStore?
     @State private var showPlanPicker = false
     @State private var toast: String?
+    /// Cook Mode (full-screen step pager) presentation.
+    @State private var showCookMode = false
+    /// Post-cook leftover flow: set when the deduction apply lands, consumed on
+    /// the cook sheet's dismiss to raise the "存为剩菜?" prompt (presenting it
+    /// while that sheet is still animating away would drop the dialog).
+    @State private var leftoverPromptPending = false
+    @State private var showLeftoverPrompt = false
+    @State private var showLeftoverSheet = false
 
     /// The 备料倍数 presets (mirrors the Dart `_scalePresets`).
     private static let scalePresets: [Double] = [0.5, 1, 2, 3]
@@ -125,11 +133,38 @@ struct RecipeDetailView: View {
         } message: {
             Text("确定要删除「\(recipe.name)」吗？此操作无法撤销。")
         }
-        .sheet(item: $cookSession) { session in
+        .sheet(item: $cookSession, onDismiss: {
+            // Raise the optional leftover prompt only AFTER the cook sheet fully
+            // dismissed (set by a successful apply below; a cancelled review
+            // leaves it unset, so cooking without leftovers stays undisturbed).
+            if leftoverPromptPending {
+                leftoverPromptPending = false
+                showLeftoverPrompt = true
+            }
+        }) { session in
             NavigationStack {
                 DeductionReviewView(proposals: session.proposals) {
                     // Apply succeeded; the inventory/dashboard reload on their own
-                    // `.task`/refresh, so nothing to do here beyond dismissing.
+                    // `.task`/refresh. Flag the leftover follow-up — the prompt
+                    // itself waits for this sheet's onDismiss.
+                    leftoverPromptPending = true
+                }
+            }
+        }
+        .confirmationDialog(
+            "把做好的菜存为剩菜？",
+            isPresented: $showLeftoverPrompt,
+            titleVisibility: .visible
+        ) {
+            Button("存为剩菜") { showLeftoverSheet = true }
+            Button("不用了", role: .cancel) {}
+        } message: {
+            Text("按冷藏 3 天保质期预填,保存前可修改。")
+        }
+        .sheet(isPresented: $showLeftoverSheet) {
+            LeftoverIntakeSheet(recipe: recipe) { savedName in
+                withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
+                    toast = "已把「\(savedName)」存入库存"
                 }
             }
         }
@@ -137,6 +172,11 @@ struct RecipeDetailView: View {
             PlanDayPickerSheet(recipeName: recipe.name) { day in
                 await addToPlan(on: day)
             }
+        }
+        .fullScreenCover(isPresented: $showCookMode) {
+            // Pass the SCALED ingredients so the 食材速查 sheet matches the
+            // active 备料倍数 (single scaling source: `scaledIngredients`).
+            CookModeView(title: recipe.name, steps: recipe.steps, ingredients: scaledIngredients)
         }
         .overlay(alignment: .top) { toastBanner }
         .task {
@@ -231,6 +271,11 @@ struct RecipeDetailView: View {
         guard !isPreparingCook else { return }
         isPreparingCook = true
         defer { isPreparingCook = false }
+        // A stale leftover prompt must never leak across cook sessions: if the
+        // previous sheet was swipe-dismissed mid-apply, `onApplied` can land
+        // AFTER its onDismiss ran (nothing consumed the flag) — without this
+        // reset the NEXT cook's dismiss would wrongly offer 存为剩菜.
+        leftoverPromptPending = false
         let inventory = (try? await dependencies.inventoryRepository.loadAllFor(dependencies.householdID)) ?? []
         // Deduct the scaled amounts so 备料倍数 carries through to the cook flow.
         let scaled = scaleFactor == 1 ? recipe : recipe.copyWith(ingredients: scaledIngredients)
@@ -478,6 +523,7 @@ struct RecipeDetailView: View {
                     Text("\(done)/\(total)")
                         .font(.fkLabelMedium)
                         .foregroundStyle(Color.fkOnSurfaceVariant)
+                    cookModeButton
                 }
                 // Progress bar over the tapped-off steps.
                 GeometryReader { geo in
@@ -498,6 +544,27 @@ struct RecipeDetailView: View {
             }
             .padding(.horizontal, FkSpacing.lg)
         }
+    }
+
+    /// Entry into the full-screen Cook Mode step pager (styled to match the
+    /// section header's count pill).
+    private var cookModeButton: some View {
+        Button {
+            showCookMode = true
+        } label: {
+            HStack(spacing: FkSpacing.xs) {
+                Image(systemName: "play.circle.fill")
+                    .font(.system(size: 13, weight: .semibold))
+                Text("烹饪模式")
+                    .font(.fkLabelMedium)
+            }
+            .foregroundStyle(Color.fkPrimaryContainer)
+            .padding(.horizontal, FkSpacing.md)
+            .padding(.vertical, 4)
+            .background(Capsule().fill(Color.fkPrimarySoft))
+        }
+        .buttonStyle(.fkPressable)
+        .accessibilityLabel("进入烹饪模式")
     }
 
     private func stepRow(index: Int, number: Int, text: String) -> some View {

@@ -4,7 +4,9 @@ import SwiftData
 /// Builds the shared SwiftData schema + container for the local store.
 ///
 /// The schema mirrors the Drift v5 table set: five synced entity tables, the
-/// sync outbox, the add-history frequency table, and the food-details cache.
+/// sync outbox, the add-history frequency table, and the food-details cache —
+/// plus the device-local barcode-memory store (`BarcodeMemoryRecord`, NOT
+/// synced; see its doc comment for the scope decision).
 enum ModelContainerFactory {
     /// Every persisted `@Model` type in the app.
     static let models: [any PersistentModel.Type] = [
@@ -16,6 +18,7 @@ enum ModelContainerFactory {
         SyncOutboxRecord.self,
         AddHistoryRecord.self,
         FoodDetailsCacheRecord.self,
+        BarcodeMemoryRecord.self,
     ]
 
     static var schema: Schema { Schema(models) }

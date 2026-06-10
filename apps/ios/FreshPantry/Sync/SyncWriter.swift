@@ -84,8 +84,17 @@ final class SyncWriter {
 
         // Fire-and-forget a single trailing push; the coordinator coalesces
         // concurrent pushes into one in-flight run + at most one trailing rerun.
+        // After it finishes, pulse `pendingSyncRevision` so the per-item 待同步
+        // badges re-read the outbox and converge (a successful push clears the
+        // op, but nothing else would refresh the badge until the next foreground
+        // / reconnect). Bumping regardless of outcome is correct: the refresh
+        // re-reads reality, keeping the badge lit if ops remain.
         guard recordedAny else { return }
         let coordinator = coordinator
-        Task { await coordinator?.pushPending() }
+        let session = session
+        Task { @MainActor in
+            await coordinator?.pushPending()
+            session.bumpPendingSyncRevision()
+        }
     }
 }
