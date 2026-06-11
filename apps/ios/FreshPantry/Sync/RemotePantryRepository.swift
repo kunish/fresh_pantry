@@ -392,6 +392,58 @@ actor RemotePantryRepository {
         try await client.from(Table.households).update(update).eq("id", value: trimmedId).execute()
     }
 
+    // MARK: - Profile (user-scoped, single writer)
+
+    /// `from('profiles').select().eq('id', myId)` → my `UserProfile`, or nil when
+    /// the row doesn't exist yet (first sign-in before onboarding saves it).
+    func loadMyProfile() async throws -> UserProfile? {
+        let userId = try requireUserId(action: "load profile")
+        let rows: [UserProfile] = try await client
+            .from("profiles")
+            .select()
+            .eq("id", value: userId)
+            .execute()
+            .value
+        return rows.first
+    }
+
+    /// Upserts the signed-in user's profile row. id + email come from the session
+    /// (never the caller) so a client can only ever write its OWN profile; empty
+    /// nickname/avatar are stored as null. `updated_at` is set explicitly so an
+    /// update (not just insert) bumps it.
+    func upsertMyProfile(displayName: String, nickname: String, avatarPath: String) async throws {
+        let userId = try requireUserId(action: "update profile")
+        let email = client.auth.currentUser?.email ?? ""
+        let row: [String: AnyJSON] = [
+            "id": .string(userId),
+            "email": .string(email),
+            "display_name": .string(displayName),
+            "nickname": nickname.isEmpty ? .null : .string(nickname),
+            "avatar_path": avatarPath.isEmpty ? .null : .string(avatarPath),
+            "updated_at": .string(JSONDate.iso8601(Date())),
+        ]
+        try await client.from("profiles").upsert(row).execute()
+    }
+
+    /// Uploads avatar bytes to `avatars/{userId}/{uuid}.jpg` and returns the path.
+    /// A fresh uuid filename per upload means the public URL changes on every
+    /// change (natural cache-bust); old objects are left in place (small, A-mode).
+    func uploadAvatar(_ data: Data) async throws -> String {
+        let userId = try requireUserId(action: "upload avatar")
+        let path = "\(userId)/\(UUID().uuidString.lowercased()).jpg"
+        try await client.storage
+            .from("avatars")
+            .upload(path, data: data, options: FileOptions(contentType: "image/jpeg", upsert: true))
+        return path
+    }
+
+    /// Public URL for an avatar path. `nonisolated` so a SwiftUI row builds it
+    /// inline; reads only the actor's immutable `Sendable` client.
+    nonisolated func avatarPublicURL(path: String) -> URL? {
+        guard !path.isEmpty else { return nil }
+        return try? client.storage.from("avatars").getPublicURL(path: path)
+    }
+
     // MARK: - Household / invite RPCs
 
     /// `list_household_members(target_household_id)` → `[HouseholdMember]`. An empty
@@ -544,3 +596,5 @@ actor RemotePantryRepository {
         return trimmed
     }
 }
+
+extension RemotePantryRepository: ProfileRemote {}
