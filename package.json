@@ -8,6 +8,9 @@
     "supabase:stop": "npx -y supabase@2.101.0 stop",
     "supabase:status": "npx -y supabase@2.101.0 status",
     "supabase:reset": "npx -y supabase@2.101.0 db reset",
-    "check": "npm run api:test"
+    "recipes:test": "cd apps/recipe-pipeline && npm test",
+    "recipes:build": "cd apps/recipe-pipeline && npm run build:recipes",
+    "recipes:build:dry": "cd apps/recipe-pipeline && npm run build:recipes:dry",
+    "check": "npm run api:test && npm run recipes:test"
   }
 }
