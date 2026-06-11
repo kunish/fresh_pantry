@@ -40,6 +40,10 @@ struct MealPlanView: View {
                 )
             }
             #endif
+            // The seeder await above is a suspension point: a household switch
+            // landing there (login "" → uuid auto-select) starts a NEW run, and
+            // this stale run must not assign an old-scope store over its work.
+            guard householdID == dependencies.householdID, !Task.isCancelled else { return }
             let store = MealPlanStore(
                 repository: dependencies.mealPlanRepository,
                 householdID: householdID,
@@ -66,13 +70,28 @@ private struct MealPlanContent: View {
     @State private var recipesById: [String: Recipe] = [:]
     @State private var inventoryNames: Set<String> = []
     @State private var shoppingStore: ShoppingStore?
+    /// Browse store backing the pushed `RecipeDetailView` (favorite state etc.).
+    @State private var recipesStore: RecipesStore?
+    /// Row-tap target — pushes the resolved recipe's detail.
+    @State private var selectedRecipe: Recipe?
+    /// Set when a dish is marked done and its recipe still resolves — drives the
+    /// skippable 「顺便扣减库存?」 prompt, then the review sheet.
+    @State private var deductCandidate: Recipe?
+    @State private var showDeductPrompt = false
+    @State private var cookSession: PlanCookSession?
+    /// The household the lazily-built stores were scoped to — they are dropped
+    /// and rebuilt when it changes (login/switch/leave must not write old scope).
+    @State private var matchContextScope: String?
     @State private var isAddingMissing = false
     @State private var toast: String?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    /// 缺料 over the VISIBLE week only — the card sits above the week strip, so
+    /// its count must match what the strip shows (a stale past week's pending
+    /// dishes must not inflate it).
     private var missingNames: [String] {
         MealPlanMissing.missingIngredientNames(
-            entries: store.entries,
+            entries: store.entriesInVisibleWeek,
             recipesById: recipesById,
             inventoryNames: inventoryNames
         )
@@ -103,22 +122,69 @@ private struct MealPlanContent: View {
             await reloadMatchContext()
         }
         .overlay(alignment: .top) { toastBanner }
-        .task { await reloadMatchContext() }
+        // The match context is household-scoped: on a household switch the
+        // lazily-built stores must be dropped, or 一键加购 keeps writing into the
+        // prior scope's shopping list. (Re-appear also lands here, which doubles
+        // as the refresh after cooking/deducting in a pushed detail.)
+        .task(id: dependencies.householdID) {
+            if matchContextScope != dependencies.householdID {
+                shoppingStore = nil
+                recipesStore = nil
+                matchContextScope = dependencies.householdID
+            }
+            await reloadMatchContext()
+        }
+        // Remote merge pulse: recipes/inventory may have changed under us —
+        // recompute the match context so the 缺料 card tracks merged data.
+        .onChange(of: dependencies.syncSession.dataRevision) {
+            Task { await reloadMatchContext() }
+        }
+        .navigationDestination(item: $selectedRecipe) { recipe in
+            if let recipesStore {
+                RecipeDetailView(recipe: recipe, store: recipesStore)
+            }
+        }
         .sheet(isPresented: $showingPicker) {
             RecipePickerSheet(
                 dependencies: dependencies,
                 onPick: { recipe in
                     Task {
-                        await store.addDish(recipe: recipe, date: store.selectedDay)
-                        await reloadMatchContext()
+                        if await store.addDish(recipe: recipe, date: store.selectedDay) {
+                            await reloadMatchContext()
+                        } else {
+                            showToast("添加菜品失败,请重试")
+                        }
                     }
                 }
             )
         }
+        // Completing a dish whose recipe still resolves offers a skippable
+        // cook-time deduction — the same factory + review the detail 「做菜」 CTA
+        // uses — so cooking off the plan also lands in inventory + FoodLog.
+        .confirmationDialog(
+            "顺便扣减库存？",
+            isPresented: $showDeductPrompt,
+            titleVisibility: .visible,
+            presenting: deductCandidate
+        ) { recipe in
+            Button("扣减库存") { Task { await presentDeduction(recipe) } }
+            Button("跳过", role: .cancel) {}
+        } message: { recipe in
+            Text("按「\(recipe.name)」的食材清单生成扣减审核,可逐项调整或跳过。")
+        }
+        .sheet(item: $cookSession) { session in
+            NavigationStack {
+                DeductionReviewView(proposals: session.proposals) {
+                    // Apply landed → inventory changed; recompute the 缺料 card.
+                    Task { await reloadMatchContext() }
+                }
+            }
+        }
     }
 
-    /// "本周还缺 N 样食材 · 一键加入购物清单" — adds every shortfall ingredient to
-    /// the shopping list (name-unique dedup). Mirrors the Flutter `mp-missing` card.
+    /// "还缺 N 样食材 · 一键加入购物清单" (visible-week scope) — adds every shortfall
+    /// ingredient to the shopping list (name-unique dedup). Mirrors the Flutter
+    /// `mp-missing` card.
     private var missingIngredientsCard: some View {
         Button {
             Task { await addMissingToShopping() }
@@ -131,7 +197,7 @@ private struct MealPlanContent: View {
                         .foregroundStyle(Color.fkPrimaryContainer)
                 }
                 VStack(alignment: .leading, spacing: FkSpacing.xs) {
-                    Text("本周还缺 \(missingNames.count) 样食材")
+                    Text(MealPlanMissing.cardTitle(count: missingNames.count, isCurrentWeek: store.isShowingWeek()))
                         .font(.fkTitleMedium)
                         .foregroundStyle(Color.fkOnSurface)
                     Text(isAddingMissing ? "加入中…" : "一键加入购物清单")
@@ -180,24 +246,54 @@ private struct MealPlanContent: View {
     }
 
     /// Loads the recipe corpus (bundled + custom), the inventory match names, and
-    /// the shopping store so the 缺料 card can compute + act.
+    /// the lazily-built shopping/browse stores the 缺料 card + pushed detail need.
+    /// Safe to re-run: existing stores are reloaded rather than rebuilt.
+    ///
+    /// SCOPE GUARD: every await below is a suspension point where a household
+    /// switch can land (login "" → uuid auto-select, switch, leave). A stale
+    /// run resuming afterwards must NOT assign state built for the old scope —
+    /// the new run's `== nil` lazy-build has already run, so a stale store
+    /// would stick (the `matchContextScope` sentinel matches and never fires
+    /// again) and 一键加购 would write into the prior household's list. The
+    /// stores swallow `CancellationError` into empty results, so cancellation
+    /// alone does not stop a stale run — re-check after EVERY await, before
+    /// EVERY assignment.
     private func reloadMatchContext() async {
+        let scope = dependencies.householdID
         let bundled = await dependencies.localRecipeRepository.loadAll()
-        let custom = (try? await dependencies.customRecipeRepository.loadAllFor(dependencies.householdID)) ?? []
+        let custom = (try? await dependencies.customRecipeRepository.loadAllFor(scope)) ?? []
+        guard scope == dependencies.householdID, !Task.isCancelled else { return }
         var byId: [String: Recipe] = [:]
         for recipe in bundled { byId[recipe.id] = recipe }
         for recipe in custom { byId[recipe.id] = recipe } // custom wins
         recipesById = byId
-        let inventory = (try? await dependencies.inventoryRepository.loadAllFor(dependencies.householdID)) ?? []
+        let inventory = (try? await dependencies.inventoryRepository.loadAllFor(scope)) ?? []
+        guard scope == dependencies.householdID, !Task.isCancelled else { return }
         inventoryNames = RecipeMatching.inventoryNameSet(inventory)
-        if shoppingStore == nil {
+        if let shoppingStore {
+            await shoppingStore.load()
+        } else {
             let shopping = ShoppingStore(
                 repository: dependencies.shoppingRepository,
-                householdID: dependencies.householdID,
+                householdID: scope,
                 syncWriter: dependencies.syncWriter
             )
             await shopping.load()
+            guard scope == dependencies.householdID, !Task.isCancelled else { return }
             shoppingStore = shopping
+        }
+        if let recipesStore {
+            await recipesStore.load()
+        } else {
+            let recipes = RecipesStore(
+                localRepository: dependencies.localRecipeRepository,
+                customRepository: dependencies.customRecipeRepository,
+                favoritesStore: dependencies.favoritesStore,
+                householdID: scope
+            )
+            await recipes.load()
+            guard scope == dependencies.householdID, !Task.isCancelled else { return }
+            recipesStore = recipes
         }
     }
 
@@ -206,12 +302,48 @@ private struct MealPlanContent: View {
         isAddingMissing = true
         defer { isAddingMissing = false }
         var added = 0
+        var failed = 0
         for name in missingNames {
             let category = FoodKnowledge.lookup(name)?.category
-            if await shoppingStore.add(name: name, category: category) { added += 1 }
+            switch await shoppingStore.addItem(name: name, category: category) {
+            case .added: added += 1
+            case .duplicate: break // already on the list — goal satisfied
+            case .failed: failed += 1
+            }
         }
+        // A persist failure must never read as the affirmative「已在购物清单中」.
+        if failed > 0 {
+            showToast(added > 0 ? "已加入 \(added) 样，\(failed) 样添加失败" : "添加失败,请重试")
+        } else {
+            showToast(added > 0 ? "已加入 \(added) 样食材到购物清单" : "缺的食材都已在购物清单中")
+        }
+    }
+
+    /// Flips `done` (surfacing a persist failure — the screen otherwise gives no
+    /// hint the tap didn't land), then offers the cook-time deduction when the
+    /// dish was just completed and its recipe still resolves.
+    private func toggleDone(_ entry: MealPlanEntry) async {
+        let completing = !entry.done
+        guard await store.toggleDone(entry) else {
+            showToast("更新失败,请重试")
+            return
+        }
+        if completing, let recipe = MealPlanStore.deductionCandidate(for: entry, recipesById: recipesById) {
+            deductCandidate = recipe
+            showDeductPrompt = true
+        }
+    }
+
+    /// Builds deduction proposals against the live inventory and raises the
+    /// review sheet (mirrors `RecipeDetailView.presentCook`, minus 备料 scaling).
+    private func presentDeduction(_ recipe: Recipe) async {
+        let inventory = (try? await dependencies.inventoryRepository.loadAllFor(dependencies.householdID)) ?? []
+        cookSession = PlanCookSession(proposals: DeductionProposalFactory.forRecipe(recipe, inventory))
+    }
+
+    private func showToast(_ message: String) {
         withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
-            toast = added > 0 ? "已加入 \(added) 样食材到购物清单" : "缺的食材都已在购物清单中"
+            toast = message
         }
     }
 
@@ -264,14 +396,27 @@ private struct MealPlanContent: View {
         } else {
             LazyVStack(spacing: FkSpacing.sm) {
                 ForEach(Array(dishes.enumerated()), id: \.element.id) { index, entry in
+                    // Row → detail only when the recipeId still resolves (same
+                    // lookup the 缺料 derivation uses); otherwise untappable.
+                    let recipe = recipesById[entry.recipeId]
+                    let canOpen = recipe != nil && recipesStore != nil
                     MealPlanDishRow(
                         entry: entry,
-                        onToggleDone: { Task { await store.toggleDone(entry) } }
+                        onToggleDone: { Task { await toggleDone(entry) } },
+                        onOpen: canOpen ? { selectedRecipe = recipe } : nil
                     )
                     .fkEntrance(index: index)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    // Long-press → 删除. NOT swipeActions: that modifier only
+                    // works on List rows and is a silent no-op inside this
+                    // ScrollView/LazyVStack — this is the screen's ONLY delete
+                    // path, so it must be a control that actually renders.
+                    .contextMenu {
                         Button(role: .destructive) {
-                            Task { await store.remove(entry) }
+                            Task {
+                                if !(await store.remove(entry)) {
+                                    showToast("删除失败,请重试")
+                                }
+                            }
                         } label: {
                             Label("删除", systemImage: "trash")
                         }
@@ -318,10 +463,30 @@ private struct WeekStrip: View {
                 .font(.fkTitleMedium)
                 .foregroundStyle(Color.fkOnSurface)
             Spacer(minLength: 0)
+            if !store.isShowingWeek() {
+                todayButton
+            }
             navButton(systemImage: "chevron.right", accessibility: "下一周") {
                 store.goToNextWeek()
             }
         }
+    }
+
+    /// 「今天」 jump-back pill — rendered only while today's week is off-screen
+    /// (inside the current week the strip's outlined today cell is the anchor).
+    private var todayButton: some View {
+        Button {
+            store.goToToday()
+        } label: {
+            Text("今天")
+                .font(.fkLabelMedium)
+                .foregroundStyle(Color.fkPrimary)
+                .padding(.horizontal, FkSpacing.md)
+                .frame(height: 36)
+                .background(Capsule().fill(Color.fkPrimarySoft))
+        }
+        .buttonStyle(.fkPressable)
+        .accessibilityLabel("回到今天")
     }
 
     private func navButton(systemImage: String, accessibility: String, action: @escaping () -> Void) -> some View {
@@ -393,12 +558,27 @@ private struct DayCell: View {
 // MARK: - Dish row
 
 /// One planned dish: cover (recipe image or category glyph), name, "N 份"
-/// servings, and a done-toggle checkmark. Tapping the checkmark flips done.
+/// servings, and a done-toggle checkmark. Tapping the checkmark flips done;
+/// tapping the rest of the row opens the recipe detail when it still resolves.
 private struct MealPlanDishRow: View {
     let entry: MealPlanEntry
     let onToggleDone: () -> Void
+    /// nil when the entry's recipeId no longer matches the corpus — the row then
+    /// renders untappable rather than pushing a dead detail.
+    var onOpen: (() -> Void)?
 
     var body: some View {
+        if let onOpen {
+            // The nested done-toggle Button keeps its own tap (the RecipeCard-in-
+            // Button pattern the picker list already relies on).
+            Button(action: onOpen) { card }
+                .buttonStyle(.fkPressable)
+        } else {
+            card
+        }
+    }
+
+    private var card: some View {
         FkCard(padding: FkSpacing.md) {
             HStack(spacing: FkSpacing.md) {
                 cover
@@ -446,6 +626,13 @@ private struct MealPlanDishRow: View {
         .buttonStyle(.plain)
         .accessibilityLabel(entry.done ? "标记为未完成" : "标记为已完成")
     }
+}
+
+/// `Identifiable` wrapper around the built deduction proposals so the review can
+/// drive `.sheet(item:)` — the meal-plan twin of recipe detail's `CookSession`.
+private struct PlanCookSession: Identifiable {
+    let id = UUID()
+    let proposals: [DeductionProposal]
 }
 
 // MARK: - Recipe picker sheet

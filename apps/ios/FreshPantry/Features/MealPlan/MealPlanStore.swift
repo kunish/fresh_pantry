@@ -82,6 +82,12 @@ final class MealPlanStore {
         selectedDay = MealPlanEntry.dateOnly(now)
     }
 
+    /// Whether the visible week contains `now` — gates the week strip's 「今天」
+    /// jump-back pill and the 缺料 card's 「本周」 wording.
+    func isShowingWeek(containing now: Date = Date()) -> Bool {
+        weekStart == MealPlanStore.weekStart(containing: now)
+    }
+
     func select(_ day: Date) {
         selectedDay = MealPlanEntry.dateOnly(day)
     }
@@ -214,6 +220,17 @@ final class MealPlanStore {
     }
 
     // MARK: Static helpers
+
+    /// The recipe a just-completed entry should offer cook-time deduction for —
+    /// nil when the recipeId no longer resolves against the corpus (same lookup
+    /// the 缺料 derivation uses) or the recipe has no ingredients to deduct.
+    nonisolated static func deductionCandidate(
+        for entry: MealPlanEntry,
+        recipesById: [String: Recipe]
+    ) -> Recipe? {
+        guard let recipe = recipesById[entry.recipeId], !recipe.ingredients.isEmpty else { return nil }
+        return recipe
+    }
 
     /// A fresh lowercased UUID — a SYNC-CLEAN id (the household sync engine
     /// reconciles by id and writes only a UUID id remotely, so a non-UUID local
