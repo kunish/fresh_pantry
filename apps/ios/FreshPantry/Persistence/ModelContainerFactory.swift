@@ -15,6 +15,7 @@ enum ModelContainerFactory {
         CustomRecipeRecord.self,
         MealPlanRecord.self,
         FoodLogRecord.self,
+        ProfileRecord.self,
         SyncOutboxRecord.self,
         AddHistoryRecord.self,
         FoodDetailsCacheRecord.self,
