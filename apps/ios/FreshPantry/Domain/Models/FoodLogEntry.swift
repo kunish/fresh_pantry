@@ -54,8 +54,8 @@ struct FoodLogEntry: Hashable, Sendable, Codable {
         self.deletedAt = deletedAt
     }
 
-    /// Canonical id format `fl_<ms>`.
-    static func newId() -> String { "fl_\(Date.nowMilliseconds)" }
+    /// Canonical id format: lowercase UUID (synced to a Supabase `uuid` PK column).
+    static func newId() -> String { UUID().uuidString.lowercased() }
 
     static func == (lhs: FoodLogEntry, rhs: FoodLogEntry) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }

@@ -99,7 +99,9 @@ struct DateEncodingParityTests {
     }
 
     @Test func foodLogNewIdPrefix() {
-        #expect(FoodLogEntry.newId().hasPrefix("fl_"))
+        let id = FoodLogEntry.newId()
+        #expect(UUID(uuidString: id) != nil)              // 合法 UUID
+        #expect(id == id.lowercased())                    // 小写(gateway 的 isUuid 期望)
     }
 
     @Test func rescuedExpiringFlag() {
