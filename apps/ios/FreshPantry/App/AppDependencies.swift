@@ -17,6 +17,11 @@ final class AppDependencies {
     /// Append-only food-departure log (consumed/wasted) — the waste-stats source
     /// of truth. The cook → deduction flow auto-logs consumed departures here.
     let foodLogRepository: FoodLogRepository
+    /// Single-row local cache of the current user's profile (avatar/name/nickname).
+    let profileRepository: ProfileRepository
+    /// Drives the profile-edit screen + the登录后 onboarding profile gate. Shared
+    /// so Settings and the root gate read the SAME state.
+    let profileStore: ProfileStore
     let shoppingRepository: ShoppingRepository
     let customRecipeRepository: CustomRecipeRepository
     /// Weekly 膳食计划 entries (one dish per LOCAL day) for the meal-plan feature.
@@ -113,6 +118,7 @@ final class AppDependencies {
     ) {
         self.inventoryRepository = InventoryRepository(modelContainer: modelContainer)
         self.foodLogRepository = FoodLogRepository(modelContainer: modelContainer)
+        self.profileRepository = ProfileRepository(modelContainer: modelContainer)
         self.shoppingRepository = ShoppingRepository(modelContainer: modelContainer)
         self.customRecipeRepository = CustomRecipeRepository(modelContainer: modelContainer)
         self.mealPlanRepository = MealPlanRepository(modelContainer: modelContainer)
@@ -188,5 +194,12 @@ final class AppDependencies {
             self.syncWriter = SyncWriter(outbox: outbox, coordinator: nil, session: session)
             self.householdContentSync = nil
         }
+        // Built last so it can read the (optional) remote repository regardless of
+        // which backend branch ran. `RemotePantryRepository` conforms to
+        // `ProfileRemote`; local-only mode passes nil (store degrades to local).
+        self.profileStore = ProfileStore(
+            remote: self.remotePantryRepository,
+            local: self.profileRepository
+        )
     }
 }
