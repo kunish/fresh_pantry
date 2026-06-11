@@ -79,8 +79,17 @@ export async function runPipeline(deps: PipelineDeps): Promise<PipelineReport> {
   const { kept, dropped } = dedupe(cleaned);
   log(`deduped: dropped ${dropped.length}`);
 
-  const existingRaw = await readFile(deps.existingPath, 'utf8').catch(() => '[]');
-  const existing = JSON.parse(existingRaw) as CleanRecipe[];
+  const existingRaw = await readFile(deps.existingPath, 'utf8').catch((e: unknown) => {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') return '[]'; // 缺失=首次运行,空既有
+    throw e;
+  });
+  let existing: CleanRecipe[];
+  try {
+    existing = JSON.parse(existingRaw) as CleanRecipe[];
+  } catch {
+    // 既有文件损坏:拒绝覆盖,避免用「仅新菜」抹掉已策展的 imageUrl/软删
+    throw new Error(`既有菜谱文件 JSON 损坏,拒绝覆盖以保护数据: ${deps.existingPath}`);
+  }
   const { merged, stats } = mergeWithExisting(kept, existing, deps.now, {
     refreshDescriptions: deps.refreshDescriptions,
   });

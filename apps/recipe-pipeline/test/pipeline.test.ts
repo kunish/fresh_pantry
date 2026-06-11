@@ -113,4 +113,43 @@ describe('runPipeline', () => {
     });
     expect(report.collected).toBe(2);
   });
+
+  it('零拒绝时不写 rejects 文件', async () => {
+    const { existingPath, outPath, rejectsPath } = await setup();
+    await writeFile(existingPath, '[]', 'utf8');
+    await runPipeline({
+      sources: [source('s', [raw('howtocook:x/a', 'A')])],
+      enricher: stubEnricher, existingPath, outPath, rejectsPath,
+      now: '2026-06-12T00:00:00.000Z',
+    });
+    const exists = await readFile(rejectsPath, 'utf8').then(() => true).catch(() => false);
+    expect(exists).toBe(false);
+  });
+
+  it('既有文件损坏 -> 抛错且不覆盖', async () => {
+    const { existingPath, outPath, rejectsPath } = await setup();
+    await writeFile(existingPath, '{ not valid json', 'utf8');
+    await expect(runPipeline({
+      sources: [source('s', [raw('howtocook:x/a', 'A')])],
+      enricher: stubEnricher, existingPath, outPath, rejectsPath,
+      now: '2026-06-12T00:00:00.000Z',
+    })).rejects.toThrow(/损坏/);
+    // 文件未被覆盖
+    expect(await readFile(existingPath, 'utf8')).toBe('{ not valid json');
+  });
+
+  it('多来源累积采集', async () => {
+    const { existingPath, outPath, rejectsPath } = await setup();
+    await writeFile(existingPath, '[]', 'utf8');
+    const report = await runPipeline({
+      sources: [
+        source('s1', [raw('howtocook:x/a', 'A')]),
+        source('s2', [raw('repo:y:b', 'B')]),
+      ],
+      enricher: stubEnricher, existingPath, outPath, rejectsPath,
+      now: '2026-06-12T00:00:00.000Z',
+    });
+    expect(report.collected).toBe(2);
+    expect(report.added).toBe(2);
+  });
 });
