@@ -48,9 +48,15 @@ export function howtocookSource(): RecipeSource {
     async *collect(ctx: SourceContext): AsyncIterable<RawRecipe> {
       const repoDir = join(ctx.workDir, 'howtocook');
       await exec('git', ['clone', '--depth', '1', REPO, repoDir]).catch((e) => {
-        ctx.log(`clone skipped/failed (${String(e)}); 假定已存在 ${repoDir}`);
+        ctx.log(`clone 跳过/失败 (${String(e)});尝试复用已有缓存 ${repoDir}`);
       });
       const dishesDir = join(repoDir, 'dishes');
+      const ok = await stat(dishesDir).then((s) => s.isDirectory()).catch(() => false);
+      if (!ok) {
+        throw new Error(
+          `HowToCook 仓库不可用(克隆失败且无缓存): ${dishesDir} —— 请检查网络,或手动克隆到 ${repoDir}`,
+        );
+      }
       for await (const relPath of walkMarkdown(dishesDir, repoDir)) {
         const md = await readFile(join(repoDir, relPath), 'utf8');
         const raw = rawFromMarkdown(relPath, md);
