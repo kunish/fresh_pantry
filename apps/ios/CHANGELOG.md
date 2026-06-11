@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.10.0...fresh_pantry-v1.11.0) (2026-06-11)
+
+
+### Features
+
+* **ios:** 个人资料详情页 + 设置页顶部「我」卡片入口 ([2cf061d](https://github.com/kunish/fresh_pantry/commit/2cf061de1c7999460b3bc0bd7156db5e96a7e96b))
+
 ## [1.10.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.9.0...fresh_pantry-v1.10.0) (2026-06-11)
 
 
