@@ -76,6 +76,27 @@ actor FoodLogRepository {
         try modelContext.save()
     }
 
+    /// One-shot, idempotent: rewrites legacy `fl_<ms>` ids to lowercase UUIDs so
+    /// the row can land in the Supabase `uuid` PK column. Re-encodes the payload's
+    /// own `id` too. No-op for rows already on a UUID id. Returns the rewrite count.
+    /// Safe because FoodLog is append-only with no foreign references to its id.
+    @discardableResult
+    func migrateLegacyIds() throws -> Int {
+        let legacy = try modelContext.fetch(
+            FetchDescriptor<FoodLogRecord>(predicate: #Predicate { $0.id.starts(with: "fl_") })
+        )
+        var rewritten = 0
+        for row in legacy {
+            guard let entry = try? row.entry() else { continue }
+            let migrated = entry.copyWith(id: FoodLogEntry.newId())
+            modelContext.insert(FoodLogRecord(householdID: row.householdID, entry: migrated))
+            modelContext.delete(row)
+            rewritten += 1
+        }
+        if rewritten > 0 { try modelContext.save() }
+        return rewritten
+    }
+
     private func decode(_ rows: [FoodLogRecord]) -> [FoodLogEntry] {
         rows.compactMap { row -> FoodLogEntry? in
             guard let entry = try? row.entry(), !entry.id.isEmpty else { return nil }

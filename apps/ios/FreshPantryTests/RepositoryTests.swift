@@ -148,6 +148,29 @@ struct RepositoryTests {
         #expect(loaded.map(\.id) == ["fl_2"]) // only the targeted row removed
     }
 
+    @Test func migrateLegacyFoodLogIdsRewritesPrefixedRowsAndIsIdempotent() async throws {
+        let repo = FoodLogRepository(modelContainer: try container())
+        let t = JSONDate.parse("2026-06-08T10:00:00Z")!
+        try await repo.append("home", FoodLogEntry(id: "fl_1", name: "牛奶", outcome: .consumed, loggedAt: t))
+        let keep = FoodLogEntry(id: "11111111-1111-4111-8111-111111111111", name: "番茄", outcome: .wasted, loggedAt: t)
+        try await repo.append("home", keep)
+
+        let changed = try await repo.migrateLegacyIds()
+        #expect(changed == 1) // only the fl_ row
+
+        let loaded = try await repo.loadAllFor("home")
+        let ids = Set(loaded.map(\.id))
+        #expect(!ids.contains("fl_1")) // old id gone
+        #expect(ids.contains(keep.id)) // uuid row untouched
+        let migrated = try #require(loaded.first { $0.name == "牛奶" })
+        #expect(UUID(uuidString: migrated.id) != nil) // new id is a uuid
+        #expect(migrated.outcome == .consumed) // other fields intact
+        #expect(migrated.loggedAt == t)
+
+        let again = try await repo.migrateLegacyIds()
+        #expect(again == 0) // idempotent
+    }
+
     @Test func foodLogRecentWindowFilter() async throws {
         let repo = FoodLogRepository(modelContainer: try container())
         let old = JSONDate.parse("2026-01-01T00:00:00Z")!
