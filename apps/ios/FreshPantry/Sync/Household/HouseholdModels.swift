@@ -60,30 +60,43 @@ struct Household: Equatable, Sendable, Codable {
 }
 
 /// A member row from the `list_household_members` RPC. `role` defaults to
-/// `member` to match the Flutter factory.
+/// `member`; the profile fields default to "" (未设置) to match the Flutter
+/// factory's tolerant decode.
 struct HouseholdMember: Equatable, Sendable, Codable {
     var householdId: String
     var userId: String
     var role: String
     var email: String
+    var displayName: String
+    var nickname: String
+    var avatarPath: String
 
     private enum CodingKeys: String, CodingKey {
         case householdId = "household_id"
         case userId = "user_id"
         case role
         case email
+        case displayName = "display_name"
+        case nickname
+        case avatarPath = "avatar_path"
     }
 
     init(
         householdId: String = "",
         userId: String = "",
         role: String = "member",
-        email: String = ""
+        email: String = "",
+        displayName: String = "",
+        nickname: String = "",
+        avatarPath: String = ""
     ) {
         self.householdId = householdId
         self.userId = userId
         self.role = role
         self.email = email
+        self.displayName = displayName
+        self.nickname = nickname
+        self.avatarPath = avatarPath
     }
 
     init(from decoder: Decoder) throws {
@@ -92,8 +105,19 @@ struct HouseholdMember: Equatable, Sendable, Codable {
             householdId: c.decodeLenientIfPresent(String.self, forKey: .householdId) ?? "",
             userId: c.decodeLenientIfPresent(String.self, forKey: .userId) ?? "",
             role: c.decodeLenientIfPresent(String.self, forKey: .role) ?? "member",
-            email: c.decodeLenientIfPresent(String.self, forKey: .email) ?? ""
+            email: c.decodeLenientIfPresent(String.self, forKey: .email) ?? "",
+            displayName: c.decodeLenientIfPresent(String.self, forKey: .displayName) ?? "",
+            nickname: c.decodeLenientIfPresent(String.self, forKey: .nickname) ?? "",
+            avatarPath: c.decodeLenientIfPresent(String.self, forKey: .avatarPath) ?? ""
         )
+    }
+
+    /// Display label: nickname → display_name → email → "成员".
+    var resolvedName: String {
+        if !nickname.isEmpty { return nickname }
+        if !displayName.isEmpty { return displayName }
+        if !email.isEmpty { return email }
+        return "成员"
     }
 }
 
