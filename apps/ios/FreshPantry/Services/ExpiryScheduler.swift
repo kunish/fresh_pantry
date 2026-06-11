@@ -12,7 +12,7 @@ import Foundation
 /// Delivery time is the user-chosen `settings.reminderHour/Minute` (default
 /// 09:00, see `ReminderSettings.defaultReminderHour`). The id hash deliberately
 /// excludes the time fields: a time change keeps every id stable, so the
-/// coordinator's cancel + re-add reschedule moves all slots to the new time
+/// coordinator's add-then-cancel reschedule moves all slots to the new time
 /// without orphaning previously scheduled requests.
 ///
 /// NOISE REDUCTION:
@@ -29,6 +29,19 @@ import Foundation
 enum ExpiryScheduler {
     /// Reserved id for the single recurring daily-summary slot.
     static let dailySummaryId = 1
+
+    /// The ids to remove AFTER the new set has been handed to the OS:
+    /// `previous − scheduledIds`. `syncAll` adds the new requests first
+    /// (`UNUserNotificationCenter.add` replaces a pending request with the same
+    /// identifier, so re-adding the overlap is safe) and removes only this
+    /// difference afterwards — a backgrounding suspension landing mid-sync can
+    /// then never hit a "cancelled but not re-added" window; the worst case is
+    /// one leftover stale request, cleaned up by the next reschedule. Pure —
+    /// testable without the notification center.
+    static func obsoleteIds(previous: [Int], scheduledIds: [Int]) -> [Int] {
+        let scheduled = Set(scheduledIds)
+        return previous.filter { !scheduled.contains($0) }
+    }
 
     /// Splits the previously scheduled ids into (cancel, retain) for a
     /// reschedule. An id is RETAINED when it is still derivable from the live
@@ -71,10 +84,17 @@ enum ExpiryScheduler {
     /// settings' largest-first [7,3,1] offset order) plus the optional daily
     /// summary. Slots not strictly after `now` are dropped (already past), as
     /// are per-item slots that land inside an active quiet-hours window.
+    ///
+    /// `lowStockCount` — the 库存不足 restock-candidate count at schedule time —
+    /// is folded into the daily-summary body so the notification matches the
+    /// Settings copy 「包含临期 + 库存不足」; zero keeps the expiry-only body.
+    /// Deliberately a plain count (not the candidate list): the body is fixed at
+    /// schedule time, so anything richer would go stale faster than it informs.
     static func compute(
         inventory: [Ingredient],
         settings: ReminderSettings,
         now: Date,
+        lowStockCount: Int = 0,
         calendar: Calendar = .current
     ) -> [ScheduledNotification] {
         var out: [ScheduledNotification] = []
@@ -118,7 +138,9 @@ enum ExpiryScheduler {
                 out.append(ScheduledNotification(
                     id: dailySummaryId,
                     title: "每日临期提醒",
-                    body: "查看今天到期 / 已过期食材",
+                    body: lowStockCount > 0
+                        ? "查看今天到期 / 已过期食材 · 库存不足 \(lowStockCount) 项"
+                        : "查看今天到期 / 已过期食材",
                     scheduledAt: scheduled,
                     kind: .dailySummary
                 ))

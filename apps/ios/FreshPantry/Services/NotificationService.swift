@@ -109,14 +109,24 @@ final class NotificationService: NSObject {
         try? await center.add(request)
     }
 
-    /// Replaces the scheduled set: cancels `previousIds`, then schedules `next`.
+    /// Replaces the scheduled set: schedules `next` FIRST, then cancels only
+    /// the obsolete difference `previousIds − next`. `add` with the same
+    /// identifier replaces the pending request, so re-adding the overlap is
+    /// safe — and ordered this way, a backgrounding suspension landing mid-sync
+    /// can never leave reminders cancelled-but-not-re-added (the old
+    /// remove-then-add order could silence the entire background period); the
+    /// worst interruption now leaves one stale extra request, cleaned up by the
+    /// next reschedule. Returns whether the reconcile actually ran — false
+    /// while permission is ungranted, so callers never persist an ids ledger
+    /// for requests that were never handed to the OS (which would leave the
+    /// real pending set uncancellable on later reschedules).
     ///
     /// Respects the iOS 64-pending cap: keeps the soonest expiry items (sorted
     /// by `scheduledAt`) up to `pendingCap - 1` and always keeps the daily
     /// summary, so the total scheduled is ≤ 64. No-op until ready.
-    func syncAll(_ next: [ScheduledNotification], previousIds: [Int]) async {
-        guard permissionGranted else { return }
-        center.removePendingNotificationRequests(withIdentifiers: previousIds.map(String.init))
+    @discardableResult
+    func syncAll(_ next: [ScheduledNotification], previousIds: [Int]) async -> Bool {
+        guard permissionGranted else { return false }
 
         let dailySummaries = next.filter { $0.kind == .dailySummary }
         let expiries = next
@@ -126,6 +136,16 @@ final class NotificationService: NSObject {
 
         for n in dailySummaries { await schedule(n) }
         for n in expiries { await schedule(n) }
+
+        // Remove last, and only what was NOT just re-added. Diffing against the
+        // capped set (not all of `next`) keeps the old semantics for ids pushed
+        // past the 64-pending cap: they still cancel.
+        let obsolete = ExpiryScheduler.obsoleteIds(
+            previous: previousIds,
+            scheduledIds: dailySummaries.map(\.id) + expiries.map(\.id)
+        )
+        center.removePendingNotificationRequests(withIdentifiers: obsolete.map(String.init))
+        return true
     }
 
     /// Cancels all previously scheduled notifications (sign-out / disable).
@@ -151,5 +171,18 @@ extension NotificationService: UNUserNotificationCenterDelegate {
         completionHandler()
         guard let id = Int(identifier) else { return }
         Task { @MainActor [weak self] in self?.handleTap(id: id) }
+    }
+
+    /// Presents notifications that fire while the app is foregrounded. Without
+    /// this, iOS swallows foreground deliveries entirely — no banner, no sound,
+    /// not even a notification-center entry — so the 每日汇总 would vanish
+    /// whenever the app happens to be open at delivery time. A banner tap still
+    /// routes through `didReceive` above.
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .list, .sound])
     }
 }

@@ -111,6 +111,15 @@ struct FreshPantryApp: App {
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .background {
                         Self.scheduleAppRefresh()
+                        // Re-sync expiry reminders against the session's FINAL
+                        // inventory before suspension — one hook covers every
+                        // in-session mutation (intake / deduction / delete), so
+                        // notifications firing while backgrounded never report
+                        // items already consumed, nor miss ones just added.
+                        Task {
+                            await dependencies.notificationCoordinator
+                                .reschedule(householdID: dependencies.householdID)
+                        }
                     } else if phase == .active {
                         Task { await IntentAddDrainer.drain(dependencies: dependencies) }
                     }

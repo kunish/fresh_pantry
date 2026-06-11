@@ -44,25 +44,45 @@ final class NotificationCoordinator {
     }
 
     /// Recomputes the desired notification set for the household and reconciles
-    /// it with the OS: cancels the previously-scheduled ids, schedules the new
-    /// set (capped to the OS pending limit), then persists the new ids. A read
+    /// it with the OS: schedules the new set first (capped to the OS pending
+    /// limit), then cancels only the obsolete diff, then persists the new ids —
+    /// suspension mid-way can at worst leave one extra stale reminder. A read
     /// failure leaves existing notifications untouched rather than wiping them.
+    ///
+    /// Refreshes the real OS permission first (no prompt): the service's
+    /// in-memory flag resets to false on every launch, so without this every
+    /// post-launch reschedule would be a silent no-op. Bails before touching
+    /// the ids ledger when ungranted — and only persists it after `syncAll`
+    /// confirms it ran — because a ledger written around a no-op sync records
+    /// ids the OS never received, leaving the actually-pending requests
+    /// uncancellable forever.
     ///
     /// Ids dropped from the desired set ONLY because their slot time is already
     /// past today (the reminder time just moved earlier) are retained instead of
     /// cancelled — their pending request still fires once at the old time. See
     /// `ExpiryScheduler.partitionPreviousIds`.
     func reschedule(householdID: String) async {
+        guard await service.checkPermission() else { return }
         guard let items = try? await inventory.loadAllFor(householdID) else { return }
         let settings = reminderSettings.settings
-        let next = ExpiryScheduler.compute(inventory: items, settings: settings, now: Date())
+        // Same derivation as the 首页 库存不足 card (bought ≥3 times, none in
+        // stock), so the daily summary honors the Settings copy 「包含临期 +
+        // 库存不足」. Snapshot fixed at schedule time; every reschedule refreshes it.
+        let lowStock = LowStockStore(repository: inventory, householdID: householdID)
+        await lowStock.load()
+        let next = ExpiryScheduler.compute(
+            inventory: items,
+            settings: settings,
+            now: Date(),
+            lowStockCount: lowStock.items.count
+        )
         let (cancel, retain) = ExpiryScheduler.partitionPreviousIds(
             idsRepo.load(),
             next: next,
             inventory: items,
             settings: settings
         )
-        await service.syncAll(next, previousIds: cancel)
+        guard await service.syncAll(next, previousIds: cancel) else { return }
         idsRepo.save(next.map(\.id) + retain)
     }
 }
