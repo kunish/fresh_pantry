@@ -74,6 +74,21 @@ enum HouseholdMergePolicy {
         )
     }
 
+    static func mergeFoodLog(
+        remote: [FoodLogEntry],
+        local: [FoodLogEntry],
+        scope: LocalUploadScope
+    ) -> [FoodLogEntry] {
+        merge(
+            remote: remote,
+            local: local,
+            scope: scope,
+            entityType: .foodLogEntry,
+            id: { $0.id },
+            isLocalOnly: isLocalOnlyFoodLog
+        )
+    }
+
     // MARK: Local-only predicates (mirror `_isLocalOnlyX`)
 
     /// A row is local-only iff it has never synced (`remoteVersion <= 0`), is not
@@ -104,6 +119,13 @@ enum HouseholdMergePolicy {
             && entry.deletedAt == nil
             && !entry.id.isEmpty
             && !entry.recipeId.trimmed.isEmpty
+    }
+
+    static func isLocalOnlyFoodLog(_ entry: FoodLogEntry) -> Bool {
+        entry.remoteVersion <= 0
+            && entry.deletedAt == nil
+            && !entry.id.isEmpty
+            && !entry.name.trimmed.isEmpty
     }
 
     // MARK: Generic core
