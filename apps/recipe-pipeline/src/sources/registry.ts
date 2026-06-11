@@ -1,26 +1,29 @@
 import type { RecipeSource } from './types';
 import { howtocookSource } from './howtocook';
+import { markdownRepoSource, type MarkdownRepoConfig } from './markdown-repo';
+import { urlBatchSource, type UrlBatchConfig } from './url-batch';
 import type { RecipeEnricher } from '../clean/enrich';
 
-export interface SourceConfig {
-  type: 'howtocook' | 'markdown-repo' | 'url-batch';
-  enabled?: boolean;
-  [key: string]: unknown;
-}
+export type SourceConfig =
+  | { type: 'howtocook'; enabled?: boolean }
+  | ({ type: 'markdown-repo'; enabled?: boolean } & MarkdownRepoConfig)
+  | ({ type: 'url-batch'; enabled?: boolean } & UrlBatchConfig);
 
 export interface SourcesFile {
   sources: SourceConfig[];
 }
 
-export function buildSources(file: SourcesFile, _enricher: RecipeEnricher): RecipeSource[] {
+export function buildSources(file: SourcesFile, enricher: RecipeEnricher): RecipeSource[] {
   return file.sources
     .filter((s) => s.enabled !== false)
-    .map((s) => {
+    .map((s): RecipeSource => {
       switch (s.type) {
         case 'howtocook':
           return howtocookSource();
-        default:
-          throw new Error(`source type 未实现(将在 Milestone 7 接入): ${s.type}`);
+        case 'markdown-repo':
+          return markdownRepoSource(s);
+        case 'url-batch':
+          return urlBatchSource(s, enricher);
       }
     });
 }
