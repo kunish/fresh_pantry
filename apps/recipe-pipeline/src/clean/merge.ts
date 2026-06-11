@@ -27,14 +27,13 @@ export function mergeWithExisting(
       continue;
     }
     if (prev.deletedAt) {
-      stats.unchanged++;
-      continue;
+      continue; // 软删的不复活、不改写;计入 unchanged(末尾统一结算)
     }
     const description =
       prev.description && !opts.refreshDescriptions ? prev.description : f.description;
     byId.set(f.id, {
       ...f,
-      imageUrl: prev.imageUrl ?? f.imageUrl,
+      imageUrl: prev.imageUrl || f.imageUrl,
       description,
       remoteVersion: prev.remoteVersion,
       clientUpdatedAt: prev.clientUpdatedAt,
@@ -44,5 +43,6 @@ export function mergeWithExisting(
   }
 
   const merged = [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
+  stats.unchanged = merged.length - stats.added - stats.updated;
   return { merged, stats };
 }

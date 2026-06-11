@@ -73,4 +73,20 @@ describe('mergeWithExisting', () => {
     const { merged } = mergeWithExisting([rec({ id: 'c' }), rec({ id: 'a' })], [rec({ id: 'b' })], NOW);
     expect(merged.map((r) => r.id)).toEqual(['a', 'b', 'c']);
   });
+
+  it('stats 自洽:added+updated+unchanged === 输出总数', () => {
+    const existing = [rec({ id: 'a' }), rec({ id: 'keep' }), rec({ id: 'gone', deletedAt: '2026-01-01T00:00:00.000Z' })];
+    const fresh = [rec({ id: 'a' }), rec({ id: 'b' }), rec({ id: 'gone' })];
+    const { merged, stats } = mergeWithExisting(fresh, existing, NOW);
+    expect(stats.added).toBe(1);   // b
+    expect(stats.updated).toBe(1); // a
+    expect(stats.added + stats.updated + stats.unchanged).toBe(merged.length);
+  });
+
+  it('更新既有菜时保留 clientUpdatedAt', () => {
+    const existing = [rec({ id: 'a', clientUpdatedAt: '2026-05-01T00:00:00.000Z' })];
+    const { merged } = mergeWithExisting([rec({ id: 'a', name: '新名' })], existing, NOW);
+    expect(merged[0].clientUpdatedAt).toBe('2026-05-01T00:00:00.000Z');
+    expect(merged[0].name).toBe('新名');
+  });
 });
