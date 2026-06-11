@@ -86,6 +86,7 @@ final class DeductionController {
         // waste-stats input). `wasExpiring` snapshots whether the eaten batch was
         // already past fresh (state ∈ {expiringSoon, urgent, expired}), so the
         // stats can credit "抢救临期". Mirrors Flutter `_logDeparture(item, consumed)`.
+        var loggedEntries: [FoodLogEntry] = []
         for departure in result.consumedDepartures {
             let entry = FoodLogEntry(
                 id: FoodLogEntry.newId(),
@@ -96,15 +97,16 @@ final class DeductionController {
                 wasExpiring: departure.state != .fresh
             )
             try? await foodLogRepository.append(householdID, entry)
+            loggedEntries.append(entry)
         }
 
         // OUTBOX SEAM: enqueue one outbox op per intent AFTER the inventory save +
         // food-log appends land. A `.delete` intent's row is an emptied departure
         // (its `deletedAt` is nil locally — the gateway derives `deleted_at` from
         // the op); any other op's row is in the reduced inventory. patch = the
-        // row's JSON. No-op when no household is selected. FoodLog sync stays
-        // local-only (parity with Flutter).
-        let ops: [SyncWriter.PendingOp] = result.syncIntents.compactMap { intent in
+        // row's JSON. No-op when no household is selected. FoodLog departures now
+        // sync too (append-only creates appended below).
+        var ops: [SyncWriter.PendingOp] = result.syncIntents.compactMap { intent in
             let row: Ingredient?
             if intent.operation == .delete {
                 row = result.consumedDepartures.first { $0.id == intent.entityId }
@@ -120,6 +122,17 @@ final class DeductionController {
                 baseVersion: intent.baseVersion
             )
         }
+        // FoodLog departures now sync to the household (append-only creates).
+        ops.append(contentsOf: loggedEntries.compactMap { entry in
+            guard let patch = DomainJSON.valueMap(entry) else { return nil }
+            return SyncWriter.PendingOp(
+                entityType: .foodLogEntry,
+                entityId: entry.id,
+                operation: .create,
+                patch: patch,
+                baseVersion: entry.remoteVersion
+            )
+        })
         await syncWriter?.enqueueBatch(ops)
 
         return ApplyOutcome(

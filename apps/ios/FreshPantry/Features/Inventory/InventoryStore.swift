@@ -137,6 +137,16 @@ final class InventoryStore {
             wasExpiring: removed.state != .fresh
         )
         try? await foodLogRepository.append(householdID, entry)
+        // FoodLog now syncs to the household: enqueue the departure as a create.
+        if let patch = DomainJSON.valueMap(entry) {
+            await syncWriter?.enqueue(
+                entityType: .foodLogEntry,
+                entityId: entry.id,
+                operation: .create,
+                patch: patch,
+                baseVersion: entry.remoteVersion
+            )
+        }
         await enqueueDelete(removed)
         return RemovalUndo(ingredient: removed, originalIndex: index, loggedEntryId: entry.id)
     }
@@ -158,6 +168,14 @@ final class InventoryStore {
         }
         if !undo.loggedEntryId.isEmpty {
             try? await foodLogRepository.deleteEntry(householdID, undo.loggedEntryId)
+            // Mirror the local point-delete remotely (soft delete the departure).
+            await syncWriter?.enqueue(
+                entityType: .foodLogEntry,
+                entityId: undo.loggedEntryId,
+                operation: .delete,
+                patch: [:],
+                baseVersion: nil
+            )
         }
         // Undelete path: re-assert the restored row remotely via a full-row write
         // (`.update`), which clears the soft-delete the original `.delete` set.

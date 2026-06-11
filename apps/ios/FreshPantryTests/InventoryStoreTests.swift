@@ -365,6 +365,33 @@ struct InventoryStoreTests {
         #expect(remaining.map(\.id) == ["fl_survivor"])
     }
 
+    @Test func removeEnqueuesFoodLogCreateAndUndoEnqueuesDelete() async throws {
+        // With a sync writer present, a removal-with-outcome enqueues the logged
+        // departure as a `.foodLogEntry` create; undoing it enqueues a `.delete`
+        // (soft delete) for the same id — FoodLog now participates in household sync.
+        let container = try ModelContainerFactory.makeInMemory()
+        let repo = InventoryRepository(modelContainer: container)
+        let log = FoodLogRepository(modelContainer: container)
+        let outbox = SyncOutboxRepository(modelContainer: container)
+        let defaults = UserDefaults(suiteName: "test.invstore.\(UUID().uuidString)")!
+        let session = SyncSession(selectedHouseholdId: "home", defaults: defaults)
+        let writer = SyncWriter(outbox: outbox, coordinator: nil, session: session)
+        let apple = item(id: "11111111-1111-4111-8111-111111111111", name: "苹果", state: .fresh)
+        try await repo.saveItems("home", [apple])
+        let store = InventoryStore(repository: repo, foodLogRepository: log, householdID: "home", syncWriter: writer)
+        await store.load()
+
+        let target = store.items.first { $0.id == apple.id }!
+        let undo = try #require(await store.remove(target, outcome: .wasted))
+
+        let afterRemove = try await outbox.loadPending()
+        #expect(afterRemove.contains { $0.entityType == .foodLogEntry && $0.operation == .create && $0.entityId == undo.loggedEntryId })
+
+        _ = await store.undoRemove(undo)
+        let afterUndo = try await outbox.loadPending()
+        #expect(afterUndo.contains { $0.entityType == .foodLogEntry && $0.operation == .delete && $0.entityId == undo.loggedEntryId })
+    }
+
     // MARK: Update (in-place edit)
 
     @Test func updateChangesEditableFieldsPreservesIdAddedAtAndPersists() async throws {
