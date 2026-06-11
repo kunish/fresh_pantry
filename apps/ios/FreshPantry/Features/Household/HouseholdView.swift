@@ -259,6 +259,8 @@ private struct ActiveHouseholdSection: View {
     @State private var showLeaveConfirm = false
     @State private var inviteToRevoke: OwnerPendingInvite?
 
+    @Environment(AppDependencies.self) private var dependencies
+
     private var isOwner: Bool { store.isOwnerOfSelected }
 
     var body: some View {
@@ -448,16 +450,9 @@ private struct ActiveHouseholdSection: View {
 
     private func memberRow(_ member: HouseholdMember) -> some View {
         HStack(spacing: FkSpacing.md) {
-            ZStack {
-                Circle()
-                    .fill(Color.fkPrimarySoft)
-                    .frame(width: 36, height: 36)
-                Text(member.email.first.map { String($0).uppercased() } ?? "?")
-                    .font(.fkLabelLarge)
-                    .foregroundStyle(Color.fkPrimary)
-            }
+            memberAvatar(member)
             VStack(alignment: .leading, spacing: 2) {
-                Text(member.email.isEmpty ? "成员" : member.email)
+                Text(member.resolvedName)
                     .font(.fkBodyMedium)
                     .foregroundStyle(Color.fkOnSurface)
                 Text(member.role == "owner" ? "所有者" : "成员")
@@ -465,8 +460,6 @@ private struct ActiveHouseholdSection: View {
                     .foregroundStyle(Color.fkOnSurfaceVariant)
             }
             Spacer(minLength: 0)
-            // Owner can remove other members (never themselves — leaving/dissolving
-            // is the owner's own exit path).
             if isOwner, member.role != "owner" {
                 Button {
                     memberToRemove = member
@@ -478,6 +471,33 @@ private struct ActiveHouseholdSection: View {
                 .disabled(store.isSubmitting)
             }
         }
+    }
+
+    /// Avatar from the member's stored path (public URL), falling back to the
+    /// initial of resolvedName.
+    @ViewBuilder
+    private func memberAvatar(_ member: HouseholdMember) -> some View {
+        let url = dependencies.remotePantryRepository?.avatarPublicURL(path: member.avatarPath)
+        ZStack {
+            Circle().fill(Color.fkPrimarySoft).frame(width: 36, height: 36)
+            if let url {
+                AsyncImage(url: url) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: {
+                    memberInitial(member)
+                }
+                .frame(width: 36, height: 36)
+                .clipShape(Circle())
+            } else {
+                memberInitial(member)
+            }
+        }
+    }
+
+    private func memberInitial(_ member: HouseholdMember) -> some View {
+        Text(member.resolvedName.first.map { String($0).uppercased() } ?? "?")
+            .font(.fkLabelLarge)
+            .foregroundStyle(Color.fkPrimary)
     }
 
     // MARK: Invite
