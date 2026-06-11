@@ -290,12 +290,20 @@ final class HouseholdSessionStore {
         }
     }
 
-    /// Reloads the open invites the owner has issued for `householdId` (empty for a
-    /// non-owner / empty id — the repo + UI gate handle that). Mirrors the Dart
-    /// `refreshOwnerPendingInvites`.
+    /// Reloads the open invites the OWNER of the selected household has issued.
+    ///
+    /// `list_owner_pending_invites` is an owner-only RPC — it raises 'Not authorized'
+    /// for a non-owner — so the fetch is gated on ownership, the SAME condition the
+    /// UI uses to render the list (`isOwner`). This mirrors the Flutter screen's
+    /// `_ensureOwnerPendingInvitesLoaded(isOwner)` gate (the iOS port had folded the
+    /// call into `refreshHouseholds` but dropped that gate, so a signed-in non-owner
+    /// member surfaced 'Not authorized' on page load). A non-owner / signed-out /
+    /// no-backend / empty-id caller just clears the list without hitting the RPC.
     func refreshOwnerPendingInvites(_ householdId: String) async {
-        guard let remote else { ownerPendingInvites = []; return }
-        guard isAuthenticated else { ownerPendingInvites = []; return }
+        guard let remote, isAuthenticated, isOwnerOfSelected else {
+            ownerPendingInvites = []
+            return
+        }
         do {
             ownerPendingInvites = try await remote.fetchOwnerPendingInvites(householdId)
         } catch {
