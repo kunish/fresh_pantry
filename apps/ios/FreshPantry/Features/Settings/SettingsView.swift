@@ -99,6 +99,49 @@ private struct SettingsContent: View {
     /// Count of invites addressed to the user — drives the 家庭共享 red dot.
     private var pendingInviteCount: Int { householdStore?.pendingInvitePreviews.count ?? 0 }
 
+    // MARK: 个人资料卡片
+
+    /// The top 「我」 card: pushes the read-only `ProfileDetailView`. The family /
+    /// sync / account lines are computed here — the detail view stays
+    /// presentation-only and never reaches into household / auth itself.
+    private var profileCardSection: some View {
+        Section {
+            NavigationLink {
+                ProfileDetailView(
+                    store: dependencies.profileStore,
+                    familyLine: profileFamilyLine,
+                    syncLine: profileSyncLine,
+                    accountLine: accountSubtitle
+                )
+            } label: {
+                ProfileCardRow(
+                    avatarURL: dependencies.profileStore.avatarURL,
+                    model: ProfileCardModel(
+                        displayName: dependencies.profileStore.displayName,
+                        nickname: dependencies.profileStore.nickname,
+                        accountFallback: accountSubtitle
+                    )
+                )
+            }
+            .listRowInsets(EdgeInsets(top: FkSpacing.sm, leading: FkSpacing.md, bottom: FkSpacing.sm, trailing: FkSpacing.md))
+        }
+        .listRowBackground(Color.fkSurfaceContainerLowest)
+    }
+
+    /// 家庭行 ("小白家 · 管理员"); nil when signed out / no household selected, so
+    /// the detail page hides the row instead of showing an empty value.
+    private var profileFamilyLine: String? {
+        guard let store = householdStore, let household = store.selectedHousehold else { return nil }
+        return "\(household.name) · \(store.isOwnerOfSelected ? "管理员" : "成员")"
+    }
+
+    /// 同步状态行 — surfaces `ProfileStore.hasPendingUpload` so a failed profile
+    /// save stays visible ("失败可见"); nil when local-only / signed out (nothing syncs).
+    private var profileSyncLine: String? {
+        guard case .signedIn = auth.state else { return nil }
+        return dependencies.profileStore.hasPendingUpload ? "待同步…" : "已同步"
+    }
+
     // MARK: 统计概览
 
     private var statsSection: some View {
@@ -637,6 +680,32 @@ private struct NotificationPermissionRow: View {
     }
 }
 
+/// The top 「我」 card row: a 52pt avatar + name + nickname/account subtitle,
+/// mirroring Apple Settings' Apple-ID card so the profile page is discoverable
+/// at a glance. The enclosing `NavigationLink` draws the chevron.
+private struct ProfileCardRow: View {
+    let avatarURL: URL?
+    let model: ProfileCardModel
+
+    var body: some View {
+        HStack(spacing: FkSpacing.md) {
+            MemberAvatar(displayName: model.title, avatarURL: avatarURL, size: 52)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(model.title)
+                    .font(.fkTitleSmall)
+                    .foregroundStyle(Color.fkOnSurface)
+                Text(model.subtitle)
+                    .font(.fkBodySmall)
+                    .foregroundStyle(Color.fkOnSurfaceVariant)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.vertical, FkSpacing.xs)
+    }
+}
+
 /// A leading-icon nav-link label matching the Flutter `_LinkRow` shape.
 private struct SettingsLinkLabel: View {
     let systemImage: String
@@ -673,5 +742,25 @@ private struct SettingsLinkLabel: View {
                     .foregroundStyle(Color.fkOnSurfaceVariant)
             }
         }
+    }
+}
+
+/// Pure title/subtitle selection for the settings 「我」 card — extracted so the
+/// branchy fallback logic is unit-testable without a SwiftUI host.
+/// title: displayName when non-blank, else a "set me up" prompt.
+/// subtitle: nickname when non-blank, else the account-state line.
+struct ProfileCardModel {
+    let displayName: String
+    let nickname: String
+    /// Account-state line (signed-in email / local-only / signed-out hint),
+    /// computed by the view from the existing `accountSubtitle`.
+    let accountFallback: String
+
+    var title: String {
+        displayName.trimmed.isEmpty ? "设置头像与名称" : displayName.trimmed
+    }
+
+    var subtitle: String {
+        nickname.trimmed.isEmpty ? accountFallback : nickname.trimmed
     }
 }
