@@ -24,6 +24,13 @@ struct RootView: View {
     /// Best-effort outbox depth — refreshed at natural sync moments (foreground,
     /// remote merge, coming back online). The offline flag is fully reactive.
     @State private var pendingCount = 0
+    /// Dead-lettered (repeatedly-failed) op count from the push coordinator —
+    /// refreshed alongside `pendingCount` so the banner can say 「N 条同步失败」
+    /// instead of an eternal 「同步中」 when a poison op is quarantined.
+    @State private var failedCount = 0
+    /// User-facing notice for an invite deep link that can't be presented yet
+    /// (signed out → 请先登录; local-only → 不支持). nil = no alert.
+    @State private var inviteNotice: String?
     /// Per-row 「待同步」 visibility: the set of entityIDs with a queued outbox op,
     /// shared down to the 库存 / 购物 lists. Refreshed at the SAME moments as
     /// `pendingCount` so the global banner and the per-row badges never disagree.
@@ -52,7 +59,11 @@ struct RootView: View {
             .tint(.fkPrimary)
         } else {
             VStack(spacing: 0) {
-                SyncStatusBanner(isOnline: connectivity.isOnline, pendingCount: pendingCount)
+                SyncStatusBanner(
+                    isOnline: connectivity.isOnline,
+                    pendingCount: pendingCount,
+                    failedCount: failedCount
+                )
                 tabs
             }
             .sheet(isPresented: $showSearch) {
@@ -67,6 +78,41 @@ struct RootView: View {
             .sheet(item: invitePreviewBinding) { route in
                 InvitePreviewSheet(input: route.input)
             }
+            // Deep-link invite FEEDBACK for the states the sheet can't cover:
+            // signed out → explain + keep the token (the sheet auto-presents
+            // after login); local-only → explain + drop the token (it can never
+            // be processed). `.task(id:)` — not `.onChange` — so a cold-start
+            // capture that landed before this view appeared still gets feedback.
+            // The COMPOSITE key re-runs the gate when the Keychain restore
+            // settles or the signed-in identity changes: a cold-start link no
+            // longer races `restore()` into a wrong 「请先登录」 — the gate holds
+            // (`.none`, token kept) until the session question is answered.
+            .task(id: inviteGateKey) {
+                switch InviteRouter.gateOutcome(
+                    hasPendingInvite: inviteRouter.pendingInput != nil,
+                    sessionResolved: dependencies.authService.hasResolvedSession,
+                    isLocalOnly: dependencies.authService.state == .localOnly,
+                    isSignedIn: dependencies.authService.signedInEmail != nil
+                ) {
+                case .none:
+                    break
+                case .presentPreview:
+                    // The preview sheet presents on this same state flip (via
+                    // invitePreviewBinding) — clear any stale 「请先登录」 alert
+                    // so the two never stack with contradictory copy.
+                    inviteNotice = nil
+                case .promptSignIn:
+                    inviteNotice = "收到家庭邀请,请先在「设置 → 家庭共享」登录,登录后会自动继续处理。"
+                case .unsupported:
+                    inviteNotice = "此版本未配置后端,无法打开家庭邀请。"
+                    inviteRouter.clear()
+                }
+            }
+            .alert("家庭邀请", isPresented: inviteNoticeBinding) {
+                Button("知道了", role: .cancel) {}
+            } message: {
+                Text(inviteNotice ?? "")
+            }
         }
     }
 
@@ -78,6 +124,24 @@ struct RootView: View {
             get: { profileGateReady && dependencies.profileStore.needsProfileSetup },
             set: { _ in }
         )
+    }
+
+    /// Drives the invite-notice alert; dismissing clears the message.
+    private var inviteNoticeBinding: Binding<Bool> {
+        Binding(
+            get: { inviteNotice != nil },
+            set: { if !$0 { inviteNotice = nil } }
+        )
+    }
+
+    /// Composite trigger for the invite-gate `.task(id:)`: a newly captured
+    /// token, the Keychain session restore settling (`hasResolvedSession`), or
+    /// a signed-in identity change each re-evaluate the gate. Same string-key
+    /// pattern as `householdRevisionKey`. Never logged (the input is a bearer
+    /// token — `InviteRouter`'s no-log rule applies).
+    private var inviteGateKey: String {
+        let auth = dependencies.authService
+        return "\(inviteRouter.pendingInput ?? "")#\(auth.hasResolvedSession)#\(auth.signedInEmail ?? "")"
     }
 
     /// Drives the deep-link invite sheet: presents only when a token is pending AND
@@ -100,12 +164,15 @@ struct RootView: View {
     @MainActor
     private func refreshPendingCount() async {
         pendingCount = (try? await dependencies.syncOutboxRepository.loadPending().count) ?? 0
+        failedCount = await dependencies.syncCoordinator?.deadLetterCount ?? 0
         await pendingSync?.refresh()
     }
 
-    /// Composite Spotlight-reindex trigger: fires on household switch AND on
-    /// every remote-merge pulse (plus once on appear, covering launch).
-    private var spotlightReindexKey: String {
+    /// Composite household-content trigger: fires on household switch AND on
+    /// every remote-merge pulse (plus once on appear, covering launch). Drives
+    /// both the Spotlight rebuild and the expiry-reminder reschedule, so
+    /// neither tracks a stale household scope or stale merged rows.
+    private var householdRevisionKey: String {
         "\(dependencies.syncSession.selectedHouseholdId)#\(dependencies.syncSession.dataRevision)"
     }
 
@@ -170,12 +237,18 @@ struct RootView: View {
             ProfileEditView(store: dependencies.profileStore, mode: .onboarding)
         }
         // SEED the per-row sync-status store once from the outbox actor, then do
-        // the first read so badges reflect any startup backlog. Idempotent.
+        // the first read so badges reflect any startup backlog. Idempotent. Also
+        // hands the push coordinator the live reachability probe so dead-letter
+        // strikes only count while online (an offline failure is transient).
         .task {
             if pendingSync == nil {
                 pendingSync = PendingSyncStatusStore(outbox: dependencies.syncOutboxRepository)
             }
             await pendingSync?.refresh()
+            let monitor = connectivity
+            await dependencies.syncCoordinator?.setOnlineProbe {
+                await MainActor.run { monitor.isOnline }
+            }
         }
         // DRIVE CONTENT SYNC: reconcile local⇄remote for the selected household.
         // Re-runs on every household switch (and once on launch); the coordinator
@@ -191,8 +264,13 @@ struct RootView: View {
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
             Task {
+                // Re-run a failed inbound sync first (no-op when the last run
+                // succeeded), then drain the outbox and the pending profile
+                // upload (idempotent; no-op without a queued avatar/name).
+                await dependencies.householdContentSync?.retryIfNeeded()
                 await dependencies.syncCoordinator?.pushPending()
                 await refreshPendingCount()
+                await dependencies.profileStore.retryPendingUpload()
             }
             Task {
                 await dependencies.notificationCoordinator
@@ -215,8 +293,14 @@ struct RootView: View {
         .onChange(of: connectivity.isOnline) { _, online in
             guard online else { return }
             Task {
+                // INBOUND first: an offline launch's failed `startSync` left the
+                // session with no bulk pull / realtime — retry it now (no-op when
+                // the last run completed). Then the outbound drain + the pending
+                // profile upload.
+                await dependencies.householdContentSync?.retryIfNeeded()
                 await dependencies.syncCoordinator?.pushPending()
                 await refreshPendingCount()
+                await dependencies.profileStore.retryPendingUpload()
             }
         }
         // Share-extension recipe import: switch to the 食谱 tab so RecipesView
@@ -240,16 +324,19 @@ struct RootView: View {
                 selection = .recipes
             }
         }
-        // SPOTLIGHT INDEX: rebuild on launch, on household switch, and after
-        // every remote-merge pulse (dataRevision). The 500 ms sleep is the
-        // debounce — `.task(id:)` cancels the in-flight task on each pulse, so
-        // a burst of revisions coalesces into a single rebuild of the final
-        // state. Whole-domain rebuilds also guarantee a household switch drops
-        // the previous household's entries from the index.
-        .task(id: spotlightReindexKey) {
+        // SPOTLIGHT INDEX + REMINDER RESCHEDULE: rebuild on launch, on household
+        // switch, and after every remote-merge pulse (dataRevision). The 500 ms
+        // sleep is the debounce — `.task(id:)` cancels the in-flight task on each
+        // pulse, so a burst of revisions coalesces into a single rebuild of the
+        // final state. Whole-domain rebuilds also guarantee a household switch
+        // drops the previous household's entries from the index — and the full
+        // reschedule drops the previous scope's reminders the same way.
+        .task(id: householdRevisionKey) {
             try? await Task.sleep(for: .milliseconds(500))
             guard !Task.isCancelled else { return }
             await reindexSpotlight()
+            await dependencies.notificationCoordinator
+                .reschedule(householdID: dependencies.householdID)
         }
         // Notification tap (临期提醒/每日汇总): switch to 首页 so DashboardView —
         // the consumer — pushes the 临期 screen. Deliberately NOT consumed here:
@@ -259,11 +346,6 @@ struct RootView: View {
         // the "app already open on another tab" case.
         .onChange(of: notificationTapRouter.pendingTap) { _, id in
             if id != nil { selection = .home }
-        }
-        // Initial reschedule on launch (the first .active may precede this view).
-        .task {
-            await dependencies.notificationCoordinator
-                .reschedule(householdID: dependencies.householdID)
         }
         // RESTORE SESSION ON LAUNCH: rehydrate a persisted login from the Keychain
         // so a returning member is signed in (and sync starts) without first
@@ -281,6 +363,16 @@ struct RootView: View {
         .task(id: dependencies.authService.signedInEmail) {
             guard dependencies.authService.signedInEmail != nil else {
                 profileGateReady = false
+                // SIGN-OUT (or signed-out launch — both writes are idempotent
+                // no-ops then): reset the enqueue scope SYNCHRONOUSLY so local
+                // edits stop queueing against the old household (SyncWriter
+                // guards on a non-empty id) — the root `.task(id:
+                // selectedHouseholdId)` follows with `syncTo("")` — then stop
+                // the content engine directly so realtime unsubscribes without
+                // waiting for that task hop. Mirrors Flutter's authStateChanges
+                // → refreshHouseholds → empty-selection chain.
+                dependencies.syncSession.selectedHouseholdId = ""
+                await dependencies.householdContentSync?.stop()
                 return
             }
             // Ensure the SDK session is resolved so the households query carries the

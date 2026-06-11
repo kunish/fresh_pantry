@@ -29,6 +29,13 @@ final class AuthService {
     }
 
     private(set) var state: State
+    /// True once the launch-time session question is answered — `restore()`
+    /// completed (signed in OR confirmed signed out), or no backend exists so
+    /// there is nothing to restore. Before this flips, `.signedOut` may just
+    /// mean "Keychain restore still in flight" — the invite deep-link gate
+    /// keys on this so a cold-start link waits instead of misreading the
+    /// pre-restore state as 「未登录」.
+    private(set) var hasResolvedSession: Bool
     /// In-flight flag for the active async op (drives button spinners/disabling).
     private(set) var isBusy = false
     /// The last user-facing error, cleared at the start of each new attempt.
@@ -42,6 +49,8 @@ final class AuthService {
     init(backend: AuthBackend?) {
         self.backend = backend
         self.state = backend == nil ? .localOnly : .signedOut
+        // Local-only has no persisted session to restore — resolved at birth.
+        self.hasResolvedSession = backend == nil
     }
 
     /// True when a backend is configured (sign-in is possible).
@@ -56,7 +65,10 @@ final class AuthService {
     // MARK: Session restore
 
     /// Rehydrates a persisted session on launch. No-op in local-only mode. Idempotent.
+    /// Flips `hasResolvedSession` on EVERY exit path — a signed-out answer also
+    /// resolves the session question (it unblocks the invite gate's 「请先登录」).
     func restore() async {
+        defer { hasResolvedSession = true }
         guard let backend, case .signedOut = state else { return }
         if let email = await backend.restoreSessionEmail() {
             state = .signedIn(userEmail: email)

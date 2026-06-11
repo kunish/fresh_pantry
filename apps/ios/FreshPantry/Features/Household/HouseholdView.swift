@@ -30,9 +30,16 @@ struct HouseholdView: View {
         .navigationBarTitleDisplayMode(.inline)
         .background(Color.fkSurface)
         .tint(.fkPrimary)
-        .task {
+        // Keyed on the signed-in identity (not run-once): walking 前往登录 from this
+        // page's signed-out state and popping back must re-load — an anonymous
+        // refresh left `households` RLS-empty, which rendered the misleading
+        // 「创建/加入家庭」 onboard form to a user whose real household was already
+        // syncing. The store is built once and reused; every identity change
+        // (incl. sign-out) re-runs `refreshHouseholds` (the Flutter
+        // authStateChanges → refreshHouseholds parity).
+        .task(id: dependencies.authService.signedInEmail) {
             if store == nil {
-                let store = HouseholdSessionStore(
+                store = HouseholdSessionStore(
                     remote: dependencies.remotePantryRepository,
                     session: dependencies.syncSession,
                     auth: dependencies.authService,
@@ -41,9 +48,8 @@ struct HouseholdView: View {
                     customRecipe: dependencies.customRecipeRepository,
                     mealPlan: dependencies.mealPlanRepository
                 )
-                self.store = store
-                await store.refreshHouseholds()
             }
+            await store?.refreshHouseholds()
         }
     }
 }
@@ -162,7 +168,7 @@ private struct OnboardHouseholdSection: View {
         FkCard {
             VStack(alignment: .leading, spacing: FkSpacing.lg) {
                 FkSectionHeader(title: "创建家庭")
-                Text("创建后,本机现有的库存、采购与食谱会成为这个家庭的初始数据。")
+                Text("创建后,本机现有的库存、采购、食谱、膳食计划与食材去向记录会成为这个家庭的初始数据。")
                     .font(.fkBodySmall)
                     .foregroundStyle(Color.fkOnSurfaceVariant)
                 FkFormField(label: "家庭名称") {

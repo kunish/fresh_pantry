@@ -37,6 +37,11 @@ actor HouseholdContentSyncCoordinator {
     /// run's writes; cancelling it as well stops the stale run's remaining network
     /// calls instead of letting them run to completion.
     private var syncTask: Task<Void, Never>?
+    /// Set when a `startSync` run threw before completing (e.g. an offline launch
+    /// failing the bulk pull): inbound sync is absent until a re-run, so the app
+    /// root retries via `retryIfNeeded` on reconnect / foreground. Cleared on any
+    /// fresh `syncTo` / `stop` / consumed retry.
+    private var needsRetry = false
 
     init(
         remote: RemotePantryRepository,
@@ -68,6 +73,7 @@ actor HouseholdContentSyncCoordinator {
         activeHouseholdId = householdId
         generation += 1
         let gen = generation
+        needsRetry = false
         cancelSubscriptions()
         if householdId.isEmpty { return }
         syncTask = Task { await startSync(householdId, gen) }
@@ -78,7 +84,29 @@ actor HouseholdContentSyncCoordinator {
     func stop() {
         activeHouseholdId = ""
         generation += 1
+        needsRetry = false
         cancelSubscriptions()
+    }
+
+    /// Re-runs the full sync sequence for the active household IF the last run
+    /// failed (an offline launch's bulk pull, a transient remote error) —
+    /// otherwise a no-op, so it's safe to call on every reconnect / foreground.
+    /// Bumping the generation + cancelling the old subscriptions first means a
+    /// retry can never double-subscribe on top of a partially-started run.
+    func retryIfNeeded() {
+        guard Self.shouldRetry(needsRetry: needsRetry, activeHouseholdId: activeHouseholdId) else { return }
+        needsRetry = false
+        generation += 1
+        let gen = generation
+        let householdId = activeHouseholdId
+        cancelSubscriptions()
+        syncTask = Task { await startSync(householdId, gen) }
+    }
+
+    /// The retry gate, extracted pure for unit tests: only a marked-failed run
+    /// with a still-active (non-local-only) household warrants a re-run.
+    static func shouldRetry(needsRetry: Bool, activeHouseholdId: String) -> Bool {
+        needsRetry && !activeHouseholdId.isEmpty
     }
 
     // MARK: Sequence
@@ -134,6 +162,11 @@ actor HouseholdContentSyncCoordinator {
             // A household switch / stop cancelled this run — not an error.
         } catch {
             Self.logger.error("while syncing household content: \(error.localizedDescription, privacy: .public)")
+            // Mark the run failed so the next reconnect / foreground re-runs the
+            // whole sequence (without this, an offline launch left inbound sync
+            // absent for the rest of the session — `syncTo` no-ops on the same
+            // id). Only while still current: a superseded run must not re-arm.
+            if isCurrent(gen, householdId) { needsRetry = true }
         }
     }
 

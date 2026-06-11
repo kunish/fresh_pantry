@@ -203,6 +203,19 @@ final class HouseholdSessionStore {
             try? await mealPlan.saveEntries(id, mealPlanRows)
             try? await mealPlan.deleteHouseholdScope("")
         }
+
+        // FoodLog (减废历史) moves too — otherwise the personal departure log is
+        // orphaned in the `""` scope: invisible to the re-scoped stats AND never
+        // uploaded (`uploadLocalOnly` only reads the household scope). The repo is
+        // derived from the inventory repo's container (all repos share the one app
+        // container) so the store's init — built at three view call sites — stays
+        // unchanged for this adoption-only dependency.
+        let foodLog = FoodLogRepository(modelContainer: inventory.modelContainer)
+        let foodLogRows = ((try? await foodLog.loadAllFor("")) ?? []).map(Self.reminted)
+        if !foodLogRows.isEmpty {
+            try? await foodLog.saveEntries(id, foodLogRows)
+            try? await foodLog.deleteHouseholdScope("")
+        }
     }
 
     // MARK: - Join
@@ -374,6 +387,10 @@ final class HouseholdSessionStore {
         do {
             let url = try await remote.createInvite(householdId: householdId, email: target)
             isSubmitting = false
+            // Re-fetch the owner 待处理邀请 list so the fresh invite appears without a
+            // pull-to-refresh (symmetric with `revokeInvite`'s post-success refresh;
+            // the owner-gate inside no-ops it for a non-owner caller).
+            await refreshOwnerPendingInvites(householdId)
             return url
         } catch {
             isSubmitting = false
@@ -579,6 +596,11 @@ final class HouseholdSessionStore {
         var copy = entry
         copy.id = UUID().uuidString.lowercased()
         return copy
+    }
+
+    private static func reminted(_ entry: FoodLogEntry) -> FoodLogEntry {
+        guard !ProposalApply.isUuid(entry.id) else { return entry }
+        return entry.copyWith(id: FoodLogEntry.newId())
     }
 
     /// Selection pick on refresh: keep the current id if still joined, else the
