@@ -46,10 +46,16 @@ struct BackupView: View {
         .task {
             controller = BackupController(
                 inventory: dependencies.inventoryRepository,
+                foodLog: dependencies.foodLogRepository,
                 shopping: dependencies.shoppingRepository,
                 customRecipe: dependencies.customRecipeRepository,
                 mealPlan: dependencies.mealPlanRepository,
                 aiSettings: dependencies.aiSettingsStore,
+                favorites: dependencies.favoritesStore,
+                dietaryPreferences: dependencies.dietaryPreferencesStore,
+                dietPreference: dependencies.dietPreferenceStore,
+                reminderSettings: dependencies.reminderSettingsStore,
+                syncWriter: dependencies.syncWriter,
                 householdID: dependencies.householdID
             )
         }
@@ -64,9 +70,17 @@ struct BackupView: View {
             Button("取消", role: .cancel) { pendingImportText = nil }
             Button("覆盖导入", role: .destructive) { confirmImport() }
         } message: {
-            Text("导入将覆盖本机当前的库存、采购、食谱、膳食计划等数据,确定继续?")
+            Text(importConfirmMessage)
         }
         .onDisappear { exportTask?.cancel() }
+    }
+
+    /// 在家庭中导入时点明同步后果:导入不只是覆盖本机,还会经 outbox 上行覆盖
+    /// 家庭共享数据(否则下一次远端 merge 会静默回滚刚导入的数据)。
+    private var importConfirmMessage: String {
+        let base = "导入将覆盖本机当前的库存、采购、食谱、膳食计划、去向记录与偏好设置,确定继续?"
+        guard !dependencies.householdID.isEmpty else { return base }
+        return base + "\n\n当前已加入家庭:导入结果会同步上传并覆盖家庭共享数据。"
     }
 
     // MARK: 导出
@@ -87,7 +101,7 @@ struct BackupView: View {
                     actionRow(
                         systemImage: "tray.and.arrow.up",
                         title: "导出备份",
-                        subtitle: "生成包含全部数据的 JSON 文件",
+                        subtitle: "生成 JSON 备份文件",
                         busy: exporting
                     )
                 }
@@ -97,7 +111,7 @@ struct BackupView: View {
                 actionRow(
                     systemImage: "doc.on.doc",
                     title: "复制到剪贴板",
-                    subtitle: "复制全部数据为 JSON,可粘贴到备忘录/邮件保存",
+                    subtitle: "复制备份 JSON,可粘贴到备忘录/邮件保存",
                     busy: exporting
                 )
             }
@@ -105,7 +119,7 @@ struct BackupView: View {
         } header: {
             Text("导出")
         } footer: {
-            Text("备份包含库存、采购清单、自建食谱、膳食计划与 AI 配置;不含可重建的食材详情缓存。")
+            Text("备份包含库存、采购清单、自建食谱、膳食计划、食材去向记录、菜谱收藏、饮食偏好与忌口、提醒设置与 AI 配置;不含外观设置与可重建的食材详情缓存。")
         }
         .listRowBackground(Color.fkSurfaceContainerLowest)
     }
@@ -220,6 +234,13 @@ struct BackupView: View {
                 status = .success("已导入")
             } catch let error as BackupService.BackupError {
                 status = .failure(message(for: error))
+            } catch BackupController.ImportError.aiSettingsPersistFailed {
+                // The Keychain write is the LAST import step: every data scope
+                // already landed (and enqueued), so refresh the lists like a
+                // success and scope the failure to the AI config alone —
+                // otherwise the UI claims a full failure over imported data.
+                dependencies.syncSession.bumpDataRevision()
+                status = .failure("数据已导入,但 AI 配置保存失败,请到 AI 设置重试")
             } catch {
                 status = .failure("导入失败,请重试")
             }

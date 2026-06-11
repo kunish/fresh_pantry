@@ -1,5 +1,42 @@
 import Foundation
 
+/// The full backup payload: the Flutter-parity `BackupData` core plus the
+/// iOS-only optional scopes. Defined at the codec boundary (not in
+/// `Domain/Models`) because the optionality is a wire-format concern: a nil
+/// field means "this scope's key was ABSENT from the blob" (a pre-expansion
+/// backup) — the import side MUST skip the live scope then, never clear it,
+/// or restoring an old backup would wipe data the blob never carried (e.g.
+/// months of food-log history).
+struct BackupArchive: Equatable, Sendable {
+    var data: BackupData
+    /// 减废账本 (用掉/浪费/抢救历史) — not rebuildable, the waste-stats truth source.
+    var foodLog: [FoodLogEntry]?
+    /// Favorite recipe ids (菜谱收藏).
+    var favorites: [String]?
+    /// 忌口 keywords, canonical (trimmed + lowercased) form.
+    var dietaryExclusions: [String]?
+    /// 饮食偏好 preset labels (高蛋白/低脂/素食/…).
+    var dietPreferences: [String]?
+    /// 到期提醒方案 (per-flag toggles + delivery time + quiet hours).
+    var reminderSettings: ReminderSettings?
+
+    init(
+        data: BackupData,
+        foodLog: [FoodLogEntry]? = nil,
+        favorites: [String]? = nil,
+        dietaryExclusions: [String]? = nil,
+        dietPreferences: [String]? = nil,
+        reminderSettings: ReminderSettings? = nil
+    ) {
+        self.data = data
+        self.foodLog = foodLog
+        self.favorites = favorites
+        self.dietaryExclusions = dietaryExclusions
+        self.dietPreferences = dietPreferences
+        self.reminderSettings = reminderSettings
+    }
+}
+
 /// Pure (de)serialization for backup blobs — no storage, network, or DI access.
 /// It converts `BackupData` (live domain models) to/from a versioned,
 /// pretty-printed JSON envelope. The orchestration that reads the live stores on
@@ -15,6 +52,13 @@ import Foundation
 /// data; `addHistory` round-trips as an opaque map; the food-details cache is
 /// intentionally excluded. Envelope/payload key names + error messages mirror the
 /// Flutter `BackupService` exactly.
+///
+/// The v2 payload is a SUPERSET of the Flutter-era contract: the original five
+/// keys keep their exact names/shapes (old blobs stay importable), and the
+/// iOS-only scopes (`foodLog`/`favorites`/`dietaryExclusions`/`dietPreferences`/
+/// `reminderSettings`) ride along as OPTIONAL keys. The version stays 2 on
+/// purpose — the additions are purely additive, and a bump would lock older app
+/// builds out of new blobs they could otherwise read (they ignore unknown keys).
 enum BackupService {
     static let backupVersion = 2
 
@@ -33,7 +77,8 @@ enum BackupService {
     ///
     /// `exportedAt` is injectable so tests can pin the timestamp; production
     /// passes the default `Date()` and it is written as ISO8601 UTC.
-    static func encode(_ data: BackupData, exportedAt: Date = Date()) -> String {
+    static func encode(_ archive: BackupArchive, exportedAt: Date = Date()) -> String {
+        let data = archive.data
         var payload: [String: JSONValue] = [
             "inventory": list(data.inventory),
             "addHistory": map(data.addHistory),
@@ -43,6 +88,23 @@ enum BackupService {
         ]
         if let aiSettings = data.aiSettings {
             payload["aiSettings"] = object(aiSettings)
+        }
+        // Optional iOS-only scopes: a nil field writes NO key (a core-only blob
+        // is byte-identical to the pre-expansion output).
+        if let foodLog = archive.foodLog {
+            payload["foodLog"] = list(foodLog)
+        }
+        if let favorites = archive.favorites {
+            payload["favorites"] = stringList(favorites)
+        }
+        if let dietaryExclusions = archive.dietaryExclusions {
+            payload["dietaryExclusions"] = stringList(dietaryExclusions)
+        }
+        if let dietPreferences = archive.dietPreferences {
+            payload["dietPreferences"] = stringList(dietPreferences)
+        }
+        if let reminderSettings = archive.reminderSettings {
+            payload["reminderSettings"] = object(reminderSettings)
         }
 
         let envelope: JSONValue = .object([
@@ -54,6 +116,11 @@ enum BackupService {
         return prettyPrinted(envelope)
     }
 
+    /// Core-only convenience (the Flutter-parity call shape): no optional scopes.
+    static func encode(_ data: BackupData, exportedAt: Date = Date()) -> String {
+        encode(BackupArchive(data: data), exportedAt: exportedAt)
+    }
+
     // MARK: Decode
 
     /// Parses and structurally validates a backup blob into typed `BackupData`.
@@ -63,6 +130,13 @@ enum BackupService {
     /// all parsing happens here BEFORE any caller writes, a failed decode can
     /// never partially overwrite existing data.
     static func decode(_ string: String) throws -> BackupData {
+        try decodeArchive(string).data
+    }
+
+    /// Full decode including the optional iOS-only scopes. An absent/null key
+    /// decodes as nil (NOT empty) so the import can tell "not backed up" (skip
+    /// the live scope) from "backed up empty" (clear it).
+    static func decodeArchive(_ string: String) throws -> BackupArchive {
         guard let data = string.data(using: .utf8),
               let raw = try? JSONSerialization.jsonObject(with: data)
         else {
@@ -85,13 +159,20 @@ enum BackupService {
             throw BackupError.format("Backup data is not a JSON object")
         }
 
-        return BackupData(
-            inventory: try parseList(payload, "inventory", as: Ingredient.self),
-            addHistory: try parseMap(payload, "addHistory"),
-            shopping: try parseList(payload, "shopping", as: ShoppingItem.self),
-            customRecipes: try parseList(payload, "customRecipes", as: Recipe.self),
-            mealPlan: try parseList(payload, "mealPlan", as: MealPlanEntry.self),
-            aiSettings: try parseAiSettings(payload)
+        return BackupArchive(
+            data: BackupData(
+                inventory: try parseList(payload, "inventory", as: Ingredient.self),
+                addHistory: try parseMap(payload, "addHistory"),
+                shopping: try parseList(payload, "shopping", as: ShoppingItem.self),
+                customRecipes: try parseList(payload, "customRecipes", as: Recipe.self),
+                mealPlan: try parseList(payload, "mealPlan", as: MealPlanEntry.self),
+                aiSettings: try parseAiSettings(payload)
+            ),
+            foodLog: try parseOptionalList(payload, "foodLog", as: FoodLogEntry.self),
+            favorites: try parseOptionalStringList(payload, "favorites"),
+            dietaryExclusions: try parseOptionalStringList(payload, "dietaryExclusions"),
+            dietPreferences: try parseOptionalStringList(payload, "dietPreferences"),
+            reminderSettings: try parseReminderSettings(payload)
         )
     }
 
@@ -102,8 +183,19 @@ enum BackupService {
         _ key: String,
         as type: T.Type
     ) throws -> [T] {
+        // Core scopes are always written, so absent collapses to empty.
+        try parseOptionalList(payload, key, as: type) ?? []
+    }
+
+    /// Presence-aware list parse for the optional scopes: a missing/null key is
+    /// nil (scope absent from the blob), distinct from a present-but-empty list.
+    private static func parseOptionalList<T: Decodable>(
+        _ payload: [String: Any],
+        _ key: String,
+        as type: T.Type
+    ) throws -> [T]? {
         let raw = payload[key]
-        if raw == nil || raw is NSNull { return [] }
+        if raw == nil || raw is NSNull { return nil }
         guard let list = raw as? [Any] else {
             throw BackupError.format("Backup payload for \"\(key)\" must be a JSON list")
         }
@@ -114,6 +206,21 @@ enum BackupService {
             guard let object = element as? [String: Any] else { return nil }
             return DomainJSON.fromValueMap(T.self, from: jsonValueMap(object))
         }
+    }
+
+    /// String-array scopes (favorites/忌口/偏好): missing/null → nil; a non-list
+    /// is a format error; non-string elements are skipped (the same per-element
+    /// tolerance as `parseList`). Normalization stays with the owning stores.
+    private static func parseOptionalStringList(
+        _ payload: [String: Any],
+        _ key: String
+    ) throws -> [String]? {
+        let raw = payload[key]
+        if raw == nil || raw is NSNull { return nil }
+        guard let list = raw as? [Any] else {
+            throw BackupError.format("Backup payload for \"\(key)\" must be a JSON list")
+        }
+        return list.compactMap { $0 as? String }
     }
 
     private static func parseMap(
@@ -144,6 +251,15 @@ enum BackupService {
         return DomainJSON.fromValueMap(AiSettings.self, from: jsonValueMap(object))
     }
 
+    private static func parseReminderSettings(_ payload: [String: Any]) throws -> ReminderSettings? {
+        let raw = payload["reminderSettings"]
+        if raw == nil || raw is NSNull { return nil }
+        guard let object = raw as? [String: Any] else {
+            throw BackupError.format("Backup payload for \"reminderSettings\" must be a JSON object")
+        }
+        return DomainJSON.fromValueMap(ReminderSettings.self, from: jsonValueMap(object))
+    }
+
     // MARK: Encode helpers
 
     /// `[Encodable]` -> a `JSONValue` array of each element's `toJson()` map.
@@ -155,6 +271,11 @@ enum BackupService {
     private static func object<T: Encodable>(_ value: T) -> JSONValue {
         guard let map = DomainJSON.valueMap(value) else { return .object([:]) }
         return .object(map)
+    }
+
+    /// `[String]` -> a plain JSON string array (the KV stores' wire shape).
+    private static func stringList(_ values: [String]) -> JSONValue {
+        .array(values.map { .string($0) })
     }
 
     /// The add-history frequency map -> a `JSONValue.object` of each entry's JSON.
