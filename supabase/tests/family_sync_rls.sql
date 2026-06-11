@@ -1,6 +1,6 @@
 begin;
 
-select plan(82);
+select plan(83);
 
 create or replace function pg_temp.authenticate_as(user_id uuid, user_email text)
 returns void
@@ -48,6 +48,12 @@ on conflict (id) do nothing;
 insert into public.households (id, name, owner_id)
 values ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Kunish Kitchen', '11111111-1111-1111-1111-111111111111')
 on conflict (id) do nothing;
+
+insert into public.profiles (id, email, display_name, nickname)
+values ('11111111-1111-1111-1111-111111111111', 'owner@example.com', '户主大人', 'Boss')
+on conflict (id) do update
+  set display_name = excluded.display_name,
+      nickname = excluded.nickname;
 
 insert into public.household_members (household_id, user_id, role)
 values
@@ -122,6 +128,16 @@ select is(
   ),
   'member@example.com:member,owner@example.com:owner',
   'member can list household members with emails'
+);
+
+select is(
+  (
+    select display_name
+    from public.list_household_members('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+    where user_id = '11111111-1111-1111-1111-111111111111'
+  ),
+  '户主大人',
+  'members RPC surfaces the owner display_name'
 );
 
 select lives_ok(
