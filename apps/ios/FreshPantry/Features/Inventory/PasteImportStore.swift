@@ -92,7 +92,13 @@ final class PasteImportStore {
             return
         }
 
-        let inventory = (try? await inventoryRepository.loadAllFor(householdID)) ?? []
+        let inventory: [Ingredient]
+        do {
+            inventory = try await inventoryRepository.loadAllFor(householdID)
+        } catch {
+            errorMessage = "库存读取失败，请重试"
+            return
+        }
         proposals = IntakeProposalFactory.fromDrafts(drafts, inventory)
     }
 

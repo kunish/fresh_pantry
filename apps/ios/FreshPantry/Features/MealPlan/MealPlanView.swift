@@ -76,7 +76,7 @@ private struct MealPlanContent: View {
     @State private var selectedRecipe: Recipe?
     /// Set when a dish is marked done and its recipe still resolves — drives the
     /// skippable 「顺便扣减库存?」 prompt, then the review sheet.
-    @State private var deductCandidate: Recipe?
+    @State private var deductCandidate: PlanDeductionCandidate?
     @State private var showDeductPrompt = false
     @State private var cookSession: PlanCookSession?
     /// The household the lazily-built stores were scoped to — they are dropped
@@ -166,11 +166,11 @@ private struct MealPlanContent: View {
             isPresented: $showDeductPrompt,
             titleVisibility: .visible,
             presenting: deductCandidate
-        ) { recipe in
-            Button("扣减库存") { Task { await presentDeduction(recipe) } }
+        ) { candidate in
+            Button("扣减库存") { Task { await presentDeduction(candidate) } }
             Button("跳过", role: .cancel) {}
-        } message: { recipe in
-            Text("按「\(recipe.name)」的食材清单生成扣减审核,可逐项调整或跳过。")
+        } message: { candidate in
+            Text("按「\(candidate.recipe.name)」的食材清单生成扣减审核,可逐项调整或跳过。")
         }
         .sheet(item: $cookSession) { session in
             NavigationStack {
@@ -269,7 +269,7 @@ private struct MealPlanContent: View {
         recipesById = byId
         let inventory = (try? await dependencies.inventoryRepository.loadAllFor(scope)) ?? []
         guard scope == dependencies.householdID, !Task.isCancelled else { return }
-        inventoryNames = RecipeMatching.inventoryNameSet(inventory)
+        inventoryNames = RecipeMatching.availableInventoryNameSet(inventory)
         if let shoppingStore {
             await shoppingStore.load()
         } else {
@@ -329,16 +329,25 @@ private struct MealPlanContent: View {
             return
         }
         if completing, let recipe = MealPlanStore.deductionCandidate(for: entry, recipesById: recipesById) {
-            deductCandidate = recipe
+            deductCandidate = PlanDeductionCandidate(recipe: recipe, servings: entry.servings)
             showDeductPrompt = true
         }
     }
 
     /// Builds deduction proposals against the live inventory and raises the
-    /// review sheet (mirrors `RecipeDetailView.presentCook`, minus 备料 scaling).
-    private func presentDeduction(_ recipe: Recipe) async {
+    /// review sheet (mirrors `RecipeDetailView.presentCook`, including 份数 scaling).
+    private func presentDeduction(_ candidate: PlanDeductionCandidate) async {
         let inventory = (try? await dependencies.inventoryRepository.loadAllFor(dependencies.householdID)) ?? []
-        cookSession = PlanCookSession(proposals: DeductionProposalFactory.forRecipe(recipe, inventory))
+        let scaled: Recipe
+        if candidate.servings == 1 {
+            scaled = candidate.recipe
+        } else {
+            let factor = Double(candidate.servings)
+            scaled = candidate.recipe.copyWith(
+                ingredients: candidate.recipe.ingredients.map { $0.scaledBy(factor) }
+            )
+        }
+        cookSession = PlanCookSession(proposals: DeductionProposalFactory.forRecipe(scaled, inventory))
     }
 
     private func showToast(_ message: String) {
@@ -628,6 +637,14 @@ private struct MealPlanDishRow: View {
     }
 }
 
+/// Recipe + planned servings captured when a dish is marked done — the deduction
+/// prompt must scale proposals by the entry's 份数, not always 1×.
+private struct PlanDeductionCandidate: Identifiable {
+    let recipe: Recipe
+    let servings: Int
+    var id: String { recipe.id }
+}
+
 /// `Identifiable` wrapper around the built deduction proposals so the review can
 /// drive `.sheet(item:)` — the meal-plan twin of recipe detail's `CookSession`.
 private struct PlanCookSession: Identifiable {
@@ -675,7 +692,10 @@ private struct RecipePickerSheet: View {
                     localRepository: dependencies.localRecipeRepository,
                     customRepository: dependencies.customRecipeRepository,
                     favoritesStore: dependencies.favoritesStore,
-                    householdID: dependencies.householdID
+                    householdID: dependencies.householdID,
+                    inventoryRepository: dependencies.inventoryRepository,
+                    dietaryStore: dependencies.dietaryPreferencesStore,
+                    dietPreferenceStore: dependencies.dietPreferenceStore
                 )
                 self.store = store
                 await store.load()
@@ -725,7 +745,10 @@ private struct PickerList: View {
                         RecipeCard(
                             recipe: recipe,
                             isFavorite: store.isFavorite(recipe),
-                            onToggleFavorite: { store.toggleFavorite(recipe) }
+                            onToggleFavorite: { store.toggleFavorite(recipe) },
+                            matchedCount: store.hasInventoryContext ? store.matchedCount(recipe) : nil,
+                            totalIngredients: recipe.ingredients.count,
+                            expiringUse: store.expiringUseCount(recipe)
                         )
                     }
                     .buttonStyle(.fkPressable)

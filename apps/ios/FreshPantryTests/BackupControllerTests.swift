@@ -48,7 +48,7 @@ struct BackupControllerTests {
             dietPreference: dietPreference,
             reminderSettings: reminderSettings,
             syncWriter: SyncWriter(outbox: outbox, coordinator: nil, session: session),
-            householdID: household
+            syncSession: session
         )
         return Fixture(
             controller: controller,

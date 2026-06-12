@@ -19,7 +19,7 @@ final class BackupController {
     private let dietPreference: DietPreferenceStore
     private let reminderSettings: ReminderSettingsStore
     private let syncWriter: SyncWriter
-    private let householdID: String
+    private let syncSession: SyncSession
 
     init(
         inventory: InventoryRepository,
@@ -33,7 +33,7 @@ final class BackupController {
         dietPreference: DietPreferenceStore,
         reminderSettings: ReminderSettingsStore,
         syncWriter: SyncWriter,
-        householdID: String
+        syncSession: SyncSession
     ) {
         self.inventory = inventory
         self.foodLog = foodLog
@@ -46,8 +46,12 @@ final class BackupController {
         self.dietPreference = dietPreference
         self.reminderSettings = reminderSettings
         self.syncWriter = syncWriter
-        self.householdID = householdID
+        self.syncSession = syncSession
     }
+
+    /// Read at export/import time so a household switch while the backup screen
+    /// is open scopes to the active household, not the one at construction.
+    private var householdID: String { syncSession.selectedHouseholdId }
 
     /// Reads the live persisted state (the source of truth) and serializes it to
     /// a JSON blob. The View wraps the returned string into a file for sharing.

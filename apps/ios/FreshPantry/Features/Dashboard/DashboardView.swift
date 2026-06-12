@@ -17,6 +17,8 @@ struct DashboardView: View {
     var onSelectCategory: (String) -> Void = { _ in }
     /// Opens the global search overlay (owned/presented by `RootView`).
     var onSearch: () -> Void = {}
+    /// Switches to the 食谱 tab on the 用临期 slice (减废统计 CTA).
+    var onSelectExpiringRecipes: () -> Void = {}
 
     @Environment(AppDependencies.self) private var dependencies
     @Environment(NotificationTapRouter.self) private var tapRouter
@@ -30,7 +32,11 @@ struct DashboardView: View {
         NavigationStack(path: $path) {
             Group {
                 if let store {
-                    DashboardContent(store: store, onSelectShopping: onSelectShopping, onSelectCategory: onSelectCategory)
+                    DashboardContent(
+                        store: store,
+                        onSelectShopping: onSelectShopping,
+                        onSelectCategory: onSelectCategory
+                    )
                 } else {
                     ProgressView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -52,7 +58,11 @@ struct DashboardView: View {
                 switch route {
                 case .expiring: ExpiringView()
                 case .mealPlan: MealPlanView()
-                case .wasteInsights: WasteInsightsView()
+                case .wasteInsights:
+                    WasteInsightsView(
+                        onSelectCategory: onSelectCategory,
+                        onSelectExpiringRecipes: onSelectExpiringRecipes
+                    )
                 case .lowStock: LowStockView(onSelectShopping: onSelectShopping)
                 }
             }
@@ -384,7 +394,11 @@ private struct DashboardContent: View {
         )
         recommendation = available.first
         recommendationMatched = recommendation.map { recipes.matchedCount($0) } ?? 0
-        fallback = RecipeMatching.expiringFallback(recipes.recipes, recipes.expiringNames)
+        let exclusions = dependencies.dietaryPreferencesStore.keywords
+        let eligibleForFallback = recipes.recipes.filter {
+            !RecipeMatching.hasExcludedIngredient($0, exclusions)
+        }
+        fallback = RecipeMatching.expiringFallback(eligibleForFallback, recipes.expiringNames)
             .map { FallbackSuggestion(recipe: $0.recipe, covered: coveredDisplayNames($0.recipe, $0.covered)) }
         didLoadRecipes = true
 

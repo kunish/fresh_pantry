@@ -56,7 +56,7 @@ struct BackupView: View {
                 dietPreference: dependencies.dietPreferenceStore,
                 reminderSettings: dependencies.reminderSettingsStore,
                 syncWriter: dependencies.syncWriter,
-                householdID: dependencies.householdID
+                syncSession: dependencies.syncSession
             )
         }
         .fileImporter(

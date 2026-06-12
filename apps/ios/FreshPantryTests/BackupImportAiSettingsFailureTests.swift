@@ -23,6 +23,7 @@ struct BackupImportAiSettingsFailureTests {
         let container = try ModelContainerFactory.makeInMemory()
         let defaults = UserDefaults(suiteName: "test.backupimport.aisettings.\(UUID().uuidString)")!
         let aiStore = AiSettingsStore(secrets: secrets)
+        let session = SyncSession(selectedHouseholdId: "", defaults: defaults)
         let controller = BackupController(
             inventory: InventoryRepository(modelContainer: container),
             foodLog: FoodLogRepository(modelContainer: container),
@@ -37,9 +38,9 @@ struct BackupImportAiSettingsFailureTests {
             syncWriter: SyncWriter(
                 outbox: SyncOutboxRepository(modelContainer: container),
                 coordinator: nil,
-                session: SyncSession(selectedHouseholdId: "", defaults: defaults)
+                session: session
             ),
-            householdID: ""
+            syncSession: session
         )
         return (controller, aiStore)
     }

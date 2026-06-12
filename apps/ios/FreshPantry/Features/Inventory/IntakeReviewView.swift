@@ -135,6 +135,7 @@ struct IntakeReviewView: View {
         let outcome = await store.apply()
         if outcome.persisted {
             onApplied(outcome)
+            await dependencies.notificationCoordinator.reschedule(householdID: dependencies.householdID)
             dismiss()
         }
     }
