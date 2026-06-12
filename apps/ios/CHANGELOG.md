@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.13.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.12.3...fresh_pantry-v1.13.0) (2026-06-12)
+
+
+### Features
+
+* **ios:** exclude expired stock from matching, incremental sync, and food log history ([82d38a4](https://github.com/kunish/fresh_pantry/commit/82d38a4fee2f7973eaf8f1294acfd3bf04fc545c))
+* **ios:** household warning, sync failures, search, and cross-tab navigation ([0c952c5](https://github.com/kunish/fresh_pantry/commit/0c952c585cd615782aa843101ab22f041fbcd187))
+
+
+### Bug Fixes
+
+* **ios:** quick wins for meal plan, imports, backup, and expiring fallback ([b43b1ed](https://github.com/kunish/fresh_pantry/commit/b43b1ed01902785e95449f85d8ef47e9043afb65))
+
 ## [1.12.3](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.12.2...fresh_pantry-v1.12.3) (2026-06-12)
 
 
