@@ -13,8 +13,19 @@ struct HouseholdSessionStoreTests {
     // MARK: Fixtures
 
     /// Builds a store with real in-memory repos and no backend (local-only).
+    /// Isolated suite per session: a `.standard`-backed session would now
+    /// RESTORE the host's persisted scope at init and PERSIST every store
+    /// assignment back into it (offline-first launch restore) — cross-test
+    /// leakage.
+    private static func isolatedSession(_ id: String = "") -> SyncSession {
+        SyncSession(
+            selectedHouseholdId: id,
+            defaults: UserDefaults(suiteName: "test.householdsession.\(UUID().uuidString)")!
+        )
+    }
+
     private func makeStore(
-        session: SyncSession = SyncSession(selectedHouseholdId: "")
+        session: SyncSession = isolatedSession()
     ) throws -> (store: HouseholdSessionStore, repos: Repos) {
         let container = try ModelContainerFactory.makeInMemory()
         let repos = Repos(
@@ -135,7 +146,7 @@ struct HouseholdSessionStoreTests {
     }
 
     @Test func selectedHouseholdResolvesFromSessionScope() throws {
-        let session = SyncSession(selectedHouseholdId: "h2")
+        let session = Self.isolatedSession("h2")
         let (store, _) = try makeStore(session: session)
         // No households loaded → nil even with a selected id.
         #expect(store.selectedHousehold == nil)

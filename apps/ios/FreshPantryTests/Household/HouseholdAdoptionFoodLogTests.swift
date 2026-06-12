@@ -20,7 +20,12 @@ struct HouseholdAdoptionFoodLogTests {
         let foodLog = FoodLogRepository(modelContainer: container)
         let store = HouseholdSessionStore(
             remote: nil,
-            session: SyncSession(selectedHouseholdId: ""),
+            // Isolated suite: a `.standard`-backed session would restore the
+            // host's persisted scope and persist adoption's scope switch back.
+            session: SyncSession(
+                selectedHouseholdId: "",
+                defaults: UserDefaults(suiteName: "test.adoption.\(UUID().uuidString)")!
+            ),
             auth: AuthService(backend: nil),
             inventory: InventoryRepository(modelContainer: container),
             shopping: ShoppingRepository(modelContainer: container),

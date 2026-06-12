@@ -22,7 +22,16 @@ final class SyncSession {
     /// mode. The auth/session layer projects the active household here; the
     /// stores read it through this single root-owned instance (see invariant
     /// above). Mutable so the session can switch households.
-    var selectedHouseholdId: String
+    ///
+    /// Persisted on every assignment and restored at init, so a cold launch
+    /// reads the household-scoped local rows BEFORE any network round-trip —
+    /// without this, the scope sat at `""` until `refreshHouseholds()`
+    /// returned, showing an empty app over full on-disk data (and never
+    /// recovering offline). `refreshHouseholds` still corrects the scope once
+    /// online (switch / removal / sign-out all overwrite + persist).
+    var selectedHouseholdId: String {
+        didSet { defaults.set(selectedHouseholdId, forKey: Self.selectedHouseholdIdKey) }
+    }
 
     /// A stable per-install identifier stamped on every wire write's
     /// `client_id` column. Unlike the Dart constant `"local-client"` (which made
@@ -35,6 +44,14 @@ final class SyncSession {
     /// UserDefaults key the per-install client id is persisted under. Fixed so
     /// the id survives across launches; never changes once written.
     static let clientIdKey = "fresh_pantry.sync.client_id"
+
+    /// UserDefaults key the active household scope is persisted under, so a
+    /// relaunch restores the last scope (offline-first) instead of waiting on
+    /// the networked household query.
+    static let selectedHouseholdIdKey = "fresh_pantry.sync.selected_household_id"
+
+    /// The store both persisted values live in. Injectable for test isolation.
+    private let defaults: UserDefaults
 
     /// A monotonically-increasing "remote data changed" pulse. The
     /// `HouseholdContentSyncCoordinator` bumps this AFTER it writes merged remote
@@ -61,11 +78,19 @@ final class SyncSession {
     func bumpPendingSyncRevision() { pendingSyncRevision += 1 }
 
     /// - Parameters:
-    ///   - selectedHouseholdId: initial scope (`""` = local-only).
-    ///   - defaults: the store the client id is persisted in. Injectable so
+    ///   - selectedHouseholdId: initial scope. The default `""` means "restore
+    ///     the persisted scope" (local-only when nothing was persisted); an
+    ///     explicit non-empty id is a seed (tests / previews) that wins for
+    ///     this instance WITHOUT touching the persisted value — only runtime
+    ///     assignments persist (`didSet` never fires during init), so a seeded
+    ///     test container can't pollute the host's `.standard` scope.
+    ///   - defaults: the store both ids are persisted in. Injectable so
     ///     tests can use an isolated suite instead of `.standard`.
     init(selectedHouseholdId: String = "", defaults: UserDefaults = .standard) {
-        self.selectedHouseholdId = selectedHouseholdId
+        self.defaults = defaults
+        self.selectedHouseholdId = selectedHouseholdId.isEmpty
+            ? (defaults.string(forKey: Self.selectedHouseholdIdKey) ?? "")
+            : selectedHouseholdId
         self.clientId = Self.resolveClientId(defaults: defaults)
     }
 

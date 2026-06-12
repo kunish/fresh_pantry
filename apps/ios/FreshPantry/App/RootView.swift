@@ -168,6 +168,23 @@ struct RootView: View {
         await pendingSync?.refresh()
     }
 
+    /// Composite content-sync trigger: fires when the Keychain restore settles,
+    /// the signed-in identity changes, or the household switches — so the
+    /// launch-restored scope starts syncing once (and only once) the session is
+    /// authenticated. Same string-key pattern as `inviteGateKey`.
+    private var contentSyncKey: String {
+        let auth = dependencies.authService
+        return "\(auth.hasResolvedSession)#\(auth.signedInEmail ?? "")#\(dependencies.syncSession.selectedHouseholdId)"
+    }
+
+    /// Composite auto-select trigger: the Keychain restore settling and the
+    /// signed-in identity each re-evaluate household selection. Keying on the
+    /// email alone would never re-fire for a signed-out launch (nil → nil).
+    private var authSelectionKey: String {
+        let auth = dependencies.authService
+        return "\(auth.hasResolvedSession)#\(auth.signedInEmail ?? "")"
+    }
+
     /// Composite household-content trigger: fires on household switch AND on
     /// every remote-merge pulse (plus once on appear, covering launch). Drives
     /// both the Spotlight rebuild and the expiry-reminder reschedule, so
@@ -251,9 +268,19 @@ struct RootView: View {
             }
         }
         // DRIVE CONTENT SYNC: reconcile local⇄remote for the selected household.
-        // Re-runs on every household switch (and once on launch); the coordinator
-        // no-ops when the household is unchanged. nil in local-only mode.
-        .task(id: dependencies.syncSession.selectedHouseholdId) {
+        // Re-runs on every household switch / auth settle (and once on launch);
+        // the coordinator no-ops when the household is unchanged. nil in
+        // local-only mode. GATED ON A SIGNED-IN RESOLVED SESSION for a non-empty
+        // id: the scope is now restored from UserDefaults at launch, and an
+        // unauthenticated bulk pull would come back RLS-empty — the merge keeps
+        // only never-synced local rows, so it would WIPE every synced row.
+        .task(id: contentSyncKey) {
+            let auth = dependencies.authService
+            guard auth.hasResolvedSession else { return }
+            guard auth.signedInEmail != nil else {
+                await dependencies.householdContentSync?.syncTo("")
+                return
+            }
             await dependencies.householdContentSync?
                 .syncTo(dependencies.syncSession.selectedHouseholdId)
         }
@@ -359,8 +386,13 @@ struct RootView: View {
         // AUTO-SELECT HOUSEHOLD ON SIGN-IN: mirrors Flutter's AuthGate projecting
         // the session's active household into `selectedHouseholdId`, so sync starts
         // right after login instead of only once the 家庭共享 screen is opened.
-        // Re-runs whenever the signed-in identity changes (incl. nil → email).
-        .task(id: dependencies.authService.signedInEmail) {
+        // Re-runs when the Keychain restore settles or the signed-in identity
+        // changes (incl. nil → email). Bails while the restore is still in
+        // flight: the launch-transient nil email must not clobber the
+        // UserDefaults-restored household scope (offline-first launch); a
+        // RESOLVED signed-out state still resets + persists `""` below.
+        .task(id: authSelectionKey) {
+            guard dependencies.authService.hasResolvedSession else { return }
             guard dependencies.authService.signedInEmail != nil else {
                 profileGateReady = false
                 // SIGN-OUT (or signed-out launch — both writes are idempotent

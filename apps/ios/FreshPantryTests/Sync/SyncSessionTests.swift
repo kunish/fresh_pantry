@@ -74,4 +74,49 @@ struct SyncSessionTests {
         session.selectedHouseholdId = ""
         #expect(session.selectedHouseholdId == "")
     }
+
+    // MARK: - selectedHouseholdId persistence (offline-first launch scope)
+
+    @Test func selectedHouseholdIdSurvivesRelaunch() {
+        let defaults = suite()
+        let first = SyncSession(defaults: defaults)
+        first.selectedHouseholdId = "home"
+
+        // A relaunch (new instance, same suite, default initial id) restores the
+        // last scope so household-scoped SwiftData is readable before any network.
+        let second = SyncSession(defaults: defaults)
+        #expect(second.selectedHouseholdId == "home")
+    }
+
+    @Test func assignmentPersistsUnderTheFixedKey() {
+        let defaults = suite()
+        let session = SyncSession(defaults: defaults)
+        session.selectedHouseholdId = "home"
+        #expect(defaults.string(forKey: SyncSession.selectedHouseholdIdKey) == "home")
+    }
+
+    @Test func signOutResetPersistsLocalOnlyScope() {
+        let defaults = suite()
+        let first = SyncSession(defaults: defaults)
+        first.selectedHouseholdId = "home"
+        // Sign-out projects "" into the session; the next launch must NOT
+        // resurrect the old household scope.
+        first.selectedHouseholdId = ""
+
+        let second = SyncSession(defaults: defaults)
+        #expect(second.selectedHouseholdId == "")
+    }
+
+    @Test func explicitInitialIdWinsOverPersistedWithoutOverwritingIt() {
+        let defaults = suite()
+        let first = SyncSession(defaults: defaults)
+        first.selectedHouseholdId = "old"
+
+        // An explicit non-empty initial id (tests, previews) is a seed: it wins
+        // for this instance but never writes through — a seeded test container
+        // must not pollute the persisted scope of the suite it shares.
+        let second = SyncSession(selectedHouseholdId: "explicit", defaults: defaults)
+        #expect(second.selectedHouseholdId == "explicit")
+        #expect(defaults.string(forKey: SyncSession.selectedHouseholdIdKey) == "old")
+    }
 }
