@@ -15,6 +15,12 @@ enum RecipeMatching {
         )
     }
 
+    /// Names eligible for the 「已有」 match — excludes expired rows (still on
+    /// shelf but no longer considered usable for cooking).
+    static func availableInventoryNameSet(_ inventory: [Ingredient]) -> Set<String> {
+        inventoryNameSet(inventory.filter { $0.state != .expired })
+    }
+
     /// A recipe ingredient is "in stock" when its name is a substring of (or
     /// contains) any inventory name — a forgiving two-way contains match.
     static func ingredientMatchesInventory(_ ingredient: RecipeIngredient, _ inventoryNames: Set<String>) -> Bool {

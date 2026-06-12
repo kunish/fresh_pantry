@@ -124,7 +124,7 @@ final class RecipesStore {
         customIDs = Set(custom.map(\.id))
         if let inventoryRepository {
             let inventory = (try? await inventoryRepository.loadAllFor(householdID)) ?? []
-            inventoryNames = RecipeMatching.inventoryNameSet(inventory)
+            inventoryNames = RecipeMatching.availableInventoryNameSet(inventory)
             expiringNames = RecipeMatching.inventoryNameSet(inventory.filter { $0.state != .fresh })
         }
     }

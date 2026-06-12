@@ -42,6 +42,22 @@ actor FoodLogRepository {
         return try decode(modelContext.fetch(descriptor))
     }
 
+    /// Point-update: corrects a single departure's outcome without touching the
+    /// bounded history outside this row. Must NOT use `saveEntries`.
+    func updateOutcome(_ householdID: String, _ id: String, _ outcome: FoodLogOutcome) throws -> FoodLogEntry? {
+        let existing = try modelContext.fetch(
+            FetchDescriptor<FoodLogRecord>(predicate: #Predicate {
+                $0.householdID == householdID && $0.id == id
+            })
+        )
+        guard let row = existing.first, var entry = try? row.entry() else { return nil }
+        guard entry.outcome != outcome else { return entry }
+        entry = entry.copyWith(outcome: outcome, clientUpdatedAt: Date())
+        row.apply(entry)
+        try modelContext.save()
+        return entry
+    }
+
     /// CRITICAL point-delete: reverses a single logged row when a removal is
     /// undone. Must NOT use `saveEntries` (which would drop window-outside history).
     func deleteEntry(_ householdID: String, _ id: String) throws {

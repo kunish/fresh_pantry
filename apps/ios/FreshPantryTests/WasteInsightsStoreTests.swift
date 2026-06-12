@@ -205,4 +205,16 @@ struct WasteInsightsStoreTests {
         #expect(breakdown[0].wasted == 1)
         #expect(store.stats(now: refNow).rescued == 1) // the expiring consumed one
     }
+
+    @Test func correctOutcomeUpdatesStats() async throws {
+        let store = try await makeStore([
+            entry(id: "1", outcome: .wasted, loggedAt: date(2026, 6, 10)),
+        ])
+        store.window = .thisMonth
+        #expect(store.stats(now: refNow).wasted == 1)
+        let changed = await store.correctOutcome(entryId: "1", to: .consumed)
+        #expect(changed)
+        #expect(store.stats(now: refNow).consumed == 1)
+        #expect(store.stats(now: refNow).wasted == 0)
+    }
 }

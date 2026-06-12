@@ -50,6 +50,10 @@ final class SyncSession {
     /// the networked household query.
     static let selectedHouseholdIdKey = "fresh_pantry.sync.selected_household_id"
 
+    /// Per-household inbound sync cursor (`updated_at` watermark). Key suffix is
+    /// the household uuid; value is a Unix timestamp (seconds).
+    static let syncCursorKeyPrefix = "fresh_pantry.sync.cursor."
+
     /// The store both persisted values live in. Injectable for test isolation.
     private let defaults: UserDefaults
 
@@ -76,6 +80,31 @@ final class SyncSession {
     /// Signals that an outbound push cycle finished (ops were acked or left
     /// queued); observers re-read the pending-outbox set to converge the badges.
     func bumpPendingSyncRevision() { pendingSyncRevision += 1 }
+
+    /// Lightweight pulse for foreground invite refresh — Settings / Household
+    /// screens observe this to re-fetch pending invites without a tab switch.
+    private(set) var inviteRefreshRevision: Int = 0
+
+    func bumpInviteRefresh() { inviteRefreshRevision += 1 }
+
+    /// The last successful inbound bulk-pull watermark for `householdId`, or nil
+    /// when a full pull is required (first sync / after a failed run).
+    func syncCursor(for householdId: String) -> Date? {
+        guard !householdId.isEmpty else { return nil }
+        let key = Self.syncCursorKeyPrefix + householdId
+        guard defaults.object(forKey: key) != nil else { return nil }
+        return Date(timeIntervalSince1970: defaults.double(forKey: key))
+    }
+
+    func setSyncCursor(_ date: Date?, for householdId: String) {
+        guard !householdId.isEmpty else { return }
+        let key = Self.syncCursorKeyPrefix + householdId
+        if let date {
+            defaults.set(date.timeIntervalSince1970, forKey: key)
+        } else {
+            defaults.removeObject(forKey: key)
+        }
+    }
 
     /// - Parameters:
     ///   - selectedHouseholdId: initial scope. The default `""` means "restore

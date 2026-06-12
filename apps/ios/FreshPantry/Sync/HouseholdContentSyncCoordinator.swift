@@ -76,7 +76,7 @@ actor HouseholdContentSyncCoordinator {
         needsRetry = false
         cancelSubscriptions()
         if householdId.isEmpty { return }
-        syncTask = Task { await startSync(householdId, gen) }
+        syncTask = Task { await startSync(householdId, gen, forceFullPull: false) }
     }
 
     /// Cancels all realtime subscriptions and stops reconciliation. Used on app
@@ -100,7 +100,46 @@ actor HouseholdContentSyncCoordinator {
         let gen = generation
         let householdId = activeHouseholdId
         cancelSubscriptions()
-        syncTask = Task { await startSync(householdId, gen) }
+        syncTask = Task { await startSync(householdId, gen, forceFullPull: true) }
+    }
+
+    /// Lightweight inbound refresh: incremental pull + patch when a cursor
+    /// exists. No-op when local-only, mid-sync, or before the first full pull.
+    func refreshDelta() async {
+        let householdId = activeHouseholdId
+        guard !householdId.isEmpty else { return }
+        let cursor = await MainActor.run { session.syncCursor(for: householdId) }
+        guard let since = cursor else { return }
+        let gen = generation
+        guard isCurrent(gen, householdId) else { return }
+        do {
+            let inventoryRows = try await remote.loadInventory(householdId, since: since)
+            let shoppingRows = try await remote.loadShopping(householdId, since: since)
+            let recipeRows = try await remote.loadCustomRecipes(householdId, since: since)
+            let mealPlanRows = try await remote.loadMealPlanEntries(householdId, since: since)
+            let foodLogRows = try await remote.loadFoodLogEntries(householdId, since: since)
+            guard isCurrent(gen, householdId) else { return }
+
+            await patchInventoryRows(inventoryRows, householdId, gen)
+            await patchShoppingRows(shoppingRows, householdId, gen)
+            await patchCustomRecipeRows(recipeRows, householdId, gen)
+            await patchMealPlanRows(mealPlanRows, householdId, gen)
+            await patchFoodLogRows(foodLogRows, householdId, gen)
+
+            let advanced = [
+                SyncCursor.advance(since, with: inventoryRows),
+                SyncCursor.advance(since, with: shoppingRows),
+                SyncCursor.advance(since, with: recipeRows),
+                SyncCursor.advance(since, with: mealPlanRows),
+                SyncCursor.advance(since, with: foodLogRows),
+            ].compactMap { $0 }.max()
+            if let advanced {
+                await MainActor.run { session.setSyncCursor(advanced, for: householdId) }
+            }
+        } catch is CancellationError {
+        } catch {
+            Self.logger.error("while refreshing household delta: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     /// The retry gate, extracted pure for unit tests: only a marked-failed run
@@ -114,7 +153,7 @@ actor HouseholdContentSyncCoordinator {
     /// The load-bearing reconciliation sequence (each step re-checks `isCurrent`
     /// and bails): upload local-only → drain outbox → subscribe → bulk pull →
     /// apply. Never crashes — any thrown error is logged and swallowed.
-    private func startSync(_ householdId: String, _ gen: Int) async {
+    private func startSync(_ householdId: String, _ gen: Int, forceFullPull: Bool) async {
         guard isCurrent(gen, householdId) else { return }
         do {
             // One-shot legacy-id migration so historical fl_<ms> rows can backfill
@@ -145,19 +184,41 @@ actor HouseholdContentSyncCoordinator {
             subscribe(householdId, gen)
             guard isCurrent(gen, householdId) else { return }
 
-            // Initial bulk pull — the realtime streams only yield future changes.
-            let inventoryRows = try await remote.loadInventory(householdId)
-            let shoppingRows = try await remote.loadShopping(householdId)
-            let recipeRows = try await remote.loadCustomRecipes(householdId)
-            let mealPlanRows = try await remote.loadMealPlanEntries(householdId)
-            let foodLogRows = try await remote.loadFoodLogEntries(householdId)
+            // Bulk pull — realtime only yields future changes. Reuse the stored
+            // cursor for an incremental patch when the last run succeeded.
+            let cursor = await MainActor.run { session.syncCursor(for: householdId) }
+            let since = forceFullPull ? nil : cursor
+            let inventoryRows = try await remote.loadInventory(householdId, since: since)
+            let shoppingRows = try await remote.loadShopping(householdId, since: since)
+            let recipeRows = try await remote.loadCustomRecipes(householdId, since: since)
+            let mealPlanRows = try await remote.loadMealPlanEntries(householdId, since: since)
+            let foodLogRows = try await remote.loadFoodLogEntries(householdId, since: since)
             guard isCurrent(gen, householdId) else { return }
 
-            await applyInventoryRows(inventoryRows, householdId, gen)
-            await applyShoppingRows(shoppingRows, householdId, gen)
-            await applyCustomRecipeRows(recipeRows, householdId, gen)
-            await applyMealPlanRows(mealPlanRows, householdId, gen)
-            await applyFoodLogRows(foodLogRows, householdId, gen)
+            if since == nil {
+                await applyInventoryRows(inventoryRows, householdId, gen)
+                await applyShoppingRows(shoppingRows, householdId, gen)
+                await applyCustomRecipeRows(recipeRows, householdId, gen)
+                await applyMealPlanRows(mealPlanRows, householdId, gen)
+                await applyFoodLogRows(foodLogRows, householdId, gen)
+            } else {
+                await patchInventoryRows(inventoryRows, householdId, gen)
+                await patchShoppingRows(shoppingRows, householdId, gen)
+                await patchCustomRecipeRows(recipeRows, householdId, gen)
+                await patchMealPlanRows(mealPlanRows, householdId, gen)
+                await patchFoodLogRows(foodLogRows, householdId, gen)
+            }
+
+            let advanced = [
+                SyncCursor.advance(cursor, with: inventoryRows),
+                SyncCursor.advance(cursor, with: shoppingRows),
+                SyncCursor.advance(cursor, with: recipeRows),
+                SyncCursor.advance(cursor, with: mealPlanRows),
+                SyncCursor.advance(cursor, with: foodLogRows),
+            ].compactMap { $0 }.max()
+            if let advanced {
+                await MainActor.run { session.setSyncCursor(advanced, for: householdId) }
+            }
         } catch is CancellationError {
             // A household switch / stop cancelled this run — not an error.
         } catch {
@@ -166,7 +227,10 @@ actor HouseholdContentSyncCoordinator {
             // whole sequence (without this, an offline launch left inbound sync
             // absent for the rest of the session — `syncTo` no-ops on the same
             // id). Only while still current: a superseded run must not re-arm.
-            if isCurrent(gen, householdId) { needsRetry = true }
+            if isCurrent(gen, householdId) {
+                needsRetry = true
+                await MainActor.run { session.setSyncCursor(nil, for: householdId) }
+            }
         }
     }
 
@@ -385,6 +449,66 @@ actor HouseholdContentSyncCoordinator {
         let local = (try? await foodLog.loadAllFor(householdId)) ?? []
         let merged = HouseholdMergePolicy.mergeFoodLog(remote: decoded, local: local, scope: scope)
 
+        guard isCurrent(gen, householdId) else { return }
+        try? await foodLog.saveEntries(householdId, merged)
+        await signalMerge()
+    }
+
+    private func patchInventoryRows(_ rows: [[String: JSONValue]], _ householdId: String, _ gen: Int) async {
+        guard isCurrent(gen, householdId), !rows.isEmpty else { return }
+        let decoded = rows
+            .compactMap { DomainJSON.fromValueMap(Ingredient.self, from: $0) }
+            .filter { !$0.id.isEmpty && !$0.name.trimmed.isEmpty }
+        let local = (try? await inventory.loadAllFor(householdId)) ?? []
+        let merged = HouseholdMergePolicy.patchInventory(remoteDelta: decoded, local: local)
+        guard isCurrent(gen, householdId) else { return }
+        try? await inventory.saveItems(householdId, merged)
+        await signalMerge()
+    }
+
+    private func patchShoppingRows(_ rows: [[String: JSONValue]], _ householdId: String, _ gen: Int) async {
+        guard isCurrent(gen, householdId), !rows.isEmpty else { return }
+        let decoded = rows
+            .compactMap { DomainJSON.fromValueMap(ShoppingItem.self, from: $0) }
+            .filter { !$0.id.isEmpty && !$0.name.trimmed.isEmpty }
+        let local = (try? await shopping.loadAllFor(householdId)) ?? []
+        let merged = HouseholdMergePolicy.patchShopping(remoteDelta: decoded, local: local)
+        guard isCurrent(gen, householdId) else { return }
+        try? await shopping.saveItems(householdId, merged)
+        await signalMerge()
+    }
+
+    private func patchCustomRecipeRows(_ rows: [[String: JSONValue]], _ householdId: String, _ gen: Int) async {
+        guard isCurrent(gen, householdId), !rows.isEmpty else { return }
+        let decoded = rows
+            .compactMap { DomainJSON.fromValueMap(Recipe.self, from: $0) }
+            .filter { !$0.id.isEmpty && !$0.name.trimmed.isEmpty }
+        let local = (try? await customRecipe.loadAllFor(householdId)) ?? []
+        let merged = HouseholdMergePolicy.patchCustomRecipe(remoteDelta: decoded, local: local)
+        guard isCurrent(gen, householdId) else { return }
+        try? await customRecipe.saveRecipes(householdId, merged)
+        await signalMerge()
+    }
+
+    private func patchMealPlanRows(_ rows: [[String: JSONValue]], _ householdId: String, _ gen: Int) async {
+        guard isCurrent(gen, householdId), !rows.isEmpty else { return }
+        let decoded = rows
+            .compactMap { DomainJSON.fromValueMap(MealPlanEntry.self, from: $0) }
+            .filter { !$0.id.isEmpty && !$0.recipeId.trimmed.isEmpty }
+        let local = (try? await mealPlan.loadAllFor(householdId)) ?? []
+        let merged = HouseholdMergePolicy.patchMealPlan(remoteDelta: decoded, local: local)
+        guard isCurrent(gen, householdId) else { return }
+        try? await mealPlan.saveEntries(householdId, merged)
+        await signalMerge()
+    }
+
+    private func patchFoodLogRows(_ rows: [[String: JSONValue]], _ householdId: String, _ gen: Int) async {
+        guard isCurrent(gen, householdId), !rows.isEmpty else { return }
+        let decoded = rows
+            .compactMap { DomainJSON.fromValueMap(FoodLogEntry.self, from: $0) }
+            .filter { !$0.id.isEmpty && !$0.name.trimmed.isEmpty }
+        let local = (try? await foodLog.loadAllFor(householdId)) ?? []
+        let merged = HouseholdMergePolicy.patchFoodLog(remoteDelta: decoded, local: local)
         guard isCurrent(gen, householdId) else { return }
         try? await foodLog.saveEntries(householdId, merged)
         await signalMerge()

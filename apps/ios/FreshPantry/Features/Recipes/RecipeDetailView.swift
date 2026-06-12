@@ -263,7 +263,7 @@ struct RecipeDetailView: View {
             // and build the shopping store once per scope.
             let inventory = (try? await dependencies.inventoryRepository.loadAllFor(householdID)) ?? []
             guard dependencies.householdID == householdID else { return }
-            inventoryNames = RecipeMatching.inventoryNameSet(inventory)
+            inventoryNames = RecipeMatching.availableInventoryNameSet(inventory)
             if shoppingStore == nil {
                 let shopping = ShoppingStore(
                     repository: dependencies.shoppingRepository,
@@ -370,7 +370,7 @@ struct RecipeDetailView: View {
     /// push and the list's `.task` doesn't re-run on a sheet dismiss or pop).
     private func refreshInventoryContext() async {
         let inventory = (try? await dependencies.inventoryRepository.loadAllFor(dependencies.householdID)) ?? []
-        inventoryNames = RecipeMatching.inventoryNameSet(inventory)
+        inventoryNames = RecipeMatching.availableInventoryNameSet(inventory)
         await store.load()
     }
 

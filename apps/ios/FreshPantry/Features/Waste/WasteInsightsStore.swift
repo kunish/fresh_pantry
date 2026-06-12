@@ -83,6 +83,7 @@ final class WasteInsightsStore {
     static let recentWindowDays = 90
 
     private let repository: FoodLogRepository
+    private let syncWriter: SyncWriter?
     private let householdID: String
 
     /// All entries inside the bounded hydration window (repo order). The window
@@ -94,8 +95,9 @@ final class WasteInsightsStore {
     /// The active time window. Defaults to 本月 (matches the blueprint default).
     var window: WasteStatsWindow = .thisMonth
 
-    init(repository: FoodLogRepository, householdID: String) {
+    init(repository: FoodLogRepository, householdID: String, syncWriter: SyncWriter? = nil) {
         self.repository = repository
+        self.syncWriter = syncWriter
         self.householdID = householdID
     }
 
@@ -161,6 +163,37 @@ final class WasteInsightsStore {
             breakdown: Self.computeCategoryBreakdown(windowed),
             mostWasted: Self.computeMostWasted(windowed)
         )
+    }
+
+    /// Windowed entries newest-first for the history list.
+    func historyEntries(now: Date = Date()) -> [FoodLogEntry] {
+        windowedEntries(now: now).sorted { $0.loggedAt > $1.loggedAt }
+    }
+
+    /// Correct a mis-logged outcome (吃完 ↔ 扔了). Returns false when the entry
+    /// is missing or already carries the requested outcome.
+    @discardableResult
+    func correctOutcome(entryId: String, to outcome: FoodLogOutcome) async -> Bool {
+        do {
+            guard let updated = try await repository.updateOutcome(householdID, entryId, outcome) else {
+                return false
+            }
+            if let index = entries.firstIndex(where: { $0.id == entryId }) {
+                entries[index] = updated
+            }
+            if let patch = DomainJSON.valueMap(updated) {
+                await syncWriter?.enqueue(
+                    entityType: .foodLogEntry,
+                    entityId: updated.id,
+                    operation: .update,
+                    patch: patch,
+                    baseVersion: updated.remoteVersion
+                )
+            }
+            return true
+        } catch {
+            return false
+        }
     }
 
     // MARK: Pure aggregation (testable without SwiftData)

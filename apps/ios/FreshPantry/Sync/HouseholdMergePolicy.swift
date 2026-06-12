@@ -89,6 +89,76 @@ enum HouseholdMergePolicy {
         )
     }
 
+    // MARK: Incremental patch (delta pull)
+
+    static func patchInventory(remoteDelta: [Ingredient], local: [Ingredient]) -> [Ingredient] {
+        patch(remoteDelta: remoteDelta, local: local, id: \.id)
+    }
+
+    static func patchShopping(remoteDelta: [ShoppingItem], local: [ShoppingItem]) -> [ShoppingItem] {
+        patch(remoteDelta: remoteDelta, local: local, id: \.id)
+    }
+
+    static func patchCustomRecipe(remoteDelta: [Recipe], local: [Recipe]) -> [Recipe] {
+        patch(remoteDelta: remoteDelta, local: local, id: \.id)
+    }
+
+    static func patchMealPlan(remoteDelta: [MealPlanEntry], local: [MealPlanEntry]) -> [MealPlanEntry] {
+        patch(remoteDelta: remoteDelta, local: local, id: \.id)
+    }
+
+    static func patchFoodLog(remoteDelta: [FoodLogEntry], local: [FoodLogEntry]) -> [FoodLogEntry] {
+        patch(remoteDelta: remoteDelta, local: local, id: \.id)
+    }
+
+    /// Applies an incremental remote delta onto the local snapshot: tombstones
+    /// drop synced rows, upserts replace by id, unseen locals are kept.
+    private static func patch<Element>(
+        remoteDelta: [Element],
+        local: [Element],
+        id: KeyPath<Element, String>
+    ) -> [Element] {
+        var deltaById: [String: Element] = [:]
+        var deletedIds = Set<String>()
+        for delta in remoteDelta {
+            let itemId = delta[keyPath: id]
+            if isSoftDeleted(delta) {
+                deltaById.removeValue(forKey: itemId)
+                deletedIds.insert(itemId)
+            } else {
+                deltaById[itemId] = delta
+                deletedIds.remove(itemId)
+            }
+        }
+        var merged: [Element] = []
+        var seen = Set<String>()
+        for item in local {
+            let itemId = item[keyPath: id]
+            if deletedIds.contains(itemId) { continue }
+            if let delta = deltaById[itemId], !isSoftDeleted(delta) {
+                merged.append(delta)
+            } else if deltaById[itemId] == nil {
+                merged.append(item)
+            }
+            seen.insert(itemId)
+        }
+        for (itemId, delta) in deltaById where !seen.contains(itemId) {
+            merged.append(delta)
+        }
+        return merged
+    }
+
+    private static func isSoftDeleted<T>(_ row: T) -> Bool {
+        switch row {
+        case let item as Ingredient: return item.deletedAt != nil
+        case let item as ShoppingItem: return item.deletedAt != nil
+        case let item as Recipe: return item.deletedAt != nil
+        case let item as MealPlanEntry: return item.deletedAt != nil
+        case let item as FoodLogEntry: return item.deletedAt != nil
+        default: return false
+        }
+    }
+
     // MARK: Local-only predicates (mirror `_isLocalOnlyX`)
 
     /// A row is local-only iff it has never synced (`remoteVersion <= 0`), is not

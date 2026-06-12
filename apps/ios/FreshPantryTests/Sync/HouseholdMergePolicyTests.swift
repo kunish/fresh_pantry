@@ -159,4 +159,21 @@ struct HouseholdMergePolicyTests {
         )
         #expect(merged.isEmpty)
     }
+
+    // MARK: Incremental patch
+
+    @Test func patchInventoryUpsertsAndDeletes() {
+        let local = [
+            remoteRow(id: "r1", name: "旧番茄"),
+            localOnly(id: "l1", name: "本地葱"),
+        ]
+        let delta = [
+            remoteRow(id: "r1", name: "新番茄"),
+            remoteRow(id: "r2", name: "远端米"),
+            remoteRow(id: "r1", name: "删番茄").copyWith(deletedAt: Date(timeIntervalSince1970: 1)),
+        ]
+        let merged = HouseholdMergePolicy.patchInventory(remoteDelta: delta, local: local)
+        #expect(merged.map(\.id) == ["l1", "r2"])
+        #expect(merged.first(where: { $0.id == "r2" })?.name == "远端米")
+    }
 }

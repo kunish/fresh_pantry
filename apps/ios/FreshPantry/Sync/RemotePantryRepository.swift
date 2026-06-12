@@ -66,41 +66,46 @@ actor RemotePantryRepository {
     /// → domain maps. `is("deleted_at", value: nil)` emits `deleted_at=is.null`,
     /// matching the Dart `isFilter('deleted_at', null)` — soft-deleted rows are
     /// excluded at the source.
-    func loadInventory(_ hid: String) async throws -> [[String: JSONValue]] {
-        try await loadRows(from: Table.inventory, hid: hid, decode: RemoteRowCodec.inventoryRowFromJson)
+    func loadInventory(_ hid: String, since: Date? = nil) async throws -> [[String: JSONValue]] {
+        try await loadRows(from: Table.inventory, hid: hid, since: since, decode: RemoteRowCodec.inventoryRowFromJson)
     }
 
-    func loadShopping(_ hid: String) async throws -> [[String: JSONValue]] {
-        try await loadRows(from: Table.shopping, hid: hid, decode: RemoteRowCodec.shoppingRowFromJson)
+    func loadShopping(_ hid: String, since: Date? = nil) async throws -> [[String: JSONValue]] {
+        try await loadRows(from: Table.shopping, hid: hid, since: since, decode: RemoteRowCodec.shoppingRowFromJson)
     }
 
-    func loadCustomRecipes(_ hid: String) async throws -> [[String: JSONValue]] {
-        try await loadRows(from: Table.customRecipes, hid: hid, decode: RemoteRowCodec.customRecipeRowFromJson)
+    func loadCustomRecipes(_ hid: String, since: Date? = nil) async throws -> [[String: JSONValue]] {
+        try await loadRows(from: Table.customRecipes, hid: hid, since: since, decode: RemoteRowCodec.customRecipeRowFromJson)
     }
 
-    func loadMealPlanEntries(_ hid: String) async throws -> [[String: JSONValue]] {
-        try await loadRows(from: Table.mealPlanEntries, hid: hid, decode: RemoteRowCodec.mealPlanEntryRowFromJson)
+    func loadMealPlanEntries(_ hid: String, since: Date? = nil) async throws -> [[String: JSONValue]] {
+        try await loadRows(from: Table.mealPlanEntries, hid: hid, since: since, decode: RemoteRowCodec.mealPlanEntryRowFromJson)
     }
 
-    func loadFoodLogEntries(_ hid: String) async throws -> [[String: JSONValue]] {
-        try await loadRows(from: Table.foodLogEntries, hid: hid, decode: RemoteRowCodec.foodLogEntryRowFromJson)
+    func loadFoodLogEntries(_ hid: String, since: Date? = nil) async throws -> [[String: JSONValue]] {
+        try await loadRows(from: Table.foodLogEntries, hid: hid, since: since, decode: RemoteRowCodec.foodLogEntryRowFromJson)
     }
 
-    /// Shared load path: fetch the household's non-deleted rows as `[String: AnyJSON]`,
-    /// bridge each into the codec's `[String: JSONValue]` currency, then run the
-    /// per-entity decode.
+    /// Shared load path: fetch household rows as `[String: AnyJSON]`, bridge each
+    /// into the codec's `[String: JSONValue]` currency, then run the per-entity
+    /// decode. A nil `since` is a full pull (non-deleted rows only); a non-nil
+    /// `since` is an incremental pull (`updated_at >= since`, tombstones included).
     private func loadRows(
         from table: String,
         hid: String,
+        since: Date? = nil,
         decode: ([String: JSONValue]) -> [String: JSONValue]
     ) async throws -> [[String: JSONValue]] {
-        let rows: [[String: AnyJSON]] = try await client
+        var query = client
             .from(table)
             .select()
             .eq("household_id", value: hid)
-            .is("deleted_at", value: nil)
-            .execute()
-            .value
+        if let since {
+            query = query.gte("updated_at", value: JSONDate.iso8601(since))
+        } else {
+            query = query.is("deleted_at", value: nil)
+        }
+        let rows: [[String: AnyJSON]] = try await query.execute().value
         return rows.map { decode(SyncJSONBridge.fromAnyObject($0)) }
     }
 

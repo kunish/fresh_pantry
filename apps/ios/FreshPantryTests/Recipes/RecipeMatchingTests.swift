@@ -25,6 +25,13 @@ struct RecipeMatchingTests {
         #expect(names == ["egg", "牛奶"])
     }
 
+    @Test func availableInventoryNameSetExcludesExpired() {
+        let names = RecipeMatching.availableInventoryNameSet([
+            inv("番茄"), inv("鸡蛋", state: .expired), inv("葱", state: .urgent),
+        ])
+        #expect(names == ["番茄", "葱"])
+    }
+
     @Test func ingredientMatchesTwoWayContains() {
         let names: Set<String> = ["鸡蛋", "milk"]
         #expect(RecipeMatching.ingredientMatchesInventory(ingredient("鸡蛋"), names))
