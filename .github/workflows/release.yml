@@ -45,7 +45,11 @@ jobs:
           xcode-version: latest-stable
 
       - name: Install XcodeGen
-        run: brew install xcodegen
+        run: |
+          # macOS runner ships aws/tap + azure/bicep untrusted; trust before install
+          # so brew does not warn/fail once HOMEBREW_REQUIRE_TAP_TRUST is default.
+          brew trust aws/tap azure/bicep
+          brew install xcodegen
 
       - name: Install ASC API key
         run: |
