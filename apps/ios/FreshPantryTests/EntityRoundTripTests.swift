@@ -3,7 +3,7 @@ import Testing
 @testable import FreshPantry
 
 /// JSON round-trip + defaults for ShoppingItem, Recipe/RecipeIngredient,
-/// FoodLogEntry, FoodDetails, AiSettings, ReminderSettings, StorageArea.
+/// FoodLogEntry, FoodDetails, AiSettings, ReminderSettings.
 struct EntityRoundTripTests {
     // MARK: ShoppingItem
 
@@ -147,7 +147,7 @@ struct EntityRoundTripTests {
         #expect(NutritionFacts.fromOffNutriments([:]) == nil) // empty -> nil
     }
 
-    // MARK: AiSettings / ReminderSettings / StorageArea
+    // MARK: AiSettings / ReminderSettings
 
     @Test func aiSettingsTimeoutSeconds() throws {
         let settings = AiSettings(baseUrl: "u", apiKey: "k", model: "m", timeout: 90)
@@ -170,12 +170,5 @@ struct EntityRoundTripTests {
         #expect(decoded.remindD7 == false)
         #expect(decoded.remindDaily == true)
         #expect(decoded.enabledOffsetDays == [3, 1]) // largest-first, D7 off
-    }
-
-    @Test func storageAreaRoundTrip() throws {
-        let area = StorageArea(name: "冰箱", icon: .fridge, itemCount: 5, capacityPercent: 0.5)
-        let json = try DomainJSON.encodeToString(area)
-        #expect(json.contains("\"icon\":\"fridge\""))
-        #expect(try DomainJSON.decode(StorageArea.self, from: json) == area)
     }
 }

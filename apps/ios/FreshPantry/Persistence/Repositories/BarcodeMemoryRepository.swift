@@ -12,6 +12,12 @@ import os
 /// miss or write failure must never block scanning or saving.
 @ModelActor
 actor BarcodeMemoryRepository {
+    /// Upper bound on stored rows. This is a device-local convenience cache, not
+    /// a data path, so it must not grow without bound. Past this many rows, the
+    /// least-recently-used mappings (oldest `lastUsedAt`) are evicted on the next
+    /// learning write — `lastUsedAt` is the eviction key (its sole read side).
+    static let maxEntries = 500
+
     /// Returns the learned mapping for a barcode, or `nil` when none / the
     /// barcode is blank. Bumps no recency on read (recency tracks SAVES, the
     /// signal of "still buying this", not lookups).
@@ -50,6 +56,24 @@ actor BarcodeMemoryRepository {
                     lastUsedAt: now
                 )
             )
+        }
+        try modelContext.save()
+        try enforceLimit(Self.maxEntries)
+    }
+
+    /// Bounds the store to `max` rows by deleting the least-recently-used ones
+    /// (oldest `lastUsedAt` first). A no-op while at or under the cap, so the
+    /// common upsert path only pays one `fetchCount`. This is the read side that
+    /// makes `lastUsedAt` load-bearing: recency ranks rows for eviction.
+    func enforceLimit(_ max: Int) throws {
+        let total = try modelContext.fetchCount(FetchDescriptor<BarcodeMemoryRecord>())
+        guard total > max else { return }
+        var oldestFirst = FetchDescriptor<BarcodeMemoryRecord>(
+            sortBy: [SortDescriptor(\.lastUsedAt, order: .forward)]
+        )
+        oldestFirst.fetchLimit = total - max
+        for victim in try modelContext.fetch(oldestFirst) {
+            modelContext.delete(victim)
         }
         try modelContext.save()
     }

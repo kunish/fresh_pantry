@@ -19,28 +19,24 @@ struct Household: Equatable, Sendable, Codable {
     var name: String
     var ownerId: String
     var defaultStorageArea: String
-    var categoryPreferences: [String: JSONValue]
 
     private enum CodingKeys: String, CodingKey {
         case id
         case name
         case ownerId = "owner_id"
         case defaultStorageArea = "default_storage_area"
-        case categoryPreferences = "category_preferences"
     }
 
     init(
         id: String = "",
         name: String = "",
         ownerId: String = "",
-        defaultStorageArea: String = "fridge",
-        categoryPreferences: [String: JSONValue] = [:]
+        defaultStorageArea: String = "fridge"
     ) {
         self.id = id
         self.name = name
         self.ownerId = ownerId
         self.defaultStorageArea = defaultStorageArea
-        self.categoryPreferences = categoryPreferences
     }
 
     init(from decoder: Decoder) throws {
@@ -50,11 +46,7 @@ struct Household: Equatable, Sendable, Codable {
             name: c.decodeLenientIfPresent(String.self, forKey: .name) ?? "",
             ownerId: c.decodeLenientIfPresent(String.self, forKey: .ownerId) ?? "",
             defaultStorageArea: c.decodeLenientIfPresent(String.self, forKey: .defaultStorageArea)
-                ?? "fridge",
-            // Dart guards with `is Map`, so a non-object value falls back to `{}`;
-            // `decodeLenientIfPresent` swallows the type mismatch the same way.
-            categoryPreferences: c.decodeLenientIfPresent(
-                [String: JSONValue].self, forKey: .categoryPreferences) ?? [:]
+                ?? "fridge"
         )
     }
 }

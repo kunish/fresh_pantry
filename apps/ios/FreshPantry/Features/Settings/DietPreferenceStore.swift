@@ -3,13 +3,13 @@ import Foundation
 /// UserDefaults-backed 饮食偏好 (家庭口味偏好) — a `Set<String>` of selected preset
 /// labels persisted as a sorted JSON string array under `diet_category_preferences`.
 ///
-/// LOCAL-FIRST by design (an iOS-only enhancement): Flutter stores these in the
-/// household-scoped + remote-only `categoryPreferences`, which is **never consumed
-/// by recommendation on either side** (a dead toggle) and would be empty in the
-/// local-only self-use mode. This store keeps the prefs on-device so they work
-/// offline AND actually influence the 现有/今日推荐 ranking via
-/// `RecipeMatching.preferenceBoost`. The orphaned `Household.categoryPreferences`
-/// remote path is intentionally left untouched (out of scope).
+/// LOCAL-FIRST by design (an iOS-only enhancement): Flutter stored these in a
+/// household-scoped + remote-only `categoryPreferences` column that was **never
+/// consumed by recommendation on either side** (a dead toggle) and would be empty
+/// in the local-only self-use mode. This store keeps the prefs on-device so they
+/// work offline AND actually influence the 现有/今日推荐 ranking via
+/// `RecipeMatching.preferenceBoost`. The orphaned remote path was dropped — the
+/// `households.category_preferences` column is simply ignored on decode.
 ///
 /// Mirrors `DietaryPreferencesStore` (忌口) shape, but the labels are FIXED Chinese
 /// presets compared by exact identity, so normalization is `trimmed` only (no

@@ -96,4 +96,29 @@ struct BarcodeMemoryRepositoryTests {
         let count = try context.fetchCount(FetchDescriptor<BarcodeMemoryRecord>())
         #expect(count == 0)
     }
+
+    // MARK: Eviction — least-recently-used rows drop when over the cap
+
+    @Test func enforceLimitEvictsLeastRecentlyUsed() async throws {
+        let modelContainer = try container()
+        let repo = BarcodeMemoryRepository(modelContainer: modelContainer)
+        let base = Date(timeIntervalSince1970: 1_700_000_000)
+        // Four mappings, ascending recency: "1" oldest … "4" newest.
+        for i in 1...4 {
+            try await repo.upsert(
+                barcode: "\(i)", name: "item\(i)", category: FoodCategories.other,
+                now: base.addingTimeInterval(Double(i))
+            )
+        }
+
+        // Keep only the 2 most-recently-used; the 2 oldest are evicted.
+        try await repo.enforceLimit(2)
+
+        let context = ModelContext(modelContainer)
+        let remaining = try context.fetch(FetchDescriptor<BarcodeMemoryRecord>())
+            .map(\.barcode).sorted()
+        #expect(remaining == ["3", "4"])
+        #expect(try await repo.lookup("1") == nil)
+        #expect(try await repo.lookup("4")?.name == "item4")
+    }
 }

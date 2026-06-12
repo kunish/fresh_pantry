@@ -56,13 +56,4 @@ actor SyncOutboxRepository {
         )
         try modelContext.save()
     }
-
-    /// Replace the whole outbox.
-    func replaceAll(_ ops: [SyncOperation]) throws {
-        try modelContext.delete(model: SyncOutboxRecord.self)
-        for op in ops {
-            modelContext.insert(SyncOutboxRecord(operation: op))
-        }
-        try modelContext.save()
-    }
 }

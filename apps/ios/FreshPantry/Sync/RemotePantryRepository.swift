@@ -388,15 +388,6 @@ actor RemotePantryRepository {
         try await client.from(Table.households).update(update).eq("id", value: trimmedId).execute()
     }
 
-    /// `from('households').update({'category_preferences':prefs}).eq('id',id)`.
-    func updateCategoryPreferences(_ hid: String, _ prefs: [String: JSONValue]) async throws {
-        let trimmedId = try requireHouseholdUuid(hid)
-        _ = try requireUserId(action: "update preferences")
-
-        let update: [String: AnyJSON] = ["category_preferences": .object(SyncJSONBridge.toAnyObject(prefs))]
-        try await client.from(Table.households).update(update).eq("id", value: trimmedId).execute()
-    }
-
     // MARK: - Profile (user-scoped, single writer)
 
     /// `from('profiles').select().eq('id', myId)` → my `UserProfile`, or nil when

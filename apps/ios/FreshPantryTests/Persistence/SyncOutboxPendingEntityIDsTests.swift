@@ -80,15 +80,4 @@ struct SyncOutboxPendingEntityIDsTests {
         try await outbox.removeAcknowledged(["op-b"])
         #expect(try await outbox.pendingEntityIDs().isEmpty)
     }
-
-    // MARK: replaceAll rebuilds the set
-
-    @Test func replaceAllResetsThePendingSet() async throws {
-        let outbox = try makeOutbox()
-        try await outbox.enqueue(op(entityId: "ing_1"))
-        try await outbox.enqueue(op(entityId: "ing_2"))
-
-        try await outbox.replaceAll([op(entityId: "ing_3")])
-        #expect(try await outbox.pendingEntityIDs() == ["ing_3"])
-    }
 }

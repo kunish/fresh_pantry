@@ -25,8 +25,7 @@ struct HouseholdModelsTests {
           "id": "hh_1",
           "name": "我的家",
           "owner_id": "user_1",
-          "default_storage_area": "freezer",
-          "category_preferences": {"肉类海鲜": {"sort": 1}}
+          "default_storage_area": "freezer"
         }
         """#
         let household = try decode(Household.self, json)
@@ -34,10 +33,6 @@ struct HouseholdModelsTests {
         #expect(household.name == "我的家")
         #expect(household.ownerId == "user_1")
         #expect(household.defaultStorageArea == "freezer")
-        #expect(
-            household.categoryPreferences
-                == ["肉类海鲜": .object(["sort": .int(1)])]
-        )
     }
 
     @Test func householdAppliesDefaultsWhenKeysAbsent() throws {
@@ -46,13 +41,6 @@ struct HouseholdModelsTests {
         #expect(household.name == "")
         #expect(household.ownerId == "")
         #expect(household.defaultStorageArea == "fridge")
-        #expect(household.categoryPreferences.isEmpty)
-    }
-
-    @Test func householdCategoryPreferencesTolerateNonObject() throws {
-        // Dart guards with `is Map`; a non-object value falls back to `{}`.
-        let household = try decode(Household.self, #"{"category_preferences": "nope"}"#)
-        #expect(household.categoryPreferences.isEmpty)
     }
 
     // MARK: HouseholdMember
