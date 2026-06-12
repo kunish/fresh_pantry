@@ -655,9 +655,9 @@ private struct CategorySection: View {
                         onSelect(entry.category)
                     } label: {
                         tile(category: entry.category, count: entry.count)
+                            .fkEntrance(index: index)
                     }
                     .buttonStyle(.fkPressable)
-                    .fkEntrance(index: index)
                 }
             }
         }
