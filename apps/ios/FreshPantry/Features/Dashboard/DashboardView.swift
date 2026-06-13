@@ -379,7 +379,9 @@ private struct DashboardContent: View {
                 householdID: scope,
                 inventoryRepository: dependencies.inventoryRepository,
                 dietaryStore: dependencies.dietaryPreferencesStore,
-                dietPreferenceStore: dependencies.dietPreferenceStore
+                dietPreferenceStore: dependencies.dietPreferenceStore,
+                remoteCatalog: dependencies.remoteRecipeCatalog,
+                catalogCache: dependencies.recipeCatalogCache
             )
             await built.load()
             guard scope == dependencies.householdID, !Task.isCancelled else { return }
@@ -672,6 +674,7 @@ private struct CategorySection: View {
                             .fkEntrance(index: index)
                     }
                     .buttonStyle(.fkPressable)
+                    .accessibilityIdentifier("home.category.\(entry.category)")
                 }
             }
         }

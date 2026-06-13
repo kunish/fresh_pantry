@@ -16,6 +16,9 @@ struct ShoppingView: View {
 
     @Environment(AppDependencies.self) private var dependencies
     @State private var store: ShoppingStore?
+    /// The household the current `store` was built for — lets the build `.task`
+    /// tell a real scope change (rebuild) from a tab reappear (reload, keep store).
+    @State private var loadedHouseholdID: String?
 
     init(pendingItemID: Binding<String?> = .constant(nil)) {
         _pendingItemID = pendingItemID
@@ -49,13 +52,23 @@ struct ShoppingView: View {
                 )
             }
             #endif
-            let store = ShoppingStore(
-                repository: dependencies.shoppingRepository,
-                householdID: householdID,
-                syncWriter: dependencies.syncWriter
-            )
-            self.store = store
-            await store.load()
+            // This `.task` re-runs on every tab REAPPEAR (sidebarAdaptable
+            // lifecycle), not only on a household change. Build the store ONCE per
+            // household and merely RELOAD on a same-scope reappear so the filter
+            // persists across tab switches (and the search→highlight cross-tab
+            // intent isn't raced by a store rebuild); a real scope change rebuilds.
+            if store == nil || loadedHouseholdID != householdID {
+                let store = ShoppingStore(
+                    repository: dependencies.shoppingRepository,
+                    householdID: householdID,
+                    syncWriter: dependencies.syncWriter
+                )
+                self.store = store
+                self.loadedHouseholdID = householdID
+                await store.load()
+            } else {
+                await store?.load()
+            }
         }
         // Remote merge pulse: a household-sync apply bumps dataRevision; reload
         // so the list reflects rows pulled from other household members.
@@ -158,8 +171,11 @@ private struct ShoppingContent: View {
         } message: {
             Text("确定要移除所有已勾选的购物项吗？")
         }
-        .onChange(of: pendingItemID) { _, _ in consumePendingItem() }
-        .onAppear { consumePendingItem() }
+        // Cross-tab intent (全局搜索 → 高亮购物行). `.task(id:)` runs for the current
+        // value on appearance AND on change, so an intent set in the same transaction
+        // that switches to this tab still applies — replacing the `.onChange` +
+        // `.onAppear` pair that missed it intermittently (see InventoryView for why).
+        .task(id: pendingItemID) { consumePendingItem() }
     }
 
     private func consumePendingItem() {

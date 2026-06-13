@@ -65,6 +65,15 @@ final class RecipesStore {
     private let customRepository: CustomRecipeRepository
     private let favoritesStore: FavoritesStore
     private let householdID: String
+    /// DB-backed catalog source (nil = bundle-only, e.g. tests / local-only mode).
+    /// When present, `load()` shows the cache-or-bundle immediately, then refreshes
+    /// from the database in the background — offline-first with a fresh-when-online
+    /// upgrade.
+    private let remoteCatalog: (any RecipeCatalogFetching)?
+    /// On-disk cache for the DB catalog (the offline copy). nil disables caching.
+    private let catalogCache: RecipeCatalogCache?
+    /// Guards against overlapping background refreshes from rapid `load()` calls.
+    private var isRefreshingCatalog = false
     /// Optional inventory source for the ingredient-match progress + 临期 banner.
     /// nil keeps the store browse-only (tests / meal-plan picker pass nil).
     private let inventoryRepository: InventoryRepository?
@@ -97,7 +106,9 @@ final class RecipesStore {
         householdID: String,
         inventoryRepository: InventoryRepository? = nil,
         dietaryStore: DietaryPreferencesStore? = nil,
-        dietPreferenceStore: DietPreferenceStore? = nil
+        dietPreferenceStore: DietPreferenceStore? = nil,
+        remoteCatalog: (any RecipeCatalogFetching)? = nil,
+        catalogCache: RecipeCatalogCache? = nil
     ) {
         self.localRepository = localRepository
         self.customRepository = customRepository
@@ -106,27 +117,61 @@ final class RecipesStore {
         self.inventoryRepository = inventoryRepository
         self.dietaryStore = dietaryStore
         self.dietPreferenceStore = dietPreferenceStore
+        self.remoteCatalog = remoteCatalog
+        self.catalogCache = catalogCache
+    }
+
+    /// The catalog source for an immediate (offline-safe) load: the on-disk DB
+    /// cache when present, else the bundled corpus. The background refresh
+    /// (`refreshCatalogFromRemote`) updates the cache so subsequent loads are
+    /// DB-sourced.
+    private func catalogRecipes() async -> [Recipe] {
+        if let cached = catalogCache?.read(), !cached.isEmpty { return cached }
+        return await localRepository.loadAll()
     }
 
     // MARK: Loading
 
-    /// Loads bundled + custom recipes and merges them (custom wins on id), plus
-    /// the inventory match corpus when an inventory source is wired.
+    /// Loads the catalog (DB cache or bundled seed) + custom recipes and merges
+    /// them (custom wins on id), plus the inventory match corpus when an inventory
+    /// source is wired. When a remote catalog is configured, kicks off a background
+    /// DB refresh that updates the cache and re-merges — the initial load stays
+    /// instant and offline-safe.
     func load() async {
         isLoading = true
         defer {
             isLoading = false
             hasLoaded = true
         }
-        let bundled = await localRepository.loadAll()
+        let catalog = await catalogRecipes()
         let custom = (try? await customRepository.loadAllFor(householdID)) ?? []
-        recipes = Self.merge(bundled: bundled, custom: custom)
+        recipes = Self.merge(bundled: catalog, custom: custom)
         customIDs = Set(custom.map(\.id))
         if let inventoryRepository {
             let inventory = (try? await inventoryRepository.loadAllFor(householdID)) ?? []
             inventoryNames = RecipeMatching.availableInventoryNameSet(inventory)
             expiringNames = RecipeMatching.inventoryNameSet(inventory.filter { $0.state != .fresh })
         }
+        if remoteCatalog?.isAvailable == true {
+            Task { await refreshCatalogFromRemote() }
+        }
+    }
+
+    /// Background DB refresh: fetch the catalog from Supabase, and on a non-empty
+    /// result persist it to the cache and re-merge with custom recipes so the list
+    /// upgrades to the DB copy. An empty fetch (offline / not yet seeded / error)
+    /// is a no-op — the already-shown cache-or-bundle stays. Overlapping refreshes
+    /// are coalesced.
+    func refreshCatalogFromRemote() async {
+        guard let remoteCatalog, let catalogCache, !isRefreshingCatalog else { return }
+        isRefreshingCatalog = true
+        defer { isRefreshingCatalog = false }
+        let fresh = await remoteCatalog.fetchAll()
+        guard !fresh.isEmpty else { return }
+        catalogCache.write(fresh)
+        let custom = (try? await customRepository.loadAllFor(householdID)) ?? []
+        recipes = Self.merge(bundled: fresh, custom: custom)
+        customIDs = Set(custom.map(\.id))
     }
 
     // MARK: Inventory match (ingredient availability + 临期)

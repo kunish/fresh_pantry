@@ -111,6 +111,23 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.kunish.freshPantry.tests
         GENERATE_INFOPLIST_FILE: YES
 
+  # XCUITest — drives the real app over the live TabView lifecycle (the only place
+  # cross-tab nav races surface). Launches with `-uiTesting` for a clean, seeded,
+  # signed-out state. Runs on iPhone (sidebarAdaptable → bottom tab bar).
+  FreshPantryUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: FreshPantryUITests
+    dependencies:
+      - target: FreshPantry
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kunish.freshPantry.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: FreshPantry
+
 # 显式共享 scheme:本地与 CI 都用 `-scheme FreshPantry`。此前依赖 Xcode GUI 打开时
 # autocreate 的 user scheme,`xcodegen generate` 重建工程后即丢失("contains no
 # schemes"),命令行构建/测试无 scheme 可用 — 显式声明保证每次生成都可复现。
@@ -125,6 +142,7 @@ schemes:
       config: Debug
       targets:
         - FreshPantryTests
+        - FreshPantryUITests
     profile:
       config: Release
     analyze:

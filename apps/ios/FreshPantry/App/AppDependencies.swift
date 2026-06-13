@@ -26,8 +26,15 @@ final class AppDependencies {
     let customRecipeRepository: CustomRecipeRepository
     /// Weekly 膳食计划 entries (one dish per LOCAL day) for the meal-plan feature.
     let mealPlanRepository: MealPlanRepository
-    /// Read-only bundled HowToCook corpus loader (decoded once, cached).
+    /// Read-only bundled HowToCook corpus loader (decoded once, cached). The
+    /// offline / first-launch seed; the live source is `remoteRecipeCatalog`.
     let localRecipeRepository: LocalRecipeRepository
+    /// DB-backed shared recipe catalog (Supabase `recipes` table). The live source
+    /// for browse; degrades to `recipeCatalogCache` then the bundle when offline.
+    let remoteRecipeCatalog: RemoteRecipeCatalog
+    /// On-disk cache of the DB catalog (offline copy). nil only when Application
+    /// Support is unavailable (keeps browse on bundle-only).
+    let recipeCatalogCache: RecipeCatalogCache?
     /// SwiftData cache for Open Food Facts food details + per-100g nutrition.
     /// Always built — OFF is a public API needing no backend/key.
     let foodDetailsRepository: FoodDetailsRepository
@@ -163,6 +170,14 @@ final class AppDependencies {
         let clientProvider = SupabaseClientProvider(config: config)
         self.clientProvider = clientProvider
         self.authService = AuthService(backend: clientProvider.authBackend)
+        // Shared recipe catalog: DB source (anon-readable `recipes` table) + the
+        // on-disk offline cache. Browse reads cache-or-bundle instantly, then
+        // refreshes from the DB in the background (see `RecipesStore`). UI tests
+        // run HERMETIC (bundle-only): a nil client disables the network refresh so
+        // the explore corpus is deterministic and can't shift mid-test.
+        let isUITesting = ProcessInfo.processInfo.arguments.contains("-uiTesting")
+        self.remoteRecipeCatalog = RemoteRecipeCatalog(client: isUITesting ? nil : clientProvider.client)
+        self.recipeCatalogCache = RecipeCatalogCache()
 
         // The app root injects the shared session; absent one (tests / previews)
         // seed a fresh session from the `householdID` param.

@@ -292,7 +292,9 @@ private struct MealPlanContent: View {
                 localRepository: dependencies.localRecipeRepository,
                 customRepository: dependencies.customRecipeRepository,
                 favoritesStore: dependencies.favoritesStore,
-                householdID: scope
+                householdID: scope,
+                remoteCatalog: dependencies.remoteRecipeCatalog,
+                catalogCache: dependencies.recipeCatalogCache
             )
             await recipes.load()
             guard scope == dependencies.householdID, !Task.isCancelled else { return }
@@ -698,7 +700,9 @@ private struct RecipePickerSheet: View {
                     householdID: dependencies.householdID,
                     inventoryRepository: dependencies.inventoryRepository,
                     dietaryStore: dependencies.dietaryPreferencesStore,
-                    dietPreferenceStore: dependencies.dietPreferenceStore
+                    dietPreferenceStore: dependencies.dietPreferenceStore,
+                    remoteCatalog: dependencies.remoteRecipeCatalog,
+                    catalogCache: dependencies.recipeCatalogCache
                 )
                 self.store = store
                 await store.load()

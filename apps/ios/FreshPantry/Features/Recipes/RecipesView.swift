@@ -20,6 +20,9 @@ struct RecipesView: View {
     /// CRUD owner for the user's custom recipes — drives the create/edit form and
     /// distinguishes custom recipes (for the detail edit/delete affordances).
     @State private var customStore: CustomRecipeStore?
+    /// The household the current stores were built for — lets the build `.task`
+    /// tell a real scope change (rebuild) from a tab reappear (reload, keep stores).
+    @State private var loadedHouseholdID: String?
     /// Presents the create form sheet (the toolbar "+" › 手动新建).
     @State private var showCreateForm = false
     /// Presents the 拍照导入食谱 sheet (the toolbar "+" › 拍照导入).
@@ -114,24 +117,38 @@ struct RecipesView: View {
         // than keeping the prior scope's stale rows. (The bundled corpus is scope-free.)
         .task(id: dependencies.householdID) {
             let householdID = dependencies.householdID
-            let store = RecipesStore(
-                localRepository: dependencies.localRecipeRepository,
-                customRepository: dependencies.customRecipeRepository,
-                favoritesStore: dependencies.favoritesStore,
-                householdID: householdID,
-                inventoryRepository: dependencies.inventoryRepository,
-                dietaryStore: dependencies.dietaryPreferencesStore,
-                dietPreferenceStore: dependencies.dietPreferenceStore
-            )
-            let customStore = CustomRecipeStore(
-                repository: dependencies.customRecipeRepository,
-                householdID: householdID,
-                syncWriter: dependencies.syncWriter
-            )
-            self.store = store
-            self.customStore = customStore
-            await store.load()
-            await customStore.load()
+            // This `.task` re-runs on every tab REAPPEAR (sidebarAdaptable
+            // lifecycle), not only on a household change. Rebuilding the stores each
+            // time reset the 浏览 tab / filters and raced cross-tab intents (用临期
+            // 预设 / Spotlight 深链 → 偶尔不生效). So build the stores ONCE per
+            // household and merely RELOAD on a same-scope reappear: filters persist,
+            // a real scope change still rebuilds fresh. (See InventoryView for the
+            // full rationale + the matching 库存 fix.)
+            if store == nil || loadedHouseholdID != householdID {
+                let store = RecipesStore(
+                    localRepository: dependencies.localRecipeRepository,
+                    customRepository: dependencies.customRecipeRepository,
+                    favoritesStore: dependencies.favoritesStore,
+                    householdID: householdID,
+                    inventoryRepository: dependencies.inventoryRepository,
+                    dietaryStore: dependencies.dietaryPreferencesStore,
+                    dietPreferenceStore: dependencies.dietPreferenceStore,
+                    remoteCatalog: dependencies.remoteRecipeCatalog,
+                    catalogCache: dependencies.recipeCatalogCache
+                )
+                let customStore = CustomRecipeStore(
+                    repository: dependencies.customRecipeRepository,
+                    householdID: householdID,
+                    syncWriter: dependencies.syncWriter
+                )
+                self.store = store
+                self.customStore = customStore
+                self.loadedHouseholdID = householdID
+                await store.load()
+                await customStore.load()
+            } else {
+                await reload()
+            }
             // Cold start: intents captured before this tab built/loaded.
             consumeImportIntent()
             consumePendingRecipe()
@@ -140,7 +157,7 @@ struct RecipesView: View {
             // Snapshot affordance: `-initialRoute cook` seeds the inventory,
             // picks a recipe that matches it, and pushes its detail (whose own
             // `-initialRoute cook` hook then presents the deduction review).
-            if RecipesView.opensCookOnLaunch, let recipe = await cookSnapshotRecipe(store) {
+            if RecipesView.opensCookOnLaunch, let store, let recipe = await cookSnapshotRecipe(store) {
                 path = [recipe]
             }
             #endif
@@ -150,9 +167,13 @@ struct RecipesView: View {
         .onChange(of: dependencies.syncSession.dataRevision) {
             Task { await reload() }
         }
-        // Warm path for the Spotlight deep link (cold path = the `.task` above).
-        .onChange(of: pendingRecipeID) { _, _ in consumePendingRecipe() }
-        .onChange(of: pendingRecipesTab) { _, _ in consumePendingRecipesTab() }
+        // Cross-tab intents (Spotlight 食谱深链 / 用临期 tab 预设). `.task(id:)` — not
+        // `.onChange` — so an intent set in the same transaction that switches to this
+        // tab still applies (see InventoryView for the full rationale): `.onChange`
+        // never fires for the value already present when the (re)created tab view
+        // appears. The cold `.task` above tail-applies the not-yet-loaded case.
+        .task(id: pendingRecipeID) { consumePendingRecipe() }
+        .task(id: pendingRecipesTab) { consumePendingRecipesTab() }
     }
 
     /// Applies a pending Spotlight deep link: pushes the matching recipe's

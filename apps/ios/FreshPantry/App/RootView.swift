@@ -436,6 +436,10 @@ struct RootView: View {
         // household, so the households query carries the restored JWT (avoiding the
         // verify→immediate-query token-propagation race of a fresh sign-in).
         .task {
+            // UI tests launch signed-out + local-only for deterministic seeded
+            // data — skip restoring a persisted Keychain session that would
+            // re-scope the app to an empty synced household.
+            if ProcessInfo.processInfo.arguments.contains("-uiTesting") { return }
             await dependencies.authService.restore()
         }
         // AUTO-SELECT HOUSEHOLD ON SIGN-IN: mirrors Flutter's AuthGate projecting

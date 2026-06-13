@@ -28,6 +28,9 @@ struct FkChip: View {
                 )
         }
         .buttonStyle(.fkPressable)
+        // Expose selection to the accessibility tree: VoiceOver announces 「选中」,
+        // and UI tests assert `XCUIElement.isSelected` to verify a filter is active.
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private var displayLabel: String {

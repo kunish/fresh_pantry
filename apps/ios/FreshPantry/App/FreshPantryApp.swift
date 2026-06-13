@@ -36,7 +36,17 @@ struct FreshPantryApp: App {
         // simulator (the harmless but noisy CoreData "Failed to stat …default.store"
         // log) and keeps runs isolated — tests build their own containers anyway.
         let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-        let container = isRunningTests
+        // XCUITest drives the app from a SEPARATE process (no XCTest env var here),
+        // so it opts in with `-uiTesting`: an in-memory store + a wiped defaults
+        // domain give every run a clean, signed-out, local-only launch — the DEBUG
+        // seeders then refill deterministic sample data (RootView also skips auth
+        // restore under this flag so a persisted Keychain session can't re-scope the
+        // app to an empty synced household before the seeder's local-only `.task`).
+        let isUITesting = ProcessInfo.processInfo.arguments.contains("-uiTesting")
+        if isUITesting, let bundleID = Bundle.main.bundleIdentifier {
+            UserDefaults.standard.removePersistentDomain(forName: bundleID)
+        }
+        let container = (isRunningTests || isUITesting)
             ? (try! ModelContainerFactory.makeInMemory())
             : ((try? ModelContainerFactory.makeShared()) ?? (try! ModelContainerFactory.makeInMemory()))
         self.modelContainer = container

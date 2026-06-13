@@ -22,6 +22,10 @@ struct InventoryView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var store: InventoryStore?
     @State private var shoppingStore: ShoppingStore?
+    /// The household the current `store` was built for. Lets the build `.task`
+    /// distinguish a real scope change (rebuild + fresh filters) from a mere tab
+    /// reappear (reload data, KEEP the store + its filters) — see that `.task`.
+    @State private var loadedHouseholdID: String?
     /// Detail push target — owned here (vs `InventoryContent`) so the Spotlight
     /// deep link drives the same `navigationDestination` as a row tap.
     @State private var selectedIngredient: Ingredient?
@@ -62,21 +66,35 @@ struct InventoryView: View {
                 )
             }
             #endif
-            let store = InventoryStore(
-                repository: dependencies.inventoryRepository,
-                foodLogRepository: dependencies.foodLogRepository,
-                householdID: householdID,
-                syncWriter: dependencies.syncWriter
-            )
-            let shopping = ShoppingStore(
-                repository: dependencies.shoppingRepository,
-                householdID: householdID,
-                syncWriter: dependencies.syncWriter
-            )
-            self.store = store
-            self.shoppingStore = shopping
-            await store.load()
-            await shopping.load()
+            // This `.task` re-runs on every tab REAPPEAR (sidebarAdaptable
+            // lifecycle), not only on a household change. Rebuilding the store each
+            // time reset the category filter to 全部 and RACED the 首页 分类下钻
+            // intent (the filter landed on a store that was about to be replaced →
+            // 「点分类偶尔不选中」). So build the store ONCE per household and merely
+            // RELOAD its data on a same-scope reappear: the filter persists, and
+            // changes made via other tabs (e.g. 购物入库, which doesn't bump
+            // dataRevision) still surface. A real scope change rebuilds fresh.
+            if store == nil || loadedHouseholdID != householdID {
+                let store = InventoryStore(
+                    repository: dependencies.inventoryRepository,
+                    foodLogRepository: dependencies.foodLogRepository,
+                    householdID: householdID,
+                    syncWriter: dependencies.syncWriter
+                )
+                let shopping = ShoppingStore(
+                    repository: dependencies.shoppingRepository,
+                    householdID: householdID,
+                    syncWriter: dependencies.syncWriter
+                )
+                self.store = store
+                self.shoppingStore = shopping
+                self.loadedHouseholdID = householdID
+                await store.load()
+                await shopping.load()
+            } else {
+                await store?.load()
+                await shoppingStore?.load()
+            }
             // Cold path: intents that arrived before this tab built/loaded.
             consumePendingCategory()
             consumePendingIngredient()
@@ -89,10 +107,16 @@ struct InventoryView: View {
                 await shoppingStore?.load()
             }
         }
-        // Warm path: a drill-down intent arriving while this tab is already built.
-        .onChange(of: pendingCategory) { _, _ in consumePendingCategory() }
-        // Warm path for the Spotlight deep link (cold path = the `.task` above).
-        .onChange(of: pendingIngredientID) { _, _ in consumePendingIngredient() }
+        // Cross-tab intents (首页 分类网格下钻 / Spotlight 深链). `.task(id:)` — not
+        // `.onChange` — so an intent set in the SAME state transaction that switches
+        // to this tab is still applied: the sidebar-adaptable TabView (re)creates the
+        // tab's view on selection, and `.onChange` never fires for the value already
+        // present when the view appears — only for LATER changes — so the warm path
+        // missed intermittently. `.task(id:)` runs for the current value on appearance
+        // AND on every change. No-op until the store exists; the `.task(id: householdID)`
+        // above tail-applies the cold-start case once the first load finishes.
+        .task(id: pendingCategory) { consumePendingCategory() }
+        .task(id: pendingIngredientID) { consumePendingIngredient() }
     }
 
     /// Applies a pending 首页 category drill-down to the live store (preset the
@@ -477,6 +501,7 @@ private struct InventoryContent: View {
                     ) {
                         store.categoryFilter = .category(category)
                     }
+                    .accessibilityIdentifier("inventory.categoryChip.\(category)")
                 }
             }
             .padding(.horizontal, FkSpacing.lg)

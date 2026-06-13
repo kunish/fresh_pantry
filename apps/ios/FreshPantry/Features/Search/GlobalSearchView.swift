@@ -80,7 +80,9 @@ struct GlobalSearchView: View {
                     householdID: dependencies.householdID,
                     inventoryRepository: dependencies.inventoryRepository,
                     dietaryStore: dependencies.dietaryPreferencesStore,
-                    dietPreferenceStore: dependencies.dietPreferenceStore
+                    dietPreferenceStore: dependencies.dietPreferenceStore,
+                    remoteCatalog: dependencies.remoteRecipeCatalog,
+                    catalogCache: dependencies.recipeCatalogCache
                 )
                 await built.load()
                 recipesStore = built
