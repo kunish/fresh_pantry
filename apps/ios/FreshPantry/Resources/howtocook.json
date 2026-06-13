@@ -12639,7 +12639,8 @@
     "imageUrl": "https://nkugeupizmphbeicykpj.supabase.co/storage/v1/object/public/recipe-images/howtocook_meat_dish_add14ccd38.jpg",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "videoUrl": "https://www.bilibili.com/video/BV12j411F7cv"
   },
   {
     "id": "howtocook:meat_dish/烤鸡翅",
@@ -20472,7 +20473,8 @@
     "imageUrl": "https://nkugeupizmphbeicykpj.supabase.co/storage/v1/object/public/recipe-images/web_soup_d5f399eff0.jpg",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "videoUrl": "https://www.bilibili.com/video/BV1hf4y1k7cu"
   },
   {
     "id": "howtocook:soup/陈皮排骨汤/陈皮排骨汤",

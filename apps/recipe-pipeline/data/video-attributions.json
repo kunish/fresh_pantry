@@ -1377,6 +1377,15 @@
     "acquiredAt": "2026-06-13T16:42:35.735Z"
   },
   {
+    "id": "howtocook:meat_dish/澳门湿版免治牛肉饭/澳门湿版免治牛肉饭",
+    "name": "澳门湿版免治牛肉饭",
+    "videoUrl": "https://www.bilibili.com/video/BV12j411F7cv",
+    "sourcePage": "https://www.bilibili.com/video/BV12j411F7cv",
+    "title": "澳门茶餐厅必点，免治牛肉饭。",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:15:55.187Z"
+  },
+  {
     "id": "howtocook:meat_dish/烤鸡翅",
     "name": "烤鸡翅",
     "videoUrl": "https://www.bilibili.com/video/BV14b411g7Gm",
@@ -2167,6 +2176,15 @@
     "title": "银耳莲子粥，清热去火、润肺止咳，做法简单又好喝",
     "provider": "bilibili",
     "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:soup/陈皮排骨汤",
+    "name": "陈皮排骨汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1hf4y1k7cu",
+    "sourcePage": "https://www.bilibili.com/video/BV1hf4y1k7cu",
+    "title": "做腊排骨还是喜欢这种重庆的汤锅做法，边吃边煮，舒服惨了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:15:55.187Z"
   },
   {
     "id": "howtocook:soup/陈皮排骨汤/陈皮排骨汤",
