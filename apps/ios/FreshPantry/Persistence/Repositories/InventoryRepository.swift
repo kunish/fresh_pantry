@@ -78,14 +78,27 @@ actor InventoryRepository {
 
     /// Bump the history count for an added item and store its remembered defaults.
     func recordAddition(_ item: Ingredient) throws {
+        try recordAdditions([item])
+    }
+
+    /// Bumps the add-history count for MANY items in ONE read + ONE write — the
+    /// batch-intake path. Calling `recordAddition` per item re-reads and
+    /// whole-rewrites the history on every call (delete-all + reinsert-all ×N =
+    /// O(N²) over a batch); this loads once, folds every item into the map (a
+    /// repeated name accumulates correctly), then saves once. No-op for an empty
+    /// batch.
+    func recordAdditions(_ items: [Ingredient]) throws {
+        guard !items.isEmpty else { return }
         var history = try loadHistory()
-        let existingCount = history[item.name]?.count ?? 0
-        history[item.name] = AddHistoryEntry(
-            count: existingCount + 1,
-            category: FoodCategories.normalize(item.category) ?? "",
-            storage: item.storage.rawValue,
-            unit: item.unit
-        )
+        for item in items {
+            let existingCount = history[item.name]?.count ?? 0
+            history[item.name] = AddHistoryEntry(
+                count: existingCount + 1,
+                category: FoodCategories.normalize(item.category) ?? "",
+                storage: item.storage.rawValue,
+                unit: item.unit
+            )
+        }
         try saveHistory(history)
     }
 

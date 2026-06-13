@@ -78,10 +78,10 @@ final class IntakeController {
         }
 
         // Frequency memory: only newly-added rows count as an "addition" (a merge
-        // bumps an existing batch's quantity, not the add-history).
-        for item in addedItems {
-            try? await repository.recordAddition(item)
-        }
+        // bumps an existing batch's quantity, not the add-history). ONE batched
+        // read+write — `recordAddition`-per-item whole-rewrote the history every
+        // call (O(N²) over the batch).
+        try? await repository.recordAdditions(addedItems)
 
         // OUTBOX SEAM: enqueue one outbox op per applied intent AFTER the local
         // save + frequency bump land. Each patch is the resulting inventory row's

@@ -313,6 +313,13 @@ final class HouseholdSessionStore {
         errorMessage = nil
         let preferredId = invitePreview?.householdId
         let acceptedInviteId = invitePreview?.inviteId
+        // Optimistic: the accepted card disappears the instant 接受 is tapped — the
+        // join is network-bound but the card removal needn't wait for it. A throw
+        // rolls the prune back (the card reappears alongside the error).
+        let invitesSnapshot = pendingInvitePreviews
+        if let acceptedInviteId, !acceptedInviteId.isEmpty {
+            pendingInvitePreviews = pendingInvitePreviews.filter { $0.inviteId != acceptedInviteId }
+        }
         do {
             try await remote.acceptInvite(token: token)
             let loaded = try await remote.loadHouseholds()
@@ -326,15 +333,13 @@ final class HouseholdSessionStore {
             session.selectedHouseholdId = selectedId
             members = loadedMembers
             persistHouseholdSnapshot()
-            if let acceptedInviteId, !acceptedInviteId.isEmpty {
-                pendingInvitePreviews = pendingInvitePreviews.filter { $0.inviteId != acceptedInviteId }
-            }
             invitePreview = nil
             isSubmitting = false
             // Re-sync the received-invite list/badge so the accepted one drops
             // without waiting for the next full refresh (parity with acceptInviteById).
             await refreshPendingInvites(excludeInviteId: acceptedInviteId)
         } catch {
+            pendingInvitePreviews = invitesSnapshot // rollback the optimistic prune
             isSubmitting = false
             errorMessage = Self.message(error)
         }
@@ -391,6 +396,9 @@ final class HouseholdSessionStore {
         isSubmitting = true
         errorMessage = nil
         let preferredId = pendingInvitePreviews.first { $0.inviteId == trimmed }?.householdId
+        // Optimistic: the accepted card disappears on tap; rollback on a throw.
+        let invitesSnapshot = pendingInvitePreviews
+        pendingInvitePreviews = pendingInvitePreviews.filter { $0.inviteId != trimmed }
         do {
             try await remote.acceptInviteById(inviteId: trimmed)
             let loaded = try await remote.loadHouseholds()
@@ -400,11 +408,11 @@ final class HouseholdSessionStore {
             session.selectedHouseholdId = selectedId
             members = loadedMembers
             persistHouseholdSnapshot()
-            pendingInvitePreviews = pendingInvitePreviews.filter { $0.inviteId != trimmed }
             invitePreview = nil
             isSubmitting = false
             await refreshPendingInvites(excludeInviteId: trimmed)
         } catch {
+            pendingInvitePreviews = invitesSnapshot // rollback the optimistic prune
             isSubmitting = false
             errorMessage = Self.message(error)
         }

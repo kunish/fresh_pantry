@@ -73,6 +73,25 @@ struct RepositoryTests {
         #expect(try await repo.loadFrequentItems().isEmpty)
     }
 
+    @Test func recordAdditionsBatchesCountsIncludingRepeats() async throws {
+        let repo = InventoryRepository(modelContainer: try container())
+        // ONE batched read+write: a repeated name accumulates (牛奶 ×2), distinct
+        // names count 1 — replaces the old O(N²) per-item whole-history rewrite.
+        try await repo.recordAdditions([
+            ingredient(name: "牛奶", unit: "盒"),
+            ingredient(name: "鸡蛋"),
+            ingredient(name: "牛奶", unit: "盒"),
+        ])
+        let byName = Dictionary(
+            uniqueKeysWithValues: try await repo.loadFrequentItems().map { ($0.name, $0.count) }
+        )
+        #expect(byName["牛奶"] == 2)
+        #expect(byName["鸡蛋"] == 1)
+        // The single `recordAddition` is now a shim over the batch — still bumps.
+        try await repo.recordAddition(ingredient(name: "鸡蛋"))
+        #expect(try await repo.loadFrequentItems().first { $0.name == "鸡蛋" }?.count == 2)
+    }
+
     // MARK: Shopping (dedup on load)
 
     @Test func shoppingDedupOnLoad() async throws {
