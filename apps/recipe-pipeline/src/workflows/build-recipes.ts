@@ -5,6 +5,7 @@ import { createFlueEnricher } from '../clean/flue-enricher';
 import { createCloudflareEnricher } from '../clean/cloudflare-enricher';
 import { buildSources, type SourcesFile } from '../sources/registry';
 import { createOpenverseSearch } from '../sources/image-search-openverse';
+import { createBilibiliVideoSearch } from '../sources/video-search-bilibili';
 import { runPipeline } from '../pipeline';
 import { config } from '../config';
 
@@ -42,6 +43,8 @@ export async function run({ init, payload }: FlueContext<BuildPayload>) {
     imagesDir: config.imagesDir,
     imageSearch: config.acquireImages ? createOpenverseSearch() : undefined,
     attributionsPath: config.attributionsPath,
+    videoSearch: config.acquireVideos ? createBilibiliVideoSearch() : undefined,
+    videoAttributionsPath: config.videoAttributionsPath,
     now: new Date().toISOString(),
     concurrency: config.concurrency,
     limit: payload?.limit,

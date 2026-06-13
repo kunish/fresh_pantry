@@ -12,6 +12,10 @@ import {
   acquireMissingImages, mergeAttributions,
   type ImageSearchProvider, type ImageVerifier, type Attribution,
 } from './clean/fetch-images';
+import {
+  acquireMissingVideos, mergeVideoAttributions,
+  type VideoAttribution, type VideoSearchProvider,
+} from './clean/fetch-videos';
 import { mapWithConcurrency } from './util/pool';
 import { atomicWriteJson } from './util/atomic-write';
 
@@ -33,6 +37,10 @@ export interface PipelineDeps extends MergeOptions {
   imageVerifier?: ImageVerifier;
   /** 出处记录落盘路径(image-attributions.json);缺省不持久化。 */
   attributionsPath?: string;
+  /** 设置则为缺视频(videoUrl=null)的菜谱联网搜做法视频外链。 */
+  videoSearch?: VideoSearchProvider;
+  /** 视频出处落盘路径(video-attributions.json);缺省不持久化。 */
+  videoAttributionsPath?: string;
   concurrency?: number;
   limit?: number;
   /** 只处理这些 id(单条补跑,如网络瞬断被拒的菜)。 */
@@ -148,6 +156,19 @@ export async function runPipeline(deps: PipelineDeps): Promise<PipelineReport> {
       log,
     });
     log(`vendored ${vendor.vendored} covers, ${vendor.kept} kept remote`);
+  }
+
+  if (deps.videoSearch && !deps.dryRun) {
+    const vid = await acquireMissingVideos(merged, {
+      search: deps.videoSearch, now: deps.now, log,
+    });
+    log(`acquired ${vid.acquired} videos, ${vid.failed} still missing`);
+    if (deps.videoAttributionsPath && vid.attributions.length) {
+      const prev = await readFile(deps.videoAttributionsPath, 'utf8')
+        .then((s) => JSON.parse(s) as VideoAttribution[])
+        .catch(() => [] as VideoAttribution[]);
+      await atomicWriteJson(deps.videoAttributionsPath, mergeVideoAttributions(prev, vid.attributions));
+    }
   }
 
   if (!deps.dryRun) {

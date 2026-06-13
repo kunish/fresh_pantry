@@ -17,6 +17,7 @@ export const config = {
   videoAttributionsPath: resolve(root, 'data/video-attributions.json'),
   workDir: resolve(root, '.cache'),
   acquireImages: process.env.RECIPE_ACQUIRE_IMAGES === '1',
+  acquireVideos: process.env.RECIPE_ACQUIRE_VIDEOS === '1',
   model: recipeModel,
   // RECIPE_MODEL 以 @cf/ 开头 → 走 CloudflareEnricher(直连 OpenAI 兼容端点),否则走 flue。
   useCloudflare: recipeModel.startsWith('@cf/'),
