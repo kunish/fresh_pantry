@@ -15,6 +15,7 @@ const recipe = (over: Partial<CatalogRecipe> = {}): CatalogRecipe => ({
   steps: ['拍碎', '调味'],
   tags: ['素菜', '快手'],
   imageUrl: 'assets/recipes/images/howtocook_vegetable_凉拌黄瓜.jpg',
+  videoUrl: null,
   ...over,
 });
 
@@ -50,6 +51,14 @@ describe('recipesToSeedSQL', () => {
     expect(recipesToUpsertSQL([])).toBe('');
     const seed = recipesToSeedSQL([]);
     expect(seed).toContain('create table if not exists');
+  });
+
+  it('video_url 入列:DDL 含 alter 升级,空 → null,有值 → 字面量', () => {
+    expect(RECIPES_DDL).toContain('video_url text');
+    expect(RECIPES_DDL).toContain('add column if not exists video_url text');
+    expect(recipesToUpsertSQL([recipe({ videoUrl: null })])).toContain(', null)');
+    expect(recipesToUpsertSQL([recipe({ videoUrl: 'https://b23.tv/x' })])).toContain("'https://b23.tv/x'");
+    expect(recipesToUpsertSQL([recipe()])).toContain('video_url');
   });
 
   it('多条 → 多行 VALUES', () => {
