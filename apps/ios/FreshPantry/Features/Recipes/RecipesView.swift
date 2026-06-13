@@ -141,11 +141,20 @@ struct RecipesView: View {
                     householdID: householdID,
                     syncWriter: dependencies.syncWriter
                 )
+                // OFFLINE-FIRST, NO FLASH: load the new scope BEFORE swapping the
+                // stores in. Assigning empty stores first flashed an empty corpus
+                // for the duration of `load()` — and the off-main 900KB catalog
+                // decode (catalogRecipes) widened that window — so a household
+                // switch showed an empty 食谱 list before the cache/bundle resolved.
+                // Loading first keeps the previous corpus on screen until the new
+                // (local, instant) data is ready. Guard so a newer switch during the
+                // load doesn't assign this stale scope's stores over the successor's.
+                await store.load()
+                await customStore.load()
+                guard householdID == dependencies.householdID, !Task.isCancelled else { return }
                 self.store = store
                 self.customStore = customStore
                 self.loadedHouseholdID = householdID
-                await store.load()
-                await customStore.load()
             } else {
                 await reload()
             }

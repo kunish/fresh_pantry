@@ -98,8 +98,16 @@ struct DashboardView: View {
                 shoppingRepository: dependencies.shoppingRepository,
                 householdID: householdID
             )
-            self.store = store
+            // OFFLINE-FIRST, NO FLASH: load the new scope's local summary BEFORE
+            // swapping the store in. Assigning an empty store first rendered an empty
+            // home hub between the swap and `load()` on every household switch (incl.
+            // the cold-launch "" → uuid auto-select) — the first screen the user
+            // sees. Loading first keeps the previous summary on screen until the new
+            // (local, instant) data is ready, then swaps atomically. Re-guard so a
+            // newer switch during the load doesn't assign this stale scope's store.
             await store.load()
+            guard householdID == dependencies.householdID, !Task.isCancelled else { return }
+            self.store = store
         }
         // Remote merge pulse: a household-sync apply bumps dataRevision; reload
         // so the dashboard reflects inventory/shopping pulled from other members.

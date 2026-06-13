@@ -29,6 +29,11 @@ final class HouseholdSessionStore {
     private let shopping: ShoppingRepository
     private let customRecipe: CustomRecipeRepository
     private let mealPlan: MealPlanRepository
+    /// Offline-first cache of `households` + `members` for the signed-in identity.
+    /// Seeded synchronously in `init` (no onboard-form flash on a cold/offline open)
+    /// and rewritten after every successful network load / mutation. nil disables
+    /// caching (tests / no Application Support).
+    private let householdCache: HouseholdCache?
 
     /// Households the signed-in user belongs to (the `households` list).
     private(set) var households: [Household] = []
@@ -63,7 +68,8 @@ final class HouseholdSessionStore {
         inventory: InventoryRepository,
         shopping: ShoppingRepository,
         customRecipe: CustomRecipeRepository,
-        mealPlan: MealPlanRepository
+        mealPlan: MealPlanRepository,
+        householdCache: HouseholdCache? = nil
     ) {
         self.remote = remote
         self.session = session
@@ -72,6 +78,18 @@ final class HouseholdSessionStore {
         self.shopping = shopping
         self.customRecipe = customRecipe
         self.mealPlan = mealPlan
+        self.householdCache = householdCache
+        // OFFLINE-FIRST SEED: paint the last-known households + members for THIS
+        // signed-in identity synchronously, so a cold / offline open renders the
+        // real household (ActiveHouseholdSection resolves via the restored session
+        // scope) instead of flashing the 「创建/加入家庭」 onboard form while
+        // `refreshHouseholds()` hits the network. An identity mismatch / signed-out
+        // read returns nil (never seed another user's households); the subsequent
+        // refresh overwrites whatever was seeded here.
+        if let snapshot = householdCache?.read(for: auth.signedInEmail) {
+            households = snapshot.households
+            members = snapshot.members
+        }
     }
 
     /// True when a backend is configured (household sharing is possible).
@@ -157,6 +175,7 @@ final class HouseholdSessionStore {
             households = loaded
             session.selectedHouseholdId = selectedId
             members = loadedMembers
+            persistHouseholdSnapshot()
             isLoading = false
             // Populate the invite surfaces off the same entry point Flutter uses
             // (refreshHouseholds). A signed-out refresh clears stale invites.
@@ -199,6 +218,7 @@ final class HouseholdSessionStore {
             households = loaded
             session.selectedHouseholdId = household.id
             members = loadedMembers
+            persistHouseholdSnapshot()
             isSubmitting = false
         } catch {
             isSubmitting = false
@@ -305,6 +325,7 @@ final class HouseholdSessionStore {
             households = loaded
             session.selectedHouseholdId = selectedId
             members = loadedMembers
+            persistHouseholdSnapshot()
             if let acceptedInviteId, !acceptedInviteId.isEmpty {
                 pendingInvitePreviews = pendingInvitePreviews.filter { $0.inviteId != acceptedInviteId }
             }
@@ -378,6 +399,7 @@ final class HouseholdSessionStore {
             households = loaded
             session.selectedHouseholdId = selectedId
             members = loadedMembers
+            persistHouseholdSnapshot()
             pendingInvitePreviews = pendingInvitePreviews.filter { $0.inviteId != trimmed }
             invitePreview = nil
             isSubmitting = false
@@ -450,6 +472,7 @@ final class HouseholdSessionStore {
         errorMessage = nil
         do {
             members = try await remote.loadHouseholdMembers(householdId)
+            persistHouseholdSnapshot()
             isLoading = false
         } catch {
             isLoading = false
@@ -467,6 +490,7 @@ final class HouseholdSessionStore {
         do {
             try await remote.removeMember(householdId: householdId, userId: userId)
             members = try await remote.loadHouseholdMembers(householdId)
+            persistHouseholdSnapshot()
             isSubmitting = false
         } catch {
             isSubmitting = false
@@ -517,6 +541,7 @@ final class HouseholdSessionStore {
             households = loaded
             session.selectedHouseholdId = selectedId
             members = loadedMembers
+            persistHouseholdSnapshot()
             // The left/dissolved household's owner invites are gone; the user may
             // now be addressed by pending invites for remaining households.
             ownerPendingInvites = []
@@ -543,6 +568,7 @@ final class HouseholdSessionStore {
         session.selectedHouseholdId = id
         do {
             members = try await remote.loadHouseholdMembers(id)
+            persistHouseholdSnapshot()
             isLoading = false
             await refreshOwnerPendingInvites(id)
         } catch {
@@ -568,6 +594,7 @@ final class HouseholdSessionStore {
         do {
             try await remote.updateHouseholdName(householdId, name: trimmed)
             households = try await remote.loadHouseholds()
+            persistHouseholdSnapshot()
             isSubmitting = false
         } catch {
             isSubmitting = false
@@ -577,6 +604,22 @@ final class HouseholdSessionStore {
 
     /// Clears the current error (e.g. when the user dismisses the banner).
     func clearError() { errorMessage = nil }
+
+    /// Persists the current households + members for the signed-in identity so the
+    /// next launch can seed them offline-first (the cache read is identity-guarded).
+    /// No-op without a cache or when signed out — a blank-email snapshot would just
+    /// fail that guard. Called at the tail of every success path that reassigns
+    /// `households` / `members` (incl. leave/dissolve → empty, which correctly
+    /// caches "no household").
+    private func persistHouseholdSnapshot() {
+        guard let householdCache, let email = auth.signedInEmail?.trimmed, !email.isEmpty else { return }
+        householdCache.write(.init(
+            email: email,
+            households: households,
+            selectedHouseholdId: session.selectedHouseholdId,
+            members: members
+        ))
+    }
 
     // MARK: - Helpers
 

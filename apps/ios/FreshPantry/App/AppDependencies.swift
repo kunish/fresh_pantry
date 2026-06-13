@@ -35,6 +35,10 @@ final class AppDependencies {
     /// On-disk cache of the DB catalog (offline copy). nil only when Application
     /// Support is unavailable (keeps browse on bundle-only).
     let recipeCatalogCache: RecipeCatalogCache?
+    /// On-disk cache of the signed-in user's households + members, so the 家庭共享
+    /// screen seeds offline-first instead of flashing the onboard form while the
+    /// network refresh lands. nil only when Application Support is unavailable.
+    let householdCache: HouseholdCache?
     /// SwiftData cache for Open Food Facts food details + per-100g nutrition.
     /// Always built — OFF is a public API needing no backend/key.
     let foodDetailsRepository: FoodDetailsRepository
@@ -183,6 +187,7 @@ final class AppDependencies {
         let isUITesting = ProcessInfo.processInfo.arguments.contains("-uiTesting")
         self.remoteRecipeCatalog = RemoteRecipeCatalog(client: isUITesting ? nil : clientProvider.client)
         self.recipeCatalogCache = RecipeCatalogCache()
+        self.householdCache = HouseholdCache()
 
         // The app root injects the shared session; absent one (tests / previews)
         // seed a fresh session from the `householdID` param.

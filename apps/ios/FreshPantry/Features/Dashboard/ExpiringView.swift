@@ -66,14 +66,20 @@ struct ExpiringView: View {
                 householdID: householdID,
                 syncWriter: dependencies.syncWriter
             )
-            self.store = expiring
-            self.inventoryStore = inventory
-            self.shoppingStore = shopping
-            self.customStore = custom
+            // OFFLINE-FIRST, NO FLASH: load the new scope's local rows BEFORE
+            // swapping the stores in, so a household switch keeps the previous list
+            // on screen until the new (local, instant) data is ready instead of
+            // flashing an empty list. Guard after the loads so a newer switch landing
+            // here doesn't assign this stale scope's stores over the successor's.
             await expiring.load()
             await inventory.load()
             await shopping.load()
             await custom.load()
+            guard householdID == dependencies.householdID, !Task.isCancelled else { return }
+            self.store = expiring
+            self.inventoryStore = inventory
+            self.shoppingStore = shopping
+            self.customStore = custom
             remindersGranted = await dependencies.notificationCoordinator.refreshPermission()
         }
         // Remote merge pulse: a household-sync apply bumps dataRevision; reload

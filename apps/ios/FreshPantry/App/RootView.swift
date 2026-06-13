@@ -476,7 +476,8 @@ struct RootView: View {
                 inventory: dependencies.inventoryRepository,
                 shopping: dependencies.shoppingRepository,
                 customRecipe: dependencies.customRecipeRepository,
-                mealPlan: dependencies.mealPlanRepository
+                mealPlan: dependencies.mealPlanRepository,
+                householdCache: dependencies.householdCache
             )
             await store.refreshHouseholds()
             await dependencies.profileStore.load(signedIn: true)

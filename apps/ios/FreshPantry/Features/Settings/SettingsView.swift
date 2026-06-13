@@ -117,7 +117,8 @@ private struct SettingsContent: View {
             inventory: dependencies.inventoryRepository,
             shopping: dependencies.shoppingRepository,
             customRecipe: dependencies.customRecipeRepository,
-            mealPlan: dependencies.mealPlanRepository
+            mealPlan: dependencies.mealPlanRepository,
+            householdCache: dependencies.householdCache
         )
         householdStore = store
         await store.refreshHouseholds()

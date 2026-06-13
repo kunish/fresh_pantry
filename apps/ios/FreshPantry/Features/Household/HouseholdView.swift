@@ -46,7 +46,8 @@ struct HouseholdView: View {
                     inventory: dependencies.inventoryRepository,
                     shopping: dependencies.shoppingRepository,
                     customRecipe: dependencies.customRecipeRepository,
-                    mealPlan: dependencies.mealPlanRepository
+                    mealPlan: dependencies.mealPlanRepository,
+                    householdCache: dependencies.householdCache
                 )
             }
             await store?.refreshHouseholds()
@@ -860,7 +861,8 @@ struct InvitePreviewSheet: View {
                     inventory: dependencies.inventoryRepository,
                     shopping: dependencies.shoppingRepository,
                     customRecipe: dependencies.customRecipeRepository,
-                    mealPlan: dependencies.mealPlanRepository
+                    mealPlan: dependencies.mealPlanRepository,
+                    householdCache: dependencies.householdCache
                 )
                 self.store = store
                 await store.previewInvite(input: input)

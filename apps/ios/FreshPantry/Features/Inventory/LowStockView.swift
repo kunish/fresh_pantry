@@ -51,14 +51,21 @@ struct LowStockView: View {
                 repository: dependencies.inventoryRepository,
                 householdID: householdID
             )
-            shoppingStore = ShoppingStore(
+            let shopping = ShoppingStore(
                 repository: dependencies.shoppingRepository,
                 householdID: householdID,
                 syncWriter: dependencies.syncWriter
             )
-            self.store = lowStock
+            // OFFLINE-FIRST, NO FLASH: load the new scope's local rows BEFORE
+            // swapping the store in, so a household switch keeps the previous list on
+            // screen until the new (local, instant) data is ready instead of flashing
+            // an empty list. Guard after the loads so a newer switch landing here
+            // doesn't assign this stale scope's stores over the successor's.
             await lowStock.load()
-            await shoppingStore?.load()
+            await shopping.load()
+            guard householdID == dependencies.householdID, !Task.isCancelled else { return }
+            self.store = lowStock
+            self.shoppingStore = shopping
         }
         // Remote merge pulse: a household-sync apply bumps dataRevision; reload so
         // the candidate list reflects inventory/shopping pulled from other members.

@@ -49,8 +49,14 @@ struct MealPlanView: View {
                 householdID: householdID,
                 syncWriter: dependencies.syncWriter
             )
-            self.store = store
+            // OFFLINE-FIRST, NO FLASH: load the new scope's local entries BEFORE
+            // swapping the store in, so a household switch keeps the previous
+            // calendar on screen until the new (local, instant) data is ready
+            // instead of flashing an empty week. Re-guard after the load so a newer
+            // switch landing here doesn't assign this stale scope's store.
             await store.load()
+            guard householdID == dependencies.householdID, !Task.isCancelled else { return }
+            self.store = store
         }
         // Remote merge pulse: a household-sync apply bumps dataRevision; reload
         // so meal-plan entries pulled from other household members show up.
