@@ -32,5 +32,11 @@ struct DiagnosticsMeasureTests {
         #expect(f.tags["outcome"] == "fail")
         #expect(f.tags["errorClass"] == "Boom")
         #expect(f.errorClass == "Boom")
+        // 失败路径最后一条 breadcrumb 断言。
+        let last = spy.breadcrumbs.last!
+        #expect(last.tags["outcome"] == "fail")
+        #expect(last.tags["errorClass"] == "Boom")
+        #expect(last.tags["durationMs"] != nil)
+        #expect(last.tags["source"] == "off")
     }
 }

@@ -9,6 +9,10 @@ import Foundation
 protocol Diagnostics: Sendable {
     /// 操作轨迹 —— 留一条 Sentry breadcrumb,本身从不上报。`tags` 为低基数、
     /// 非 PII 维度(entityType、source、outcome…)。
+    ///
+    /// - Note: `outcome`/`durationMs`/`errorClass` 由 `measure` 自动注入,
+    ///   `diagnostic` 由 Sentry sink 作为保留 key 写入;调用方不应在 `tags` 里
+    ///   传这些 key,否则可能被覆盖或产生歧义。
     func breadcrumb(_ name: String, _ tags: [String: String])
 
     /// 一次失败 → 一条 Sentry 事件(level=.error),按 `name` + 错误类名做

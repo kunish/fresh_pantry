@@ -22,8 +22,8 @@ struct SentryDiagnostics: Diagnostics {
         let fingerprintClass = tags["errorClass"] ?? error.map(diagnosticErrorClass) ?? "logic"
         if let error {
             SentrySDK.capture(error: error) { scope in
-                scope.setTag(value: name, key: "diagnostic")
                 for (key, value) in tags { scope.setTag(value: value, key: key) }
+                scope.setTag(value: name, key: "diagnostic")
                 scope.setFingerprint([name, fingerprintClass])
             }
         } else {
