@@ -174,19 +174,29 @@ final class WasteInsightsStore {
         windowedEntries(now: now).sorted { $0.loggedAt > $1.loggedAt }
     }
 
-    /// Correct a mis-logged outcome (吃完 ↔ 扔了). Returns false when the entry
-    /// is missing or already carries the requested outcome; on failure it also
-    /// sets `correctOutcomeError = true` so the view can surface a toast.
+    /// Correct a mis-logged outcome (吃完 ↔ 扔了) OPTIMISTICALLY — the history row
+    /// + the windowed stats re-derive the instant the user taps, before the repo
+    /// write. Returns false when the entry is missing (also sets
+    /// `correctOutcomeError = true` so the view toasts) or when it already carries
+    /// the requested outcome (a benign no-op — no error). A persist failure rolls
+    /// the flip back and sets the error flag.
     @discardableResult
     func correctOutcome(entryId: String, to outcome: FoodLogOutcome) async -> Bool {
+        let index = entries.firstIndex(where: { $0.id == entryId })
+        let prior = index.map { entries[$0] }
+        if let index, let prior {
+            entries[index] = prior.copyWith(outcome: outcome) // optimistic flip
+        }
         do {
             guard let updated = try await repository.updateOutcome(householdID, entryId, outcome) else {
+                // The repo found no row to update — roll back the optimistic flip.
+                if let index, let prior { entries[index] = prior }
                 correctOutcomeError = true
                 return false
             }
-            if let index = entries.firstIndex(where: { $0.id == entryId }) {
-                entries[index] = updated
-            }
+            // Stamp the persisted row (its bumped remoteVersion / clientUpdatedAt)
+            // over the optimistic copy.
+            if let index { entries[index] = updated }
             if let patch = DomainJSON.valueMap(updated) {
                 await syncWriter?.enqueue(
                     entityType: .foodLogEntry,
@@ -198,6 +208,7 @@ final class WasteInsightsStore {
             }
             return true
         } catch {
+            if let index, let prior { entries[index] = prior } // rollback
             correctOutcomeError = true
             return false
         }

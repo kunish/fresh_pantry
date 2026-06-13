@@ -89,12 +89,14 @@ final class InventoryStore {
     func delete(_ target: Ingredient) async -> Bool {
         guard let index = indexOf(target) else { return false }
         let removed = items[index]
+        let snapshot = items
         var survivors = items
         survivors.remove(at: index)
+        items = survivors // optimistic — the row leaves the list this tick
         do {
             try await repository.saveItems(householdID, survivors)
-            items = survivors
         } catch {
+            items = snapshot // rollback — nothing landed
             return false
         }
         await enqueueDelete(removed)
@@ -134,12 +136,14 @@ final class InventoryStore {
     func removeWithResult(_ target: Ingredient, outcome: FoodLogOutcome, now: Date = Date()) async -> RemoveResult {
         guard let index = indexOf(target) else { return .notFound }
         let removed = items[index]
+        let snapshot = items
         var survivors = items
         survivors.remove(at: index)
+        items = survivors // optimistic — the row leaves the list this tick
         do {
             try await repository.saveItems(householdID, survivors)
-            items = survivors
         } catch {
+            items = snapshot // rollback — nothing landed, nothing logged
             return .failed
         }
 
@@ -198,13 +202,15 @@ final class InventoryStore {
     /// whether the row was re-added.
     @discardableResult
     func undoRemove(_ undo: RemovalUndo) async -> Bool {
+        let snapshot = items
         var restored = items
         let index = min(max(undo.originalIndex, 0), restored.count)
         restored.insert(undo.ingredient, at: index)
+        items = restored // optimistic — the row reappears this tick
         do {
             try await repository.saveItems(householdID, restored)
-            items = restored
         } catch {
+            items = snapshot // rollback
             return false
         }
         if !undo.loggedEntryId.isEmpty {
@@ -253,12 +259,14 @@ final class InventoryStore {
                 remoteVersion: base.remoteVersion
             )
         )
+        let snapshot = items
         var updated = items
         updated[index] = next
+        items = updated // optimistic — the edited row updates in place this tick
         do {
             try await repository.saveItems(householdID, updated)
-            items = updated
         } catch {
+            items = snapshot // rollback
             return false
         }
         await enqueueUpdate(next, baseVersion: base.remoteVersion)
@@ -300,10 +308,11 @@ final class InventoryStore {
     func clearAll() async -> Bool {
         let removed = items
         guard !removed.isEmpty else { return false }
+        items = [] // optimistic — the list clears this tick
         do {
             try await repository.saveItems(householdID, [])
-            items = []
         } catch {
+            items = removed // rollback
             return false
         }
         for row in removed { await enqueueDelete(row) }
@@ -346,12 +355,14 @@ final class InventoryStore {
         let ascending = Set(targets.compactMap { indexOf($0) }).sorted()
         guard !ascending.isEmpty else { return nil }
         var removedRows = ascending.map { RemovedRow(index: $0, ingredient: items[$0]) }
+        let snapshot = items
         var survivors = items
         for index in ascending.reversed() { survivors.remove(at: index) }
+        items = survivors // optimistic — the selected rows leave the list this tick
         do {
             try await repository.saveItems(householdID, survivors)
-            items = survivors
         } catch {
+            items = snapshot // rollback — nothing landed, nothing logged
             return nil
         }
         // Log AFTER the inventory save lands (mirrors `remove`'s ordering): one
@@ -374,15 +385,17 @@ final class InventoryStore {
     /// restored.
     @discardableResult
     func undoBatchRemoval(_ undo: BatchRemovalUndo) async -> Bool {
+        let snapshot = items
         var restored = items
         for row in undo.removed.sorted(by: { $0.index < $1.index }) {
             let index = min(max(row.index, 0), restored.count)
             restored.insert(row.ingredient, at: index)
         }
+        items = restored // optimistic — the rows reappear this tick
         do {
             try await repository.saveItems(householdID, restored)
-            items = restored
         } catch {
+            items = snapshot // rollback
             return false
         }
         for row in undo.removed {
@@ -440,15 +453,17 @@ final class InventoryStore {
 
         // Replace the target row in place; drop the source rows (descending so the
         // earlier removals don't shift later indices).
+        let snapshot = items
         var next = items
         next[resolved[0].index] = merged
         for row in resolved.dropFirst().sorted(by: { $0.index > $1.index }) {
             next.remove(at: row.index)
         }
+        items = next // optimistic — the merged row + dropped sources update this tick
         do {
             try await repository.saveItems(householdID, next)
-            items = next
         } catch {
+            items = snapshot // rollback
             return false
         }
         await enqueueUpdate(merged, baseVersion: target.remoteVersion)

@@ -94,20 +94,26 @@ final class ShoppingStore {
         }
     }
 
-    // MARK: Mutations
+    // MARK: Mutations (offline-first / optimistic)
+    //
+    // OFFLINE-FIRST CONTRACT: every list-tap mutation updates the observable
+    // `items` SYNCHRONOUSLY — before the first `await` — so SwiftUI re-renders the
+    // check / strikethrough / row-drop THIS tick, not after a SwiftData
+    // round-trip. The repo write then lands the SINGLE touched row in the
+    // background (no whole-scope rewrite, no 写前重读, no post-save reload), and a
+    // persist failure rolls back just that row. Single-row writes can't clobber a
+    // peer store instance's concurrent write to a DIFFERENT row — exactly what the
+    // old whole-scope `persist` needed the 写前重读 to guard against.
 
-    /// FIFO mutation chain: every mutation awaits its predecessor before its
-    /// read-modify-write runs. Each mutation suspends twice (写前重读 + persist)
-    /// and `persist` replaces the WHOLE household scope — without the chain, two
-    /// quick check-off taps could both load the same snapshot and the second
-    /// persist would silently drop the first one's write.
+    /// FIFO serialization of the BACKGROUND single-row persists. The optimistic
+    /// in-memory edit already ran before this, so the chain no longer gates the
+    /// visual change — it only keeps the repo writes ordered (a row toggled then
+    /// re-toggled lands in tap order; a delete after a toggle doesn't resurrect
+    /// the row). MainActor-only, so reading + relinking `lastMutation` is race-free.
     @ObservationIgnored
     private var lastMutation: Task<Void, Never>?
 
-    /// Runs `body` after every previously-enqueued mutation finished, and makes
-    /// the next mutation wait for `body` in turn. MainActor-only, so reading +
-    /// relinking `lastMutation` between two mutations is race-free.
-    private func serializedMutation<T: Sendable>(_ body: @escaping @MainActor () async -> T) async -> T {
+    private func serializedPersist<T: Sendable>(_ body: @escaping @MainActor () async -> T) async -> T {
         let previous = lastMutation
         let task: Task<T, Never> = Task {
             await previous?.value
@@ -117,29 +123,45 @@ final class ShoppingStore {
         return await task.value
     }
 
-    /// Flips a row's checked state by stable id identity, persists, and updates
-    /// local state. Returns whether a row was toggled.
-    @discardableResult
-    func toggleChecked(_ target: ShoppingItem) async -> Bool {
-        await serializedMutation { await self.performToggleChecked(target) }
+    /// Reverts row `id` to `prior` in `items` — the surgical rollback for a failed
+    /// optimistic UPDATE. Touches only that row, so a later tap that changed a
+    /// different row in the meantime survives.
+    private func revertRow(_ id: String, to prior: ShoppingItem) {
+        if let i = items.firstIndex(where: { $0.id == id }) { items[i] = prior }
     }
 
-    private func performToggleChecked(_ target: ShoppingItem) async -> Bool {
-        guard await refreshBeforeMutate() else { return false }
+    /// Flips a row's checked state OPTIMISTICALLY (the check fills + the row
+    /// re-sorts the instant the tap lands), then persists the single row in the
+    /// background. Returns whether a row was toggled; a persist failure rolls the
+    /// flip back, and a row a peer already deleted is dropped locally. Resolves by
+    /// stable id identity.
+    @discardableResult
+    func toggleChecked(_ target: ShoppingItem) async -> Bool {
         guard let index = items.firstIndex(where: { $0.id == target.id }) else { return false }
-        let toggled = items[index]
-        let newChecked = !toggled.isChecked
-        var next = items
-        next[index] = toggled.copyWith(isChecked: newChecked)
-        guard await persist(next) else { return false }
-        await syncWriter?.enqueue(
-            entityType: .shoppingItem,
-            entityId: toggled.id,
-            operation: .toggleChecked,
-            patch: ["isChecked": .bool(newChecked)],
-            baseVersion: toggled.remoteVersion
-        )
-        return true
+        let prior = items[index]
+        let toggled = prior.copyWith(isChecked: !prior.isChecked)
+        items[index] = toggled // optimistic — SwiftUI re-renders this tick
+        return await serializedPersist {
+            do {
+                guard try await self.repository.updateRow(self.householdID, toggled) else {
+                    // A peer deleted the row since our tap — drop it locally
+                    // (don't reload: that would clobber other pending taps).
+                    self.items.removeAll { $0.id == toggled.id }
+                    return false
+                }
+            } catch {
+                self.revertRow(toggled.id, to: prior)
+                return false
+            }
+            await self.syncWriter?.enqueue(
+                entityType: .shoppingItem,
+                entityId: toggled.id,
+                operation: .toggleChecked,
+                patch: ["isChecked": .bool(toggled.isChecked)],
+                baseVersion: prior.remoteVersion
+            )
+            return true
+        }
     }
 
     /// Compatibility shim over `addItem` — true ONLY when a row was actually
@@ -152,23 +174,27 @@ final class ShoppingStore {
     }
 
     /// Adds a new item (name required; detail optional; category defaulted via
-    /// `FoodKnowledge` when not supplied). Name-unique per the repo's
-    /// case-insensitive dedup — but a duplicate name no longer always rejects:
-    /// when both details parse to the same unit the quantities merge into the
-    /// existing row (see `mergeQuantity`). Returns `.added` for an appended or
-    /// merged row, `.duplicate` for a same-name row that couldn't merge, and
-    /// `.failed` when nothing was written (blank name, read or persist error).
+    /// `FoodKnowledge` when not supplied). Name-unique per a case-insensitive
+    /// dedup — but a duplicate name no longer always rejects: when both details
+    /// parse to the same unit the quantities merge into the existing row (see
+    /// `mergeQuantity`). Returns `.added` for an appended or merged row,
+    /// `.duplicate` for a same-name row that couldn't merge, and `.failed` when
+    /// nothing was written (blank name, read or persist error).
     func addItem(name: String, detail: String = "", category: String? = nil) async -> AddOutcome {
-        await serializedMutation { await self.performAdd(name: name, detail: detail, category: category) }
+        await serializedPersist { await self.performAdd(name: name, detail: detail, category: category) }
     }
 
     private func performAdd(name: String, detail: String, category: String?) async -> AddOutcome {
         let trimmedName = name.trimmed
         guard !trimmedName.isEmpty else { return .failed }
-        guard await refreshBeforeMutate() else { return .failed }
+        // 按名去重必须比对 CANONICAL 列表(可能含别的 store 实例刚写的同名行,
+        // id 唯一约束按名拦不住),所以读进 LOCAL 变量——绝不灌回 `items`,否则会冲
+        // 掉别的点击尚未落库的乐观态。这是 add 与 toggle/delete 的关键差异。
+        let fresh: [ShoppingItem]
+        do { fresh = try await repository.loadAllFor(householdID) } catch { return .failed }
         let key = ShoppingItemNormalizer.nameKey(trimmedName)
-        if let duplicateIndex = items.firstIndex(where: { ShoppingItemNormalizer.nameKey($0.name) == key }) {
-            return await mergeQuantity(into: duplicateIndex, addedDetail: detail.trimmed)
+        if let duplicate = fresh.first(where: { ShoppingItemNormalizer.nameKey($0.name) == key }) {
+            return await mergeQuantity(into: duplicate, addedDetail: detail.trimmed)
         }
         let resolvedCategory = FoodCategories.normalize(category) ?? FoodKnowledge.categoryFor(trimmedName)
         let item = ShoppingItem(
@@ -177,7 +203,13 @@ final class ShoppingStore {
             detail: detail.trimmed,
             category: resolvedCategory
         )
-        guard await persist(items + [item]) else { return .failed }
+        do {
+            try await repository.upsert(householdID, item)
+        } catch {
+            return .failed
+        }
+        // Reflect locally without a whole-scope reload (append if not already shown).
+        if !items.contains(where: { $0.id == item.id }) { items.append(item) }
         if let patch = DomainJSON.valueMap(item) {
             await syncWriter?.enqueue(
                 entityType: .shoppingItem,
@@ -190,16 +222,13 @@ final class ShoppingStore {
         return .added
     }
 
-    /// 同名自动聚合: a duplicate-name add merges into the existing row instead
-    /// of appending — the repo's name-unique dedup means a second row with the
-    /// same name must never reach `saveItems`. Merges ONLY when both details
-    /// parse via `QuantityText` AND the unit remainders match (trimmed,
-    /// case-insensitive); anything else (blank/free-text detail, unit mismatch)
-    /// keeps the historical duplicate rejection (`.duplicate`) so quantities
-    /// are never guessed. A persist error is `.failed` — NOT a duplicate.
-    private func mergeQuantity(into index: Int, addedDetail: String) async -> AddOutcome {
+    /// 同名自动聚合: a duplicate-name add merges into the existing (freshly-read)
+    /// row instead of appending. Merges ONLY when both details parse via
+    /// `QuantityText` AND the unit remainders match (trimmed, case-insensitive);
+    /// anything else (blank/free-text detail, unit mismatch) keeps the historical
+    /// duplicate rejection (`.duplicate`). A persist error is `.failed`.
+    private func mergeQuantity(into existing: ShoppingItem, addedDetail: String) async -> AddOutcome {
         guard !addedDetail.isEmpty else { return .duplicate }
-        let existing = items[index]
         guard
             let current = QuantityText.parseLeadingQuantity(existing.detail.trimmed),
             let added = QuantityText.parseLeadingQuantity(addedDetail),
@@ -218,9 +247,16 @@ final class ShoppingStore {
             detail: current.remainder.isEmpty ? summed : "\(summed) \(current.remainder)",
             isChecked: false
         )
-        var next = items
-        next[index] = merged
-        guard await persist(next) else { return .failed }
+        do {
+            guard try await repository.updateRow(householdID, merged) else { return .failed }
+        } catch {
+            return .failed
+        }
+        if let i = items.firstIndex(where: { $0.id == merged.id }) {
+            items[i] = merged
+        } else {
+            items.append(merged)
+        }
         if let patch = DomainJSON.valueMap(merged) {
             await syncWriter?.enqueue(
                 entityType: .shoppingItem,
@@ -233,33 +269,37 @@ final class ShoppingStore {
         return .added
     }
 
-    /// Rewrites a row's free-text detail (数量/备注) by stable id identity —
-    /// blank is allowed (clearing the quantity is a legitimate edit). Persists
-    /// and enqueues a full-row `.update` carrying the prior `remoteVersion` for
-    /// optimistic-concurrency merge. Returns whether a row was updated.
+    /// Rewrites a row's free-text detail (数量/备注) OPTIMISTICALLY by stable id
+    /// identity — blank is allowed (clearing the quantity is a legitimate edit).
+    /// Persists the single row + enqueues a full-row `.update` carrying the prior
+    /// `remoteVersion`. Returns whether a row was updated (false rolls back).
     @discardableResult
     func updateDetail(_ target: ShoppingItem, detail: String) async -> Bool {
-        await serializedMutation { await self.performUpdateDetail(target, detail: detail) }
-    }
-
-    private func performUpdateDetail(_ target: ShoppingItem, detail: String) async -> Bool {
-        guard await refreshBeforeMutate() else { return false }
         guard let index = items.firstIndex(where: { $0.id == target.id }) else { return false }
-        let current = items[index]
-        let updated = current.copyWith(detail: detail.trimmed)
-        var next = items
-        next[index] = updated
-        guard await persist(next) else { return false }
-        if let patch = DomainJSON.valueMap(updated) {
-            await syncWriter?.enqueue(
-                entityType: .shoppingItem,
-                entityId: updated.id,
-                operation: .update,
-                patch: patch,
-                baseVersion: current.remoteVersion
-            )
+        let prior = items[index]
+        let updated = prior.copyWith(detail: detail.trimmed)
+        items[index] = updated // optimistic
+        return await serializedPersist {
+            do {
+                guard try await self.repository.updateRow(self.householdID, updated) else {
+                    self.items.removeAll { $0.id == updated.id }
+                    return false
+                }
+            } catch {
+                self.revertRow(updated.id, to: prior)
+                return false
+            }
+            if let patch = DomainJSON.valueMap(updated) {
+                await self.syncWriter?.enqueue(
+                    entityType: .shoppingItem,
+                    entityId: updated.id,
+                    operation: .update,
+                    patch: patch,
+                    baseVersion: prior.remoteVersion
+                )
+            }
+            return true
         }
-        return true
     }
 
     /// Compatibility shim over `restoreItem` — true ONLY when the row was
@@ -272,19 +312,24 @@ final class ShoppingStore {
 
     /// Re-inserts a previously-deleted row (preserving its id), persisting and
     /// enqueuing a full-row `.update` to clear the soft-delete remotely — the undo
-    /// path for a swipe-delete. Mirrors the inventory undo (a `.update` un-deletes
-    /// the row the prior `.delete` soft-removed). Returns `.added` when the row
-    /// was re-inserted, `.duplicate` when the same id is already present (the
-    /// undo's goal is met — benign), `.failed` on a read/persist error.
+    /// path for a swipe-delete. Returns `.added` when the row was re-inserted,
+    /// `.duplicate` when the same id is already present (the undo's goal is met —
+    /// benign), `.failed` on a persist error.
     func restoreItem(_ item: ShoppingItem) async -> AddOutcome {
-        await serializedMutation { await self.performRestore(item) }
+        await serializedPersist { await self.performRestore(item) }
     }
 
     private func performRestore(_ item: ShoppingItem) async -> AddOutcome {
-        guard await refreshBeforeMutate() else { return .failed }
         // Already present (same id) — nothing to restore.
         guard !items.contains(where: { $0.id == item.id }) else { return .duplicate }
-        guard await persist(items + [item]) else { return .failed }
+        let snapshot = items
+        items.append(item) // optimistic re-insert
+        do {
+            try await repository.upsert(householdID, item)
+        } catch {
+            items = snapshot
+            return .failed
+        }
         if let patch = DomainJSON.valueMap(item) {
             await syncWriter?.enqueue(
                 entityType: .shoppingItem,
@@ -297,91 +342,72 @@ final class ShoppingStore {
         return .added
     }
 
-    /// Deletes a row by stable id identity, persists the survivors, and updates
-    /// local state. Returns whether a row was removed.
+    /// Deletes a row OPTIMISTICALLY by stable id identity (it leaves the list +
+    /// the undo banner shows the instant the swipe lands), then soft-deletes the
+    /// single row in the background. Returns whether a row was removed; a persist
+    /// failure re-inserts it.
     @discardableResult
     func delete(_ target: ShoppingItem) async -> Bool {
-        await serializedMutation { await self.performDelete(target) }
-    }
-
-    private func performDelete(_ target: ShoppingItem) async -> Bool {
-        guard await refreshBeforeMutate() else { return false }
         guard let index = items.firstIndex(where: { $0.id == target.id }) else { return false }
         let removed = items[index]
-        var survivors = items
-        survivors.remove(at: index)
-        guard await persist(survivors) else { return false }
-        // Enqueue the soft-delete so it propagates to other members (the gateway
-        // routes shoppingItem/.delete to a soft-delete). Without this the row
-        // stays on the server and re-appears on the next pull (remote wins).
-        if let patch = DomainJSON.valueMap(removed) {
-            await syncWriter?.enqueue(
-                entityType: .shoppingItem,
-                entityId: removed.id,
-                operation: .delete,
-                patch: patch,
-                baseVersion: removed.remoteVersion
-            )
+        let snapshot = items
+        items.remove(at: index) // optimistic
+        return await serializedPersist {
+            do {
+                try await self.repository.delete(self.householdID, ids: [removed.id])
+            } catch {
+                self.items = snapshot
+                return false
+            }
+            // Enqueue the soft-delete so it propagates to other members (the gateway
+            // routes shoppingItem/.delete to a soft-delete). Without this the row
+            // stays on the server and re-appears on the next pull (remote wins).
+            if let patch = DomainJSON.valueMap(removed) {
+                await self.syncWriter?.enqueue(
+                    entityType: .shoppingItem,
+                    entityId: removed.id,
+                    operation: .delete,
+                    patch: patch,
+                    baseVersion: removed.remoteVersion
+                )
+            }
+            return true
         }
-        return true
     }
 
-    /// Deletes every row in `targets` (by stable id) in ONE read-modify-write —
-    /// the 清空已完成 path. Returns the rows actually removed (fresh copies from
-    /// the repo, so a later `restore` undo re-inserts exactly what was lost);
-    /// EMPTY when none of the ids are present anymore (benign — another entry
-    /// point already took them); NIL when the 写前重读 or persist threw (nothing
-    /// was deleted; the caller should surface a retryable failure, not silence).
+    /// Deletes every row in `targets` (by stable id) OPTIMISTICALLY — the
+    /// 清空已完成 / 一键入库 drop path. Returns the rows actually removed (so a
+    /// later `restore` undo re-inserts exactly what was lost); EMPTY when none of
+    /// the ids are present anymore (benign — another entry point already took
+    /// them); NIL when the persist threw (nothing was deleted; the caller surfaces
+    /// a retryable failure, not silence).
     func deleteAll(_ targets: [ShoppingItem]) async -> [ShoppingItem]? {
-        await serializedMutation { await self.performDeleteAll(targets) }
-    }
-
-    private func performDeleteAll(_ targets: [ShoppingItem]) async -> [ShoppingItem]? {
         guard !targets.isEmpty else { return [] }
-        guard await refreshBeforeMutate() else { return nil }
         let ids = Set(targets.map(\.id))
         let removed = items.filter { ids.contains($0.id) }
         guard !removed.isEmpty else { return [] }
-        guard await persist(items.filter { !ids.contains($0.id) }) else { return nil }
-        // Same soft-delete propagation as the single `delete` (see note there).
-        for item in removed {
-            if let patch = DomainJSON.valueMap(item) {
-                await syncWriter?.enqueue(
-                    entityType: .shoppingItem,
-                    entityId: item.id,
-                    operation: .delete,
-                    patch: patch,
-                    baseVersion: item.remoteVersion
-                )
+        let snapshot = items
+        items.removeAll { ids.contains($0.id) } // optimistic
+        return await serializedPersist {
+            do {
+                try await self.repository.delete(self.householdID, ids: Array(ids))
+            } catch {
+                self.items = snapshot
+                return nil
             }
-        }
-        return removed
-    }
-
-    /// 写前重读: re-syncs `items` from the repo before a mutation applies its
-    /// delta, because `persist` replaces the WHOLE household scope — a stale
-    /// snapshot would silently drop rows another store instance wrote since our
-    /// last load (Dashboard 加购 / Siri drain / 缺料卡 each build their own
-    /// session-scoped store over the same repo). A refresh failure aborts the
-    /// mutation (`false`) rather than proceeding on a possibly-stale snapshot.
-    private func refreshBeforeMutate() async -> Bool {
-        do {
-            items = try await repository.loadAllFor(householdID)
-            return true
-        } catch {
-            return false
-        }
-    }
-
-    /// Persists `next` through the repo actor (which re-normalizes + de-dupes),
-    /// then re-syncs local state from the canonical reload. Returns success.
-    private func persist(_ next: [ShoppingItem]) async -> Bool {
-        do {
-            try await repository.saveItems(householdID, next)
-            items = try await repository.loadAllFor(householdID)
-            return true
-        } catch {
-            return false
+            // Same soft-delete propagation as the single `delete` (see note there).
+            for item in removed {
+                if let patch = DomainJSON.valueMap(item) {
+                    await self.syncWriter?.enqueue(
+                        entityType: .shoppingItem,
+                        entityId: item.id,
+                        operation: .delete,
+                        patch: patch,
+                        baseVersion: item.remoteVersion
+                    )
+                }
+            }
+            return removed
         }
     }
 

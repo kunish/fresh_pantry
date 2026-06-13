@@ -3,15 +3,18 @@ import SwiftData
 import Testing
 @testable import FreshPantry
 
-/// Concurrent-write regression tests. `ShoppingStore.persist` replaces the
-/// WHOLE household scope, so writes are guarded twice:
-/// 1. 写前重读 — every mutation re-reads the repo first, otherwise a
-///    session-scoped second instance (Dashboard 加购 / Siri drain / 缺料卡 each
-///    build their own store) silently loses rows the other instance wrote after
-///    this one's last load. Backed by TWO stores over the same in-memory repo.
-/// 2. FIFO mutation chain — two interleaved mutations on the SAME store (quick
-///    successive taps) must not load the same snapshot and overwrite each
-///    other's persist; each mutation awaits its predecessor.
+/// Concurrent-write regression tests. The store is now OFFLINE-FIRST: a tap
+/// updates the in-memory `items` synchronously, then lands the SINGLE touched row
+/// (`updateRow`/`upsert`/`delete(ids:)`) in the background. Two invariants:
+/// 1. No cross-instance clobber — a single-row write touches only its own row, so
+///    a session-scoped second instance (Dashboard 加购 / Siri drain / 缺料卡 each
+///    build their own store) can't lose rows another instance wrote. This now
+///    holds STRUCTURALLY (no 写前重读 needed); `add` still re-reads the canonical
+///    list for its by-NAME dedup, which the unique id constraint can't enforce.
+///    Backed by TWO stores over the same in-memory repo.
+/// 2. FIFO persist chain — two interleaved mutations on the SAME store (quick
+///    successive taps) land their background single-row writes in order, so a
+///    toggle-then-delete never resurrects the row.
 /// Plus the three-state `AddOutcome` split (added/duplicate/failed) feedback
 /// UIs branch their copy on.
 @MainActor
@@ -48,14 +51,17 @@ struct ShoppingStoreConcurrentWriteTests {
         let repo = try await makeRepo([item(id: "milk", name: "牛奶")])
         let stale = await makeStore(repo) // snapshot frozen here
         let other = await makeStore(repo)
-        #expect(await other.add(name: "面包")) // the row a stale persist would drop
+        #expect(await other.add(name: "面包")) // a row the old whole-scope persist would drop
 
         #expect(await stale.add(name: "鸡蛋"))
 
+        // Per-row insert can't clobber a peer's row: all three survive on disk.
         let names = Set(try await repo.loadAllFor(household).map(\.name))
         #expect(names == ["牛奶", "面包", "鸡蛋"])
-        // The stale store itself caught up too (写前重读 re-synced it).
-        #expect(Set(stale.items.map(\.name)) == ["牛奶", "面包", "鸡蛋"])
+        // The stale store reflects its OWN rows optimistically (牛奶 it loaded +
+        // 鸡蛋 it just added); 面包 — the peer's row it never loaded — arrives on
+        // the next sync/reload pulse, not eagerly (no whole-scope re-read here).
+        #expect(Set(stale.items.map(\.name)) == ["牛奶", "鸡蛋"])
     }
 
     @Test func toggleCheckedPreservesRowsWrittenByAnotherStoreInstance() async throws {

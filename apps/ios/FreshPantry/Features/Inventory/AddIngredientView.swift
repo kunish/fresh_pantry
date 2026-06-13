@@ -208,8 +208,15 @@ struct AddIngredientView: View {
                             .contextMenu {
                                 Button(role: .destructive) {
                                     Task {
-                                        try? await dependencies.inventoryRepository.forgetAddition(item.name)
+                                        // Optimistic: the chip vanishes the instant 忘记 is
+                                        // tapped; re-add it if the persist throws.
+                                        let snapshot = frequentItems
                                         frequentItems.removeAll { $0.name == item.name }
+                                        do {
+                                            try await dependencies.inventoryRepository.forgetAddition(item.name)
+                                        } catch {
+                                            frequentItems = snapshot
+                                        }
                                     }
                                 } label: {
                                     Label("忘记此项", systemImage: "trash")

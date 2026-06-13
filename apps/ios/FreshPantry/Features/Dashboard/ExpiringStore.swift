@@ -40,6 +40,19 @@ final class ExpiringStore {
         items = (try? await repository.loadAllFor(householdID)) ?? []
     }
 
+    // MARK: Optimistic snapshot edit
+
+    /// Drops the row with `id` from the in-memory snapshot so the tier list
+    /// re-derives the instant a 用了/扔了 lands — the actual delete + food-log is
+    /// the `InventoryStore`'s job. This store keeps its OWN snapshot, so without
+    /// this the row lingers until the `onChange(of: inventoryStore.items)` drift
+    /// handler reloads. That handler (and an undo, which re-adds to InventoryStore)
+    /// still reconciles afterward; this just makes the drop instant. No-op when
+    /// the id isn't present.
+    func remove(id: String) {
+        items.removeAll { $0.id == id }
+    }
+
     // MARK: Derived view data
 
     /// Non-fresh items, urgency-sorted within each tier. Empty when the pantry

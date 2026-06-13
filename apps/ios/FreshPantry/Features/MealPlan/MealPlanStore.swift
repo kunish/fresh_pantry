@@ -138,21 +138,22 @@ final class MealPlanStore {
         entries(forDay: selectedDay)
     }
 
-    // MARK: Mutations
+    // MARK: Mutations (offline-first / optimistic)
+    //
+    // Same contract as ShoppingStore: the calendar tap (加菜 / 完成 toggle /
+    // 删除) updates the observable `entries` SYNCHRONOUSLY before any await, so the
+    // UI reflects it this tick; the SINGLE touched row then lands in the
+    // background (no whole-scope rewrite, no post-save reload), rolling back on a
+    // persist failure. Single-row writes can't clobber a peer instance's write to
+    // a different day, so no 写前重读 is needed.
 
-    /// FIFO mutation chain: every mutation awaits its predecessor before its
-    /// read-modify-write runs. `persist` suspends twice (`saveEntries` +
-    /// `loadAllFor`), and during those suspension points actor reentrancy allows
-    /// a second mutation to enter and read the same stale snapshot — the second
-    /// `saveEntries` would then silently overwrite the first. The chain prevents
-    /// this: mutations execute in the order they were enqueued.
+    /// FIFO serialization of the BACKGROUND single-row persists — keeps a row
+    /// toggled-then-removed landing in order. The optimistic `entries` edit
+    /// already happened before this runs, so it no longer gates the visual change.
     @ObservationIgnored
     private var lastMutation: Task<Void, Never>?
 
-    /// Runs `body` after every previously-enqueued mutation finished, and makes
-    /// the next mutation wait for `body` in turn. MainActor-only, so reading +
-    /// relinking `lastMutation` between two mutations is race-free.
-    private func serializedMutation<T: Sendable>(_ body: @escaping @MainActor () async -> T) async -> T {
+    private func serializedPersist<T: Sendable>(_ body: @escaping @MainActor () async -> T) async -> T {
         let previous = lastMutation
         let task: Task<T, Never> = Task {
             await previous?.value
@@ -162,14 +163,11 @@ final class MealPlanStore {
         return await task.value
     }
 
-    /// Plans `recipe` on `day` (servings clamped to ≥ 1). Mints a fresh UUID id
-    /// (sync-clean; no factory on the domain type). Returns whether a row was added.
+    /// Plans `recipe` on `day` OPTIMISTICALLY (the dish appears the instant the
+    /// tap lands), servings clamped to ≥ 1, minting a fresh UUID id (sync-clean).
+    /// Returns whether a row was added; a persist failure removes it.
     @discardableResult
     func addDish(recipe: Recipe, date: Date, servings: Int = 1) async -> Bool {
-        await serializedMutation { await self.performAddDish(recipe: recipe, date: date, servings: servings) }
-    }
-
-    private func performAddDish(recipe: Recipe, date: Date, servings: Int) async -> Bool {
         guard !recipe.id.isEmpty else { return false }
         let entry = MealPlanEntry(
             id: Self.newId(),
@@ -179,77 +177,85 @@ final class MealPlanStore {
             recipeImageUrl: recipe.imageUrl,
             servings: max(servings, 1)
         )
-        guard await persist(entries + [entry]) else { return false }
-        if let patch = DomainJSON.valueMap(entry) {
-            await syncWriter?.enqueue(
-                entityType: .mealPlanEntry,
-                entityId: entry.id,
-                operation: .create,
-                patch: patch,
-                baseVersion: nil
-            )
+        entries.append(entry) // optimistic
+        return await serializedPersist {
+            do {
+                try await self.repository.upsert(self.householdID, entry)
+            } catch {
+                self.entries.removeAll { $0.id == entry.id }
+                return false
+            }
+            if let patch = DomainJSON.valueMap(entry) {
+                await self.syncWriter?.enqueue(
+                    entityType: .mealPlanEntry,
+                    entityId: entry.id,
+                    operation: .create,
+                    patch: patch,
+                    baseVersion: nil
+                )
+            }
+            return true
         }
-        return true
     }
 
-    /// Flips a row's `done` flag by stable id identity, persists, reloads.
+    /// Flips a row's `done` flag OPTIMISTICALLY by stable id identity, then
+    /// persists the single row. Returns whether a row was toggled; a persist
+    /// failure rolls the flip back, and a row a peer removed is dropped locally.
     @discardableResult
     func toggleDone(_ target: MealPlanEntry) async -> Bool {
-        await serializedMutation { await self.performToggleDone(target) }
-    }
-
-    private func performToggleDone(_ target: MealPlanEntry) async -> Bool {
         guard let index = entries.firstIndex(where: { $0.id == target.id }) else { return false }
-        let entry = entries[index]
-        let updatedEntry = entry.copyWith(done: !entry.done)
-        var next = entries
-        next[index] = updatedEntry
-        guard await persist(next) else { return false }
-        if let patch = DomainJSON.valueMap(updatedEntry) {
-            await syncWriter?.enqueue(
-                entityType: .mealPlanEntry,
-                entityId: updatedEntry.id,
-                operation: .update,
-                patch: patch,
-                baseVersion: entry.remoteVersion
-            )
+        let prior = entries[index]
+        let updatedEntry = prior.copyWith(done: !prior.done)
+        entries[index] = updatedEntry // optimistic
+        return await serializedPersist {
+            do {
+                guard try await self.repository.updateRow(self.householdID, updatedEntry) else {
+                    self.entries.removeAll { $0.id == updatedEntry.id }
+                    return false
+                }
+            } catch {
+                if let i = self.entries.firstIndex(where: { $0.id == prior.id }) { self.entries[i] = prior }
+                return false
+            }
+            if let patch = DomainJSON.valueMap(updatedEntry) {
+                await self.syncWriter?.enqueue(
+                    entityType: .mealPlanEntry,
+                    entityId: updatedEntry.id,
+                    operation: .update,
+                    patch: patch,
+                    baseVersion: prior.remoteVersion
+                )
+            }
+            return true
         }
-        return true
     }
 
-    /// Deletes a row by stable id identity, persists the survivors, reloads.
+    /// Deletes a row OPTIMISTICALLY by stable id identity, then soft-deletes the
+    /// single row in the background. Returns whether a row was removed; a persist
+    /// failure re-inserts it.
     @discardableResult
     func remove(_ target: MealPlanEntry) async -> Bool {
-        await serializedMutation { await self.performRemove(target) }
-    }
-
-    private func performRemove(_ target: MealPlanEntry) async -> Bool {
         guard let index = entries.firstIndex(where: { $0.id == target.id }) else { return false }
         let removed = entries[index]
-        var survivors = entries
-        survivors.remove(at: index)
-        guard await persist(survivors) else { return false }
-        if let patch = DomainJSON.valueMap(removed) {
-            await syncWriter?.enqueue(
-                entityType: .mealPlanEntry,
-                entityId: removed.id,
-                operation: .delete,
-                patch: patch,
-                baseVersion: removed.remoteVersion
-            )
-        }
-        return true
-    }
-
-    /// Persists `next` through the repo actor (which filters empty id/recipeId +
-    /// de-dupes id), then re-syncs local state from the canonical reload.
-    private func persist(_ next: [MealPlanEntry]) async -> Bool {
-        do {
-            try await repository.saveEntries(householdID, next)
-            entries = try await repository.loadAllFor(householdID)
+        let snapshot = entries
+        entries.remove(at: index) // optimistic
+        return await serializedPersist {
+            do {
+                try await self.repository.delete(self.householdID, ids: [removed.id])
+            } catch {
+                self.entries = snapshot
+                return false
+            }
+            if let patch = DomainJSON.valueMap(removed) {
+                await self.syncWriter?.enqueue(
+                    entityType: .mealPlanEntry,
+                    entityId: removed.id,
+                    operation: .delete,
+                    patch: patch,
+                    baseVersion: removed.remoteVersion
+                )
+            }
             return true
-        } catch {
-            return false
         }
     }
 

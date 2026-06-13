@@ -102,6 +102,83 @@ struct RepositoryTests {
         #expect(merged.count == 1) // same dedup path as load
     }
 
+    // MARK: Shopping single-row primitives (the offline-first optimistic path)
+
+    private func shopItem(_ id: String, _ name: String, checked: Bool = false, detail: String = "") -> ShoppingItem {
+        ShoppingItem(id: id, name: name, detail: detail, category: "其他", isChecked: checked)
+    }
+
+    @Test func shoppingUpdateRowEditsOnlyThatRowAndLeavesPeers() async throws {
+        let repo = ShoppingRepository(modelContainer: try container())
+        try await repo.saveItems("home", [shopItem("a", "牛奶"), shopItem("b", "鸡蛋")])
+        // Update only "a" — "b" (a peer's row) must be untouched.
+        let did = try await repo.updateRow("home", shopItem("a", "牛奶", checked: true))
+        #expect(did)
+        let rows = try await repo.loadAllFor("home")
+        #expect(rows.first { $0.id == "a" }?.isChecked == true)
+        #expect(rows.first { $0.id == "b" }?.isChecked == false)
+        #expect(rows.count == 2) // no clobber
+    }
+
+    @Test func shoppingUpdateRowReturnsFalseWhenAbsentAndDoesNotInsert() async throws {
+        let repo = ShoppingRepository(modelContainer: try container())
+        try await repo.saveItems("home", [shopItem("a", "牛奶")])
+        // The row a peer already deleted: update must be a no-op, NOT a resurrect.
+        let did = try await repo.updateRow("home", shopItem("zzz", "幽灵", checked: true))
+        #expect(!did)
+        #expect(try await repo.loadAllFor("home").map(\.id) == ["a"])
+    }
+
+    @Test func shoppingUpsertInsertsThenUpdatesInPlace() async throws {
+        let repo = ShoppingRepository(modelContainer: try container())
+        try await repo.upsert("home", shopItem("a", "牛奶", detail: "1 盒"))
+        #expect(try await repo.loadAllFor("home").map(\.id) == ["a"])
+        // Same id again updates in place (no duplicate row).
+        try await repo.upsert("home", shopItem("a", "牛奶", detail: "3 盒"))
+        let rows = try await repo.loadAllFor("home")
+        #expect(rows.count == 1)
+        #expect(rows[0].detail == "3 盒")
+    }
+
+    @Test func shoppingDeleteByIdsRemovesOnlyTargets() async throws {
+        let repo = ShoppingRepository(modelContainer: try container())
+        try await repo.saveItems("home", [shopItem("a", "牛奶"), shopItem("b", "鸡蛋"), shopItem("c", "苹果")])
+        try await repo.delete("home", ids: ["a", "c", "ghost"]) // ghost is a no-op
+        #expect(try await repo.loadAllFor("home").map(\.id) == ["b"])
+    }
+
+    @Test func shoppingSingleRowWritesAreHouseholdScoped() async throws {
+        let repo = ShoppingRepository(modelContainer: try container())
+        try await repo.saveItems("home", [shopItem("h", "X")])
+        try await repo.saveItems("work", [shopItem("w", "Y")])
+        // A "home" upsert/delete must never reach the "work" scope.
+        try await repo.upsert("home", shopItem("h", "X", checked: true))
+        try await repo.delete("home", ids: ["h"])
+        #expect(try await repo.loadAllFor("home").isEmpty)
+        #expect(try await repo.loadAllFor("work").map(\.id) == ["w"])
+    }
+
+    // MARK: MealPlan single-row primitives
+
+    @Test func mealPlanSingleRowPrimitivesTouchOnlyTarget() async throws {
+        let repo = MealPlanRepository(modelContainer: try container())
+        let day = MealPlanEntry.parseDate("2026-06-08")!
+        func entry(_ id: String, done: Bool = false) -> MealPlanEntry {
+            MealPlanEntry(id: id, date: day, recipeId: "r", recipeName: "n", done: done)
+        }
+        try await repo.upsert("home", entry("a"))
+        try await repo.upsert("home", entry("b"))
+        // updateRow flips only "a".
+        #expect(try await repo.updateRow("home", entry("a", done: true)))
+        // updateRow on an absent id is a no-op, not an insert.
+        #expect(!(try await repo.updateRow("home", entry("zzz", done: true))))
+        // delete(ids:) removes only "b".
+        try await repo.delete("home", ids: ["b"])
+        let rows = try await repo.loadAllFor("home")
+        #expect(rows.map(\.id) == ["a"])
+        #expect(rows[0].done == true)
+    }
+
     // MARK: MealPlan (dirty row skipped)
 
     @Test func mealPlanSkipsDirtyDateRow() async throws {

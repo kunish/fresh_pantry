@@ -46,11 +46,12 @@ final class CustomRecipeStore {
 
     // MARK: Mutations
 
-    /// Appends a new recipe to the household scope, persists, enqueues a `.create`
-    /// (baseVersion nil), then reloads. Returns whether the write landed.
+    /// Appends a new recipe to the household scope OPTIMISTICALLY (the detail /
+    /// list reflects it this tick), persists, enqueues a `.create` (baseVersion
+    /// nil). Returns whether the write landed (false rolls back).
     @discardableResult
     func add(_ recipe: Recipe) async -> Bool {
-        await mutate(persist: { current in current + [recipe] }) {
+        await mutate(apply: { recipes in recipes.append(recipe); return true }) {
             guard let patch = DomainJSON.valueMap(recipe) else { return }
             await self.syncWriter?.enqueue(
                 entityType: .customRecipe,
@@ -62,15 +63,16 @@ final class CustomRecipeStore {
         }
     }
 
-    /// Replaces the recipe with the same id in the household scope, persists,
-    /// enqueues an `.update` (baseVersion = the recipe's remoteVersion), then
-    /// reloads. Returns whether the write landed (false if no row matched).
+    /// Replaces the recipe with the same id OPTIMISTICALLY, persists, enqueues an
+    /// `.update` (baseVersion = the recipe's remoteVersion). Returns whether the
+    /// write landed (false when no row matched, or rolls back on a persist error).
     @discardableResult
     func update(_ recipe: Recipe) async -> Bool {
         await mutate(
-            persist: { current in
-                guard current.contains(where: { $0.id == recipe.id }) else { return nil }
-                return current.map { $0.id == recipe.id ? recipe : $0 }
+            apply: { recipes in
+                guard recipes.contains(where: { $0.id == recipe.id }) else { return false }
+                recipes = recipes.map { $0.id == recipe.id ? recipe : $0 }
+                return true
             },
             enqueue: {
                 guard let patch = DomainJSON.valueMap(recipe) else { return }
@@ -85,18 +87,19 @@ final class CustomRecipeStore {
         )
     }
 
-    /// Drops the recipe with `id` from the household scope, persists, enqueues a
-    /// `.delete` (patch = the removed row so the gateway derives `deleted_at`,
-    /// baseVersion = the removed row's remoteVersion), then reloads. Returns
-    /// whether the write landed (false if no row matched).
+    /// Drops the recipe with `id` from the household scope OPTIMISTICALLY,
+    /// persists, enqueues a `.delete` (patch = the removed row so the gateway
+    /// derives `deleted_at`, baseVersion = the removed row's remoteVersion).
+    /// Returns whether the write landed (false when no row matched / rolled back).
     @discardableResult
     func remove(_ id: String) async -> Bool {
         var removed: Recipe?
         let ok = await mutate(
-            persist: { current in
-                guard let match = current.first(where: { $0.id == id }) else { return nil }
+            apply: { recipes in
+                guard let match = recipes.first(where: { $0.id == id }) else { return false }
                 removed = match
-                return current.filter { $0.id != id }
+                recipes.removeAll { $0.id == id }
+                return true
             },
             enqueue: {
                 guard let removed, let patch = DomainJSON.valueMap(removed) else { return }
@@ -110,7 +113,8 @@ final class CustomRecipeStore {
             }
         )
         // Nothing references the deleted row's cover anymore — clean up a local
-        // `file://` orphan (delete itself ignores remote AI-cover URLs).
+        // `file://` orphan (delete itself ignores remote AI-cover URLs). Only
+        // after a CONFIRMED persist, so a rolled-back delete keeps its cover.
         if ok, let cover = removed?.imageUrl {
             RecipeCoverStore.delete(cover)
         }
@@ -119,28 +123,41 @@ final class CustomRecipeStore {
 
     // MARK: Mutation seam
 
-    /// Loads the current scope, applies `persist` (returns nil to abort — no
-    /// matching row), saves the WHOLE scope, enqueues the sync op, then reloads.
-    /// On a save failure returns false + sets `errorMessage` (no partial write).
+    /// Optimistic whole-scope mutation: reflects `apply` in the in-memory
+    /// `recipes` immediately (instant for the detail screen, which reads it), then
+    /// re-applies it to the CANONICAL scope read off the repo before the
+    /// whole-scope save — so a stale in-memory list can never drop rows it didn't
+    /// know about (the data-loss trap of a blind whole-scope rewrite). `apply`
+    /// returns false to abort (no matching row). On a save failure restores the
+    /// pre-mutation snapshot + sets `errorMessage`; on success reconciles `recipes`
+    /// to the saved scope directly (no extra reload round-trip).
     private func mutate(
-        persist: ([Recipe]) -> [Recipe]?,
+        apply: (inout [Recipe]) -> Bool,
         enqueue: () async -> Void
     ) async -> Bool {
         isSaving = true
         defer { isSaving = false }
         errorMessage = nil
 
-        let current = (try? await repository.loadAllFor(householdID)) ?? []
-        guard let next = persist(current) else { return false }
+        let snapshot = recipes
+        var optimistic = recipes
+        if apply(&optimistic) { recipes = optimistic } // optimistic reflect
 
+        let current = (try? await repository.loadAllFor(householdID)) ?? snapshot
+        var next = current
+        guard apply(&next) else {
+            recipes = snapshot // no matching row — undo any optimistic reflect
+            return false
+        }
         do {
             try await repository.saveRecipes(householdID, next)
         } catch {
+            recipes = snapshot // rollback
             errorMessage = "保存失败，请重试"
             return false
         }
+        recipes = next // reconcile to the canonical saved scope
         await enqueue()
-        await load()
         return true
     }
 }

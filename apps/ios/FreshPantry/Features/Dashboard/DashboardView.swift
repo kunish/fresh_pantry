@@ -461,14 +461,15 @@ private struct DashboardContent: View {
         for item in lowStockItems {
             let category = FoodKnowledge.lookup(item.name)?.category
             switch await shoppingStore.addItem(name: item.name, category: category) {
-            case .added: added += 1
+            case .added:
+                added += 1
+                // Optimistically bump the 购物清单 summary count (reads store.summary,
+                // not shoppingStore) instead of a full two-scope reload.
+                store.noteShoppingAdded(name: item.name, category: category)
             case .duplicate: break // goal already satisfied — not a failure
             case .failed: failed += 1
             }
         }
-        // Reload the main store so the 购物清单 summary row's count matches the
-        // add the toast just reported (it reads store.summary, not shoppingStore).
-        if added > 0 { await store.load() }
         withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
             if failed > 0 {
                 toast = added > 0 ? "已添加 \(added) 项，\(failed) 项添加失败" : "添加失败，请重试"
@@ -488,8 +489,8 @@ private struct DashboardContent: View {
             return
         }
         let outcome = await shoppingStore.addItem(name: item.name, category: item.category)
-        // Same summary-count refresh as addAllLowStock.
-        if outcome == .added { await store.load() }
+        // Optimistically bump the summary count (same as addAllLowStock).
+        if outcome == .added { store.noteShoppingAdded(name: item.name, category: item.category) }
         withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
             switch outcome {
             case .added: toast = "已将「\(item.name)」加入购物清单"
