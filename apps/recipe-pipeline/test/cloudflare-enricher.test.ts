@@ -82,4 +82,9 @@ describe('createCloudflareEnricher', () => {
     await expect(enricher.enrich(raw)).resolves.toMatchObject({ category: '荤菜' });
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
+
+  it('apiKey 为空时构造即抛', () => {
+    expect(() => createCloudflareEnricher({ baseUrl: 'https://x/ai/v1', apiKey: '', model: 'm' }))
+      .toThrow(/CLOUDFLARE_AI_API_KEY/);
+  });
 });

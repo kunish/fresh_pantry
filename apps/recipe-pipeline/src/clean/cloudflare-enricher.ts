@@ -37,7 +37,9 @@ function classify(status: number, body: unknown): Classified {
     return { ok: true, content, retryable: false, message: '' };
   }
   const errs = b?.errors ?? (b?.error ? [b.error] : []);
-  const message = errs.map((e) => e?.message ?? '').filter(Boolean).join('; ') || `HTTP ${status}`;
+  const emptyContent = typeof content !== 'string' || content.length === 0;
+  const message = errs.map((e) => e?.message ?? '').filter(Boolean).join('; ')
+    || `HTTP ${status}${emptyContent ? '(content 为空,可能 token 截断或被过滤)' : ''}`;
   const code = (errs[0] as { code?: number })?.code;
   const capacity = code === 3040 || /capacity/i.test(message);
   const retryable = capacity || status === 429 || status >= 500;
@@ -45,6 +47,9 @@ function classify(status: number, body: unknown): Classified {
 }
 
 export function createCloudflareEnricher(opts: CloudflareEnricherOptions): RecipeEnricher {
+  if (!opts.apiKey) {
+    throw new Error('CLOUDFLARE_AI_API_KEY 未设置,无法使用 CloudflareEnricher');
+  }
   const fetchImpl = opts.fetchImpl ?? fetch;
   const sleep = opts.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const maxTokens = opts.maxTokens ?? 4096;
@@ -85,6 +90,7 @@ export function createCloudflareEnricher(opts: CloudflareEnricherOptions): Recip
       if (c.retryable && attempt < maxRetries) { log(`重试 ${attempt + 1}/${maxRetries}: ${c.message}`); await backoff(attempt); continue; }
       throw new Error(`Cloudflare 返回错误: ${c.message}`);
     }
+    // 理论上不可达:循环内每条路径(成功 return / 不可重试 throw / 耗尽 throw)都已终止;仅为类型收敛。
     throw new Error(`Cloudflare 重试耗尽: ${lastMsg}`);
   }
 
@@ -101,7 +107,8 @@ export function createCloudflareEnricher(opts: CloudflareEnricherOptions): Recip
       const first = await call(messages);
       try {
         return await parseOrThrow(first);
-      } catch {
+      } catch (e) {
+        log(`首响解析失败,重提修正: ${e instanceof Error ? e.message : String(e)};first=${first.slice(0, 200)}`);
         const retried = await call([
           ...messages,
           { role: 'assistant', content: first },
