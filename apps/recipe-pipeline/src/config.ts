@@ -23,7 +23,7 @@ export const config = {
   cloudflare: {
     baseUrl: process.env.CLOUDFLARE_AI_BASE_URL ?? CF_DEFAULT_BASE,
     apiKey: process.env.CLOUDFLARE_AI_API_KEY ?? '',
-    maxTokens: Number(process.env.RECIPE_MAX_TOKENS ?? '4096'),
+    maxTokens: Number(process.env.RECIPE_MAX_TOKENS ?? '8192'),
   },
   thinkingLevel: (process.env.RECIPE_THINKING ?? 'xhigh') as 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh',
   concurrency: Number(process.env.RECIPE_CONCURRENCY ?? '6'),
