@@ -90,12 +90,6 @@ struct RecipeDetailView: View {
             VStack(alignment: .leading, spacing: FkSpacing.lg) {
                 hero
                 header
-                if !recipe.description.trimmed.isEmpty {
-                    Text(recipe.description)
-                        .font(.fkBodyMedium)
-                        .foregroundStyle(Color.fkOnSurfaceVariant)
-                        .padding(.horizontal, FkSpacing.lg)
-                }
                 ingredientsSection
                 stepsSection
             }
@@ -399,7 +393,11 @@ struct RecipeDetailView: View {
         }
         .frame(height: 220)
         .frame(maxWidth: .infinity)
-        .clipped()
+        // Round only the bottom edge so the cover softens into the header instead
+        // of cutting a hard full-bleed line across the screen.
+        .clipShape(
+            .rect(bottomLeadingRadius: FkRadius.lg, bottomTrailingRadius: FkRadius.lg)
+        )
     }
 
     private var heroGlyph: some View {
@@ -416,12 +414,23 @@ struct RecipeDetailView: View {
                 .font(.fkHeadlineSmall)
                 .foregroundStyle(Color.fkOnSurface)
 
-            HStack(spacing: FkSpacing.md) {
+            HStack(spacing: FkSpacing.sm) {
                 if !recipe.category.trimmed.isEmpty {
                     metaItem(systemImage: "tag", text: recipe.category)
+                        .lineLimit(1)
                 }
                 metaItem(systemImage: "flame", text: recipe.difficultyLabel)
                 metaItem(systemImage: "clock", text: "\(recipe.cookingMinutes) 分钟")
+            }
+
+            // Description lives INSIDE the header group (sm rhythm) so the name →
+            // meta → description read as one block; previously it sat in the outer
+            // VStack and was pushed away by the larger lg gap (reversed rhythm).
+            if !recipe.description.trimmed.isEmpty {
+                Text(recipe.description)
+                    .font(.fkBodyMedium)
+                    .foregroundStyle(Color.fkOnSurfaceVariant)
+                    .padding(.top, FkSpacing.xs)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -471,14 +480,16 @@ struct RecipeDetailView: View {
             let missingCount = missingIngredients.count
             VStack(alignment: .leading, spacing: FkSpacing.sm) {
                 HStack {
+                    // FkSectionHeader already carries a trailing Spacer, so the
+                    // count + "已有 N/M" sit at the edges without a second one.
                     FkSectionHeader(title: "食材清单", count: recipe.ingredients.count)
-                    Spacer(minLength: FkSpacing.sm)
                     if hasInventory {
                         Text("已有 \(matched)/\(recipe.ingredients.count)")
                             .font(.fkLabelMedium)
                             .foregroundStyle(Color.fkOnSurfaceVariant)
                     }
                 }
+                .padding(.bottom, FkSpacing.xs)
                 if hasScalableIngredient {
                     scaleSelector
                 }
@@ -494,6 +505,7 @@ struct RecipeDetailView: View {
                 }
                 if hasInventory, missingCount > 0 {
                     addMissingButton(missingCount: missingCount)
+                        .padding(.top, FkSpacing.xs)
                 }
             }
             .padding(.horizontal, FkSpacing.lg)
@@ -533,26 +545,28 @@ struct RecipeDetailView: View {
                 Image(systemName: available ? "checkmark.circle.fill" : "circle.dashed")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(available ? Color.fkSuccess : Color.fkDanger)
+                    // The dashed icon now carries the missing cue for VoiceOver,
+                    // replacing the removed "缺少" text pill.
+                    .accessibilityLabel(available ? "已有" : "缺少")
             }
+            // Missing state reads from the dashed icon + soft row tint alone — the
+            // name stays neutral so the ingredient itself isn't drowned in red.
             Text(ingredient.name)
                 .font(.fkBodyMedium)
-                .foregroundStyle(missing ? Color.fkDanger : Color.fkOnSurface)
-            if missing {
-                Text("缺少")
-                    .font(.fkLabelSmall)
-                    .foregroundStyle(Color.fkDanger)
-                    .padding(.horizontal, FkSpacing.sm)
-                    .padding(.vertical, 2)
-                    .background(Capsule().fill(Color.fkDangerSoft))
-            }
-            Spacer(minLength: FkSpacing.md)
+                .foregroundStyle(Color.fkOnSurface)
+                .lineLimit(1)
+            Spacer(minLength: FkSpacing.sm)
+            // Amount keeps layout priority so a long name truncates before it —
+            // the quantity is the dense, must-read half of the row.
             if !ingredient.displayAmount.trimmed.isEmpty {
                 Text(ingredient.displayAmount)
                     .font(.fkLabelMedium)
                     .foregroundStyle(Color.fkOnSurfaceVariant)
+                    .layoutPriority(1)
             }
         }
-        .padding(FkSpacing.lg)
+        .padding(.horizontal, FkSpacing.lg)
+        .padding(.vertical, FkSpacing.md)
         .background(missing ? Color.fkDangerSoft.opacity(0.4) : Color.clear)
     }
 
@@ -561,19 +575,18 @@ struct RecipeDetailView: View {
         Button {
             Task { await addMissingToShopping() }
         } label: {
-            HStack(spacing: FkSpacing.sm) {
+            // Secondary chip (content-width soft capsule, mirrors 烹饪模式) so the
+            // bottom 做菜 capsule stays the only full-width filled primary action.
+            HStack(spacing: FkSpacing.xs) {
                 Image(systemName: "cart.badge.plus")
-                    .font(.system(size: 14, weight: .semibold))
-                Text(isAddingMissing ? "加入中…" : "一键加购缺少的 \(missingCount) 件")
-                    .font(.fkLabelLarge)
+                    .font(.system(size: 13, weight: .semibold))
+                Text(isAddingMissing ? "加入中…" : "加购缺少的 \(missingCount) 件")
+                    .font(.fkLabelMedium)
             }
             .foregroundStyle(Color.fkPrimaryContainer)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, FkSpacing.md)
-            .background(
-                RoundedRectangle(cornerRadius: FkRadius.chip, style: .continuous)
-                    .fill(Color.fkPrimarySoft)
-            )
+            .padding(.horizontal, FkSpacing.md)
+            .padding(.vertical, FkSpacing.sm)
+            .background(Capsule().fill(Color.fkPrimarySoft))
         }
         .buttonStyle(.fkPressable)
         .disabled(isAddingMissing)
@@ -627,13 +640,18 @@ struct RecipeDetailView: View {
             let done = min(checkedSteps.count, total)
             VStack(alignment: .leading, spacing: FkSpacing.sm) {
                 HStack {
+                    // FkSectionHeader's own trailing Spacer pushes the count +
+                    // 烹饪模式 button to the edge; grouping them in one HStack keeps
+                    // a stable gap so they no longer butt against each other.
                     FkSectionHeader(title: "烹饪步骤", count: total)
-                    Spacer(minLength: FkSpacing.sm)
-                    Text("\(done)/\(total)")
-                        .font(.fkLabelMedium)
-                        .foregroundStyle(Color.fkOnSurfaceVariant)
-                    cookModeButton
+                    HStack(spacing: FkSpacing.sm) {
+                        Text("\(done)/\(total)")
+                            .font(.fkLabelMedium)
+                            .foregroundStyle(Color.fkOnSurfaceVariant)
+                        cookModeButton
+                    }
                 }
+                .padding(.bottom, FkSpacing.xs)
                 // Progress bar over the tapped-off steps.
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
@@ -645,13 +663,14 @@ struct RecipeDetailView: View {
                 .frame(height: 5)
                 .padding(.bottom, FkSpacing.xs)
 
-                VStack(spacing: FkSpacing.sm) {
+                VStack(spacing: FkSpacing.md) {
                     ForEach(Array(recipe.steps.enumerated()), id: \.offset) { index, step in
                         stepRow(index: index, number: index + 1, text: step)
                     }
                 }
             }
             .padding(.horizontal, FkSpacing.lg)
+            .padding(.top, FkSpacing.xs)
         }
     }
 
