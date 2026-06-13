@@ -63,9 +63,17 @@ struct ShoppingView: View {
                     householdID: householdID,
                     syncWriter: dependencies.syncWriter
                 )
+                // OFFLINE-FIRST, NO FLASH: load the new scope's local rows BEFORE
+                // swapping the store in — assigning an empty store first flashed an
+                // empty list between the swap and `load()` on every household switch
+                // (incl. the cold-launch "" → uuid auto-select). Loading first keeps
+                // the previous list on screen until the new (local, instant) data is
+                // ready. Guard so a newer switch during the load doesn't assign this
+                // stale scope's store over the successor's.
+                await store.load()
+                guard householdID == dependencies.householdID, !Task.isCancelled else { return }
                 self.store = store
                 self.loadedHouseholdID = householdID
-                await store.load()
             } else {
                 await store?.load()
             }
@@ -198,7 +206,12 @@ private struct ShoppingContent: View {
         List {
             Section {
                 ShoppingProgressCard(done: store.checkedCount, total: store.total, progress: store.progress)
-                    .listRowInsets(EdgeInsets(top: FkSpacing.sm, leading: FkSpacing.lg, bottom: FkSpacing.xs, trailing: FkSpacing.lg))
+                    // leading/trailing 0: the section's `.listSectionMargins` already
+                    // insets the row to FkSpacing.lg (16pt), so the blue card's edges land
+                    // exactly where the 首页 hero's do. Adding FkSpacing.lg here again
+                    // double-inset it (insetGrouped's ~20pt default section margin + 16 =
+                    // ~36pt), making it visibly narrower than the home hero.
+                    .listRowInsets(EdgeInsets(top: FkSpacing.sm, leading: 0, bottom: FkSpacing.xs, trailing: 0))
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                 ShoppingFilterChips(store: store)
@@ -206,6 +219,7 @@ private struct ShoppingContent: View {
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
             }
+            .listSectionMargins(.horizontal, FkSpacing.lg)
 
             if store.displaySections.isEmpty {
                 Section {
@@ -217,6 +231,7 @@ private struct ShoppingContent: View {
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                 }
+                .listSectionMargins(.horizontal, FkSpacing.lg)
             } else {
                 ForEach(store.displaySections, id: \.category) { section in
                     Section {
@@ -271,6 +286,7 @@ private struct ShoppingContent: View {
                             withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { store.toggleCollapsed(section.category) }
                         }
                     }
+                    .listSectionMargins(.horizontal, FkSpacing.lg)
                 }
             }
 
@@ -280,6 +296,7 @@ private struct ShoppingContent: View {
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                 }
+                .listSectionMargins(.horizontal, FkSpacing.lg)
             }
         }
         .listStyle(.insetGrouped)
@@ -592,7 +609,9 @@ private struct ShoppingFilterChips: View {
                 chip("待购买", .todo, store.uncheckedCount)
                 chip("已购", .done, store.checkedCount)
             }
-            .padding(.horizontal, FkSpacing.lg)
+            // No internal horizontal padding: the row sits inside the section margin
+            // (FkSpacing.lg), so the first chip already starts at 16pt — flush with the
+            // progress card above. Re-adding padding here would push it in to ~32pt.
         }
     }
 
