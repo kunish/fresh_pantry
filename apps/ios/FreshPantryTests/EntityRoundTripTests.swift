@@ -77,6 +77,25 @@ struct EntityRoundTripTests {
         #expect(decoded.ingredients[0].displayAmount == "2个")
     }
 
+    @Test func recipeVideoUrlRoundTrip() throws {
+        let recipe = Recipe(
+            id: "r_v", name: "红烧肉", category: "荤菜", difficulty: 3,
+            cookingMinutes: 60, description: "下饭",
+            ingredients: [], steps: ["焯水", "炖"], tags: [],
+            imageUrl: "img", videoUrl: "https://b23.tv/abc"
+        )
+        let json = try DomainJSON.encodeToString(recipe)
+        let decoded = try DomainJSON.decode(Recipe.self, from: json)
+        #expect(decoded.videoUrl == "https://b23.tv/abc")
+    }
+
+    @Test func recipeMissingVideoUrlDecodesNil() throws {
+        // 老数据没有 videoUrl 键 → 向后兼容解码为 nil。
+        let legacy = #"{"id":"r1","name":"n","category":"荤菜","difficulty":1,"cookingMinutes":10,"description":"d","ingredients":[],"steps":[],"tags":[],"imageUrl":null,"remoteVersion":0,"clientUpdatedAt":null,"deletedAt":null}"#
+        let decoded = try DomainJSON.decode(Recipe.self, from: legacy)
+        #expect(decoded.videoUrl == nil)
+    }
+
     @Test func difficultyLabel() {
         func recipe(_ d: Int) -> Recipe {
             Recipe(id: "x", name: "n", category: "", difficulty: d,
