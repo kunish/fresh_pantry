@@ -45,6 +45,10 @@ export interface AcquireVideoDeps {
   /** 候选最低播放量门槛(反垃圾),默认 1000。 */
   minPlay?: number;
   log?: Log;
+  /** 每次实际搜索之间的节流延迟(ms),避免触发 B站风控,默认 500。 */
+  delayMs?: number;
+  /** 可注入的 sleep 函数(测试用),默认 setTimeout。 */
+  sleep?: (ms: number) => Promise<void>;
 }
 
 export interface AcquireVideoReport {
@@ -65,9 +69,14 @@ export async function acquireMissingVideos(
 ): Promise<AcquireVideoReport> {
   const log = deps.log ?? (() => {});
   const minPlay = deps.minPlay ?? 1000;
+  const delayMs = deps.delayMs ?? 500;
+  const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const report: AcquireVideoReport = { acquired: 0, failed: 0, skipped: 0, attributions: [], failures: [] };
+  let searched = 0;
   for (const r of recipes) {
     if (!needsVideo(r)) { report.skipped++; continue; }
+    if (searched > 0 && delayMs > 0) await sleep(delayMs); // 节流:相邻搜索间隔
+    searched++;
     const dish: DishQuery = {
       id: r.id, name: r.name, category: r.category,
       ingredients: r.ingredients.map((i) => i.name).slice(0, 6),

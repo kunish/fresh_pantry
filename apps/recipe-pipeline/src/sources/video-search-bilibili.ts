@@ -18,6 +18,10 @@ function parseDuration(d: unknown): number | undefined {
 export interface BilibiliSearchOptions {
   fetchImpl?: typeof fetch;
   log?: Log;
+  /** 命中风控后的退避等待时间(ms),默认 3000。 */
+  riskBackoffMs?: number;
+  /** 可注入的 sleep 函数(测试用),默认 setTimeout。 */
+  sleep?: (ms: number) => Promise<void>;
 }
 
 interface BiliResultItem {
@@ -35,6 +39,8 @@ interface BiliResultItem {
  */
 export function createBilibiliVideoSearch(opts: BilibiliSearchOptions = {}): VideoSearchProvider {
   const fetchImpl = opts.fetchImpl ?? fetch;
+  const riskBackoffMs = opts.riskBackoffMs ?? 3000;
+  const sleep = opts.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   let cookie: string | null = null;
 
   async function ensureCookie(): Promise<string> {
@@ -47,31 +53,49 @@ export function createBilibiliVideoSearch(opts: BilibiliSearchOptions = {}): Vid
     return cookie;
   }
 
+  /** 执行一次 API 搜索;返回候选数组,或 'risk'(命中风控/JSON 解析失败/code 非 0)。 */
+  async function querySearch(dish: DishQuery, ck: string): Promise<VideoCandidate[] | 'risk'> {
+    const kw = encodeURIComponent(`${dish.name} 做法`);
+    const url = `https://api.bilibili.com/x/web-interface/search/type?search_type=video&keyword=${kw}&page=1`;
+    const res = await fetchImpl(url, {
+      headers: { 'User-Agent': UA, Referer: 'https://www.bilibili.com/', Cookie: ck },
+    });
+    let body: { code?: number; data?: { result?: BiliResultItem[] } };
+    try {
+      body = (await res.json()) as { code?: number; data?: { result?: BiliResultItem[] } };
+    } catch {
+      // res.json() 抛说明返回了 HTML 风控页,非 JSON
+      return 'risk';
+    }
+    if (body.code !== 0) return 'risk';
+    if (!Array.isArray(body.data?.result)) return [];
+    return body.data.result
+      .filter((v) => typeof v.bvid === 'string' && /^BV\w+$/.test(v.bvid))
+      .map((v) => ({
+        videoUrl: `https://www.bilibili.com/video/${v.bvid}`,
+        sourcePage: `https://www.bilibili.com/video/${v.bvid}`,
+        title: stripHtml(v.title ?? ''),
+        provider: 'bilibili',
+        author: v.author,
+        play: typeof v.play === 'number' ? v.play : undefined,
+        durationSec: parseDuration(v.duration),
+      }));
+  }
+
   return {
     async search(dish: DishQuery, log: Log): Promise<VideoCandidate[]> {
       try {
-        const ck = await ensureCookie();
-        const kw = encodeURIComponent(`${dish.name} 做法`);
-        const url = `https://api.bilibili.com/x/web-interface/search/type?search_type=video&keyword=${kw}&page=1`;
-        const res = await fetchImpl(url, {
-          headers: { 'User-Agent': UA, Referer: 'https://www.bilibili.com/', Cookie: ck },
-        });
-        const body = (await res.json()) as { code?: number; data?: { result?: BiliResultItem[] } };
-        if (body.code !== 0 || !Array.isArray(body.data?.result)) {
-          log(`B站搜索无结果: ${dish.name}(code ${body.code})`);
-          return [];
+        let ck = await ensureCookie();
+        let r = await querySearch(dish, ck);
+        if (r === 'risk') {
+          log(`B站风控,重取 cookie + 退避重试: ${dish.name}`);
+          cookie = null; // 强制下次重新引导 cookie
+          await sleep(riskBackoffMs);
+          ck = await ensureCookie();
+          r = await querySearch(dish, ck);
+          if (r === 'risk') { log(`B站仍风控,跳过: ${dish.name}`); return []; }
         }
-        return body.data.result
-          .filter((v) => typeof v.bvid === 'string' && /^BV\w+$/.test(v.bvid))
-          .map((v) => ({
-            videoUrl: `https://www.bilibili.com/video/${v.bvid}`,
-            sourcePage: `https://www.bilibili.com/video/${v.bvid}`,
-            title: stripHtml(v.title ?? ''),
-            provider: 'bilibili',
-            author: v.author,
-            play: typeof v.play === 'number' ? v.play : undefined,
-            durationSec: parseDuration(v.duration),
-          }));
+        return r;
       } catch (e) {
         log(`B站搜索失败: ${dish.name} ${e instanceof Error ? e.message : String(e)}`);
         return [];

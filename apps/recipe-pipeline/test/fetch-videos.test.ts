@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { acquireMissingVideos, mergeVideoAttributions, type VideoAttribution, type VideoSearchProvider, type VideoCandidate } from '../src/clean/fetch-videos';
 import type { CleanRecipe } from '../src/clean/schema';
 
@@ -33,6 +33,26 @@ describe('acquireMissingVideos', () => {
     const rep = await acquireMissingVideos(recipes, { search, now: 't' });
     expect(rep.acquired).toBe(0);
     expect(recipes[0].videoUrl).toBe('https://old');
+  });
+  it('相邻搜索之间节流(sleep 被调用一次,首次不等)', async () => {
+    const recipes = [r({ id: 'a', name: 'A' }), r({ id: 'b', name: 'B' })];
+    const search = stub({
+      'A': [{ videoUrl: 'https://www.bilibili.com/video/BV1a', title: 'A', provider: 'bilibili', play: 9999 }],
+      'B': [{ videoUrl: 'https://www.bilibili.com/video/BV1b', title: 'B', provider: 'bilibili', play: 9999 }],
+    });
+    const sleep = vi.fn().mockResolvedValue(undefined);
+    await acquireMissingVideos(recipes, { search, now: 't', delayMs: 10, sleep, minPlay: 1000 });
+    expect(sleep).toHaveBeenCalledTimes(1); // 两次搜索之间隔一次(首次不等)
+  });
+  it('delayMs=0 时 sleep 不被调用', async () => {
+    const recipes = [r({ id: 'a', name: 'A' }), r({ id: 'b', name: 'B' })];
+    const search = stub({
+      'A': [{ videoUrl: 'https://www.bilibili.com/video/BV1a', title: 'A', provider: 'bilibili', play: 9999 }],
+      'B': [{ videoUrl: 'https://www.bilibili.com/video/BV1b', title: 'B', provider: 'bilibili', play: 9999 }],
+    });
+    const sleep = vi.fn().mockResolvedValue(undefined);
+    await acquireMissingVideos(recipes, { search, now: 't', delayMs: 0, sleep, minPlay: 1000 });
+    expect(sleep).toHaveBeenCalledTimes(0);
   });
 });
 
