@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applyAcquiredVideos, mergeVideoAttributions, type VideoAttribution } from '../src/clean/fetch-videos';
+import { acquireMissingVideos, mergeVideoAttributions, type VideoAttribution, type VideoSearchProvider, type VideoCandidate } from '../src/clean/fetch-videos';
 import type { CleanRecipe } from '../src/clean/schema';
 
 const r = (over: Partial<CleanRecipe> = {}): CleanRecipe => ({
@@ -8,27 +8,30 @@ const r = (over: Partial<CleanRecipe> = {}): CleanRecipe => ({
   videoUrl: null, remoteVersion: 0, clientUpdatedAt: null, deletedAt: null, ...over,
 });
 
-describe('applyAcquiredVideos', () => {
-  it('给缺视频的菜回填 videoUrl + 产出出处', () => {
-    const recipes = [r({ id: 'a' }), r({ id: 'b' })];
-    const { updated, attributions } = applyAcquiredVideos(
-      recipes,
-      [{ id: 'a', videoUrl: 'https://b23.tv/a', provider: 'bilibili', title: 'A 做法' }],
-      '2026-06-13T00:00:00Z',
-    );
-    expect(updated).toBe(1);
-    expect(recipes[0].videoUrl).toBe('https://b23.tv/a');
-    expect(recipes[1].videoUrl).toBeNull();
-    expect(attributions[0]).toMatchObject({ id: 'a', videoUrl: 'https://b23.tv/a', provider: 'bilibili' });
+describe('acquireMissingVideos', () => {
+  const stub = (byName: Record<string, VideoCandidate[]>): VideoSearchProvider => ({
+    async search(dish) { return byName[dish.name] ?? []; },
   });
-  it('既有 videoUrl 不覆盖;空 videoUrl 的 acquired 跳过;软删跳过', () => {
-    const recipes = [r({ id: 'a', videoUrl: 'https://old' }), r({ id: 'c', deletedAt: '2026-01-01T00:00:00Z' })];
-    const { updated } = applyAcquiredVideos(
-      recipes,
-      [{ id: 'a', videoUrl: 'https://new' }, { id: 'c', videoUrl: 'https://x' }, { id: 'd', videoUrl: '' }],
-      '2026-06-13T00:00:00Z',
-    );
-    expect(updated).toBe(0);
+  it('给缺视频的菜选首个达播放阈值的候选 + 出处;无候选留 null', async () => {
+    const recipes = [r({ id: 'a', name: '红烧肉' }), r({ id: 'b', name: '无果菜' })];
+    const search = stub({ '红烧肉': [
+      { videoUrl: 'https://www.bilibili.com/video/BV1lo', title: '低播放', provider: 'bilibili', play: 50 },
+      { videoUrl: 'https://www.bilibili.com/video/BV1hi', title: '红烧肉做法', provider: 'bilibili', play: 50000 },
+    ] });
+    const rep = await acquireMissingVideos(recipes, { search, now: 't', minPlay: 1000 });
+    expect(rep.acquired).toBe(1);
+    expect(recipes[0].videoUrl).toBe('https://www.bilibili.com/video/BV1hi'); // 跳过低播放,取达标的
+    expect(recipes[1].videoUrl).toBeNull();
+    expect(rep.attributions[0]).toMatchObject({ id: 'a', provider: 'bilibili', videoUrl: 'https://www.bilibili.com/video/BV1hi' });
+  });
+  it('既有 videoUrl 跳过(既有优先);软删跳过', async () => {
+    const recipes = [
+      r({ id: 'a', name: '红烧肉', videoUrl: 'https://old' }),
+      r({ id: 'c', name: '红烧肉', deletedAt: '2026-01-01T00:00:00Z' }),
+    ];
+    const search = stub({ '红烧肉': [{ videoUrl: 'https://www.bilibili.com/video/BV1x', title: 't', provider: 'bilibili', play: 99999 }] });
+    const rep = await acquireMissingVideos(recipes, { search, now: 't' });
+    expect(rep.acquired).toBe(0);
     expect(recipes[0].videoUrl).toBe('https://old');
   });
 });
