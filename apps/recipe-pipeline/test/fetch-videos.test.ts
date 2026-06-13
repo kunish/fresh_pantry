@@ -24,6 +24,14 @@ describe('acquireMissingVideos', () => {
     expect(recipes[1].videoUrl).toBeNull();
     expect(rep.attributions[0]).toMatchObject({ id: 'a', provider: 'bilibili', videoUrl: 'https://www.bilibili.com/video/BV1hi' });
   });
+  it('videoUrl 键缺失(undefined,旧数据)也视为待补,不被跳过', async () => {
+    const legacy = r({ id: 'a', name: '红烧肉' });
+    delete (legacy as { videoUrl?: string | null }).videoUrl; // 模拟旧数据无该键
+    const search = stub({ '红烧肉': [{ videoUrl: 'https://www.bilibili.com/video/BV1u', title: '红烧肉做法', provider: 'bilibili', play: 9999 }] });
+    const rep = await acquireMissingVideos([legacy], { search, now: 't' });
+    expect(rep.acquired).toBe(1);
+    expect(legacy.videoUrl).toBe('https://www.bilibili.com/video/BV1u');
+  });
   it('既有 videoUrl 跳过(既有优先);软删跳过', async () => {
     const recipes = [
       r({ id: 'a', name: '红烧肉', videoUrl: 'https://old' }),

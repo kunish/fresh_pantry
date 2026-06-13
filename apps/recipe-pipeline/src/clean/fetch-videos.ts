@@ -18,9 +18,9 @@ export interface VideoAttribution {
   acquiredAt: string;
 }
 
-/** 待补视频:没视频、且非软删。 */
+/** 待补视频:没视频、且非软删。`!videoUrl` 覆盖 null/undefined(旧数据缺键)/空串。 */
 function needsVideo(r: CleanRecipe): boolean {
-  return (r.videoUrl === null || r.videoUrl === '') && !r.deletedAt;
+  return !r.videoUrl && !r.deletedAt;
 }
 
 /** 一条候选视频(B站等搜索源产出)。 */
