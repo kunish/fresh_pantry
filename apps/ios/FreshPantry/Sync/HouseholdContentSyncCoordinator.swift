@@ -24,6 +24,7 @@ actor HouseholdContentSyncCoordinator {
     private let mealPlan: MealPlanRepository
     private let foodLog: FoodLogRepository
     private let session: SyncSession
+    private let diagnostics: Diagnostics
 
     private static let logger = Logger(subsystem: "com.kunish.freshPantry", category: "sync")
 
@@ -52,7 +53,8 @@ actor HouseholdContentSyncCoordinator {
         customRecipe: CustomRecipeRepository,
         mealPlan: MealPlanRepository,
         foodLog: FoodLogRepository,
-        session: SyncSession
+        session: SyncSession,
+        diagnostics: Diagnostics = NoopDiagnostics()
     ) {
         self.remote = remote
         self.push = push
@@ -63,6 +65,7 @@ actor HouseholdContentSyncCoordinator {
         self.mealPlan = mealPlan
         self.foodLog = foodLog
         self.session = session
+        self.diagnostics = diagnostics
     }
 
     /// Switches reconciliation to `householdId`. A no-op when unchanged; on a
@@ -139,6 +142,7 @@ actor HouseholdContentSyncCoordinator {
         } catch is CancellationError {
         } catch {
             Self.logger.error("while refreshing household delta: \(error.localizedDescription, privacy: .public)")
+            diagnostics.failure("sync.pull", error: error, ["phase": "delta"])
         }
     }
 
@@ -165,6 +169,7 @@ actor HouseholdContentSyncCoordinator {
                 try await foodLog.migrateLegacyIds()
             } catch {
                 Self.logger.error("FoodLog id migration failed: \(error.localizedDescription, privacy: .public)")
+                diagnostics.failure("sync.migrate", error: error, [:])
             }
             guard isCurrent(gen, householdId) else { return }
 
@@ -219,10 +224,12 @@ actor HouseholdContentSyncCoordinator {
             if let advanced {
                 await MainActor.run { session.setSyncCursor(advanced, for: householdId) }
             }
+            diagnostics.breadcrumb("sync.pull", ["outcome": "ok", "mode": since == nil ? "full" : "delta"])
         } catch is CancellationError {
             // A household switch / stop cancelled this run — not an error.
         } catch {
             Self.logger.error("while syncing household content: \(error.localizedDescription, privacy: .public)")
+            diagnostics.failure("sync.pull", error: error, ["phase": "startSync"])
             // Mark the run failed so the next reconnect / foreground re-runs the
             // whole sequence (without this, an offline launch left inbound sync
             // absent for the rest of the session — `syncTo` no-ops on the same

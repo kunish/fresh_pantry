@@ -39,6 +39,7 @@ actor SyncCoordinator {
     private let outbox: OutboxReading
     private let remote: RemoteSyncGateway
     private let retry: SyncRetryPolicy
+    private let diagnostics: Diagnostics
 
     private var inFlight: Task<Void, Never>?
     private var rerunRequested = false
@@ -97,12 +98,14 @@ actor SyncCoordinator {
         outbox: OutboxReading,
         remote: RemoteSyncGateway,
         retry: SyncRetryPolicy = SyncRetryPolicy(),
-        deadLetterThreshold: Int = 3
+        deadLetterThreshold: Int = 3,
+        diagnostics: Diagnostics = NoopDiagnostics()
     ) {
         self.outbox = outbox
         self.remote = remote
         self.retry = retry
         self.deadLetterThreshold = deadLetterThreshold
+        self.diagnostics = diagnostics
     }
 
     /// Injects the reachability check used to gate dead-letter strikes (see
@@ -150,6 +153,7 @@ actor SyncCoordinator {
     func clearDeadLetters() async {
         let ids = quarantinedOpIds
         guard !ids.isEmpty else { return }
+        diagnostics.breadcrumb("sync.deadletter.cleared", ["count": String(ids.count)])
         resetQuarantine()
         try? await outbox.removeAcknowledged(ids)
     }
@@ -266,6 +270,7 @@ actor SyncCoordinator {
                 Self.logger.error(
                     "outbox removeAcknowledged failed (retried next run): \(String(describing: error), privacy: .public)"
                 )
+                diagnostics.failure("sync.ack_removal", error: error, [:])
             }
             for op in active where acknowledged.contains(op.id) {
                 headFailureCounts[EntityKey(op)] = nil
@@ -279,6 +284,7 @@ actor SyncCoordinator {
             if acknowledged.count < active.count,
                let failed = active.first(where: { !acknowledged.contains($0.id) }),
                isOnline {
+                diagnostics.breadcrumb("sync.partial_ack", ["entityType": failed.entityType.rawValue])
                 strike(failed, pending: pending)
             }
             return
@@ -302,11 +308,16 @@ actor SyncCoordinator {
         let count = (headFailureCounts[key] ?? 0) + 1
         guard count >= deadLetterThreshold else {
             headFailureCounts[key] = count
+            diagnostics.breadcrumb(
+                "sync.push.strike",
+                ["entityType": op.entityType.rawValue, "count": String(count)]
+            )
             return
         }
         headFailureCounts[key] = nil
         deadLetteredEntities.insert(key)
         quarantinedOpIds.formUnion(pending.filter { EntityKey($0) == key }.map(\.id))
+        diagnostics.failure("sync.deadletter", error: nil, ["entityType": op.entityType.rawValue])
     }
 }
 

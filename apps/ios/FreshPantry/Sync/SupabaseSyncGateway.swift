@@ -26,11 +26,13 @@ import Supabase
 /// not the post-update filter builder).
 actor SupabaseSyncGateway: RemoteSyncGateway {
     private let client: SupabaseClient
+    private let diagnostics: Diagnostics
     private static let maxConflictRetries = 3
     private static let logger = Logger(subsystem: "com.kunish.freshPantry", category: "sync")
 
-    init(client: SupabaseClient) {
+    init(client: SupabaseClient, diagnostics: Diagnostics = NoopDiagnostics()) {
         self.client = client
+        self.diagnostics = diagnostics
     }
 
     // MARK: - Push loop
@@ -40,6 +42,7 @@ actor SupabaseSyncGateway: RemoteSyncGateway {
     /// Never throws: a push error is reported and breaks the loop so the FIFO
     /// order is preserved for the next trigger.
     func pushOperations(_ ops: [SyncOperation]) async throws -> Set<String> {
+        diagnostics.breadcrumb("sync.push_batch", ["count": String(ops.count)])
         var acknowledged: Set<String> = []
         for op in ops {
             do {
@@ -308,12 +311,20 @@ actor SupabaseSyncGateway: RemoteSyncGateway {
         Self.logger.error(
             "push failed \(op.entityType.rawValue, privacy: .public)/\(op.operation.rawValue, privacy: .public) id=\(op.id, privacy: .public): \(String(describing: error), privacy: .public)"
         )
+        diagnostics.failure("sync.push", error: error, [
+            "entityType": op.entityType.rawValue,
+            "operation": op.operation.rawValue,
+        ])
     }
 
     private func reportConflict(_ op: SyncOperation, fields: [String]) {
         Self.logger.notice(
             "conflict resolved (client wins) \(op.entityType.rawValue, privacy: .public) id=\(op.entityId, privacy: .public) fields=\(fields.joined(separator: ","), privacy: .public)"
         )
+        diagnostics.breadcrumb("sync.conflict", [
+            "entityType": op.entityType.rawValue,
+            "fieldCount": String(fields.count),
+        ])
     }
 }
 

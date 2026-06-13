@@ -117,6 +117,9 @@ final class AppDependencies {
     /// Always built — local notifications need no backend; gated only by the OS
     /// permission grant inside the service.
     let notificationCoordinator: NotificationCoordinator
+    /// 诊断/可观测性门面。按构建配置分流(DEBUG→OSLog、Release+配置→Sentry、
+    /// 否则→Noop)。注入到同步等关键 service;未注入处用 NoopDiagnostics 默认值。
+    let diagnostics: Diagnostics
 
     /// The active household scope. COMPUTED from `syncSession` so the session is
     /// the single source of truth (no call site writes this); the `householdID`
@@ -167,6 +170,8 @@ final class AppDependencies {
             inventory: self.inventoryRepository,
             reminderSettings: self.reminderSettingsStore
         )
+        let diagnostics = DiagnosticsFactory.make(sentryConfig: config?.sentry)
+        self.diagnostics = diagnostics
         let clientProvider = SupabaseClientProvider(config: config)
         self.clientProvider = clientProvider
         self.authService = AuthService(backend: clientProvider.authBackend)
@@ -191,8 +196,8 @@ final class AppDependencies {
         // read/household-management repository. Without one (local-only), the
         // writer still records ops but has no coordinator to push them.
         if let client = clientProvider.client {
-            let gateway = SupabaseSyncGateway(client: client)
-            let coordinator = SyncCoordinator(outbox: outbox, remote: gateway)
+            let gateway = SupabaseSyncGateway(client: client, diagnostics: diagnostics)
+            let coordinator = SyncCoordinator(outbox: outbox, remote: gateway, diagnostics: diagnostics)
             self.syncCoordinator = coordinator
             let remoteRepository = RemotePantryRepository(
                 client: client,
@@ -209,7 +214,8 @@ final class AppDependencies {
                 customRecipe: self.customRecipeRepository,
                 mealPlan: self.mealPlanRepository,
                 foodLog: self.foodLogRepository,
-                session: session
+                session: session,
+                diagnostics: diagnostics
             )
         } else {
             self.syncCoordinator = nil
