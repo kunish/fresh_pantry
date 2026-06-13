@@ -175,9 +175,9 @@ final class SpotlightIndexer: @unchecked Sendable {
     }
 
     /// "yyyy-MM-dd" matches the in-app detail screen's expiry rendering.
-    /// `nonisolated(unsafe)` mirrors `JSONDate`: `DateFormatter` is thread-safe
-    /// on modern OS releases and this one is immutable after init.
-    nonisolated(unsafe) private static let expiryFormatter: DateFormatter = {
+    /// `DateFormatter` is `Sendable` on modern SDKs and this one is immutable
+    /// after init, so a plain `static let` is concurrency-safe.
+    private static let expiryFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "yyyy-MM-dd"

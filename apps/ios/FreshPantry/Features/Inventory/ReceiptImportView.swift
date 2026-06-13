@@ -112,7 +112,9 @@ struct ReceiptImportView: View {
         }
     }
 
-    private var pickerLabel: some View {
+    // `nonisolated`: the label is static chrome (no @State), so it can be read
+    // from PhotosPicker's nonisolated `label` closure without an isolation warning.
+    nonisolated private var pickerLabel: some View {
         HStack(spacing: FkSpacing.sm) {
             Image(systemName: "doc.text.viewfinder")
             Text("选择小票照片")

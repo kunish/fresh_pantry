@@ -13,6 +13,7 @@ final class InventoryLongPressPreviewUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    @MainActor
     func testLongPressShowsPreviewMenu() {
         let app = XCUIApplication()
         // `-uiTesting`: clean in-memory store + DEBUG seed; `-initialTab inventory`

@@ -20,6 +20,7 @@ final class CategoryDrillDownUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    @MainActor
     func testHomeCategoryDrillDownAppliesInventoryFilter() {
         let app = XCUIApplication()
         // `-uiTesting`: clean in-memory store + wiped defaults + signed-out launch,
@@ -65,6 +66,7 @@ final class CategoryDrillDownUITests: XCTestCase {
     }
 
     /// Returns to the 首页 tab (sidebarAdaptable → bottom tab bar on iPhone).
+    @MainActor
     private func goHome(_ app: XCUIApplication) {
         let tabButton = app.tabBars.buttons["首页"]
         if tabButton.waitForExistence(timeout: 5) {

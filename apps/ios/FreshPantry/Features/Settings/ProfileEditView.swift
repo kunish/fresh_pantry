@@ -85,24 +85,31 @@ struct ProfileEditView: View {
     // MARK: Avatar
 
     private var avatarPicker: some View {
-        PhotosPicker(selection: $pickerItem, matching: .images) {
+        // PhotosPicker's `label` closure is inferred nonisolated, so snapshot the
+        // main-actor state it needs into Sendable locals (re-read on every body
+        // re-eval, so the preview stays live) and render the fallback via a
+        // nonisolated static helper.
+        let pickedAvatarData = pickedAvatar
+        let avatarURL = store.avatarURL
+        let fallbackInitial = displayName.first.map { String($0).uppercased() } ?? "?"
+        return PhotosPicker(selection: $pickerItem, matching: .images) {
             ZStack {
-                if let pickedAvatar, let ui = UIImage(data: pickedAvatar) {
+                if let pickedAvatarData, let ui = UIImage(data: pickedAvatarData) {
                     Image(uiImage: ui).resizable().scaledToFill()
-                } else if let url = store.avatarURL {
+                } else if let avatarURL {
                     // Edit-screen preview stays on AsyncImage: a generic CachedRemoteImage
                     // here trips the PhotosPicker label's isolation inference (the label
                     // closure is nonisolated). Every *display* surface (MemberAvatar in the
                     // settings card / profile hero, the household member list, recipe covers)
                     // is disk-cached via CachedRemoteImage; this transient editing preview
                     // is the one spot left on AsyncImage.
-                    AsyncImage(url: url) { image in
+                    AsyncImage(url: avatarURL) { image in
                         image.resizable().scaledToFill()
                     } placeholder: {
-                        avatarFallback
+                        Self.avatarFallbackView(fallbackInitial)
                     }
                 } else {
-                    avatarFallback
+                    Self.avatarFallbackView(fallbackInitial)
                 }
             }
             .frame(width: 96, height: 96)
@@ -119,10 +126,12 @@ struct ProfileEditView: View {
         .buttonStyle(.fkPressable)
     }
 
-    private var avatarFallback: some View {
+    // `nonisolated static`: rendered from PhotosPicker's nonisolated `label`
+    // closure, so it takes the precomputed initial instead of reading @State.
+    nonisolated private static func avatarFallbackView(_ initial: String) -> some View {
         ZStack {
             Color.fkPrimarySoft
-            Text(displayName.first.map { String($0).uppercased() } ?? "?")
+            Text(initial)
                 .font(.fkHeadlineSmall)
                 .foregroundStyle(Color.fkPrimary)
         }

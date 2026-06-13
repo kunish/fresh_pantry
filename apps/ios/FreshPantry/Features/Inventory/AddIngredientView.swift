@@ -462,19 +462,23 @@ struct AddIngredientView: View {
     /// prefill the shelf-life. No AI provider needed (recognition is fully local).
     /// A miss surfaces an inline "请手动填写" notice and never blocks the form.
     private var scanExpiryButton: some View {
-        PhotosPicker(
+        // Snapshot the main-actor @State into a Sendable local: the PhotosPicker
+        // `label` closure is inferred nonisolated, so it can't read `self` state
+        // directly (the value re-reads on every body re-eval, so it stays live).
+        let recognizing = isRecognizingExpiry
+        return PhotosPicker(
             selection: $pickedExpiryPhoto,
             matching: .images,
             photoLibrary: .shared()
         ) {
             HStack(spacing: FkSpacing.xs) {
-                if isRecognizingExpiry {
+                if recognizing {
                     ProgressView().controlSize(.small)
                 } else {
                     Image(systemName: "text.viewfinder")
                         .font(.system(size: 13, weight: .semibold))
                 }
-                Text(isRecognizingExpiry ? "识别中…" : "拍照识别保质期")
+                Text(recognizing ? "识别中…" : "拍照识别保质期")
                     .font(.fkLabelMedium)
             }
             .foregroundStyle(Color.fkPrimary)
