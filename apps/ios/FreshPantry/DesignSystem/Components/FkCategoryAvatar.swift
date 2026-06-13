@@ -53,22 +53,12 @@ struct FkCategoryAvatar: View {
     }
 }
 
-/// Fetch-and-downsample cache for remote avatar images. `URLSession.shared`'s
-/// URLCache keeps the bytes; this `NSCache` keeps the decoded thumbnails, keyed
-/// by URL + pixel size so different render sizes don't collide. `@MainActor`
-/// like `RecipeImageStore` (read from view bodies/tasks), with the actual
-/// download awaited off-actor by URLSession.
+/// Fetch-and-downsample cache for remote OFF food thumbnails. Delegates to
+/// `RemoteImageCache` so the bytes persist to disk (offline-capable, survives
+/// restarts) instead of relying on `URLSession`'s volatile URLCache.
 @MainActor
 enum RemoteThumbnailStore {
-    private static let cache = NSCache<NSString, UIImage>()
-
     static func thumbnail(for url: URL, maxPixel: Int) async -> UIImage? {
-        let key = "\(url.absoluteString)#\(maxPixel)" as NSString
-        if let cached = cache.object(forKey: key) { return cached }
-        guard let (data, _) = try? await URLSession.shared.data(from: url),
-              let image = RecipeImageStore.downsample(data, maxPixel: maxPixel)
-        else { return nil }
-        cache.setObject(image, forKey: key)
-        return image
+        await RemoteImageCache.image(for: url, maxPixel: maxPixel)
     }
 }

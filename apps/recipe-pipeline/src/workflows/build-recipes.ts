@@ -3,6 +3,7 @@ import type { FlueContext } from '@flue/runtime';
 import recipeCleaner from '../agents/recipe-cleaner';
 import { createFlueEnricher } from '../clean/flue-enricher';
 import { buildSources, type SourcesFile } from '../sources/registry';
+import { createOpenverseSearch } from '../sources/image-search-openverse';
 import { runPipeline } from '../pipeline';
 import { config } from '../config';
 
@@ -29,6 +30,8 @@ export async function run({ init, payload }: FlueContext<BuildPayload>) {
     rejectsPath: config.rejectsPath,
     workDir: config.workDir,
     imagesDir: config.imagesDir,
+    imageSearch: config.acquireImages ? createOpenverseSearch() : undefined,
+    attributionsPath: config.attributionsPath,
     now: new Date().toISOString(),
     concurrency: config.concurrency,
     limit: payload?.limit,

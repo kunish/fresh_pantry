@@ -40,11 +40,11 @@ targets:
       - path: FreshPantry
         excludes:
           - "Support/Secrets.example.plist"
-          # Bundled as a folder reference below (keeps the 174 HowToCook covers in a
-          # RecipeImages/ subdirectory of the .app instead of flattened into root).
+          # Recipe covers now stream from Supabase Storage (disk-cached on device via
+          # RemoteImageCache), NOT bundled — keeps the app ~111MB slimmer. The files
+          # stay in the repo as the pipeline's upload source but are excluded from the
+          # app target (see apps/recipe-pipeline/README.md → 联网补图 / Supabase 迁移).
           - "Resources/RecipeImages"
-      - path: FreshPantry/Resources/RecipeImages
-        type: folder
     dependencies:
       - package: Supabase
         product: Supabase

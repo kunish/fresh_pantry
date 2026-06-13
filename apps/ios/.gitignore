@@ -12,5 +12,10 @@ xcuserdata/
 # Secrets — generated from CI secrets or copied from Secrets.example.plist
 FreshPantry/Support/Secrets.plist
 
+# Recipe covers — hosted on Supabase Storage (recipe-images bucket), not bundled.
+# Kept on disk only as the pipeline's upload source (npm run images:upload);
+# not tracked to avoid ~111MB in the tree. See apps/recipe-pipeline/README.md.
+FreshPantry/Resources/RecipeImages/
+
 # macOS
 .DS_Store

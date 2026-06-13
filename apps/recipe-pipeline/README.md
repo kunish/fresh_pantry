@@ -40,8 +40,47 @@ CLI 直接调用:`flue run build-recipes --target node --payload '{"limit":3,"dr
   公式里的系数不是用量——除式「变量/数」(`张数 / 0.13`)、配比「a:b:c」(`3:2:2`)一律留空 `quantity`;
   乘式每份率(`X * 份数`、`1.5 只/三人`)取带单位的每份量;闸门 `isFormulaCoefficient` 机器拦截系数误当用量。
 - `description` 无 markdown 残留;食材不含厨具;`cookingMinutes` 源声明优先于 LLM 估算。
-- 封面:远程图自动 vendor 进 `apps/ios/.../RecipeImages/`(离线可用、零外链),
-  json 写 `assets/recipes/images/` 路径;HowToCook 上游约半数菜谱无图,空值是客观缺口。
+- 封面:管线内先把图收进 `apps/ios/.../RecipeImages/`(`assets/recipes/images/` 路径),
+  上游有图的(177 `howtocook_*`)直接 vendor、无图的(187)由「联网补图」补成 `web_*`,
+  现 364 条**零缺图**。发布介质是 **Supabase Storage**(见下「封面托管」):`RecipeImages/`
+  作为上传源不再随 app 打包,`imageUrl` 改写为 Supabase 公共 URL,iOS 端流式拉取 + 磁盘缓存。
+
+## 联网补图(为缺图菜谱找封面)
+上游约半数家常菜本就没图。补图能力把 `imageUrl === null` 的菜谱联网搜一张成品图、
+逐张做内容校验、下载进 bundle、记录出处。核心在 `src/clean/fetch-images.ts`
+(`acquireMissingImages` 下载+magic-byte 验真图+`ImageVerifier` 内容校验+落盘+出处;
+`applyAcquiredImages` 纯函数回写),搜索/校验都藏在注入接口后,有单测。
+
+两条产出路径,同一 `ImageCandidate`/`Attribution` 结构:
+- **管线内置默认(增量新菜)**:设 `RECIPE_ACQUIRE_IMAGES=1` 跑 `npm run build:recipes`,
+  对仍缺图的菜走免 key 的 Openverse(`src/sources/image-search-openverse.ts`,CC 自由版权,
+  覆盖有限),vendor 之前补图。默认关闭,不改既有全量跑行为。既有图「既有优先」不覆盖。
+- **全量补图(ultracode workflow,本轮 187 条全覆盖)**:`data/acquired/acquire-images.workflow.mjs`
+  每道菜一个 agent,全网图片搜索(WebSearch/WebFetch og:image + Wikimedia/Openverse 直链 API)
+  → 下载 → `sips` 转 jpg → 多模态视觉校验「确为该菜的洁净成品照」→ 存 `RecipeImages/web_<id>.jpg`
+  → 写 `data/acquired/<i>.json`。跑完 `npm run images:apply` 聚合回写 `howtocook.json`
+  并合并出处到 `data/image-attributions.json`,再 `npm run gen:seed` 同步 DB。
+  补单条/子集:workflow args 传 `{"indices":[…]}` 或 `{"start":N,"end":M}`。
+- **出处与许可**:每张图的来源直链/来源页/许可记在 `data/image-attributions.json`(可溯源、可替换)。
+  全网图来源混合(Wikimedia CC、下厨房/豆果 og:image、Flickr、菜谱博客、CC0 图库),
+  托管他人版权图请按项目自身许可策略评估。
+
+## 封面托管:Supabase Storage(发版后封面全部走 Supabase)
+封面不再随 app 打包(省 ~111MB),改托管在 Supabase Storage 的 **`recipe-images` 公共桶**
+(匿名只读、仅服务端/迁移可写,见 `supabase/migrations/<v>_recipe_images_bucket.sql`),
+iOS 端流式拉取 + **磁盘缓存**(`RemoteImageCache`,见 app 侧),离线可用、冷启动不闪空。
+
+发布/重跑流程(改图后):
+1. `SUPABASE_URL=… SUPABASE_KEY=<service 或临时 anon 写的 publishable> npm run images:upload`
+   把 `RecipeImages/` 全量幂等上传到 `recipe-images` 桶。对象 key 用 `src/db/storage-key.ts`
+   的 `storageKeyFor`(本地中文名 → ASCII 安全 key:可读前缀 + sha1 短哈希;**Storage 不收 CJK key**)。
+2. `SUPABASE_URL=… npm run images:rewrite-urls` 把 `howtocook.json` 的 `assets/…` 改写为
+   `…/storage/v1/object/public/recipe-images/<key>`(与上传同一 `storageKeyFor`,保证一致)。
+3. `npm run gen:seed` 重生成种子(image_url 即 Supabase URL),应用到 DB。
+- **桶无写策略**:上传需 service_role key(绕 RLS),或临时给 anon 开 INSERT/UPDATE 策略、
+  用 publishable key 上传后**立即删策略锁回**(本轮采用;桶 SELECT 已 public,upsert 冲突检查可用)。
+- **一致性自检**(SQL):`recipes.image_url` ↔ `storage.objects` ↔ `howtocook.json` 三方
+  key 必须零失配/零孤儿(本轮全 364 条核验通过)。
 
 ## 数据库:Supabase `recipes` 目录表
 菜谱目录已可迁入 Supabase。howtocook 是**全局共享目录**(人人一样),不走按家庭 RLS——
@@ -54,6 +93,7 @@ CLI 直接调用:`flue run build-recipes --target node --payload '{"limit":3,"dr
 - **iOS 读取**:DB 为权威源 + 本地缓存 + 内置 json 兜底(离线优先)。客户端从 `recipes` 表拉取
   (列别名成 Recipe 的 JSON 键,直接解码)写本地缓存;离线读缓存,首启无网读内置 json。
   详见 `apps/ios/.../RemoteRecipeCatalog.swift` / `RecipeCatalogCache.swift` / `RecipesStore`。
-- **图片**:封面随 app 打包,DB 只存 `assets/recipes/images/…` 引用,iOS 本地解析;零图片迁移。
+- **图片**:`recipes.image_url` 存 Supabase Storage 公共 URL(见上「封面托管」),iOS 流式拉取 + 磁盘缓存;
+  封面不随 app 打包。
 
 管线核心(采集→清洗→闸门→合并)与输出介质无关:写 json 与生成 DB 种子并联,采集/清洗层零改动。

@@ -1,0 +1,1589 @@
+[
+  {
+    "id": "howtocook:aquatic/咖喱炒蟹",
+    "name": "咖喱炒蟹",
+    "file": "web_aquatic_咖喱炒蟹.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Pu_Phat_Phong_Kari.jpg/1280px-Pu_Phat_Phong_Kari.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Pu_Phat_Phong_Kari.jpg",
+    "license": "CC BY-SA 3.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:aquatic/响油鳝丝",
+    "name": "响油鳝丝",
+    "file": "web_aquatic_响油鳝丝.jpg",
+    "sourceUrl": "https://cp1.douguo.com/upload/caiku/4/5/d/960_45d5b3efa98fcd52ea990604c6bf90dd.jpeg",
+    "sourcePage": "https://www.douguo.com/cookbook/2331921.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:aquatic/微波葱姜黑鳕鱼",
+    "name": "微波葱姜黑鳕鱼",
+    "file": "web_aquatic_微波葱姜黑鳕鱼.jpg",
+    "sourceUrl": "https://ricebucketrecipes.com/wp-content/uploads/2021/01/img_1865.jpg",
+    "sourcePage": "https://ricebucketrecipes.com/2021/01/19/steamed-black-cod-with-ginger-and-scallions/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:aquatic/水煮鱼",
+    "name": "水煮鱼",
+    "file": "web_aquatic_水煮鱼.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/%E6%B0%B4%E7%85%AE%E9%B1%BC_Spicy_Fish_with_Rice_-_Spicy_Fish%2C_Glen_Waverley_%283012467062%29.jpg/1280px-%E6%B0%B4%E7%85%AE%E9%B1%BC_Spicy_Fish_with_Rice_-_Spicy_Fish%2C_Glen_Waverley_%283012467062%29.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:%E6%B0%B4%E7%85%AE%E9%B1%BC_Spicy_Fish_with_Rice_-_Spicy_Fish,_Glen_Waverley_(3012467062).jpg",
+    "license": "CC BY-SA 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:aquatic/清蒸生蚝",
+    "name": "清蒸生蚝",
+    "file": "web_aquatic_清蒸生蚝.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Freshippo_steamed_oysters_with_vermicelli_and_garlic.jpg/1280px-Freshippo_steamed_oysters_with_vermicelli_and_garlic.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Freshippo_steamed_oysters_with_vermicelli_and_garlic.jpg",
+    "license": "CC0 1.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:aquatic/红烧鱼",
+    "name": "红烧鱼",
+    "file": "web_aquatic_红烧鱼.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b0/Red-braised_perch_on_Z99_%2820260107182918%29.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Red-braised_perch_on_Z99_(20260107182918).jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:aquatic/红烧鱼头",
+    "name": "红烧鱼头",
+    "file": "web_aquatic_红烧鱼头.jpg",
+    "sourceUrl": "https://i2.chuimg.com/bacf77c4c79e46adba6484ac5b945325_2560w_2560h.jpg?imageView2/2/w/1200/q/90/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/106881981/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:aquatic/红烧鲤鱼",
+    "name": "红烧鲤鱼",
+    "file": "web_aquatic_红烧鲤鱼.jpg",
+    "sourceUrl": "https://i2.chuimg.com/7aecf572880111e6a9a10242ac110002_4288w_2848h.jpg?imageView2/1/w/640/h/520/q/75/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/100042453/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:aquatic/肉蟹煲",
+    "name": "肉蟹煲",
+    "file": "web_aquatic_肉蟹煲.jpg",
+    "sourceUrl": "https://i2.chuimg.com/948b8031a11d4970b8cd92be4e3cb978_1280w_1597h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/106997575/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:aquatic/葱油桂鱼/葱油桂鱼",
+    "name": "葱油桂鱼",
+    "file": "web_aquatic_葱油桂鱼_葱油桂鱼.jpg",
+    "sourceUrl": "https://i2.chuimg.com/d461c117daeb401c918c612e4faba286_750w_750h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/103782477/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:aquatic/酱炖蟹",
+    "name": "酱炖蟹",
+    "file": "web_aquatic_酱炖蟹.jpg",
+    "sourceUrl": "https://i2.chuimg.com/20990f212ece4e7895bebe791c8c83b6_3414w_2560h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/106880256/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/吐司果酱",
+    "name": "吐司果酱",
+    "file": "web_breakfast_吐司果酱.jpg",
+    "sourceUrl": "https://live.staticflickr.com/65535/51906425437_476df41ebe_b.jpg",
+    "sourcePage": "https://www.flickr.com/photos/22508531@N08/51906425437",
+    "license": "by-nc",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/太阳蛋",
+    "name": "太阳蛋",
+    "file": "web_breakfast_太阳蛋.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Pan-fried_egg.jpg/1280px-Pan-fried_egg.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Pan-fried_egg.jpg",
+    "license": "CC BY 3.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/完美水煮蛋",
+    "name": "完美水煮蛋",
+    "file": "web_breakfast_完美水煮蛋.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Boiled_Egg_-_Crossection.jpg/1280px-Boiled_Egg_-_Crossection.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Boiled_Egg_-_Crossection.jpg",
+    "license": "CC BY-SA 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/微波炉蒸蛋",
+    "name": "微波炉蒸蛋",
+    "file": "web_breakfast_微波炉蒸蛋.jpg",
+    "sourceUrl": "https://i2.chuimg.com/6f88bee6228548698c9ec5fa4765713d_1280w_1024h.jpg?imageView2/1/w/640/h/520/q/75/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/106560265/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/微波炉荷包蛋",
+    "name": "微波炉荷包蛋",
+    "file": "web_breakfast_微波炉荷包蛋.jpg",
+    "sourceUrl": "https://i2.chuimg.com/cc1f53a75dc54fbbbc4e089409b09315_2799w_2100h.jpg?imageView2/2/w/1280/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/103714121/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/微波炉蛋糕",
+    "name": "微波炉蛋糕",
+    "file": "web_breakfast_微波炉蛋糕.jpg",
+    "sourceUrl": "https://images.rawpixel.com/editor_1024/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvZnJjYWtlX2Nob2NvbGF0ZV9jdXBfNjUwOTI2LWltYWdlLWt5YmU1dTh6LmpwZw.jpg",
+    "sourcePage": "https://www.rawpixel.com/image/6040531/chocolate-mug-cake-free-public-domain-cc0-photo",
+    "license": "cc0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/意式香肠北非蛋",
+    "name": "意式香肠北非蛋",
+    "file": "web_breakfast_意式香肠北非蛋.jpg",
+    "sourceUrl": "https://www.theendlessmeal.com/wp-content/uploads/2014/04/chorizo-shakshuka-3-750x750.jpg",
+    "sourcePage": "https://www.theendlessmeal.com/chorizo-shakshuka/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/手抓饼",
+    "name": "手抓饼",
+    "file": "web_breakfast_手抓饼.jpg",
+    "sourceUrl": "https://i0.wp.com/chejorge.com/wp-content/uploads/2020/07/scallion-pancake-1.jpg?fit=2048%2C3073&ssl=1",
+    "sourcePage": "https://chejorge.com/2021/04/21/flaky-scallion-pancakes/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/桂圆红枣粥",
+    "name": "桂圆红枣粥",
+    "file": "web_breakfast_桂圆红枣粥.jpg",
+    "sourceUrl": "https://i2.chuimg.com/f51833ae8a2511e6a9a10242ac110002_2048w_2048h.jpg?imageView2/2/w/900/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/100638296/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/水煮玉米",
+    "name": "水煮玉米",
+    "file": "web_breakfast_水煮玉米.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Boiled_corn_on_a_white_plate.jpg/1280px-Boiled_corn_on_a_white_plate.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Boiled_corn_on_a_white_plate.jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/温泉蛋/温泉蛋",
+    "name": "温泉蛋",
+    "file": "web_breakfast_温泉蛋_温泉蛋.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Onsen_tamago_2_by_raisin_bun_in_Hong_Kong.jpg/1280px-Onsen_tamago_2_by_raisin_bun_in_Hong_Kong.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Onsen_tamago_2_by_raisin_bun_in_Hong_Kong.jpg",
+    "license": "CC BY-SA 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/溏心蛋",
+    "name": "溏心蛋",
+    "file": "web_breakfast_溏心蛋.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Soft_boiled_egg_cut_in_half_in_Japan_-_2024_July_9.jpeg/1280px-Soft_boiled_egg_cut_in_half_in_Japan_-_2024_July_9.jpeg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Soft_boiled_egg_cut_in_half_in_Japan_-_2024_July_9.jpeg",
+    "license": "Wikimedia Commons",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/煎饺",
+    "name": "煎饺",
+    "file": "web_breakfast_煎饺.jpg",
+    "sourceUrl": "https://live.staticflickr.com/65535/54400847628_5842d91cd9_b.jpg",
+    "sourcePage": "https://www.flickr.com/photos/10559879@N00/54400847628",
+    "license": "CC BY-NC 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/蒸水蛋",
+    "name": "蒸水蛋",
+    "file": "web_breakfast_蒸水蛋.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/%E9%B8%A1%E8%9B%8B%E7%BE%B9%E9%85%8D%E9%87%8E%E7%94%9F%E8%8F%8C-%E4%BA%91%E5%8D%97%E6%98%86%E6%98%8E.jpg/1280px-%E9%B8%A1%E8%9B%8B%E7%BE%B9%E9%85%8D%E9%87%8E%E7%94%9F%E8%8F%8C-%E4%BA%91%E5%8D%97%E6%98%86%E6%98%8E.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:%E9%B8%A1%E8%9B%8B%E7%BE%B9%E9%85%8D%E9%87%8E%E7%94%9F%E8%8F%8C-%E4%BA%91%E5%8D%97%E6%98%86%E6%98%8E.jpg",
+    "license": "CC BY-SA 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/蒸花卷",
+    "name": "蒸花卷",
+    "file": "web_breakfast_蒸花卷.jpg",
+    "sourceUrl": "https://live.staticflickr.com/65535/51931713141_fc2ff1a6a8_b.jpg",
+    "sourcePage": "https://www.flickr.com/photos/10559879@N00/51931713141",
+    "license": "by-nc",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/燕麦鸡蛋饼",
+    "name": "燕麦鸡蛋饼",
+    "file": "web_breakfast_燕麦鸡蛋饼.jpg",
+    "sourceUrl": "https://i2.chuimg.com/89085365589a4d97b097388e328e33d9_1920w_2560h.jpg?imageView2/1/w/640/h/520/q/75/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/107044852/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/牛奶燕麦",
+    "name": "牛奶燕麦",
+    "file": "web_breakfast_牛奶燕麦.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Oatmeal%2C_blueberries_and_almond_milk.jpg/1280px-Oatmeal%2C_blueberries_and_almond_milk.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Oatmeal,_blueberries_and_almond_milk.jpg",
+    "license": "CC BY-SA 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/空气炸锅面包片",
+    "name": "空气炸锅面包片",
+    "file": "web_breakfast_空气炸锅面包片.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Toast-2.jpg/1280px-Toast-2.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Toast-2.jpg",
+    "license": "public domain (Wikimedia Commons)",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/美式炒蛋",
+    "name": "美式炒蛋",
+    "file": "web_breakfast_美式炒蛋.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Scrambed_eggs.jpg/1280px-Scrambed_eggs.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Scrambed_eggs.jpg",
+    "license": "CC BY-SA 3.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/茶叶蛋",
+    "name": "茶叶蛋",
+    "file": "web_breakfast_茶叶蛋.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Tea_eggs_1.jpg/1280px-Tea_eggs_1.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Tea_eggs_1.jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/蛋煎糍粑",
+    "name": "蛋煎糍粑",
+    "file": "web_breakfast_蛋煎糍粑.jpg",
+    "sourceUrl": "https://i2.chuimg.com/344ef64a808c4600be75eff63f93451f_1000w_1000h.jpg",
+    "sourcePage": "https://www.xiachufang.com/recipe/103755857/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/金枪鱼酱三明治",
+    "name": "金枪鱼酱三明治",
+    "file": "web_breakfast_金枪鱼酱三明治.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Tuna_salad_sandwich_%281%29.jpg/1280px-Tuna_salad_sandwich_%281%29.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Tuna_salad_sandwich_(1).jpg",
+    "license": "CC BY 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/韩国麻药鸡蛋",
+    "name": "韩国麻药鸡蛋",
+    "file": "web_breakfast_韩国麻药鸡蛋.jpg",
+    "sourceUrl": "https://imgproxy.icook.network/safe/rt:fit/w:1200/el:0/q:80/plain/http://tokyo-kitchen.icook.tw.s3.amazonaws.com/uploads/recipe/cover/354718/71a465fe97017079.jpg",
+    "sourcePage": "https://icook.tw/recipes/354718",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:breakfast/鸡蛋三明治",
+    "name": "鸡蛋三明治",
+    "file": "web_breakfast_鸡蛋三明治.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Australia_Dairy_Company_-_Ham_and_Egg_Sandwich.jpg/1280px-Australia_Dairy_Company_-_Ham_and_Egg_Sandwich.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Australia_Dairy_Company_-_Ham_and_Egg_Sandwich.jpg",
+    "license": "CC BY 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:condiment/油酥",
+    "name": "油酥",
+    "file": "web_condiment_油酥.jpg",
+    "sourceUrl": "https://p7.itc.cn/images01/20220617/0533447bf1ef44d08b0d99274bc491bb.jpeg",
+    "sourcePage": "https://www.sohu.com/a/558053110_120972552",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:condiment/炸串酱料",
+    "name": "炸串酱料",
+    "file": "web_condiment_炸串酱料.jpg",
+    "sourceUrl": "https://i2.chuimg.com/9a4ce5e8cdab4192a5f7ebdcb874e313_912w_684h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/104324633/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:condiment/简易版炒糖色",
+    "name": "简易版炒糖色",
+    "file": "web_condiment_简易版炒糖色.jpg",
+    "sourceUrl": "https://i2.chuimg.com/2f88299cbd1e45f99c120aa2042bba6e_960w_1280h.jpg?imageView2/1/w/640/h/520/q/75/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/107101778/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:condiment/糖醋汁",
+    "name": "糖醋汁",
+    "file": "web_condiment_糖醋汁.jpg",
+    "sourceUrl": "https://www.daringgourmet.com/wp-content/uploads/2017/04/Sweet-and-Sour-Sauce-1-square.jpg",
+    "sourcePage": "https://www.daringgourmet.com/best-sweet-and-sour-sauce/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:condiment/葱油",
+    "name": "葱油",
+    "file": "web_condiment_葱油.jpg",
+    "sourceUrl": "https://redhousespice.com/wp-content/uploads/2017/06/Chinese-spring-onion-oil-landscape.jpg",
+    "sourcePage": "https://redhousespice.com/make-use-spring-onion-oil/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:condiment/蒜香酱油",
+    "name": "蒜香酱油",
+    "file": "web_condiment_蒜香酱油.jpg",
+    "sourceUrl": "https://heavenlyhomecooking.com/wp-content/uploads/2025/01/Garlic-Sesame-Sauce-Recipe-Featured.jpg",
+    "sourcePage": "https://heavenlyhomecooking.com/garlic-sesame-sauce/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:dessert/奥利奥冰淇淋/奥利奥冰淇淋",
+    "name": "奥利奥冰淇淋",
+    "file": "web_dessert_奥利奥冰淇淋_奥利奥冰淇淋.jpg",
+    "sourceUrl": "https://i2.chuimg.com/e6874827caf74b2cb29f01266f94550e_1280w_1024h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/104430665/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:dessert/红柚蛋糕/红柚蛋糕",
+    "name": "红柚蛋糕",
+    "file": "web_dessert_红柚蛋糕_红柚蛋糕.jpg",
+    "sourceUrl": "https://i3.meishichina.com/atta/recipe/2015/02/11/201502111b79d74aa4d0152d.jpg?x-oss-process=style/p800",
+    "sourcePage": "https://home.meishichina.com/recipe-210180.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:dessert/胡萝卜甜糕",
+    "name": "胡萝卜甜糕",
+    "file": "web_dessert_胡萝卜甜糕.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Delicious_Gajar_Ka_Halwa.jpg/1280px-Delicious_Gajar_Ka_Halwa.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Delicious_Gajar_Ka_Halwa.jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:dessert/草莓冰淇淋/草莓冰淇淋",
+    "name": "草莓冰淇淋",
+    "file": "web_dessert_草莓冰淇淋_草莓冰淇淋.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/8/89/Strawberry_ice_cream.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Strawberry_ice_cream.jpg",
+    "license": "CC BY-SA 3.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:dessert/魔芋蛋糕/魔芋蛋糕",
+    "name": "魔芋蛋糕",
+    "file": "web_dessert_魔芋蛋糕_魔芋蛋糕.jpg",
+    "sourceUrl": "https://i2.chuimg.com/cadf985ed6d44c898444b56524c1d657_1200w_960h.jpg?imageView2/2/w/1200/interlace/1/q/85",
+    "sourcePage": "https://www.xiachufang.com/recipe/106694564/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:drink/B52轰炸机",
+    "name": "B52轰炸机",
+    "file": "web_drink_B52轰炸机.jpg",
+    "sourceUrl": "https://i2.chuimg.com/24a2fa9406b04ea8a6906f4d1f8313b4_1280w_720h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/102989482/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:drink/Mojito莫吉托",
+    "name": "Mojito莫吉托",
+    "file": "web_drink_Mojito莫吉托.jpg",
+    "sourceUrl": "https://cdn.stocksnap.io/img-thumbs/960w/4178415E1A.jpg",
+    "sourcePage": "https://stocksnap.io/photo/mojito-cocktail-4178415E1A",
+    "license": "cc0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:drink/冬瓜茶",
+    "name": "冬瓜茶",
+    "file": "web_drink_冬瓜茶.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/White_Gourd_and_White_Gourd_Drink.JPG/960px-White_Gourd_and_White_Gourd_Drink.JPG",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:White_Gourd_and_White_Gourd_Drink.JPG",
+    "license": "Copyrighted free use",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:drink/印度奶茶",
+    "name": "印度奶茶",
+    "file": "web_drink_印度奶茶.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Masala_Chai.JPG/1280px-Masala_Chai.JPG",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Masala_Chai.JPG",
+    "license": "Public domain",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:drink/可乐桶",
+    "name": "可乐桶",
+    "file": "web_drink_可乐桶.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Whisky_and_Coke.JPG/1280px-Whisky_and_Coke.JPG",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Whisky_and_Coke.JPG",
+    "license": "CC BY-SA 3.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:drink/奶茶",
+    "name": "奶茶",
+    "file": "web_drink_奶茶.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Milk_Tea_1.jpg/1280px-Milk_Tea_1.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Milk_Tea_1.jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:drink/杨枝甘露",
+    "name": "杨枝甘露",
+    "file": "web_drink_杨枝甘露.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/MangoPomeloSago_1.jpg/1280px-MangoPomeloSago_1.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:MangoPomeloSago_1.jpg",
+    "license": "Wikimedia Commons",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:drink/牛油果拉西",
+    "name": "牛油果拉西",
+    "file": "web_drink_牛油果拉西.jpg",
+    "sourceUrl": "https://i0.wp.com/pistachiodoughnut.com/wp-content/uploads/2020/06/IMG_0772.jpg",
+    "sourcePage": "https://pistachiodoughnut.com/2015/06/24/avocado-lassi/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:drink/酸梅汤（半成品加工）",
+    "name": "酸梅汤（半成品加工）",
+    "file": "web_drink_酸梅汤（半成品加工）.jpg",
+    "sourceUrl": "https://i2.chuimg.com/588151aaca834f0fac1896289f61aab4_1280w_1434h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/107118316/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:drink/长岛冰茶",
+    "name": "长岛冰茶",
+    "file": "web_drink_长岛冰茶.jpg",
+    "sourceUrl": "https://live.staticflickr.com/65535/53471596251_98d5fcff98_b.jpg",
+    "sourcePage": "https://www.flickr.com/photos/115225894@N07/53471596251",
+    "license": "by",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/冷吃兔",
+    "name": "冷吃兔",
+    "file": "web_meat_dish_冷吃兔.jpg",
+    "sourceUrl": "https://cp1.douguo.com/upload/caiku/4/e/1/960_4e40bd199227c9e8adf3bb5454654511.jpg",
+    "sourcePage": "https://www.douguo.com/cookbook/1443189.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/可乐鸡翅",
+    "name": "可乐鸡翅",
+    "file": "web_meat_dish_可乐鸡翅.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Chicken_Wings_in_Coca_Cola_Sauce.jpg/1280px-Chicken_Wings_in_Coca_Cola_Sauce.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Chicken_Wings_in_Coca_Cola_Sauce.jpg",
+    "license": "CC BY-SA 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/咕噜肉",
+    "name": "咕噜肉",
+    "file": "web_meat_dish_咕噜肉.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/%E8%8F%A0%E8%90%9D%E5%92%95%E5%99%9C%E8%82%89.jpg/1280px-%E8%8F%A0%E8%90%9D%E5%92%95%E5%99%9C%E8%82%89.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:%E8%8F%A0%E8%90%9D%E5%92%95%E5%99%9C%E8%82%89.jpg",
+    "license": "Wikimedia Commons",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/商芝肉",
+    "name": "商芝肉",
+    "file": "web_meat_dish_商芝肉.jpg",
+    "sourceUrl": "http://k.sinaimg.cn/n/sinakd20211202ac/321/w713h408/20211202/1db4-f5495d8bdcb3b1e3d5c14474ca4b3178.jpg/w700d1q75cms.jpg",
+    "sourcePage": "https://k.sina.cn/article_2189824074_8286104a00100zesy.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/土豆炖排骨/土豆炖排骨",
+    "name": "土豆炖排骨",
+    "file": "web_meat_dish_土豆炖排骨_土豆炖排骨.jpg",
+    "sourceUrl": "https://img-global.cpcdn.com/recipes/12e04784eb561c9f/1200x630cq80/braised-ribs-with-potatoes-%E7%BA%A2%E7%83%A7%E6%8E%92%E9%AA%A8%E5%9C%9F%E8%B1%86-recipe-main-photo.jpg",
+    "sourcePage": "https://cookpad.com/eng/recipes/13328313",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/姜葱捞鸡/姜葱捞鸡",
+    "name": "姜葱捞鸡",
+    "file": "web_meat_dish_姜葱捞鸡_姜葱捞鸡.jpg",
+    "sourceUrl": "https://i2.chuimg.com/06b8dfc0973841af81f7401612805e48_3414w_2560h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/106803196/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/孜然牛肉",
+    "name": "孜然牛肉",
+    "file": "web_meat_dish_孜然牛肉.jpg",
+    "sourceUrl": "https://ohsnapletseat.com/wp-content/uploads/2022/01/cumin-beef-4.jpeg",
+    "sourcePage": "https://ohsnapletseat.com/2022/01/29/cumin-beef/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/小炒肉",
+    "name": "小炒肉",
+    "file": "web_meat_dish_小炒肉.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Lajiao_Chaorou_at_Xiangzhongyuan_Hunan_Cuisine%2C_Beijing_%2820240131171407%29.jpg/1280px-Lajiao_Chaorou_at_Xiangzhongyuan_Hunan_Cuisine%2C_Beijing_%2820240131171407%29.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Lajiao_Chaorou_at_Xiangzhongyuan_Hunan_Cuisine,_Beijing_(20240131171407).jpg",
+    "license": "Wikimedia Commons",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/小米辣炒肉",
+    "name": "小米辣炒肉",
+    "file": "web_meat_dish_小米辣炒肉.jpg",
+    "sourceUrl": "https://i2.chuimg.com/5be68d7350734db3a28738d6d93e2198_1080w_864h.jpg?imageView2/1/w/640/h/520/q/75/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/106167625/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/小酥肉",
+    "name": "小酥肉",
+    "file": "web_meat_dish_小酥肉.jpg",
+    "sourceUrl": "https://i2.chuimg.com/7db1cfe081524f4396ee9551d6bfa37e_1920w_2560h.jpg?imageView2/2/w/1200/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/107033543/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/尖椒炒牛肉",
+    "name": "尖椒炒牛肉",
+    "file": "web_meat_dish_尖椒炒牛肉.jpg",
+    "sourceUrl": "https://i2.chuimg.com/d69343f3f92342639b3c6ed504131dc7_3024w_4032h.jpg?imageView2/1/w/640/h/520/q/75/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/104083145/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/山西过油肉",
+    "name": "山西过油肉",
+    "file": "web_meat_dish_山西过油肉.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/%E6%A6%86%E6%AC%A1_%E5%85%A8%E7%9B%9B%E5%9B%AD%E4%B9%8B%E8%83%A1%E5%B8%88%E5%82%85%E8%BF%87%E6%B2%B9%E8%82%89.jpg/1280px-%E6%A6%86%E6%AC%A1_%E5%85%A8%E7%9B%9B%E5%9B%AD%E4%B9%8B%E8%83%A1%E5%B8%88%E5%82%85%E8%BF%87%E6%B2%B9%E8%82%89.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:%E6%A6%86%E6%AC%A1_%E5%85%A8%E7%9B%9B%E5%9B%AD%E4%B9%8B%E8%83%A1%E5%B8%88%E5%82%85%E8%BF%87%E6%B2%B9%E8%82%89.jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/带把肘子",
+    "name": "带把肘子",
+    "file": "web_meat_dish_带把肘子.jpg",
+    "sourceUrl": "https://v2.cri.cn/95fded85-5d2c-4b4c-95f2-5f1ad99d8370/image/47392f0a1e4e486c81b6f047bb65ed30.5472x3648.png",
+    "sourcePage": "https://sn.cri.cn/n/20250121/4de83a00-1782-6567-64be-a48a1b1e6d51.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/乡村啤酒鸭",
+    "name": "乡村啤酒鸭",
+    "file": "web_meat_dish_乡村啤酒鸭.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Stewed_Duck_in_Beer%2C_Jiangxi_cuisine.jpg/1280px-Stewed_Duck_in_Beer%2C_Jiangxi_cuisine.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Stewed_Duck_in_Beer,_Jiangxi_cuisine.jpg",
+    "license": "CC BY 2.5",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/意式烤鸡",
+    "name": "意式烤鸡",
+    "file": "web_meat_dish_意式烤鸡.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Lemon_%26_Garlic_Roasted_Chicken_%288733072162%29.jpg/1280px-Lemon_%26_Garlic_Roasted_Chicken_%288733072162%29.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Lemon_%26_Garlic_Roasted_Chicken_(8733072162).jpg",
+    "license": "CC BY-SA 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/杀猪菜",
+    "name": "杀猪菜",
+    "file": "web_meat_dish_杀猪菜.jpg",
+    "sourceUrl": "https://i3.meishichina.com/atta/recipe/2018/03/30/2018033015224171454473291499680.jpg?x-oss-process=style/p800",
+    "sourcePage": "https://home.meishichina.com/recipe-386204.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/枝竹羊腩煲/枝竹羊腩煲",
+    "name": "枝竹羊腩煲",
+    "file": "web_meat_dish_枝竹羊腩煲_枝竹羊腩煲.jpg",
+    "sourceUrl": "https://www.pressurecookrecipes.com/wp-content/uploads/2019/01/instant-pot-chinese-lamb-stew.jpg",
+    "sourcePage": "https://www.pressurecookrecipes.com/instant-pot-chinese-lamb-stew/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/椒盐排条",
+    "name": "椒盐排条",
+    "file": "web_meat_dish_椒盐排条.jpg",
+    "sourceUrl": "https://i3.meishichina.com/atta/recipe/2012/04/23/20120423100638834749690.jpg?x-oss-process=style/p800",
+    "sourcePage": "https://home.meishichina.com/recipe-61139.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/水煮肉片",
+    "name": "水煮肉片",
+    "file": "web_meat_dish_水煮肉片.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Shuizhu_Roupian_at_Daqian_Restaurant%2C_Dachenglu_%2820260126131419%29.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Shuizhu_Roupian_at_Daqian_Restaurant,_Dachenglu_(20260126131419).jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/洋葱炒猪肉",
+    "name": "洋葱炒猪肉",
+    "file": "web_meat_dish_洋葱炒猪肉.jpg",
+    "sourceUrl": "https://i2.chuimg.com/26f967ee9b9e4df8bfe0164f42f7da83_684w_912h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/104172350/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/烤鸡翅",
+    "name": "烤鸡翅",
+    "file": "web_meat_dish_烤鸡翅.jpg",
+    "sourceUrl": "https://live.staticflickr.com/65535/52107120991_fd687b9334_b.jpg",
+    "sourcePage": "https://www.flickr.com/photos/10559879@N00/52107120991",
+    "license": "by-nc",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/煎烤羊排/煎烤羊排",
+    "name": "煎烤羊排",
+    "file": "web_meat_dish_煎烤羊排_煎烤羊排.jpg",
+    "sourceUrl": "https://imgproxy.icook.network/safe/rt:fit/w:1200/el:0/q:80/plain/http://tokyo-kitchen.icook.tw.s3.amazonaws.com/uploads/recipe/cover/407895/96e6e3041f2cba75.jpg",
+    "sourcePage": "https://icook.tw/recipes/407895",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/猪肉烩酸菜",
+    "name": "猪肉烩酸菜",
+    "file": "web_meat_dish_猪肉烩酸菜.jpg",
+    "sourceUrl": "https://thewoksoflife.com/wp-content/uploads/2020/10/pork-belly-Chinese-sour-cabbage-18.jpg",
+    "sourcePage": "https://thewoksoflife.com/northern-chinese-sour-cabbage-stew/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/甜辣烤全翅",
+    "name": "甜辣烤全翅",
+    "file": "web_meat_dish_甜辣烤全翅.jpg",
+    "sourceUrl": "https://i2.chuimg.com/16552f5cf5bc11e6bc9d0242ac110002_1280w_1280h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/102208112/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/番茄红酱",
+    "name": "番茄红酱",
+    "file": "web_meat_dish_番茄红酱.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/7/75/Liat_Portal_for_Foodie_Disorder_-_Homemade_Bolognese_Ragu_Sauce.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Liat_Portal_for_Foodie_Disorder_-_Homemade_Bolognese_Ragu_Sauce.jpg",
+    "license": "Wikimedia Commons",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/白菜猪肉炖粉条",
+    "name": "白菜猪肉炖粉条",
+    "file": "web_meat_dish_白菜猪肉炖粉条.jpg",
+    "sourceUrl": "https://i3.meishichina.com/atta/recipe/2012/09/18/20120918143100531961190.jpg?x-oss-process=style/p800",
+    "sourcePage": "https://home.meishichina.com/recipe-90085.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/空气炸锅脆皮现腌炸鸡/空气炸锅脆皮现腌炸鸡",
+    "name": "空气炸锅脆皮现腌炸鸡",
+    "file": "web_meat_dish_空气炸锅脆皮现腌炸鸡_空气炸锅脆皮现腌炸鸡.jpg",
+    "sourceUrl": "https://live.staticflickr.com/65535/54282490120_46a6d58870_b.jpg",
+    "sourcePage": "https://www.flickr.com/photos/25802865@N08/54282490120",
+    "license": "by",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/粉蒸肉",
+    "name": "粉蒸肉",
+    "file": "web_meat_dish_粉蒸肉.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/%E7%B2%89%E8%92%B8%E8%82%89.jpg/1280px-%E7%B2%89%E8%92%B8%E8%82%89.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:%E7%B2%89%E8%92%B8%E8%82%89.jpg",
+    "license": "Wikimedia Commons",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/糖醋里脊",
+    "name": "糖醋里脊",
+    "file": "web_meat_dish_糖醋里脊.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Tangcu_liji.jpg/1280px-Tangcu_liji.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Tangcu_liji.jpg",
+    "license": "CC BY 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/红烧肉/南派红烧肉",
+    "name": "南派红烧肉",
+    "file": "web_meat_dish_红烧肉_南派红烧肉.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Red_braised_pork_%2820141106191221%29.JPG",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Red_braised_pork_(20141106191221).JPG",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/红烧鸡翅",
+    "name": "红烧鸡翅",
+    "file": "web_meat_dish_红烧鸡翅.jpg",
+    "sourceUrl": "https://www.chinasichuanfood.com/wp-content/uploads/2022/05/braised-chicken-wings-16.jpg",
+    "sourcePage": "https://www.chinasichuanfood.com/braised-chicken-wings/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/肉饼炖蛋",
+    "name": "肉饼炖蛋",
+    "file": "web_meat_dish_肉饼炖蛋.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Steamed_Minced_Pork_with_Salt_Duck_Egg.jpg/1280px-Steamed_Minced_Pork_with_Salt_Duck_Egg.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Steamed_Minced_Pork_with_Salt_Duck_Egg.jpg",
+    "license": "Wikimedia Commons",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/腐乳肉",
+    "name": "腐乳肉",
+    "file": "web_meat_dish_腐乳肉.jpg",
+    "sourceUrl": "https://i3.meishichina.com/atta/recipe/2012/08/30/20120830160628697982082.jpg",
+    "sourcePage": "https://home.meishichina.com/recipe-86286.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/萝卜炖羊排",
+    "name": "萝卜炖羊排",
+    "file": "web_meat_dish_萝卜炖羊排.jpg",
+    "sourceUrl": "https://i2.chuimg.com/fe9690d8023d47ea85a829038edf752d_1920w_2560h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/107259627/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/蒜苔炒肉末",
+    "name": "蒜苔炒肉末",
+    "file": "web_meat_dish_蒜苔炒肉末.jpg",
+    "sourceUrl": "https://chopzen.com/wp-content/uploads/2026/04/106786587_main-784x1024.webp",
+    "sourcePage": "https://chopzen.com/stir-fried-garlic-scapes-with-minced-pork/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/虎皮肘子",
+    "name": "虎皮肘子",
+    "file": "web_meat_dish_虎皮肘子.jpg",
+    "sourceUrl": "https://cp1.douguo.com/upload/caiku/f/f/e/960_fff1133759cbf741b3f0cc95e4836c9e.jpeg",
+    "sourcePage": "https://www.douguo.com/cookbook/1271925.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/蚂蚁上树",
+    "name": "蚂蚁上树",
+    "file": "web_meat_dish_蚂蚁上树.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Mayishangshu.jpg/1280px-Mayishangshu.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Mayishangshu.jpg",
+    "license": "Wikimedia Commons",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/西红柿牛腩/西红柿牛腩",
+    "name": "西红柿牛腩",
+    "file": "web_meat_dish_西红柿牛腩_西红柿牛腩.jpg",
+    "sourceUrl": "https://images.squarespace-cdn.com/content/v1/60c54e248a3c357287f86406/9944a24d-b02d-496a-948c-414417280f38/Tomato-Beef-Stew",
+    "sourcePage": "https://pyskitchen.com/pyskitchen-recipe/chinese-tomato-beef-stew-comforting-dish",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/豉汁排骨",
+    "name": "豉汁排骨",
+    "file": "web_meat_dish_豉汁排骨.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Food_%E8%B1%89%E6%B1%81%E8%92%B8%E6%8E%92%E9%AA%A8%2C_%E6%96%B0%E8%91%A1%E8%8B%91%2C_Shin_Pu_Yuan%2C_%E5%8F%B0%E5%8C%97_%2821531923392%29.jpg/1280px-Food_%E8%B1%89%E6%B1%81%E8%92%B8%E6%8E%92%E9%AA%A8%2C_%E6%96%B0%E8%91%A1%E8%8B%91%2C_Shin_Pu_Yuan%2C_%E5%8F%B0%E5%8C%97_%2821531923392%29.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Food_%E8%B1%89%E6%B1%81%E8%92%B8%E6%8E%92%E9%AA%A8,_%E6%96%B0%E8%91%A1%E8%8B%91,_Shin_Pu_Yuan,_%E5%8F%B0%E5%8C%97_(21531923392).jpg",
+    "license": "CC BY-SA 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/辣椒炒肉",
+    "name": "辣椒炒肉",
+    "file": "web_meat_dish_辣椒炒肉.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/3/30/Nongjia_Xiaochaorou_at_Xiangdu_Xiangwei_Restaurant%2C_Beijing_%2820240125114906%29.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Nongjia_Xiaochaorou_at_Xiangdu_Xiangwei_Restaurant,_Beijing_(20240125114906).jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/香干肉丝",
+    "name": "香干肉丝",
+    "file": "web_meat_dish_香干肉丝.jpg",
+    "sourceUrl": "https://i3.meishichina.com/atta/recipe/2018/02/10/2018021015182387728053259541848.jpg?x-oss-process=style/p800",
+    "sourcePage": "https://home.meishichina.com/recipe-377028.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/鱼香肉丝",
+    "name": "鱼香肉丝",
+    "file": "web_meat_dish_鱼香肉丝.jpg",
+    "sourceUrl": "https://i2.chuimg.com/f3067a6e886111e6b87c0242ac110003_640w_640h.jpg?imageView2/1/w/900/h/900/q/85/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/100352761/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/麻辣香锅",
+    "name": "麻辣香锅",
+    "file": "web_meat_dish_麻辣香锅.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Ma_La_Xiang_Guo.jpg/1280px-Ma_La_Xiang_Guo.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Ma_La_Xiang_Guo.jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/黄油鸡",
+    "name": "黄油鸡",
+    "file": "web_meat_dish_黄油鸡.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Chicken_makhani.jpg/1280px-Chicken_makhani.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Chicken_makhani.jpg",
+    "license": "CC BY-SA 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/黄焖鸡",
+    "name": "黄焖鸡",
+    "file": "web_meat_dish_黄焖鸡.jpg",
+    "sourceUrl": "https://i2.chuimg.com/d5185db3335547ecb4c418d7a07c892c_1498w_1120h.jpg?imageView2/2/w/1200/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/106810130/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:meat_dish/黄瓜炒肉",
+    "name": "黄瓜炒肉",
+    "file": "web_meat_dish_黄瓜炒肉.jpg",
+    "sourceUrl": "https://i2.chuimg.com/de034d34523649e5af4ee381c3837c01_868w_1156h.jpg?imageView2/2/w/1200/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/104518448/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:semi-finished/凉皮",
+    "name": "凉皮",
+    "file": "web_semi-finished_凉皮.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Shanxi_Liangpi_%E9%99%95%E8%A5%BF_%E5%87%89%E7%9A%AE.jpg/1280px-Shanxi_Liangpi_%E9%99%95%E8%A5%BF_%E5%87%89%E7%9A%AE.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Shanxi_Liangpi_%E9%99%95%E8%A5%BF_%E5%87%89%E7%9A%AE.jpg",
+    "license": "CC0 1.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:semi-finished/半成品意面",
+    "name": "半成品意面",
+    "file": "web_semi-finished_半成品意面.jpg",
+    "sourceUrl": "https://cdn.stocksnap.io/img-thumbs/960w/T6J8OZBM38.jpg",
+    "sourcePage": "https://stocksnap.io/photo/food-spaghetti-T6J8OZBM38",
+    "license": "cc0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:semi-finished/牛油火锅底料",
+    "name": "牛油火锅底料",
+    "file": "web_semi-finished_牛油火锅底料.jpg",
+    "sourceUrl": "https://blog.themalamarket.com/wp-content/uploads/2020/11/hot-pot-in-stainless-pot-v2.jpg",
+    "sourcePage": "https://blog.themalamarket.com/sichuan-mala-hot-pot-from-scratch-mala-huo-guo/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:semi-finished/速冻水饺",
+    "name": "速冻水饺",
+    "file": "web_semi-finished_速冻水饺.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Boiled_dumplings_%40_Restaurant_Ph%C3%A9nix_%40_Paris_%2834495218496%29.jpg/1280px-Boiled_dumplings_%40_Restaurant_Ph%C3%A9nix_%40_Paris_%2834495218496%29.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Boiled_dumplings_@_Restaurant_Ph%C3%A9nix_@_Paris_(34495218496).jpg",
+    "license": "CC BY 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:semi-finished/速冻馄饨",
+    "name": "速冻馄饨",
+    "file": "web_semi-finished_速冻馄饨.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/FOOD_Wonton_Soup.jpg/1280px-FOOD_Wonton_Soup.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:FOOD_Wonton_Soup.jpg",
+    "license": "Wikimedia Commons",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:soup/奶油蘑菇汤",
+    "name": "奶油蘑菇汤",
+    "file": "web_soup_奶油蘑菇汤.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Cream_Mushroom_soup_2.jpg/1280px-Cream_Mushroom_soup_2.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Cream_Mushroom_soup_2.jpg",
+    "license": "CC BY-SA 3.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:soup/小米粥",
+    "name": "小米粥",
+    "file": "web_soup_小米粥.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/A_BOWL_OF_FOXTAIL_MILLET_CONGEE.jpg/1280px-A_BOWL_OF_FOXTAIL_MILLET_CONGEE.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:A_BOWL_OF_FOXTAIL_MILLET_CONGEE.jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:soup/排骨山药玉米汤/排骨山药玉米汤",
+    "name": "排骨山药玉米汤",
+    "file": "web_soup_排骨山药玉米汤_排骨山药玉米汤.jpg",
+    "sourceUrl": "https://www.chinafoodrecipe.com/wp-content/uploads/2025/09/20250918220128_2885_22.jpg",
+    "sourcePage": "https://www.chinafoodrecipe.com/recipe/guangdong-carrot-corn-and-yam-pork-rib-soup-recipe-a-sweet-and-nourishing-traditional-soup/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:soup/排骨苦瓜汤/排骨苦瓜汤",
+    "name": "排骨苦瓜汤",
+    "file": "web_soup_排骨苦瓜汤_排骨苦瓜汤.jpg",
+    "sourceUrl": "https://nimg.ws.126.net/?url=http%3A%2F%2Fdingyue.ws.126.net%2F2023%2F0728%2F4e582009j00ryhdov00xqc000pr00h6m.jpg&thumbnail=660x2147483647&quality=90&type=jpg",
+    "sourcePage": "https://www.163.com/dy/article/IANJ6VQC0542AFWN.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:soup/生汆丸子汤",
+    "name": "生汆丸子汤",
+    "file": "web_soup_生汆丸子汤.jpg",
+    "sourceUrl": "https://i2.chuimg.com/a8a33395c3ae4b3b9e331891337b4b4f_1348w_1035h.jpg",
+    "sourcePage": "https://www.xiachufang.com/recipe/103745697/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:soup/番茄牛肉蛋花汤",
+    "name": "番茄牛肉蛋花汤",
+    "file": "web_soup_番茄牛肉蛋花汤.jpg",
+    "sourceUrl": "https://img0.baidu.com/it/u=3085199946,4003635626&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=1067",
+    "sourcePage": "https://www.douyin.com/ (抖音「番茄牛肉鸡蛋汤」, via Baidu image search)",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:soup/皮蛋瘦肉粥",
+    "name": "皮蛋瘦肉粥",
+    "file": "web_soup_皮蛋瘦肉粥.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/A_century_eggs_and_Pork_Congee_from_Chi_Kee_Congee_Shop.jpg/1280px-A_century_eggs_and_Pork_Congee_from_Chi_Kee_Congee_Shop.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:A_century_eggs_and_Pork_Congee_from_Chi_Kee_Congee_Shop.jpg",
+    "license": "Wikimedia Commons",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:soup/米粥",
+    "name": "米粥",
+    "file": "web_soup_米粥.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/5/58/Chinese_rice_congee.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Chinese_rice_congee.jpg",
+    "license": "public/commons",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:soup/紫菜蛋花汤",
+    "name": "紫菜蛋花汤",
+    "file": "web_soup_紫菜蛋花汤.jpg",
+    "sourceUrl": "https://thewoksoflife.com/wp-content/uploads/2020/03/seaweed-egg-drop-soup-9.jpg",
+    "sourcePage": "https://thewoksoflife.com/seaweed-egg-drop-soup/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:soup/罗宋汤",
+    "name": "罗宋汤",
+    "file": "web_soup_罗宋汤.jpg",
+    "sourceUrl": "https://i2.chuimg.com/48a157a65a314492be6fab464f5eb6de_2405w_3364h.jpg?imageView2/2/w/1200/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/105977988/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:soup/腊八粥",
+    "name": "腊八粥",
+    "file": "web_soup_腊八粥.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Laba_Congee._After.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Laba_Congee._After.jpg",
+    "license": "CC BY 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:soup/西红柿鸡蛋汤",
+    "name": "西红柿鸡蛋汤",
+    "file": "web_soup_西红柿鸡蛋汤.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Tomato_and_egg_soup.jpg/1280px-Tomato_and_egg_soup.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Tomato_and_egg_soup.jpg",
+    "license": "CC BY 3.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:soup/金针菇汤",
+    "name": "金针菇汤",
+    "file": "web_soup_金针菇汤.jpg",
+    "sourceUrl": "https://www.hirokoliston.com/wp-content/uploads/2018/04/Enoki_Egg_Soup.jpg",
+    "sourcePage": "https://www.hirokoliston.com/egg-enoki-soup/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:soup/陈皮排骨汤",
+    "name": "陈皮排骨汤",
+    "file": "web_soup_陈皮排骨汤.jpg",
+    "sourceUrl": "https://i2.chuimg.com/102e65c103ad4745b52c8a2307fb4d94_1920w_2560h.jpg?imageView2/2/w/1200/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/106976291/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:soup/黄瓜皮蛋汤",
+    "name": "黄瓜皮蛋汤",
+    "file": "web_soup_黄瓜皮蛋汤.jpg",
+    "sourceUrl": "https://i2.chuimg.com/c5411d2e24c24c729ffb857596fa5539_3325w_2282h.jpg?imageView2/2/w/1200/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/103991291/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/中式馅饼/中式馅饼",
+    "name": "中式馅饼",
+    "file": "web_staple_中式馅饼_中式馅饼.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/%E5%B1%B1%E4%B8%9C%E7%89%9B%E8%82%89%E9%A6%85%E9%A5%BC.jpg/1280px-%E5%B1%B1%E4%B8%9C%E7%89%9B%E8%82%89%E9%A6%85%E9%A5%BC.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:%E5%B1%B1%E4%B8%9C%E7%89%9B%E8%82%89%E9%A6%85%E9%A5%BC.jpg",
+    "license": "CC0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/利提巧卡",
+    "name": "利提巧卡",
+    "file": "web_staple_利提巧卡.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/5/55/Litti_Chokha.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Litti_Chokha.jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/印度烤饼",
+    "name": "印度烤饼",
+    "file": "web_staple_印度烤饼.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c5/Naan_shiva.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Naan_shiva.jpg",
+    "license": "CC BY-SA 2.5",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/印度焖饭",
+    "name": "印度焖饭",
+    "file": "web_staple_印度焖饭.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Chicken_Hyderabadi_Biryani.JPG/1280px-Chicken_Hyderabadi_Biryani.JPG",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Chicken_Hyderabadi_Biryani.JPG",
+    "license": "Wikimedia Commons",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/可乐炒饭",
+    "name": "可乐炒饭",
+    "file": "web_staple_可乐炒饭.jpg",
+    "sourceUrl": "https://i2.chuimg.com/2d43d616a7a740948a2928997512be6d_3414w_2560h.jpg?imageView2/1/w/1200/q/90/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/106942213/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/咸肉菜饭",
+    "name": "咸肉菜饭",
+    "file": "web_staple_咸肉菜饭.jpg",
+    "sourceUrl": "https://tiffycooks.com/wp-content/uploads/2026/02/veggie-rice-Served_1K9dBLXicg5N-mM5KXD4zoW13EuCJFlbx.webp",
+    "sourcePage": "https://tiffycooks.com/cai-fan-salted-meat-and-bok-choy-rice/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/手工水饺",
+    "name": "手工水饺",
+    "file": "web_staple_手工水饺.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Jiaozi_-_Wenzhou.jpg/1280px-Jiaozi_-_Wenzhou.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Jiaozi_-_Wenzhou.jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/汤面",
+    "name": "汤面",
+    "file": "web_staple_汤面.jpg",
+    "sourceUrl": "https://i2.chuimg.com/3717828a154046e6981c52818b926f74_1920w_1080h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/106174309/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/炒年糕",
+    "name": "炒年糕",
+    "file": "web_staple_炒年糕.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Food_%E4%B8%8A%E6%B5%B7%E7%82%92%E5%B9%B4%E7%B3%95%2C_Wok-fried_Rice_Cake_with_Salted_Meat_and_Preserved_Vegetables%2C_%E6%A8%82%E5%A4%A9%E7%9A%87%E6%9C%9D%2C_PARADISE_DYNASTY%2C_%E5%8F%B0%E5%8C%97_%2823072111963%29.jpg/1280px-Food_%E4%B8%8A%E6%B5%B7%E7%82%92%E5%B9%B4%E7%B3%95%2C_Wok-fried_Rice_Cake_with_Salted_Meat_and_Preserved_Vegetables%2C_%E6%A8%82%E5%A4%A9%E7%9A%87%E6%9C%9D%2C_PARADISE_DYNASTY%2C_%E5%8F%B0%E5%8C%97_%2823072111963%29.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Food_%E4%B8%8A%E6%B5%B7%E7%82%92%E5%B9%B4%E7%B3%95,_Wok-fried_Rice_Cake_with_Salted_Meat_and_Preserved_Vegetables,_%E6%A8%82%E5%A4%A9%E7%9A%87%E6%9C%9D,_PARADISE_DYNASTY,_%E5%8F%B0%E5%8C%97_(23072111963).jpg",
+    "license": "CC BY-SA 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/炒河粉",
+    "name": "炒河粉",
+    "file": "web_staple_炒河粉.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Beef_chow_fun.jpg/1280px-Beef_chow_fun.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Beef_chow_fun.jpg",
+    "license": "CC BY 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/炒馍",
+    "name": "炒馍",
+    "file": "web_staple_炒馍.jpg",
+    "sourceUrl": "https://i2.chuimg.com/801b4788880611e6b87c0242ac110003_2592w_1552h.jpg?imageView2/2/w/1200/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/100046408/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/炸酱面",
+    "name": "炸酱面",
+    "file": "web_staple_炸酱面.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Noodles_with_diced_meat_soybean_paste_with_8_toppings_%2820210112174522%29.jpg/1280px-Noodles_with_diced_meat_soybean_paste_with_8_toppings_%2820210112174522%29.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Noodles_with_diced_meat_soybean_paste_with_8_toppings_(20210112174522).jpg",
+    "license": "Wikimedia Commons",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/热干面",
+    "name": "热干面",
+    "file": "web_staple_热干面.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Hot_Dry_Noodles.jpg/1280px-Hot_Dry_Noodles.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Hot_Dry_Noodles.jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/煮泡面加蛋",
+    "name": "煮泡面加蛋",
+    "file": "web_staple_煮泡面加蛋.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Instant_Beef_Noodles_with_Egg%2C_Mar_2026.jpg/1280px-Instant_Beef_Noodles_with_Egg%2C_Mar_2026.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Instant_Beef_Noodles_with_Egg,_Mar_2026.jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/照烧鸡腿饭",
+    "name": "照烧鸡腿饭",
+    "file": "web_staple_照烧鸡腿饭.jpg",
+    "sourceUrl": "https://live.staticflickr.com/65535/51802011585_5244852944_b.jpg",
+    "sourcePage": "https://www.flickr.com/photos/10559879@N00/51802011585",
+    "license": "by-nc",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/蒸卤面",
+    "name": "蒸卤面",
+    "file": "web_staple_蒸卤面.jpg",
+    "sourceUrl": "https://cp1.douguo.com/upload/caiku/1/d/5/750_1de3962029081e7cf30ed2cc7fa7c935.jpg",
+    "sourcePage": "https://m.douguo.com/recipe/amp/2305351",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/猪油拌饭",
+    "name": "猪油拌饭",
+    "file": "web_staple_猪油拌饭.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/7/76/%E8%B1%AC%E6%B2%B9%E6%94%AA%E9%A3%AF%E9%85%8D%E6%BB%B7%E5%8D%B5.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:%E8%B1%AC%E6%B2%B9%E6%94%AA%E9%A3%AF%E9%85%8D%E6%BB%B7%E5%8D%B5.jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/米饭/电饭煲蒸米饭",
+    "name": "电饭煲蒸米饭",
+    "file": "web_staple_米饭_电饭煲蒸米饭.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Bowl_of_white_rice_01.jpg/1280px-Bowl_of_white_rice_01.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Bowl_of_white_rice_01.jpg",
+    "license": "CC0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/红芸豆拌饭",
+    "name": "红芸豆拌饭",
+    "file": "web_staple_红芸豆拌饭.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Rajma%2C_kidney_beans%2C_served_with_chawal%2C_rice.jpg/1280px-Rajma%2C_kidney_beans%2C_served_with_chawal%2C_rice.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Rajma,_kidney_beans,_served_with_chawal,_rice.jpg",
+    "license": "CC BY 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/老干妈拌面",
+    "name": "老干妈拌面",
+    "file": "web_staple_老干妈拌面.jpg",
+    "sourceUrl": "https://savorychina.com/wp-content/uploads/2025/11/Lao-Gan-Ma-Noodles-6.jpg",
+    "sourcePage": "https://savorychina.com/lao-gan-ma-noodles-lao-gan-ma-ban-mian/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/肉蛋盖饭",
+    "name": "肉蛋盖饭",
+    "file": "web_staple_肉蛋盖饭.jpg",
+    "sourceUrl": "https://tasteasianfood.com/wp-content/uploads/2024/10/ground-beef-rice-2024-19.jpeg.webp",
+    "sourcePage": "https://tasteasianfood.com/ground-beef-rice/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/葱油拌面",
+    "name": "葱油拌面",
+    "file": "web_staple_葱油拌面.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c4/%E8%91%B1%E8%8A%B1%E8%91%B1%E6%B2%B9%E6%8B%8C%E9%9D%A2.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:葱花葱油拌面.jpg",
+    "license": "CC0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/蛋包饭",
+    "name": "蛋包饭",
+    "file": "web_staple_蛋包饭.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Omurice_1.jpg/1280px-Omurice_1.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Omurice_1.jpg",
+    "license": "CC BY-SA 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/蛋炒饭",
+    "name": "蛋炒饭",
+    "file": "web_staple_蛋炒饭.jpg",
+    "sourceUrl": "https://live.staticflickr.com/65535/52546018582_3edba71a1a_b.jpg",
+    "sourcePage": "https://www.flickr.com/photos/10559879@N00/52546018582",
+    "license": "by-nc",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/螺蛳粉",
+    "name": "螺蛳粉",
+    "file": "web_staple_螺蛳粉.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Luosifen_at_Guangya%2C_Liuzhou_%2820190420141814%29.jpg/1280px-Luosifen_at_Guangya%2C_Liuzhou_%2820190420141814%29.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Luosifen_at_Guangya,_Liuzhou_(20190420141814).jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/豆角焖面/豆角焖面",
+    "name": "豆角焖面",
+    "file": "web_staple_豆角焖面_豆角焖面.jpg",
+    "sourceUrl": "https://www.asiancookingmom.com/wp-content/uploads/2022/08/Green-Bean-Braised-Noodles-30-of-30.jpg",
+    "sourcePage": "https://www.asiancookingmom.com/green-bean-braised-noodles-%E8%B1%86%E8%A7%92%E7%84%96%E9%9D%A2/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/酸辣蕨根粉",
+    "name": "酸辣蕨根粉",
+    "file": "web_staple_酸辣蕨根粉.jpg",
+    "sourceUrl": "https://i2.chuimg.com/66121b8340494cbf8bc2c469d428f848_1080w_721h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/101819723/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/醪糟小汤圆",
+    "name": "醪糟小汤圆",
+    "file": "web_staple_醪糟小汤圆.jpg",
+    "sourceUrl": "https://i3.meishichina.com/atta/recipe/201011/201011102148575.jpg?x-oss-process=style/p800",
+    "sourcePage": "https://home.meishichina.com/recipe-11800.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/韭菜盒子",
+    "name": "韭菜盒子",
+    "file": "web_staple_韭菜盒子.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Jiucai_Hezi_at_Dongsi_Minfang_Restaurant%2C_Chongwenmen_%2820220215114852%29.jpg/1280px-Jiucai_Hezi_at_Dongsi_Minfang_Restaurant%2C_Chongwenmen_%2820220215114852%29.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Jiucai_Hezi_at_Dongsi_Minfang_Restaurant,_Chongwenmen_(20220215114852).jpg",
+    "license": "Wikimedia Commons",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/鲜肉烧卖",
+    "name": "鲜肉烧卖",
+    "file": "web_staple_鲜肉烧卖.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Homemade_style_pork_shumai_in_Hong_Kong.jpg/1280px-Homemade_style_pork_shumai_in_Hong_Kong.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Homemade_style_pork_shumai_in_Hong_Kong.jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/鹰嘴豆炸饼",
+    "name": "鹰嘴豆炸饼",
+    "file": "web_staple_鹰嘴豆炸饼.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c8/Falafel_1.JPG",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Falafel_1.JPG",
+    "license": "CC0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/麻油拌面",
+    "name": "麻油拌面",
+    "file": "web_staple_麻油拌面.jpg",
+    "sourceUrl": "https://onolicioushawaii.com/wp-content/uploads/2025/03/sesame-oil-noodles-1.jpg",
+    "sourcePage": "https://onolicioushawaii.com/sesame-oil-noodles/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:staple/麻辣减脂荞麦面",
+    "name": "麻辣减脂荞麦面",
+    "file": "web_staple_麻辣减脂荞麦面.jpg",
+    "sourceUrl": "https://i2.chuimg.com/07d4414b8ca54d7eb170b44e1b37105b_2448w_3262h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/106165845/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/凉拌油麦菜",
+    "name": "凉拌油麦菜",
+    "file": "web_vegetable_dish_凉拌油麦菜.jpg",
+    "sourceUrl": "https://i3.meishichina.com/atta/recipe/2020/10/13/202010131602556934322424426927.jpg?x-oss-process=style/p800",
+    "sourcePage": "https://home.meishichina.com/recipe-564705.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/凉拌豆腐",
+    "name": "凉拌豆腐",
+    "file": "web_vegetable_dish_凉拌豆腐.jpg",
+    "sourceUrl": "https://i2.chuimg.com/8cd29e0bc3e04fcfb653cce3079a879b_820w_1824h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/106151828/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/凉拌金针菇",
+    "name": "凉拌金针菇",
+    "file": "web_vegetable_dish_凉拌金针菇.jpg",
+    "sourceUrl": "https://i2.chuimg.com/06a5fd483dea4961b783c5477ba14ebc_1920w_2560h.jpg?imageView2/1/w/1080/h/1080/q/85/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/106865430/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/凉拌黄瓜",
+    "name": "凉拌黄瓜",
+    "file": "web_vegetable_dish_凉拌黄瓜.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/%E6%8B%8D%E9%9D%92%E7%93%9C_-_%E6%9B%BE%E8%92%99%E7%89%9B%E8%81%B7%E4%BA%BA%E9%BA%B5%E8%88%96.jpg/1280px-%E6%8B%8D%E9%9D%92%E7%93%9C_-_%E6%9B%BE%E8%92%99%E7%89%9B%E8%81%B7%E4%BA%BA%E9%BA%B5%E8%88%96.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:%E6%8B%8D%E9%9D%92%E7%93%9C_-_%E6%9B%BE%E8%92%99%E7%89%9B%E8%81%B7%E4%BA%BA%E9%BA%B5%E8%88%96.jpg",
+    "license": "CC0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/印度土豆花菜",
+    "name": "印度土豆花菜",
+    "file": "web_vegetable_dish_印度土豆花菜.jpg",
+    "sourceUrl": "https://live.staticflickr.com/65535/50287354976_d67a6d5ece_b.jpg",
+    "sourcePage": "https://www.flickr.com/photos/89106210@N00/50287354976",
+    "license": "by-nc-sa",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/印度葫芦丸子",
+    "name": "印度葫芦丸子",
+    "file": "web_vegetable_dish_印度葫芦丸子.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Lauki_Kofta_Curry.JPG/960px-Lauki_Kofta_Curry.JPG",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Lauki_Kofta_Curry.JPG",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/家常日本豆腐",
+    "name": "家常日本豆腐",
+    "file": "web_vegetable_dish_家常日本豆腐.jpg",
+    "sourceUrl": "https://i2.chuimg.com/8bc6b124122c4a46962a8f6eb92446c5_1920w_2560h.jpg?imageView2/2/w/1080/q/90/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/107363843/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/松仁玉米",
+    "name": "松仁玉米",
+    "file": "web_vegetable_dish_松仁玉米.jpg",
+    "sourceUrl": "https://omnivorescookbook.com/wp-content/uploads/2015/11/1511_Stir-Fried-Corn-With-Pine-Nuts_001.jpg",
+    "sourcePage": "https://omnivorescookbook.com/stir-fried-corn-with-pine-nuts/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/水油焖蔬菜",
+    "name": "水油焖蔬菜",
+    "file": "web_vegetable_dish_水油焖蔬菜.jpg",
+    "sourceUrl": "https://rasamalaysia.com/wp-content/uploads/2024/06/chinese-greens-1.jpg",
+    "sourcePage": "https://rasamalaysia.com/restaurant-style-chinese-greens-with/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/油醋爆蛋",
+    "name": "油醋爆蛋",
+    "file": "web_vegetable_dish_油醋爆蛋.jpg",
+    "sourceUrl": "https://i2.chuimg.com/d4d8afc86ad2468c8ff7734a5d7625f7_1920w_2560h.jpg?imageView2/2/w/1200/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/107589937/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/清炒花菜",
+    "name": "清炒花菜",
+    "file": "web_vegetable_dish_清炒花菜.jpg",
+    "sourceUrl": "https://i2.chuimg.com/5d8b7ea26f294ec9820f8cd7be6e1f18_2700w_2160h.jpg?imageView2/1/w/900/h/720/q/85/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/104247228/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/清蒸南瓜",
+    "name": "清蒸南瓜",
+    "file": "web_vegetable_dish_清蒸南瓜.jpg",
+    "sourceUrl": "https://s1.cdn.jiaonizuocai.com/caipu/201607/2310/231019167785.jpg",
+    "sourcePage": "https://www.yuliangpu.com/post/11444.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/炒茄子",
+    "name": "炒茄子",
+    "file": "web_vegetable_dish_炒茄子.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Chinese_Stir-Fry_Eggplant_with_Pork_at_%E4%B8%80%E4%BB%A3%E4%BD%B3%E4%BA%BA%E6%B5%B7%E9%AE%AE%E7%A2%B3%E7%83%A4_in_Taipei.jpg/1280px-Chinese_Stir-Fry_Eggplant_with_Pork_at_%E4%B8%80%E4%BB%A3%E4%BD%B3%E4%BA%BA%E6%B5%B7%E9%AE%AE%E7%A2%B3%E7%83%A4_in_Taipei.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Chinese_Stir-Fry_Eggplant_with_Pork_at_%E4%B8%80%E4%BB%A3%E4%BD%B3%E4%BA%BA%E6%B5%B7%E9%AE%AE%E7%A2%B3%E7%83%A4_in_Taipei.jpg",
+    "license": "CC BY 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/炒青菜",
+    "name": "炒青菜",
+    "file": "web_vegetable_dish_炒青菜.jpg",
+    "sourceUrl": "https://live.staticflickr.com/2291/2204759722_59c2a4020c_b.jpg",
+    "sourcePage": "https://www.flickr.com/photos/avlxyz/2204759722",
+    "license": "CC BY-NC-ND 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/皮蛋豆腐",
+    "name": "皮蛋豆腐",
+    "file": "web_vegetable_dish_皮蛋豆腐.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Pidan_Doufu_at_Changranju%2C_Beijing_%2820210627193105%29.jpg/1280px-Pidan_Doufu_at_Changranju%2C_Beijing_%2820210627193105%29.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Pidan_Doufu_at_Changranju,_Beijing_(20210627193105).jpg",
+    "license": "CC BY-SA 4.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/红烧茄子",
+    "name": "红烧茄子",
+    "file": "web_vegetable_dish_红烧茄子.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/%E7%BA%A2%E7%83%A7%E8%8C%84%E5%AD%90-%E4%BA%91%E5%8D%97%E6%98%86%E6%98%8E.jpg/1280px-%E7%BA%A2%E7%83%A7%E8%8C%84%E5%AD%90-%E4%BA%91%E5%8D%97%E6%98%86%E6%98%8E.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:%E7%BA%A2%E7%83%A7%E8%8C%84%E5%AD%90-%E4%BA%91%E5%8D%97%E6%98%86%E6%98%8E.jpg",
+    "license": "CC BY-SA 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/素炒豆角",
+    "name": "素炒豆角",
+    "file": "web_vegetable_dish_素炒豆角.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Green_Bean_Stir_Fry_%28140491597%29.jpeg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Green_Bean_Stir_Fry_(140491597).jpeg",
+    "license": "CC BY 3.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/脆皮豆腐",
+    "name": "脆皮豆腐",
+    "file": "web_vegetable_dish_脆皮豆腐.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b9/Crispy_Fried_Tofu_%2852627402756%29.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Crispy_Fried_Tofu_(52627402756).jpg",
+    "license": "CC BY 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/茄子炖土豆",
+    "name": "茄子炖土豆",
+    "file": "web_vegetable_dish_茄子炖土豆.jpg",
+    "sourceUrl": "https://cp1.douguo.com/upload/caiku/a/3/0/960_a38394beaf3353ebef7d7b7b08c2d620.jpeg",
+    "sourcePage": "https://www.douguo.com/cookbook/2423431.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/葱煎豆腐",
+    "name": "葱煎豆腐",
+    "file": "web_vegetable_dish_葱煎豆腐.jpg",
+    "sourceUrl": "https://i2.chuimg.com/47781a92891811e6a9a10242ac110002_638w_478h.jpg?imageView2/1/w/640/h/520/q/75/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/100500043/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/蒜蓉西兰花",
+    "name": "蒜蓉西兰花",
+    "file": "web_vegetable_dish_蒜蓉西兰花.jpg",
+    "sourceUrl": "https://thewoksoflife.com/wp-content/uploads/2017/03/broccoli-garlic-sauce-8.jpg",
+    "sourcePage": "https://thewoksoflife.com/broccoli-garlic-sauce/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/蒲烧茄子",
+    "name": "蒲烧茄子",
+    "file": "web_vegetable_dish_蒲烧茄子.jpg",
+    "sourceUrl": "https://images.squarespace-cdn.com/content/v1/64427b13ad47043e38d4908a/20174377-3058-48c8-9966-4275b6108175/eggplant+unagi+don.jpg",
+    "sourcePage": "https://www.okawarirecipes.com/recipes/grilled-eggplant-bowl",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/蚝油生菜",
+    "name": "蚝油生菜",
+    "file": "web_vegetable_dish_蚝油生菜.jpg",
+    "sourceUrl": "https://assets.pandaflavor.com/recipes/HdpYPmRZ8qYzLrrUcmcCME/lettuce-with-oyster-sauce.jpg?image_process=interlace,1/quality,Q_80",
+    "sourcePage": "https://www.pandaflavor.com/recipes/lettuce-with-oyster-sauce",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/西红柿炒鸡蛋",
+    "name": "西红柿炒鸡蛋",
+    "file": "web_vegetable_dish_西红柿炒鸡蛋.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Hunan_cuisine%2C_stir-fried_tomato_with_eggs.jpg/1280px-Hunan_cuisine%2C_stir-fried_tomato_with_eggs.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Hunan_cuisine,_stir-fried_tomato_with_eggs.jpg",
+    "license": "CC BY 3.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/酸辣土豆丝",
+    "name": "酸辣土豆丝",
+    "file": "web_vegetable_dish_酸辣土豆丝.jpg",
+    "sourceUrl": "https://live.staticflickr.com/65535/54212513989_7fbd371913_b.jpg",
+    "sourcePage": "https://www.flickr.com/photos/10559879@N00/54212513989",
+    "license": "by-nc",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/金针菇日本豆腐煲",
+    "name": "金针菇日本豆腐煲",
+    "file": "web_vegetable_dish_金针菇日本豆腐煲.jpg",
+    "sourceUrl": "https://i3.meishichina.com/atta/recipe/2019/04/21/20190421155581717676011448196.jpg?x-oss-process=style/p800",
+    "sourcePage": "https://home.meishichina.com/recipe-454632.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/金钱蛋",
+    "name": "金钱蛋",
+    "file": "web_vegetable_dish_金钱蛋.jpg",
+    "sourceUrl": "https://i2.chuimg.com/3bb1faff8acd445ea9c764ad879fe237_1280w_950h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/107161729/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/陕北熬豆角",
+    "name": "陕北熬豆角",
+    "file": "web_vegetable_dish_陕北熬豆角.jpg",
+    "sourceUrl": "https://i2.chuimg.com/0daf352789ca4f5cb699f0f9722bf3c5_1440w_1080h.jpg?imageView2/1/w/640/h/520/q/75/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/103890772/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/雷椒皮蛋",
+    "name": "雷椒皮蛋",
+    "file": "web_vegetable_dish_雷椒皮蛋.jpg",
+    "sourceUrl": "https://cp1.douguo.com/upload/caiku/6/3/e/960_6330f4f7da9a7e7681b0ac1514410d8e.jpeg",
+    "sourcePage": "https://www.douguo.com/cookbook/3259356.html",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/鸡蛋火腿炒黄瓜",
+    "name": "鸡蛋火腿炒黄瓜",
+    "file": "web_vegetable_dish_鸡蛋火腿炒黄瓜.jpg",
+    "sourceUrl": "https://i2.chuimg.com/5556b3d7de0348668e69f7e0766a79bf_756w_756h.jpg?imageView2/2/w/756/format/jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/106084490/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/鸡蛋羹/蒸箱鸡蛋羹",
+    "name": "蒸箱鸡蛋羹",
+    "file": "web_vegetable_dish_鸡蛋羹_蒸箱鸡蛋羹.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a9/%E9%B8%A1%E8%9B%8B%E7%BE%B9%E9%85%8D%E9%87%8E%E7%94%9F%E8%8F%8C-%E4%BA%91%E5%8D%97%E6%98%86%E6%98%8E.jpg",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:%E9%B8%A1%E8%9B%8B%E7%BE%B9%E9%85%8D%E9%87%8E%E7%94%9F%E8%8F%8C-%E4%BA%91%E5%8D%97%E6%98%86%E6%98%8E.jpg",
+    "license": "CC BY-SA 2.0",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/鸡蛋花/鸡蛋花",
+    "name": "鸡蛋花",
+    "file": "web_vegetable_dish_鸡蛋花_鸡蛋花.jpg",
+    "sourceUrl": "https://i2.chuimg.com/d85598a79a1e435e923bbeb4e5c5972e_1280w_1024h.jpg",
+    "sourcePage": "https://m.xiachufang.com/recipe/104105988/",
+    "acquiredAt": "2026-06-13T09:21:57.780Z"
+  }
+]

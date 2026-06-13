@@ -2,27 +2,20 @@ import Foundation
 import Testing
 @testable import FreshPantry
 
-/// Guards recipe-cover resolution: the 174 HowToCook covers must stay bundled (a
-/// dropped `RecipeImages/` folder reference silently regresses every cover to the
-/// category glyph) and `RecipeImageStore` must route each source shape correctly.
+/// Guards recipe-cover resolution. Covers now ship from Supabase Storage (the
+/// `RecipeImages/` bundle was dropped to save ~111MB), so a remote `http(s)` URL
+/// must be DECLINED by the local store and handed to `CachedRemoteImage`
+/// (disk-cached); `RecipeImageStore` still routes `data:`/`file://`/`assets://`
+/// shapes for inline + custom-recipe covers.
 @MainActor
 struct RecipeImageTests {
-    /// A real bundled cover path from `howtocook.json`. If the folder reference is
-    /// lost, this resolves to nil and the test fails — exactly the regression we want
-    /// to catch before it ships.
-    private let bundledAsset = "assets/recipes/images/howtocook_aquatic_小龙虾_小龙虾.jpg"
-
-    @Test func bundledAssetResolvesToImage() {
-        #expect(RecipeImageStore.localImage(for: bundledAsset) != nil)
-    }
-
     @Test func missingBundledAssetIsNil() {
         #expect(RecipeImageStore.localImage(for: "assets/recipes/images/__does_not_exist__.jpg") == nil)
     }
 
     @Test func remoteSourceIsNotResolvedLocally() {
-        // Remote URLs are AsyncImage's job — the local store must decline them so the
-        // view falls through to its `AsyncImage` branch.
+        // Remote URLs are `CachedRemoteImage`'s job — the local store must decline
+        // them so the view falls through to its disk-cached remote branch.
         #expect(RecipeImageStore.localImage(for: "https://example.com/cover.jpg") == nil)
         #expect(RecipeImageStore.localImage(for: "http://example.com/cover.jpg") == nil)
     }

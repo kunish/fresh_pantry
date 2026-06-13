@@ -35,13 +35,9 @@ struct RecipeImage<Fallback: View>: View {
                     .resizable()
                     .scaledToFill()
             } else if let url = Self.remoteURL(trimmed) {
-                AsyncImage(url: url) { phase in
-                    if case let .success(image) = phase {
-                        image.resizable().scaledToFill()
-                    } else {
-                        fallback()
-                    }
-                }
+                // Covers now ship from Supabase Storage — disk-cache them so browse
+                // works offline and cold launch shows the cover on the first frame.
+                CachedRemoteImage(url: url, maxPixel: 900) { fallback() }
             } else {
                 // Non-empty but unresolvable (e.g. a missing bundled asset) — show the
                 // placeholder rather than an empty box.
@@ -119,9 +115,9 @@ enum RecipeImageStore {
 
     /// Decodes + downsamples via ImageIO (handles jpeg/png/webp). Falls back to a
     /// plain `UIImage(data:)` decode if the source can't produce a thumbnail.
-    /// Internal so `RemoteThumbnailStore` (avatar-sized remote food images) shares
-    /// the same decode path instead of growing a third ImageIO copy.
-    static func downsample(_ data: Data, maxPixel: Int = maxPixel) -> UIImage? {
+    /// `nonisolated` + internal so the remote disk cache (`RemoteImageCache`) and
+    /// `RemoteThumbnailStore` share this one ImageIO path off the main actor.
+    nonisolated static func downsample(_ data: Data, maxPixel: Int = 900) -> UIImage? {
         guard let imageSource = CGImageSourceCreateWithData(data as CFData, nil) else {
             return UIImage(data: data)
         }

@@ -90,6 +90,12 @@ struct ProfileEditView: View {
                 if let pickedAvatar, let ui = UIImage(data: pickedAvatar) {
                     Image(uiImage: ui).resizable().scaledToFill()
                 } else if let url = store.avatarURL {
+                    // Edit-screen preview stays on AsyncImage: a generic CachedRemoteImage
+                    // here trips the PhotosPicker label's isolation inference (the label
+                    // closure is nonisolated). Every *display* surface (MemberAvatar in the
+                    // settings card / profile hero, the household member list, recipe covers)
+                    // is disk-cached via CachedRemoteImage; this transient editing preview
+                    // is the one spot left on AsyncImage.
                     AsyncImage(url: url) { image in
                         image.resizable().scaledToFill()
                     } placeholder: {

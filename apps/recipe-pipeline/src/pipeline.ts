@@ -8,6 +8,10 @@ import { validateCleanRecipe } from './clean/validate';
 import { dedupe } from './clean/dedup';
 import { mergeWithExisting, type MergeOptions } from './clean/merge';
 import { vendorRemoteImages, fetchImageBuffer } from './clean/vendor-images';
+import {
+  acquireMissingImages, mergeAttributions,
+  type ImageSearchProvider, type ImageVerifier, type Attribution,
+} from './clean/fetch-images';
 import { mapWithConcurrency } from './util/pool';
 import { atomicWriteJson } from './util/atomic-write';
 
@@ -23,6 +27,12 @@ export interface PipelineDeps extends MergeOptions {
   imagesDir?: string;
   /** 测试注入;缺省走真实网络下载。 */
   fetchImage?: (url: string) => Promise<Buffer | null>;
+  /** 设置则为仍缺图(imageUrl=null)的菜谱联网补封面(vendor 之前)。 */
+  imageSearch?: ImageSearchProvider;
+  /** 逐张图像内容校验(确为该菜);缺省只校验是真图。 */
+  imageVerifier?: ImageVerifier;
+  /** 出处记录落盘路径(image-attributions.json);缺省不持久化。 */
+  attributionsPath?: string;
   concurrency?: number;
   limit?: number;
   /** 只处理这些 id(单条补跑,如网络瞬断被拒的菜)。 */
@@ -39,6 +49,7 @@ export interface PipelineReport {
   added: number;
   updated: number;
   unchanged: number;
+  acquiredImages: number;
   total: number;
 }
 
@@ -107,6 +118,26 @@ export async function runPipeline(deps: PipelineDeps): Promise<PipelineReport> {
     refreshDescriptions: deps.refreshDescriptions,
   });
 
+  let acquiredImages = 0;
+  if (deps.imagesDir && deps.imageSearch && !deps.dryRun) {
+    const acq = await acquireMissingImages(merged, {
+      imagesDir: deps.imagesDir,
+      search: deps.imageSearch,
+      verify: deps.imageVerifier,
+      fetchImage: deps.fetchImage ?? fetchImageBuffer,
+      now: deps.now,
+      log,
+    });
+    acquiredImages = acq.acquired;
+    log(`acquired ${acq.acquired} web covers, ${acq.failed} still unmatched`);
+    if (deps.attributionsPath && acq.attributions.length) {
+      const prev = await readFile(deps.attributionsPath, 'utf8')
+        .then((s) => JSON.parse(s) as Attribution[])
+        .catch(() => [] as Attribution[]);
+      await atomicWriteJson(deps.attributionsPath, mergeAttributions(prev, acq.attributions));
+    }
+  }
+
   if (deps.imagesDir && !deps.dryRun) {
     const vendor = await vendorRemoteImages(merged, {
       imagesDir: deps.imagesDir,
@@ -126,6 +157,6 @@ export async function runPipeline(deps: PipelineDeps): Promise<PipelineReport> {
   return {
     collected: raws.length, cleaned: cleaned.length, rejected: rejects.length,
     deduped: dropped.length, added: stats.added, updated: stats.updated,
-    unchanged: stats.unchanged, total: merged.length,
+    unchanged: stats.unchanged, acquiredImages, total: merged.length,
   };
 }

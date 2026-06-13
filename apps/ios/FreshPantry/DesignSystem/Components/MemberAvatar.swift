@@ -8,13 +8,15 @@ struct MemberAvatar: View {
     let avatarURL: URL?
     let size: CGFloat
 
+    @Environment(\.displayScale) private var displayScale
+
     var body: some View {
         ZStack {
             Circle().fill(Color.fkPrimarySoft)
             if let avatarURL {
-                AsyncImage(url: avatarURL) { image in
-                    image.resizable().scaledToFill()
-                } placeholder: {
+                // Disk-cached so the avatar shows on the first frame after a cold
+                // launch instead of flashing empty while AsyncImage refetches.
+                CachedRemoteImage(url: avatarURL, maxPixel: Int(size * max(displayScale, 1))) {
                     initial
                 }
             } else {

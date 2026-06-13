@@ -4,3 +4,4 @@ dist/
 .flue/
 .env
 .cache/
+data/acquired/

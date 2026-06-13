@@ -565,9 +565,7 @@ private struct ActiveHouseholdSection: View {
         ZStack {
             Circle().fill(Color.fkPrimarySoft).frame(width: 36, height: 36)
             if let url {
-                AsyncImage(url: url) { image in
-                    image.resizable().scaledToFill()
-                } placeholder: {
+                CachedRemoteImage(url: url, maxPixel: 108) {
                     memberInitial(member)
                 }
                 .frame(width: 36, height: 36)
