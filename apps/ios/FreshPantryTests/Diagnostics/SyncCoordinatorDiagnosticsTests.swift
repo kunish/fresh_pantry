@@ -15,11 +15,18 @@ struct SyncCoordinatorDiagnosticsTests {
         )
     }
 
+    private struct RemoveError: Error {}
+
     private actor FakeOutbox: OutboxReading {
         private var pending: [SyncOperation]
-        init(pending: [SyncOperation]) { self.pending = pending }
+        private let removeThrows: Bool
+        init(pending: [SyncOperation], removeThrows: Bool = false) {
+            self.pending = pending
+            self.removeThrows = removeThrows
+        }
         func loadPending() async throws -> [SyncOperation] { pending }
         func removeAcknowledged(_ ids: Set<String>) async throws {
+            if removeThrows { throw RemoveError() }
             pending.removeAll { ids.contains($0.id) }
         }
     }
@@ -70,6 +77,20 @@ struct SyncCoordinatorDiagnosticsTests {
         #expect(spy.breadcrumbNames.contains("sync.partial_ack"))
         let crumb = spy.breadcrumbs.first { $0.name == "sync.partial_ack" }!
         #expect(crumb.tags["entityType"] == "inventoryItem")
+    }
+
+    @Test func ackRemovalFailureEmitsDiagnostic() async {
+        let outbox = FakeOutbox(pending: [operation(id: "op_1")], removeThrows: true)
+        // 完整 ack → 不触发 partial_ack,只有 removeAcknowledged 抛错 → ack_removal failure。
+        let gateway = FakeGateway(script: [.acknowledge(["op_1"])])
+        let spy = SpyDiagnostics()
+        let coordinator = SyncCoordinator(outbox: outbox, remote: gateway, diagnostics: spy)
+
+        await coordinator.pushPending()
+
+        #expect(spy.failureNames.contains("sync.ack_removal"))
+        let removal = spy.failures.first { $0.name == "sync.ack_removal" }!
+        #expect(removal.errorClass != nil)
     }
 
     @Test func clearDeadLettersEmitsBreadcrumb() async {
