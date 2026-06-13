@@ -37,6 +37,8 @@ export interface PipelineDeps extends MergeOptions {
   limit?: number;
   /** 只处理这些 id(单条补跑,如网络瞬断被拒的菜)。 */
   only?: string[];
+  /** 跳过所有封面 acquire/vendor(只修文本字段时用,护住已迁 Storage 的 imageUrl 不被改写)。 */
+  skipImages?: boolean;
   dryRun?: boolean;
   log?: (msg: string) => void;
 }
@@ -119,7 +121,7 @@ export async function runPipeline(deps: PipelineDeps): Promise<PipelineReport> {
   });
 
   let acquiredImages = 0;
-  if (deps.imagesDir && deps.imageSearch && !deps.dryRun) {
+  if (deps.imagesDir && deps.imageSearch && !deps.dryRun && !deps.skipImages) {
     const acq = await acquireMissingImages(merged, {
       imagesDir: deps.imagesDir,
       search: deps.imageSearch,
@@ -138,7 +140,7 @@ export async function runPipeline(deps: PipelineDeps): Promise<PipelineReport> {
     }
   }
 
-  if (deps.imagesDir && !deps.dryRun) {
+  if (deps.imagesDir && !deps.dryRun && !deps.skipImages) {
     const vendor = await vendorRemoteImages(merged, {
       imagesDir: deps.imagesDir,
       repoDir: `${ctx.workDir}/howtocook`,

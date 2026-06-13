@@ -71,6 +71,24 @@ describe('runPipeline', () => {
     expect(written[0].remoteVersion).toBe(5);
   });
 
+  it('skipImages:true 时跳过封面 vendor,远程 imageUrl 原样保留(护住 Storage 迁移)', async () => {
+    const { existingPath, outPath, rejectsPath, dir } = await setup();
+    const imagesDir = join(dir, 'images');
+    await writeFile(existingPath, JSON.stringify([{
+      id: 'howtocook:vegetable_dish/凉拌黄瓜', name: '凉拌黄瓜', category: '素菜', difficulty: 1,
+      cookingMinutes: 20, description: '老描述', ingredients: [], steps: [], tags: [],
+      imageUrl: 'https://cdn.example.com/x.jpg', remoteVersion: 0, clientUpdatedAt: null, deletedAt: null,
+    }]), 'utf8');
+    await runPipeline({
+      sources: [source('howtocook', [raw('howtocook:vegetable_dish/凉拌黄瓜', '凉拌黄瓜')])],
+      enricher: stubEnricher, existingPath, outPath, rejectsPath, imagesDir,
+      fetchImage: async () => Buffer.from('img'),
+      now: '2026-06-12T00:00:00.000Z', concurrency: 2, skipImages: true,
+    });
+    const written = JSON.parse(await readFile(outPath, 'utf8'));
+    expect(written[0].imageUrl).toBe('https://cdn.example.com/x.jpg');
+  });
+
   it('dry-run 不写盘', async () => {
     const { existingPath, outPath, rejectsPath } = await setup();
     await writeFile(existingPath, '[]', 'utf8');

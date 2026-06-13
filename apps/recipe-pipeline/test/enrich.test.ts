@@ -41,8 +41,11 @@ describe('buildEnrichPrompt', () => {
     const p = buildEnrichPrompt({ ...tier1, rawText: '网页正文…', portionText: undefined });
     expect(p).toContain('网页正文');
   });
-  it('Tier1 无计算段时提示只留 name', () => {
-    expect(buildEnrichPrompt({ ...tier1, portionText: undefined })).toContain('只留 name');
+  it('提示可从操作步骤抽用量(计算段漏写时回归,如生粉 5g 在步骤里)', () => {
+    expect(buildEnrichPrompt(tier1)).toMatch(/步骤.*抽|从.*步骤.*用量|计算段.*没有.*步骤/);
+  });
+  it('源里没写任何数字的食材落「适量」note,不留裸 name', () => {
+    expect(buildEnrichPrompt(tier1)).toContain('适量');
   });
   it('提示严禁对用量做运算(乘份数/相加幻觉的回归)', () => {
     expect(buildEnrichPrompt(tier1)).toContain('严禁运算');

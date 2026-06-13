@@ -11,6 +11,8 @@ export interface BuildPayload {
   limit?: number;
   /** 只处理这些 id(单条补跑)。 */
   only?: string[];
+  /** 跳过封面 acquire/vendor(只修用量时护住已迁 Storage 的 imageUrl)。 */
+  skipImages?: boolean;
   dryRun?: boolean;
   refreshDescriptions?: boolean;
 }
@@ -36,6 +38,7 @@ export async function run({ init, payload }: FlueContext<BuildPayload>) {
     concurrency: config.concurrency,
     limit: payload?.limit,
     only: payload?.only,
+    skipImages: payload?.skipImages,
     dryRun: payload?.dryRun,
     refreshDescriptions: payload?.refreshDescriptions,
     log: (m) => console.log(`[recipes] ${m}`),
