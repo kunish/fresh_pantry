@@ -51,6 +51,21 @@ final class DashboardStore {
         shopping = await shoppingLoad
     }
 
+    // MARK: Optimistic snapshot edit
+
+    /// Optimistically reflects a shopping-list add in the in-memory `shopping`
+    /// snapshot so the 购物清单 summary count bumps the instant the add lands,
+    /// instead of a full two-scope reload. Skips a name already present
+    /// (case-insensitive) so a dedup/merge never double-counts. The next real
+    /// `load()` reconciles the canonical row (id/category). Mirrors the
+    /// store's name-unique semantics.
+    func noteShoppingAdded(name: String, category: String?) {
+        let key = name.trimmed.lowercased()
+        guard !key.isEmpty, !shopping.contains(where: { $0.name.trimmed.lowercased() == key }) else { return }
+        let resolved = FoodCategories.normalize(category) ?? FoodKnowledge.categoryFor(name.trimmed)
+        shopping.append(ShoppingItem(id: ShoppingItem.newId(), name: name.trimmed, detail: "", category: resolved))
+    }
+
     // MARK: Derived view data
 
     /// The fully-derived summary the view renders. Recomputed on access; the

@@ -237,6 +237,7 @@ struct Recipe: Hashable, Sendable, Codable {
     var steps: [String]
     var tags: [String]
     var imageUrl: String?
+    var videoUrl: String?
     var remoteVersion: Int
     var clientUpdatedAt: Date?
     var deletedAt: Date?
@@ -267,6 +268,7 @@ struct Recipe: Hashable, Sendable, Codable {
         steps: [String],
         tags: [String] = [],
         imageUrl: String? = nil,
+        videoUrl: String? = nil,
         remoteVersion: Int = 0,
         clientUpdatedAt: Date? = nil,
         deletedAt: Date? = nil
@@ -282,6 +284,7 @@ struct Recipe: Hashable, Sendable, Codable {
         self.steps = steps
         self.tags = tags
         self.imageUrl = imageUrl
+        self.videoUrl = videoUrl
         self.remoteVersion = remoteVersion
         self.clientUpdatedAt = clientUpdatedAt
         self.deletedAt = deletedAt
@@ -292,7 +295,7 @@ struct Recipe: Hashable, Sendable, Codable {
 
     private enum CodingKeys: String, CodingKey {
         case id, name, category, difficulty, cookingMinutes, description
-        case ingredients, steps, tags, imageUrl
+        case ingredients, steps, tags, imageUrl, videoUrl
         case remoteVersion, clientUpdatedAt, deletedAt
     }
 
@@ -308,6 +311,7 @@ struct Recipe: Hashable, Sendable, Codable {
         try c.encode(steps, forKey: .steps)
         try c.encode(tags, forKey: .tags)
         try c.encodeAlways(imageUrl, forKey: .imageUrl)
+        try c.encodeAlways(videoUrl, forKey: .videoUrl)
         try c.encode(remoteVersion, forKey: .remoteVersion)
         try c.encodeISODateAlways(clientUpdatedAt, forKey: .clientUpdatedAt)
         try c.encodeISODateAlways(deletedAt, forKey: .deletedAt)
@@ -327,6 +331,7 @@ struct Recipe: Hashable, Sendable, Codable {
             steps: c.decodeLenientIfPresent([String].self, forKey: .steps) ?? [],
             tags: c.decodeLenientIfPresent([String].self, forKey: .tags) ?? [],
             imageUrl: c.decodeLenientIfPresent(String.self, forKey: .imageUrl),
+            videoUrl: c.decodeLenientIfPresent(String.self, forKey: .videoUrl),
             remoteVersion: c.decodeIntIfPresent(forKey: .remoteVersion) ?? 0,
             clientUpdatedAt: c.decodeISODateIfPresent(forKey: .clientUpdatedAt),
             deletedAt: c.decodeISODateIfPresent(forKey: .deletedAt)
@@ -344,6 +349,7 @@ struct Recipe: Hashable, Sendable, Codable {
         steps: [String]? = nil,
         tags: [String]? = nil,
         imageUrl: String? = nil,
+        videoUrl: String? = nil,
         remoteVersion: Int? = nil,
         clientUpdatedAt: Date? = nil,
         deletedAt: Date? = nil,
@@ -361,6 +367,7 @@ struct Recipe: Hashable, Sendable, Codable {
             steps: steps ?? self.steps,
             tags: tags ?? self.tags,
             imageUrl: imageUrl ?? self.imageUrl,
+            videoUrl: videoUrl ?? self.videoUrl,
             remoteVersion: remoteVersion ?? self.remoteVersion,
             clientUpdatedAt: clearClientUpdatedAt ? nil : (clientUpdatedAt ?? self.clientUpdatedAt),
             deletedAt: clearDeletedAt ? nil : (deletedAt ?? self.deletedAt)

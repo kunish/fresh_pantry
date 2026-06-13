@@ -1,0 +1,3278 @@
+[
+  {
+    "id": "howtocook:aquatic/咖喱炒蟹",
+    "name": "咖喱炒蟹",
+    "videoUrl": "https://www.bilibili.com/video/BV1c44y1k7ds",
+    "sourcePage": "https://www.bilibili.com/video/BV1c44y1k7ds",
+    "title": "海边人做姜葱炒蟹有一手，简单几步搞定，开胃下饭超好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/响油鳝丝",
+    "name": "响油鳝丝",
+    "videoUrl": "https://www.bilibili.com/video/BV1RK421b7by",
+    "sourcePage": "https://www.bilibili.com/video/BV1RK421b7by",
+    "title": "浓油赤酱！超下饭经典家常菜🤩|本帮响油鳝丝",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/小龙虾/小龙虾",
+    "name": "小龙虾",
+    "videoUrl": "https://www.bilibili.com/video/BV15M4m1X7WR",
+    "sourcePage": "https://www.bilibili.com/video/BV15M4m1X7WR",
+    "title": "大学生就业指导！顶流麻小巨巨巨详细教程！从买虾开始谁还不会做！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/干煎阿根廷红虾/干煎阿根廷红虾",
+    "name": "干煎阿根廷红虾",
+    "videoUrl": "https://www.bilibili.com/video/BV1Hx41147vj",
+    "sourcePage": "https://www.bilibili.com/video/BV1Hx41147vj",
+    "title": "盐煎阿根廷红虾",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/微波葱姜黑鳕鱼",
+    "name": "微波葱姜黑鳕鱼",
+    "videoUrl": "https://www.bilibili.com/video/BV173411g7NN",
+    "sourcePage": "https://www.bilibili.com/video/BV173411g7NN",
+    "title": "超市里买的冻鳕鱼怎么做好吃，大厨教你家常红烧鳕鱼，简单又好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/水煮鱼",
+    "name": "水煮鱼",
+    "videoUrl": "https://www.bilibili.com/video/BV1Q7h2zLEGd",
+    "sourcePage": "https://www.bilibili.com/video/BV1Q7h2zLEGd",
+    "title": "回归?!下饭爆香的水煮鱼到底怎么做!",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/油焖大虾/油焖大虾",
+    "name": "油焖大虾",
+    "videoUrl": "https://www.bilibili.com/video/BV1LS66BkEk3",
+    "sourcePage": "https://www.bilibili.com/video/BV1LS66BkEk3",
+    "title": "油焖虾，入门级的一道硬菜！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/混合烤鱼/烤鱼",
+    "name": "烤鱼",
+    "videoUrl": "https://www.bilibili.com/video/BV1uybYzYEav",
+    "sourcePage": "https://www.bilibili.com/video/BV1uybYzYEav",
+    "title": "脆皮麻辣烤鱼家常做法，只需要一口铁锅就能搞定，鱼肉鲜嫩，麻辣入味，越吃越过瘾！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/清蒸生蚝",
+    "name": "清蒸生蚝",
+    "videoUrl": "https://www.bilibili.com/video/BV1644y1G7C9",
+    "sourcePage": "https://www.bilibili.com/video/BV1644y1G7C9",
+    "title": "生蚝原只蒸要蒸多久？怎么做才能原汁原味不缩水？",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/清蒸鲈鱼/清蒸鲈鱼",
+    "name": "清蒸鲈鱼",
+    "videoUrl": "https://www.bilibili.com/video/BV1oytPeiE8N",
+    "sourcePage": "https://www.bilibili.com/video/BV1oytPeiE8N",
+    "title": "为啥广东人做的清蒸鲈鱼那么好吃？大厨教你正确做法，鲜嫩无腥味",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/白灼虾/白灼虾",
+    "name": "白灼虾",
+    "videoUrl": "https://www.bilibili.com/video/BV1eT4y157of",
+    "sourcePage": "https://www.bilibili.com/video/BV1eT4y157of",
+    "title": "做白灼虾时，冷水下锅还是开水下锅？一直做错，难怪虾肉又老又腥",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/糖醋鲤鱼/糖醋鲤鱼",
+    "name": "糖醋鲤鱼",
+    "videoUrl": "https://www.bilibili.com/video/BV1NKLZzbEEr",
+    "sourcePage": "https://www.bilibili.com/video/BV1NKLZzbEEr",
+    "title": "正宗糖醋蒜腌制方法，味道纯正，吃着清脆爽口，放上一年不变质。",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/红烧鱼",
+    "name": "红烧鱼",
+    "videoUrl": "https://www.bilibili.com/video/BV1b9xrzmEij",
+    "sourcePage": "https://www.bilibili.com/video/BV1b9xrzmEij",
+    "title": "红烧鱼教程！厨房新手小白也能轻松做出的美味",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/红烧鱼头",
+    "name": "红烧鱼头",
+    "videoUrl": "https://www.bilibili.com/video/BV1yXHpeHEcH",
+    "sourcePage": "https://www.bilibili.com/video/BV1yXHpeHEcH",
+    "title": "三碗米饭半个大鱼头，有滋有味还是红烧鱼头",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/红烧鲤鱼",
+    "name": "红烧鲤鱼",
+    "videoUrl": "https://www.bilibili.com/video/BV1Pd6JYBEop",
+    "sourcePage": "https://www.bilibili.com/video/BV1Pd6JYBEop",
+    "title": "【年夜菜支棱起来！巨好吃的红烧大鲤鱼保姆级教程】",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/肉蟹煲",
+    "name": "肉蟹煲",
+    "videoUrl": "https://www.bilibili.com/video/BV1cs2BYPE9m",
+    "sourcePage": "https://www.bilibili.com/video/BV1cs2BYPE9m",
+    "title": "【大学生就业指导】胖哥俩肉蟹煲一比一复刻！真.他店里的味道！！！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/芥末黄油罗氏虾/芥末黄油罗氏虾",
+    "name": "芥末黄油罗氏虾",
+    "videoUrl": "https://www.bilibili.com/video/BV1dx411z774",
+    "sourcePage": "https://www.bilibili.com/video/BV1dx411z774",
+    "title": "自制黄芥末酱 (Mustard) - 视频教程 - 美善品食谱",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/葱油桂鱼/葱油桂鱼",
+    "name": "葱油桂鱼",
+    "videoUrl": "https://www.bilibili.com/video/BV1yAVazmEEc",
+    "sourcePage": "https://www.bilibili.com/video/BV1yAVazmEEc",
+    "title": "清蒸桂鱼，最详细的蒸鱼教程来了，我一般都站着蒸鱼，你们呢",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/葱烧海参/葱烧海参",
+    "name": "葱烧海参",
+    "videoUrl": "https://www.bilibili.com/video/BV1j85b6jEZk",
+    "sourcePage": "https://www.bilibili.com/video/BV1j85b6jEZk",
+    "title": "葱烧海参在家做太简单了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/蒜蓉虾/蒜蓉虾",
+    "name": "蒜蓉虾",
+    "videoUrl": "https://www.bilibili.com/video/BV1s9YUzjEaa",
+    "sourcePage": "https://www.bilibili.com/video/BV1s9YUzjEaa",
+    "title": "全家一致好评的“蒜香大虾”蒜香浓郁强烈推荐！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/蒜香黄油虾/蒜香黄油虾",
+    "name": "蒜香黄油虾",
+    "videoUrl": "https://www.bilibili.com/video/BV13k9BYTEdh",
+    "sourcePage": "https://www.bilibili.com/video/BV13k9BYTEdh",
+    "title": "蒜蓉黄油虾 | 2分钟分钟学会简单又快手的漂亮菜！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/蛏抱蛋/蛏抱蛋",
+    "name": "蛏抱蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1dr4y1u7wE",
+    "sourcePage": "https://www.bilibili.com/video/BV1dr4y1u7wE",
+    "title": "福建特色蛏子抱蛋，这才是蛏子好吃的做法，外酥里嫩，鲜美下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/酱炖蟹",
+    "name": "酱炖蟹",
+    "videoUrl": "https://www.bilibili.com/video/BV1FD4y1o7w2",
+    "sourcePage": "https://www.bilibili.com/video/BV1FD4y1o7w2",
+    "title": "【韩式酱油酱蟹】韩国酱蟹做法，绝对绝对下饭，韩国人教你正宗酱蟹",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/阳朔啤酒鱼/阳朔啤酒鱼",
+    "name": "阳朔啤酒鱼",
+    "videoUrl": "https://www.bilibili.com/video/BV15V411e7MB",
+    "sourcePage": "https://www.bilibili.com/video/BV15V411e7MB",
+    "title": "“广西啤酒鱼”为何如此出名？来桂林旅游必吃！皮脆肉嫩汁鲜美",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/香煎翘嘴鱼/香煎翘嘴鱼",
+    "name": "香煎翘嘴鱼",
+    "videoUrl": "https://www.bilibili.com/video/BV1dw411x7MV",
+    "sourcePage": "https://www.bilibili.com/video/BV1dw411x7MV",
+    "title": "香煎翘嘴很多人不会做，湖南常德厨子教你私密弄法，下饭又下酒",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/鲤鱼炖白菜/鲤鱼炖白菜",
+    "name": "鲤鱼炖白菜",
+    "videoUrl": "https://www.bilibili.com/video/BV1gG41117f7",
+    "sourcePage": "https://www.bilibili.com/video/BV1gG41117f7",
+    "title": "白菜的6种吃法：酸辣白菜、白菜豆腐煲、翡翠白菜卷、烂糊白菜、醋溜白菜、白菜炖粉条",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/鳊鱼炖豆腐/鳊鱼炖豆腐",
+    "name": "鳊鱼炖豆腐",
+    "videoUrl": "https://www.bilibili.com/video/BV1tV4y187oV",
+    "sourcePage": "https://www.bilibili.com/video/BV1tV4y187oV",
+    "title": "豆腐简单好吃的家常做法，滑嫩鲜香，入味下饭，比麻婆豆腐还好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:aquatic/黄油煎虾/黄油煎虾",
+    "name": "黄油煎虾",
+    "videoUrl": "https://www.bilibili.com/video/BV13k9BYTEdh",
+    "sourcePage": "https://www.bilibili.com/video/BV13k9BYTEdh",
+    "title": "蒜蓉黄油虾 | 2分钟分钟学会简单又快手的漂亮菜！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/吐司果酱",
+    "name": "吐司果酱",
+    "videoUrl": "https://www.bilibili.com/video/BV1u24y1T7Z2",
+    "sourcePage": "https://www.bilibili.com/video/BV1u24y1T7Z2",
+    "title": "水果便宜的季节，做成果酱储存起来吧！烘焙常用的果酱熬制教程，不论做甜品还是拌酸奶或者抹面包，都必不可少，蓝莓果酱，芒果果酱，草莓果酱",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/太阳蛋",
+    "name": "太阳蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1WZsaeDEhs",
+    "sourcePage": "https://www.bilibili.com/video/BV1WZsaeDEhs",
+    "title": "背景氛围教程（四）｜写实型太阳做法",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/完美水煮蛋",
+    "name": "完美水煮蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1v6421M77t",
+    "sourcePage": "https://www.bilibili.com/video/BV1v6421M77t",
+    "title": "看似简单的水煮鸡蛋其实大有学问，教你正确做法，我一顿吃8个看",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/微波炉蒸蛋",
+    "name": "微波炉蒸蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1ZS4y1x7GZ",
+    "sourcePage": "https://www.bilibili.com/video/BV1ZS4y1x7GZ",
+    "title": "绝对无气泡的微波炉蒸蛋教程，学不会来打我",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/微波炉荷包蛋",
+    "name": "微波炉荷包蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1Lt411E7sF",
+    "sourcePage": "https://www.bilibili.com/video/BV1Lt411E7sF",
+    "title": "不用烤箱！微波炉蛋挞你也可以做！内含福利",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/微波炉蛋糕",
+    "name": "微波炉蛋糕",
+    "videoUrl": "https://www.bilibili.com/video/BV1QSMXzMExh",
+    "sourcePage": "https://www.bilibili.com/video/BV1QSMXzMExh",
+    "title": "0难度！免烤箱？微波炉也能做出松软绵密的抖臀古早蛋糕，配方适用烤箱和微波炉，做法简单又好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/意式香肠北非蛋",
+    "name": "意式香肠北非蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1KLqoBFEmo",
+    "sourcePage": "https://www.bilibili.com/video/BV1KLqoBFEmo",
+    "title": "轻松解锁！世界公认级美味｜牛肉北非蛋",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/手抓饼",
+    "name": "手抓饼",
+    "videoUrl": "https://www.bilibili.com/video/BV1bN411Z77m",
+    "sourcePage": "https://www.bilibili.com/video/BV1bN411Z77m",
+    "title": "手抓饼正宗做法，一次多做一些冻起来，早餐5分钟搞定，比买的好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/桂圆红枣粥",
+    "name": "桂圆红枣粥",
+    "videoUrl": "https://www.bilibili.com/video/BV1aE411E7Y5",
+    "sourcePage": "https://www.bilibili.com/video/BV1aE411E7Y5",
+    "title": "一学就会的桂圆莲子红枣粥，营养美味，不好吃你来找我给你亲自做！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/水煮玉米",
+    "name": "水煮玉米",
+    "videoUrl": "https://www.bilibili.com/video/BV1AeMsz1EVp",
+    "sourcePage": "https://www.bilibili.com/video/BV1AeMsz1EVp",
+    "title": "你真的知道玉米怎么煮吗？",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/温泉蛋/温泉蛋",
+    "name": "温泉蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1KLWDeuEDa",
+    "sourcePage": "https://www.bilibili.com/video/BV1KLWDeuEDa",
+    "title": "【这就是和食】温泉蛋｜日本最常用的零失败温泉蛋做法！简单完美！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/溏心蛋",
+    "name": "溏心蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1CFmdB2EKA",
+    "sourcePage": "https://www.bilibili.com/video/BV1CFmdB2EKA",
+    "title": "溏心蛋做法教程",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/煎饺",
+    "name": "煎饺",
+    "videoUrl": "https://www.bilibili.com/video/BV1uh411L7tk",
+    "sourcePage": "https://www.bilibili.com/video/BV1uh411L7tk",
+    "title": "教你把速冻饺子煎得比店里的还好吃，从此跟外卖说拜拜！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/蒸水蛋",
+    "name": "蒸水蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1PqFrzuEEP",
+    "sourcePage": "https://www.bilibili.com/video/BV1PqFrzuEEP",
+    "title": "家庭水蒸蛋万能公式：100%成功！不成功你打电话骂我",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/蒸花卷",
+    "name": "蒸花卷",
+    "videoUrl": "https://www.bilibili.com/video/BV1n7411R7Je",
+    "sourcePage": "https://www.bilibili.com/video/BV1n7411R7Je",
+    "title": "老师傅教你蒸花卷：三种手法都教你，口感蓬松柔软，蒸出来红红火火有食欲",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/燕麦鸡蛋饼",
+    "name": "燕麦鸡蛋饼",
+    "videoUrl": "https://www.bilibili.com/video/BV12V411g7TW",
+    "sourcePage": "https://www.bilibili.com/video/BV12V411g7TW",
+    "title": "一勺燕麦三勺水两个鸡蛋，竟然能烙出这么劲道又美味的饼，超简单",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/牛奶燕麦",
+    "name": "牛奶燕麦",
+    "videoUrl": "https://www.bilibili.com/video/BV1FD4y1q7ch",
+    "sourcePage": "https://www.bilibili.com/video/BV1FD4y1q7ch",
+    "title": "早餐自己在家煮的牛奶燕麦粥，软糯香浓，好喝又健康，减脂早餐首选",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/空气炸锅面包片",
+    "name": "空气炸锅面包片",
+    "videoUrl": "https://www.bilibili.com/video/BV1Qx4y1N7AB",
+    "sourcePage": "https://www.bilibili.com/video/BV1Qx4y1N7AB",
+    "title": "如果你有空气炸锅，面包试试这样吃，香甜酥脆",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/美式炒蛋",
+    "name": "美式炒蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1n7411m7yF",
+    "sourcePage": "https://www.bilibili.com/video/BV1n7411m7yF",
+    "title": "〈零失败〉完美美式炒蛋",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/苏格兰蛋/苏格兰蛋",
+    "name": "苏格兰蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV14P411h7Rx",
+    "sourcePage": "https://www.bilibili.com/video/BV14P411h7Rx",
+    "title": "苏格兰蛋｜为数不多的英国美食｜味道相当不错，做着也简单！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/茶叶蛋",
+    "name": "茶叶蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1h2421F74u",
+    "sourcePage": "https://www.bilibili.com/video/BV1h2421F74u",
+    "title": "早餐必备茶叶蛋，还不会做的赶快学起来吧~",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/蛋煎糍粑",
+    "name": "蛋煎糍粑",
+    "videoUrl": "https://www.bilibili.com/video/BV1TT4y1D7Kv",
+    "sourcePage": "https://www.bilibili.com/video/BV1TT4y1D7Kv",
+    "title": "这个香煎糍粑真的比红糖糍粑还好吃啊",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/金枪鱼酱三明治",
+    "name": "金枪鱼酱三明治",
+    "videoUrl": "https://www.bilibili.com/video/BV1Sr4y1B7F8",
+    "sourcePage": "https://www.bilibili.com/video/BV1Sr4y1B7F8",
+    "title": "5分钟免开火｜自制低脂金枪鱼酱【yannieyuen】",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/韩国麻药鸡蛋",
+    "name": "韩国麻药鸡蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1hC411H74E",
+    "sourcePage": "https://www.bilibili.com/video/BV1hC411H74E",
+    "title": "妈呀❗️成功复刻了风靡韩国的麻药鸡蛋❗️",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:breakfast/鸡蛋三明治",
+    "name": "鸡蛋三明治",
+    "videoUrl": "https://www.bilibili.com/video/BV1t24y1C7VD",
+    "sourcePage": "https://www.bilibili.com/video/BV1t24y1C7VD",
+    "title": "鸡蛋三明治的做法，日本便利店三明治不动的C位。",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:condiment/油泼辣子/油泼辣子",
+    "name": "油泼辣子",
+    "videoUrl": "https://www.bilibili.com/video/BV1Vaw9eBEnH",
+    "sourcePage": "https://www.bilibili.com/video/BV1Vaw9eBEnH",
+    "title": "学会这个升级版油泼辣子的做法，夹馍、拌面、拌饭吃嘎嘎香~",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:condiment/油酥",
+    "name": "油酥",
+    "videoUrl": "https://www.bilibili.com/video/BV1Zf4y1M7jJ",
+    "sourcePage": "https://www.bilibili.com/video/BV1Zf4y1M7jJ",
+    "title": "做面食必会的3种油酥做法，原理配方用法详细，学会做面饼不用愁",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:condiment/炸串酱料",
+    "name": "炸串酱料",
+    "videoUrl": "https://www.bilibili.com/video/BV1kL4y1N7DC",
+    "sourcePage": "https://www.bilibili.com/video/BV1kL4y1N7DC",
+    "title": "炸串好吃关键在于酱料，分享街头炸串酱料，千万不要错过非常实用",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:condiment/简易版炒糖色",
+    "name": "简易版炒糖色",
+    "videoUrl": "https://www.bilibili.com/video/BV1No4y1A7iH",
+    "sourcePage": "https://www.bilibili.com/video/BV1No4y1A7iH",
+    "title": "我就不信，还有谁看完能学不会炒糖色",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:condiment/糖醋汁",
+    "name": "糖醋汁",
+    "videoUrl": "https://www.bilibili.com/video/BV1N62EYHEnR",
+    "sourcePage": "https://www.bilibili.com/video/BV1N62EYHEnR",
+    "title": "自调糖醋汁",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:condiment/草莓酱/草莓酱",
+    "name": "草莓酱",
+    "videoUrl": "https://www.bilibili.com/video/BV1gi4y1N7Ba",
+    "sourcePage": "https://www.bilibili.com/video/BV1gi4y1N7Ba",
+    "title": "纯正浓郁的【自制草莓酱】 一次做两斤 能存放一整年",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:condiment/葱油",
+    "name": "葱油",
+    "videoUrl": "https://www.bilibili.com/video/BV1c54y127TP",
+    "sourcePage": "https://www.bilibili.com/video/BV1c54y127TP",
+    "title": "国宴大厨教你：在家轻松制作葱油，三种技法全奉献！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:condiment/蒜香酱油",
+    "name": "蒜香酱油",
+    "videoUrl": "https://www.bilibili.com/video/BV1wK411h7jf",
+    "sourcePage": "https://www.bilibili.com/video/BV1wK411h7jf",
+    "title": "教你蒜香椒盐排骨的正确做法，外焦里嫩，酥香脱骨，既开胃又下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:condiment/蔗糖糖浆/蔗糖糖浆",
+    "name": "蔗糖糖浆",
+    "videoUrl": "https://www.bilibili.com/video/BV1Nm4y1x7gV",
+    "sourcePage": "https://www.bilibili.com/video/BV1Nm4y1x7gV",
+    "title": "黑糖糖浆做法，各种点心的万用糖浆",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/反沙芋头/反沙芋头",
+    "name": "反沙芋头",
+    "videoUrl": "https://www.bilibili.com/video/BV1f6xveXEhU",
+    "sourcePage": "https://www.bilibili.com/video/BV1f6xveXEhU",
+    "title": "潮汕反沙芋头，只需掌握这几步，从不下厨的人也会做，先收藏了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/咖啡椰奶冻/咖啡椰奶冻",
+    "name": "咖啡椰奶冻",
+    "videoUrl": "https://www.bilibili.com/video/BV1UmKBzxE9X",
+    "sourcePage": "https://www.bilibili.com/video/BV1UmKBzxE9X",
+    "title": "冰凉醇香椰奶冻，你们100%会做的甜品～",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/奥利奥冰淇淋/奥利奥冰淇淋",
+    "name": "奥利奥冰淇淋",
+    "videoUrl": "https://www.bilibili.com/video/BV1NB4y1U7H9",
+    "sourcePage": "https://www.bilibili.com/video/BV1NB4y1U7H9",
+    "title": "复刻两种口味【麦旋风冰淇淋】｜麦当劳赚不到我的钱！奥利奥简直永远的神～",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/戚风蛋糕/戚风蛋糕",
+    "name": "戚风蛋糕",
+    "videoUrl": "https://www.bilibili.com/video/BV1bY4y1B7Tm",
+    "sourcePage": "https://www.bilibili.com/video/BV1bY4y1B7Tm",
+    "title": "‼️我真的想教会所有人做戚风蛋糕‼️",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/提拉米苏/提拉米苏",
+    "name": "提拉米苏",
+    "videoUrl": "https://www.bilibili.com/video/BV1es4y1C79S",
+    "sourcePage": "https://www.bilibili.com/video/BV1es4y1C79S",
+    "title": "师傅13年教我的提拉米苏食谱 一直用到现在",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/无厨师机蜂蜜面包/无厨师机蜂蜜面包",
+    "name": "无厨师机蜂蜜面包",
+    "videoUrl": "https://www.bilibili.com/video/BV1SY411J7GU",
+    "sourcePage": "https://www.bilibili.com/video/BV1SY411J7GU",
+    "title": "没有厨师机你也可以在家自己做吐司，15分钟零失败手套膜教程",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/炸鲜奶/炸鲜奶",
+    "name": "炸鲜奶",
+    "videoUrl": "https://www.bilibili.com/video/BV13P4y197Aq",
+    "sourcePage": "https://www.bilibili.com/video/BV13P4y197Aq",
+    "title": "有牛奶就能做的脆皮炸鲜奶，比饭店的还好吃，经济实惠比买的更放心",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/烤箱版巴斯克芝士蛋糕/烤箱版巴斯克芝士蛋糕",
+    "name": "烤箱版巴斯克芝士蛋糕",
+    "videoUrl": "https://www.bilibili.com/video/BV1h64y1f7jz",
+    "sourcePage": "https://www.bilibili.com/video/BV1h64y1f7jz",
+    "title": "超级简单，手残党必学的巴斯克芝士蛋糕",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/烤蛋挞/烤蛋挞",
+    "name": "烤蛋挞",
+    "videoUrl": "https://www.bilibili.com/video/BV1JU4y1a7H1",
+    "sourcePage": "https://www.bilibili.com/video/BV1JU4y1a7H1",
+    "title": "用电饭锅做100道菜之蛋挞",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/玛格丽特饼干/玛格丽特饼干",
+    "name": "玛格丽特饼干",
+    "videoUrl": "https://www.bilibili.com/video/BV17g4y1a7GD",
+    "sourcePage": "https://www.bilibili.com/video/BV17g4y1a7GD",
+    "title": "小白入门必备｜一次解锁3种口味玛格丽特",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/红柚蛋糕/红柚蛋糕",
+    "name": "红柚蛋糕",
+    "videoUrl": "https://www.bilibili.com/video/BV1D26FBpE2Z",
+    "sourcePage": "https://www.bilibili.com/video/BV1D26FBpE2Z",
+    "title": "日本冠军主厨柳正司的香草奶油！万能配方！杯子蛋糕，裸蛋糕，奶油蛋糕都可以用的冰淇淋奶油！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/胡萝卜甜糕",
+    "name": "胡萝卜甜糕",
+    "videoUrl": "https://www.bilibili.com/video/BV17wYVzNEj9",
+    "sourcePage": "https://www.bilibili.com/video/BV17wYVzNEj9",
+    "title": "[FF14] 蜃景幻界新月岛 7.3版本 撒娇罐 好运胡萝卜 底层机制详解 成就规划",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/芋泥雪媚娘/芋泥雪媚娘",
+    "name": "芋泥雪媚娘",
+    "videoUrl": "https://www.bilibili.com/video/BV1hk4y1u7cG",
+    "sourcePage": "https://www.bilibili.com/video/BV1hk4y1u7cG",
+    "title": "软糯糯的芋泥雪糕，你确定不想来一根吗？",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/英式司康/英式司康",
+    "name": "英式司康",
+    "videoUrl": "https://www.bilibili.com/video/BV12K4y1N7B4",
+    "sourcePage": "https://www.bilibili.com/video/BV12K4y1N7B4",
+    "title": "[4K] 英国司康松饼食谱与做法：试试看英国女王御厨传授的配方吧！ - 食不相瞒/糖饺子",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/草莓冰淇淋/草莓冰淇淋",
+    "name": "草莓冰淇淋",
+    "videoUrl": "https://www.bilibili.com/video/BV1VS4y1b7eu",
+    "sourcePage": "https://www.bilibili.com/video/BV1VS4y1b7eu",
+    "title": "草莓冰淇淋，只需3种成分，绝无冰渣，2022年的第1款冰淇淋来啦",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/酸奶意式奶冻/酸奶意式奶冻",
+    "name": "酸奶意式奶冻",
+    "videoUrl": "https://www.bilibili.com/video/BV1ah4y1j74o",
+    "sourcePage": "https://www.bilibili.com/video/BV1ah4y1j74o",
+    "title": "一分钟学会原味奶冻｜夏日小甜品｜做法简单",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/雪花酥/雪花酥",
+    "name": "雪花酥",
+    "videoUrl": "https://www.bilibili.com/video/BV1ah411x7hx",
+    "sourcePage": "https://www.bilibili.com/video/BV1ah411x7hx",
+    "title": "【保姆级教程】小白在家怎么做出好吃的雪花酥？",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/魔芋蛋糕/魔芋蛋糕",
+    "name": "魔芋蛋糕",
+    "videoUrl": "https://www.bilibili.com/video/BV1UT4y1m7Qc",
+    "sourcePage": "https://www.bilibili.com/video/BV1UT4y1m7Qc",
+    "title": "【魔芋蛋糕】超级简单好做 一看就会！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:dessert/龟苓膏/龟苓膏",
+    "name": "龟苓膏",
+    "videoUrl": "https://www.bilibili.com/video/BV1Sf4y1W7MP",
+    "sourcePage": "https://www.bilibili.com/video/BV1Sf4y1W7MP",
+    "title": "【古法龟苓膏】真正用龟壳熬制，不是烧仙草也不是黑凉粉~",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/B52轰炸机",
+    "name": "B52轰炸机",
+    "videoUrl": "https://www.bilibili.com/video/BV1sr4y1K7Ds",
+    "sourcePage": "https://www.bilibili.com/video/BV1sr4y1K7Ds",
+    "title": "B-52轰炸机:是shot杯鸡尾酒中最有名的cocktail之一。",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/Mojito莫吉托",
+    "name": "Mojito莫吉托",
+    "videoUrl": "https://www.bilibili.com/video/BV1jg4y187kB",
+    "sourcePage": "https://www.bilibili.com/video/BV1jg4y187kB",
+    "title": "莫吉托（Mojito）世界上最著名的经典鸡尾酒之一。",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/冬瓜茶",
+    "name": "冬瓜茶",
+    "videoUrl": "https://www.bilibili.com/video/BV14s411n7pD",
+    "sourcePage": "https://www.bilibili.com/video/BV14s411n7pD",
+    "title": "夏日实用饮品第二弹：古早味冬瓜茶",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/冰粉/冰粉",
+    "name": "冰粉",
+    "videoUrl": "https://www.bilibili.com/video/BV1CJ4m1u7Xm",
+    "sourcePage": "https://www.bilibili.com/video/BV1CJ4m1u7Xm",
+    "title": "夏天夜市热销的冰粉原来是这么做的？！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/印度奶茶",
+    "name": "印度奶茶",
+    "videoUrl": "https://www.bilibili.com/video/BV1PPmLYVE7e",
+    "sourcePage": "https://www.bilibili.com/video/BV1PPmLYVE7e",
+    "title": "奶茶鼻祖 纯天然印度奶茶在家就能做",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/可乐桶",
+    "name": "可乐桶",
+    "videoUrl": "https://www.bilibili.com/video/BV1RN4y1T7SF",
+    "sourcePage": "https://www.bilibili.com/video/BV1RN4y1T7SF",
+    "title": "十块钱放倒一桌人，渣女超爱可乐桶调酒|自制饮品|调酒师|可乐|青柠|夏天必备|酒吧|鸡尾酒|制作教程|美食|饮品|牛栏山二锅头",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/奇异果菠菜特调/奇异果菠菜特调",
+    "name": "奇异果菠菜特调",
+    "videoUrl": "https://www.bilibili.com/video/BV1454y1474R",
+    "sourcePage": "https://www.bilibili.com/video/BV1454y1474R",
+    "title": "好吃的家常菜，菠菜烧豆腐，香的很呐",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/奶茶",
+    "name": "奶茶",
+    "videoUrl": "https://www.bilibili.com/video/BV1s7411L7cq",
+    "sourcePage": "https://www.bilibili.com/video/BV1s7411L7cq",
+    "title": "1勺茶叶，2勺白糖，半盒牛奶，在家就能自制奶茶，成本不到五块钱",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/杨枝甘露",
+    "name": "杨枝甘露",
+    "videoUrl": "https://www.bilibili.com/video/BV1Xi4y1u7MT",
+    "sourcePage": "https://www.bilibili.com/video/BV1Xi4y1u7MT",
+    "title": "用2斤芒果扎扎实实做了10瓶杨枝甘露，一点糖都不加，贼好喝！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/柠檬水/柠檬水",
+    "name": "柠檬水",
+    "videoUrl": "https://www.bilibili.com/video/BV1QM4m1m7fP",
+    "sourcePage": "https://www.bilibili.com/video/BV1QM4m1m7fP",
+    "title": "有柠檬就能做的冰鲜柠檬水！今天这个秘方一定要学，夏天喝上一口，香甜清爽，5分钟搞定清凉消暑的夏日饮品！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/泰国手标红茶/泰国手标红茶",
+    "name": "泰国手标红茶",
+    "videoUrl": "https://www.bilibili.com/video/BV1of4y1b7qd",
+    "sourcePage": "https://www.bilibili.com/video/BV1of4y1b7qd",
+    "title": "泰国手标奶茶正确做法大公开，一定要收藏，必须收藏，从此手标泰式奶茶想喝就喝！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/海边落日/海边落日",
+    "name": "海边落日",
+    "videoUrl": "https://www.bilibili.com/video/BV18nkgYtEmT",
+    "sourcePage": "https://www.bilibili.com/video/BV18nkgYtEmT",
+    "title": "每日微醺|海边日落",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/牛油果拉西",
+    "name": "牛油果拉西",
+    "videoUrl": "https://www.bilibili.com/video/BV19Q4y1o7io",
+    "sourcePage": "https://www.bilibili.com/video/BV19Q4y1o7io",
+    "title": "【喵二哥-】牛油果特调第二弹，饮品店这么做估计得爆单！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/百香果橙子特调/百香果橙子特调",
+    "name": "百香果橙子特调",
+    "videoUrl": "https://www.bilibili.com/video/BV1YS4y1h7Sr",
+    "sourcePage": "https://www.bilibili.com/video/BV1YS4y1h7Sr",
+    "title": "居家五分钟自制百香果橙子水果茶｜食材：百香果冻 冰块适量 茉莉绿茶 少许橙片（橙子不仅装饰，使果茶口感更佳浓郁）",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/砂糖椰子冰沙/砂糖椰子冰沙",
+    "name": "砂糖椰子冰沙",
+    "videoUrl": "https://www.bilibili.com/video/BV1fT421k7nb",
+    "sourcePage": "https://www.bilibili.com/video/BV1fT421k7nb",
+    "title": "椰奶冰沙升级版，商用出摊详细教程",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/耙耙柑茶/耙耙柑茶",
+    "name": "耙耙柑茶",
+    "videoUrl": "https://www.bilibili.com/video/BV17YG1zrEC1",
+    "sourcePage": "https://www.bilibili.com/video/BV17YG1zrEC1",
+    "title": "一不小心做出了坠好喝的耙耙柑冰茶！！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/菠萝咖啡特调/菠萝咖啡特调",
+    "name": "菠萝咖啡特调",
+    "videoUrl": "https://www.bilibili.com/video/BV1Xk4y1Y7Gi",
+    "sourcePage": "https://www.bilibili.com/video/BV1Xk4y1Y7Gi",
+    "title": "咖啡日常｜菠萝季的创意特调咖啡",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/酒酿醪糟/酒酿醪糟",
+    "name": "酒酿醪糟",
+    "videoUrl": "https://www.bilibili.com/video/BV1CstpeAE3n",
+    "sourcePage": "https://www.bilibili.com/video/BV1CstpeAE3n",
+    "title": "#面包机自制酒酿（详细）天气冷啦，常温不能#自制酒酿 特别想吃想自己做的，那就借助机器啦，我用的是面包机自带的米酒功能， 你的型号跟我不一样没有关系方法是一样的",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/酸梅汤（半成品加工）",
+    "name": "酸梅汤（半成品加工）",
+    "videoUrl": "https://www.bilibili.com/video/BV1uh41177J5",
+    "sourcePage": "https://www.bilibili.com/video/BV1uh41177J5",
+    "title": "酸梅汤的做法看着虽然简单，但是要想味道醇正，还是很有技巧滴~",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/酸梅汤/酸梅汤",
+    "name": "酸梅汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1uh41177J5",
+    "sourcePage": "https://www.bilibili.com/video/BV1uh41177J5",
+    "title": "酸梅汤的做法看着虽然简单，但是要想味道醇正，还是很有技巧滴~",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/金汤力/金汤力",
+    "name": "金汤力",
+    "videoUrl": "https://www.bilibili.com/video/BV1dZ4y1x7yj",
+    "sourcePage": "https://www.bilibili.com/video/BV1dZ4y1x7yj",
+    "title": "金汤力（Gin tonic）：口感舒适、配方简单、简约而不简单。",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/金菲士/金菲士",
+    "name": "金菲士",
+    "videoUrl": "https://www.bilibili.com/video/BV1cZ4y1u7Wc",
+    "sourcePage": "https://www.bilibili.com/video/BV1cZ4y1u7Wc",
+    "title": "金菲士（Gin Fizz）",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:drink/长岛冰茶",
+    "name": "长岛冰茶",
+    "videoUrl": "https://www.bilibili.com/video/BV1Lb4y117Y5",
+    "sourcePage": "https://www.bilibili.com/video/BV1Lb4y117Y5",
+    "title": "如何做一杯好喝的Long Island Ice Tea长岛冰茶",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/农家一碗香/农家一碗香",
+    "name": "农家一碗香",
+    "videoUrl": "https://www.bilibili.com/video/BV1dwxCzcEtT",
+    "sourcePage": "https://www.bilibili.com/video/BV1dwxCzcEtT",
+    "title": "农家一碗香，简单的做法，厨房小白在家也能做出饭店锅气",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/冬瓜酿肉/冬瓜酿肉",
+    "name": "冬瓜酿肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1pq4y1t76H",
+    "sourcePage": "https://www.bilibili.com/video/BV1pq4y1t76H",
+    "title": "冬瓜和猪肉是绝配，学会这个做法大人小孩抢着吃，上桌连汤汁都不剩。",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/冷吃兔",
+    "name": "冷吃兔",
+    "videoUrl": "https://www.bilibili.com/video/BV13d4y1v7Cp",
+    "sourcePage": "https://www.bilibili.com/video/BV13d4y1v7Cp",
+    "title": "麻辣干酥！唇齿留香！看球下酒！叔叔的家常版冷吃兔秘密调料大公开！！！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/凉拌鸡丝/凉拌鸡丝",
+    "name": "凉拌鸡丝",
+    "videoUrl": "https://www.bilibili.com/video/BV1Ga5QzWEW5",
+    "sourcePage": "https://www.bilibili.com/video/BV1Ga5QzWEW5",
+    "title": "自制凉菜美食｜简单好吃又掉秤 凉拌鸡丝💪",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/卤菜/卤菜",
+    "name": "卤菜",
+    "videoUrl": "https://www.bilibili.com/video/BV1ZA411E7KT",
+    "sourcePage": "https://www.bilibili.com/video/BV1ZA411E7KT",
+    "title": "做卤菜其实没有那么麻烦，老师傅教你用电饭煲卤菜，简单方便省事",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/口水鸡/口水鸡",
+    "name": "口水鸡",
+    "videoUrl": "https://www.bilibili.com/video/BV1XKV66qEu5",
+    "sourcePage": "https://www.bilibili.com/video/BV1XKV66qEu5",
+    "title": "都是一样的调料，为什么做出来的味道差那么多？",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/可乐鸡翅",
+    "name": "可乐鸡翅",
+    "videoUrl": "https://www.bilibili.com/video/BV1z3F1zkExH",
+    "sourcePage": "https://www.bilibili.com/video/BV1z3F1zkExH",
+    "title": "年夜饭可乐鸡翅超详细教程！做法简单巨好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/台式卤肉饭/台式卤肉饭",
+    "name": "台式卤肉饭",
+    "videoUrl": "https://www.bilibili.com/video/BV1vS4y117LQ",
+    "sourcePage": "https://www.bilibili.com/video/BV1vS4y117LQ",
+    "title": "台式卤肉饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/咕噜肉",
+    "name": "咕噜肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1de411J7XX",
+    "sourcePage": "https://www.bilibili.com/video/BV1de411J7XX",
+    "title": "广东人年夜饭必备，糖醋咕噜肉，酸甜开胃老少皆宜，小朋友抢着吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/咖喱肥牛/咖喱肥牛",
+    "name": "咖喱肥牛",
+    "videoUrl": "https://www.bilibili.com/video/BV1BQPfz4EQC",
+    "sourcePage": "https://www.bilibili.com/video/BV1BQPfz4EQC",
+    "title": "10 分钟搞定一锅咖喱肥牛饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/商芝肉",
+    "name": "商芝肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1NK4y1m7DB",
+    "sourcePage": "https://www.bilibili.com/video/BV1NK4y1m7DB",
+    "title": "芦笋炒肉怎么做才更好吃？大厨教你酒店特色做法，芦笋脆爽肉鲜嫩",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/啤酒鸭/啤酒鸭",
+    "name": "啤酒鸭",
+    "videoUrl": "https://www.bilibili.com/video/BV1iHnnzHEbS",
+    "sourcePage": "https://www.bilibili.com/video/BV1iHnnzHEbS",
+    "title": "教你做在家就能做的啤酒鸭，软烂入味，带有神奇的特殊香味，真的真的很美味！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/回锅肉/回锅肉",
+    "name": "回锅肉",
+    "videoUrl": "https://www.bilibili.com/video/BV14Qt8eZEdh",
+    "sourcePage": "https://www.bilibili.com/video/BV14Qt8eZEdh",
+    "title": "【回锅肉】下饭菜经典，手把手保姆级教程！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/土豆炖排骨/土豆炖排骨",
+    "name": "土豆炖排骨",
+    "videoUrl": "https://www.bilibili.com/video/BV19z4y1S7iE",
+    "sourcePage": "https://www.bilibili.com/video/BV19z4y1S7iE",
+    "title": "排骨炖土豆！这个菜就是太费米饭了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/奶酪培根通心粉/奶酪培根通心粉",
+    "name": "奶酪培根通心粉",
+    "videoUrl": "https://www.bilibili.com/video/BV1g94y1x7Ej",
+    "sourcePage": "https://www.bilibili.com/video/BV1g94y1x7Ej",
+    "title": "芝士通心粉做法简单，浓郁奶香让人垂涎三尺！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/姜炒鸡/姜炒鸡",
+    "name": "姜炒鸡",
+    "videoUrl": "https://www.bilibili.com/video/BV1c5411w7Du",
+    "sourcePage": "https://www.bilibili.com/video/BV1c5411w7Du",
+    "title": "大厨教你老姜炒鸡家庭做法，记住关键环节，在家也能做出饭店味道",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/姜葱捞鸡/姜葱捞鸡",
+    "name": "姜葱捞鸡",
+    "videoUrl": "https://www.bilibili.com/video/BV1F34y1J7WV",
+    "sourcePage": "https://www.bilibili.com/video/BV1F34y1J7WV",
+    "title": "白饭杀手来啦 #姜葱捞鸡",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/孜然牛肉",
+    "name": "孜然牛肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1pf4y1r7Ma",
+    "sourcePage": "https://www.bilibili.com/video/BV1pf4y1r7Ma",
+    "title": "年夜饭之孜然牛肉，大亮讲解上浆方法，软嫩不柴，烧烤味浓",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/宫保鸡丁/宫保鸡丁",
+    "name": "宫保鸡丁",
+    "videoUrl": "https://www.bilibili.com/video/BV1NMXTYKE6M",
+    "sourcePage": "https://www.bilibili.com/video/BV1NMXTYKE6M",
+    "title": "大厨教你宫保鸡丁的详细做法，鸡肉嫩滑不柴，香辣又下饭，收藏了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/小炒肉",
+    "name": "小炒肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1UW4y1e7fB",
+    "sourcePage": "https://www.bilibili.com/video/BV1UW4y1e7fB",
+    "title": "湖南小炒肉怎么做才好吃，今天分享正宗的做法，香辣好吃，特别下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/小炒鸡肝/小炒鸡肝",
+    "name": "小炒鸡肝",
+    "videoUrl": "https://www.bilibili.com/video/BV1aR4y1M7Sd",
+    "sourcePage": "https://www.bilibili.com/video/BV1aR4y1M7Sd",
+    "title": "家常小炒土豆丝的做法，掌握好技巧，清脆爽口，好吃又下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/小炒黄牛肉/小炒黄牛肉",
+    "name": "小炒黄牛肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1ri4y1S7E5",
+    "sourcePage": "https://www.bilibili.com/video/BV1ri4y1S7E5",
+    "title": "小炒黄牛肉做到肉嫩味香的四个关键点，完全照做做比饭店的好吃多了。",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/小米辣炒肉",
+    "name": "小米辣炒肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1RW4y1e7xS",
+    "sourcePage": "https://www.bilibili.com/video/BV1RW4y1e7xS",
+    "title": "丝瓜炒肉怎么做？好多人直接下锅炒，难怪发黑不脆，教你正确做法",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/小酥肉",
+    "name": "小酥肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1Zj411F7B8",
+    "sourcePage": "https://www.bilibili.com/video/BV1Zj411F7B8",
+    "title": "我不允许还有人不会做小酥肉！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/尖叫牛蛙/尖叫牛蛙",
+    "name": "尖叫牛蛙",
+    "videoUrl": "https://www.bilibili.com/video/BV13x4y1G7GM",
+    "sourcePage": "https://www.bilibili.com/video/BV13x4y1G7GM",
+    "title": "自己在家这样做的酱烧牛蛙，味道好还实惠",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/尖椒炒牛肉",
+    "name": "尖椒炒牛肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1um4y127BX",
+    "sourcePage": "https://www.bilibili.com/video/BV1um4y127BX",
+    "title": "饭店很火爆的辣椒炒牛肉为啥那么好吃，大厨教你诀窍，简单又实用",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/山西过油肉",
+    "name": "山西过油肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1jf4y1e7vT",
+    "sourcePage": "https://www.bilibili.com/video/BV1jf4y1e7vT",
+    "title": "山西过油肉正确做法，大厨详细讲解技巧，出锅汁明芡亮，好吃下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/巴基斯坦牛肉咖喱/巴基斯坦牛肉咖喱",
+    "name": "巴基斯坦牛肉咖喱",
+    "videoUrl": "https://www.bilibili.com/video/BV1GY4y1z7TC",
+    "sourcePage": "https://www.bilibili.com/video/BV1GY4y1z7TC",
+    "title": "巨开胃、软嫩入味 | 咖喱牛肉 | 何时下厨",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/带把肘子",
+    "name": "带把肘子",
+    "videoUrl": "https://www.bilibili.com/video/BV1NG4y1w7GM",
+    "sourcePage": "https://www.bilibili.com/video/BV1NG4y1w7GM",
+    "title": "陕西十大经典名菜带把肘子，过年招待亲朋好友必备的一道硬菜",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/干煸仔鸡/干煸仔鸡",
+    "name": "干煸仔鸡",
+    "videoUrl": "https://www.bilibili.com/video/BV1hV411q7Uu",
+    "sourcePage": "https://www.bilibili.com/video/BV1hV411q7Uu",
+    "title": "厨师长教你干煸鸡块的家常做法，步骤详细，麻辣干香下酒又下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/乡村啤酒鸭",
+    "name": "乡村啤酒鸭",
+    "videoUrl": "https://www.bilibili.com/video/BV1Ar421h7DC",
+    "sourcePage": "https://www.bilibili.com/video/BV1Ar421h7DC",
+    "title": "哪有男人不会做饭啊！（啤酒鸭）",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/广式萝卜牛腩/广式萝卜牛腩",
+    "name": "广式萝卜牛腩",
+    "videoUrl": "https://www.bilibili.com/video/BV1FAycBjEkT",
+    "sourcePage": "https://www.bilibili.com/video/BV1FAycBjEkT",
+    "title": "萝卜烧牛腩，牛腩好吃一通百通的做法",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/徽派红烧肉/徽派红烧肉",
+    "name": "徽派红烧肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1vfHfzYELM",
+    "sourcePage": "https://www.bilibili.com/video/BV1vfHfzYELM",
+    "title": "红烧肉，最简单的配料和调料，怎么做出来红亮不苦不柴",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/意式烤鸡",
+    "name": "意式烤鸡",
+    "videoUrl": "https://www.bilibili.com/video/BV1qZ4y1x7ux",
+    "sourcePage": "https://www.bilibili.com/video/BV1qZ4y1x7ux",
+    "title": "Nandos烤鸡了我终于把你做出来了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/新疆大盘鸡/新疆大盘鸡",
+    "name": "新疆大盘鸡",
+    "videoUrl": "https://www.bilibili.com/video/BV1kn4y1X72E",
+    "sourcePage": "https://www.bilibili.com/video/BV1kn4y1X72E",
+    "title": "【新疆大盘鸡保姆级教程】完美还原饭店味道 包教包会！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/无骨鸡爪/无骨鸡爪",
+    "name": "无骨鸡爪",
+    "videoUrl": "https://www.bilibili.com/video/BV1jT41147Bu",
+    "sourcePage": "https://www.bilibili.com/video/BV1jT41147Bu",
+    "title": "夏日必学美食之《柠檬无骨鸡爪》，保姆级教学！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/杀猪菜",
+    "name": "杀猪菜",
+    "videoUrl": "https://www.bilibili.com/video/BV1LX4y1M7vh",
+    "sourcePage": "https://www.bilibili.com/video/BV1LX4y1M7vh",
+    "title": "大冷的天儿，做一锅东北正宗的杀猪菜，不过大爷这牙口不给力，白瞎这骨头了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/枝竹羊腩煲/枝竹羊腩煲",
+    "name": "枝竹羊腩煲",
+    "videoUrl": "https://www.bilibili.com/video/BV1SJ411u7Mv",
+    "sourcePage": "https://www.bilibili.com/video/BV1SJ411u7Mv",
+    "title": "大厨分享一道“支竹羊腩煲”，酱、香味浓郁，还能滋阴补肾，收藏",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/柱候牛腩/柱候牛腩",
+    "name": "柱候牛腩",
+    "videoUrl": "https://www.bilibili.com/video/BV1Lt411x71y",
+    "sourcePage": "https://www.bilibili.com/video/BV1Lt411x71y",
+    "title": "鼎爷教煮菜~柱候牛腩",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/桂林十八酿/桂林十八酿",
+    "name": "桂林十八酿",
+    "videoUrl": "https://www.bilibili.com/video/BV1f142147mC",
+    "sourcePage": "https://www.bilibili.com/video/BV1f142147mC",
+    "title": "广西十八酿，你最中意哪一酿‼️",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/梅菜扣肉/梅菜扣肉",
+    "name": "梅菜扣肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1AfFJzyEDM",
+    "sourcePage": "https://www.bilibili.com/video/BV1AfFJzyEDM",
+    "title": "【在家做出酒楼味道的梅菜扣肉】",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/椒盐排条",
+    "name": "椒盐排条",
+    "videoUrl": "https://www.bilibili.com/video/BV1wG411W7tn",
+    "sourcePage": "https://www.bilibili.com/video/BV1wG411W7tn",
+    "title": "上海本帮味道，不一般的椒盐排条，外酥里嫩，吃出小时候的美味。",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/水煮牛肉/水煮牛肉",
+    "name": "水煮牛肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1BBHQesEzU",
+    "sourcePage": "https://www.bilibili.com/video/BV1BBHQesEzU",
+    "title": "厨师长教你：“传统版水煮牛肉”的家常做法，麻辣味厚，肉质细嫩",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/水煮肉片",
+    "name": "水煮肉片",
+    "videoUrl": "https://www.bilibili.com/video/BV1H9q8BEEB4",
+    "sourcePage": "https://www.bilibili.com/video/BV1H9q8BEEB4",
+    "title": "水煮肉片0失败教程！记住这3步，麻辣过瘾肉嫩不柴，新手必学",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/洋葱炒猪肉",
+    "name": "洋葱炒猪肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1bLZAYkEcQ",
+    "sourcePage": "https://www.bilibili.com/video/BV1bLZAYkEcQ",
+    "title": "教你苦瓜炒肉的家常做法，苦瓜不苦且回甘，肉片嫩滑不柴，超好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/淄博烧烤/淄博烧烤",
+    "name": "淄博烧烤",
+    "videoUrl": "https://www.bilibili.com/video/BV11P41197zR",
+    "sourcePage": "https://www.bilibili.com/video/BV11P41197zR",
+    "title": "从业16年的淄博烧烤师傅手把手教学！这教程怎么和网上的不一样 ！？",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/清蒸鳜鱼/清蒸鳜鱼",
+    "name": "清蒸鳜鱼",
+    "videoUrl": "https://www.bilibili.com/video/BV1Vx411o7Qj",
+    "sourcePage": "https://www.bilibili.com/video/BV1Vx411o7Qj",
+    "title": "大厨分享”清蒸石斑鱼“完整做法，记住这几点蒸出的鱼鲜香又嫩滑",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/湖南家常红烧肉/湖南家常红烧肉",
+    "name": "湖南家常红烧肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1vfHfzYELM",
+    "sourcePage": "https://www.bilibili.com/video/BV1vfHfzYELM",
+    "title": "红烧肉，最简单的配料和调料，怎么做出来红亮不苦不柴",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/湘祁米夫鸭/湘祁米夫鸭",
+    "name": "湘祁米夫鸭",
+    "videoUrl": "https://www.bilibili.com/video/BV1MG4y1B7np",
+    "sourcePage": "https://www.bilibili.com/video/BV1MG4y1B7np",
+    "title": "厨师长教你湖南特色“干锅腊鸭”的做法，干香入味，越煮越好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/澳门湿版免治牛肉饭/澳门湿版免治牛肉饭",
+    "name": "澳门湿版免治牛肉饭",
+    "videoUrl": "https://www.bilibili.com/video/BV12j411F7cv",
+    "sourcePage": "https://www.bilibili.com/video/BV12j411F7cv",
+    "title": "澳门茶餐厅必点，免治牛肉饭。",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:15:55.187Z"
+  },
+  {
+    "id": "howtocook:meat_dish/烤鸡翅",
+    "name": "烤鸡翅",
+    "videoUrl": "https://www.bilibili.com/video/BV14b411g7Gm",
+    "sourcePage": "https://www.bilibili.com/video/BV14b411g7Gm",
+    "title": "【蜜制烤鸡翅】烤箱有两种用法，把它们都用在鸡翅身上吧",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/煎烤羊排/煎烤羊排",
+    "name": "煎烤羊排",
+    "videoUrl": "https://www.bilibili.com/video/BV1ov411z7eY",
+    "sourcePage": "https://www.bilibili.com/video/BV1ov411z7eY",
+    "title": "家庭版秘制烤羊排，表皮金黄酥脆，吃到嘴里满口留油，这味道绝了！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/牛排/牛排",
+    "name": "牛排",
+    "videoUrl": "https://www.bilibili.com/video/BV1dN4y1D7j8",
+    "sourcePage": "https://www.bilibili.com/video/BV1dN4y1D7j8",
+    "title": "如何在家煎出粉嫩多汁、好吃又高级的牛排｜无需烤箱/水浴【解构家常菜】",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/猪皮冻/猪皮冻",
+    "name": "猪皮冻",
+    "videoUrl": "https://www.bilibili.com/video/BV1Ru411D7ju",
+    "sourcePage": "https://www.bilibili.com/video/BV1Ru411D7ju",
+    "title": "厨师长教你猪皮冻的家常做法，步骤详细，鲜香Q弹下酒又下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/猪肉烩酸菜",
+    "name": "猪肉烩酸菜",
+    "videoUrl": "https://www.bilibili.com/video/BV17341127kz",
+    "sourcePage": "https://www.bilibili.com/video/BV17341127kz",
+    "title": "【美食教程】_巴盟特色美食猪肉烩酸菜",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/甜辣烤全翅",
+    "name": "甜辣烤全翅",
+    "videoUrl": "https://www.bilibili.com/video/BV1hm421K7zo",
+    "sourcePage": "https://www.bilibili.com/video/BV1hm421K7zo",
+    "title": "来感受一下江西吃辣的程度，啤酒烧鸭翅，又香又辣又入味",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/田螺酿/田螺酿",
+    "name": "田螺酿",
+    "videoUrl": "https://www.bilibili.com/video/BV1gK411P7xK",
+    "sourcePage": "https://www.bilibili.com/video/BV1gK411P7xK",
+    "title": "教你经典广西特色菜田螺酿的做法，酸辣鲜香，简单家常有特色",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/番茄红酱",
+    "name": "番茄红酱",
+    "videoUrl": "https://www.bilibili.com/video/BV1Za41177d9",
+    "sourcePage": "https://www.bilibili.com/video/BV1Za41177d9",
+    "title": "这才是番茄肉丸子汤正确做法，饭店大厨详细讲解，好吃到流口水",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/瘦肉土豆片/瘦肉土豆片",
+    "name": "瘦肉土豆片",
+    "videoUrl": "https://www.bilibili.com/video/BV1xTxieNEYe",
+    "sourcePage": "https://www.bilibili.com/video/BV1xTxieNEYe",
+    "title": "这才是黄瓜炒肉片好吃的做法，喜欢记得收藏",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/白菜猪肉炖粉条",
+    "name": "白菜猪肉炖粉条",
+    "videoUrl": "https://www.bilibili.com/video/BV1ty6KYBEYz",
+    "sourcePage": "https://www.bilibili.com/video/BV1ty6KYBEYz",
+    "title": "【大学生就业指导】白菜猪肉炖粉条！每吃到这一口就离回家不远了～",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/空气炸锅脆皮现腌炸鸡/空气炸锅脆皮现腌炸鸡",
+    "name": "空气炸锅脆皮现腌炸鸡",
+    "videoUrl": "https://www.bilibili.com/video/BV1PT411a7yH",
+    "sourcePage": "https://www.bilibili.com/video/BV1PT411a7yH",
+    "title": "脆皮五花肉 家庭版，聊一下底层逻辑，让大家不再迷惑",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/粉蒸肉",
+    "name": "粉蒸肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1Ne411U7ji",
+    "sourcePage": "https://www.bilibili.com/video/BV1Ne411U7ji",
+    "title": "这才是粉蒸肉好吃的做法，出锅飘香四溢，80岁老爷爷都能吃好几块",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/糖醋排骨/糖醋排骨",
+    "name": "糖醋排骨",
+    "videoUrl": "https://www.bilibili.com/video/BV1pBGMzkEon",
+    "sourcePage": "https://www.bilibili.com/video/BV1pBGMzkEon",
+    "title": "【我不允许任何关注我的小朋友不会做糖醋排骨】",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/糖醋里脊",
+    "name": "糖醋里脊",
+    "videoUrl": "https://www.bilibili.com/video/BV1RT4QzXEyD",
+    "sourcePage": "https://www.bilibili.com/video/BV1RT4QzXEyD",
+    "title": "【大家呼唤已久的糖醋里脊 定量保姆级教程来了】",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/红烧猪蹄/红烧猪蹄",
+    "name": "红烧猪蹄",
+    "videoUrl": "https://www.bilibili.com/video/BV1zfq6YLEy5",
+    "sourcePage": "https://www.bilibili.com/video/BV1zfq6YLEy5",
+    "title": "duang duang直晃悠，一吸就脱骨！这样的猪蹄儿无法抵抗~丨红烧猪蹄",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/红烧肉/南派红烧肉",
+    "name": "南派红烧肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1PzhAzGEwT",
+    "sourcePage": "https://www.bilibili.com/video/BV1PzhAzGEwT",
+    "title": "红彤彤的腐乳肉，到底有多香？你不会还没尝过吧！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/红烧肉/简易红烧肉",
+    "name": "简易红烧肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1vfHfzYELM",
+    "sourcePage": "https://www.bilibili.com/video/BV1vfHfzYELM",
+    "title": "红烧肉，最简单的配料和调料，怎么做出来红亮不苦不柴",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/红烧鸡翅",
+    "name": "红烧鸡翅",
+    "videoUrl": "https://www.bilibili.com/video/BV1hP4y1V7ya",
+    "sourcePage": "https://www.bilibili.com/video/BV1hP4y1V7ya",
+    "title": "这才是“红烧鸡翅”的正宗做法，大厨详细讲解，还没看完我就饿了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/羊排焖面/羊排焖面",
+    "name": "羊排焖面",
+    "videoUrl": "https://www.bilibili.com/video/BV1J44y1z7GS",
+    "sourcePage": "https://www.bilibili.com/video/BV1J44y1z7GS",
+    "title": "焖面界的王者出征，小羊排焖面连菜带饭一锅出，面比羊排还好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/老妈蹄花/老妈蹄花",
+    "name": "老妈蹄花",
+    "videoUrl": "https://www.bilibili.com/video/BV1q14y1J7Kv",
+    "sourcePage": "https://www.bilibili.com/video/BV1q14y1J7Kv",
+    "title": "厨师长教你：“老妈蹄花”，软糯耙嫩有营养，老人小孩都喜欢",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/老式锅包肉/老式锅包肉",
+    "name": "老式锅包肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1ssiCBQEUe",
+    "sourcePage": "https://www.bilibili.com/video/BV1ssiCBQEUe",
+    "title": "东北老式锅包肉超级详细的教程 锅包肉做不好的兄弟姐妹们看仔细了#美食 #热门",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/肉饼炖蛋",
+    "name": "肉饼炖蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV17u411M7p4",
+    "sourcePage": "https://www.bilibili.com/video/BV17u411M7p4",
+    "title": "家常炒饼怎么做最好吃？不要直接下锅炒，关键两步饼丝利落不黏牙",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/腐乳肉",
+    "name": "腐乳肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1PzhAzGEwT",
+    "sourcePage": "https://www.bilibili.com/video/BV1PzhAzGEwT",
+    "title": "红彤彤的腐乳肉，到底有多香？你不会还没尝过吧！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/芥末罗氏虾/芥末罗氏虾",
+    "name": "芥末罗氏虾",
+    "videoUrl": "https://www.bilibili.com/video/BV1hC4y1P7dv",
+    "sourcePage": "https://www.bilibili.com/video/BV1hC4y1P7dv",
+    "title": "这是一道好吃到吮手指的芥末虾？可以提前为年夜饭预热了。",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/茭白炒肉/茭白炒肉",
+    "name": "茭白炒肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1KY4y1C72V",
+    "sourcePage": "https://www.bilibili.com/video/BV1KY4y1C72V",
+    "title": "应季家常菜“茭白炒肉片”靠谱实用接地气",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/荔枝肉/荔枝肉",
+    "name": "荔枝肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1U5411S7Sh",
+    "sourcePage": "https://www.bilibili.com/video/BV1U5411S7Sh",
+    "title": "福建家家户户都会做的荔枝肉，这样做才好吃，外酥里嫩，酸甜可口",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/荷兰豆炒腊肠/荷兰豆炒腊肠",
+    "name": "荷兰豆炒腊肠",
+    "videoUrl": "https://www.bilibili.com/video/BV148411t783",
+    "sourcePage": "https://www.bilibili.com/video/BV148411t783",
+    "title": "荷兰豆炒的不好吃，搭配广式腊肠试一试，可口脆嫩，好吃不胖",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/萝卜炖羊排",
+    "name": "萝卜炖羊排",
+    "videoUrl": "https://www.bilibili.com/video/BV1wc411z7Wk",
+    "sourcePage": "https://www.bilibili.com/video/BV1wc411z7Wk",
+    "title": "国宴同款萝卜炖羊排！鲜味秘诀在三椒，喝完第一碗想来第二碗~",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/蒜苔炒肉末",
+    "name": "蒜苔炒肉末",
+    "videoUrl": "https://www.bilibili.com/video/BV1124y1j7yw",
+    "sourcePage": "https://www.bilibili.com/video/BV1124y1j7yw",
+    "title": "喜欢吃面条，一定要试试这道土豆肉末打卤面，酱香浓郁，好吃不腻",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/虎皮肘子",
+    "name": "虎皮肘子",
+    "videoUrl": "https://www.bilibili.com/video/BV181421X7EZ",
+    "sourcePage": "https://www.bilibili.com/video/BV181421X7EZ",
+    "title": "虎皮肘子这样做，皮糯肉香，肥而不腻，拌饭一绝",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/蚂蚁上树",
+    "name": "蚂蚁上树",
+    "videoUrl": "https://www.bilibili.com/video/BV1J14y117ba",
+    "sourcePage": "https://www.bilibili.com/video/BV1J14y117ba",
+    "title": "厨师长分享传统名菜“蚂蚁上树”，色泽红润，醇香微辣",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/血浆鸭/血浆鸭",
+    "name": "血浆鸭",
+    "videoUrl": "https://www.bilibili.com/video/BV1W5411Q7iu",
+    "sourcePage": "https://www.bilibili.com/video/BV1W5411Q7iu",
+    "title": "血浆鸭，湖南特色菜，下饭菜，爱啦爱啦",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/西红柿土豆炖牛肉/西红柿土豆炖牛肉",
+    "name": "西红柿土豆炖牛肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1sK411i758",
+    "sourcePage": "https://www.bilibili.com/video/BV1sK411i758",
+    "title": "宝宝夏天开胃菜✨超级滑嫩的番茄土豆牛肉煲这样做出来的牛肉很嫩、很好嚼，孩子也爱吃💓 不重样宝宝食谱 宝宝餐 宝宝辅食日记 牛肉 土豆番茄炖牛肉",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/西红柿牛腩/西红柿牛腩",
+    "name": "西红柿牛腩",
+    "videoUrl": "https://www.bilibili.com/video/BV1RN4y1r7dt",
+    "sourcePage": "https://www.bilibili.com/video/BV1RN4y1r7dt",
+    "title": "隋卞一做 |怎么又简单又好吃啊！有手就行版本的番茄炖牛腩！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/豆豉鲮鱼油麦菜/豆豉鲮鱼油麦菜",
+    "name": "豆豉鲮鱼油麦菜",
+    "videoUrl": "https://www.bilibili.com/video/BV1ky4y1H7us",
+    "sourcePage": "https://www.bilibili.com/video/BV1ky4y1H7us",
+    "title": "饭店的豆豉鲮鱼油麦菜这样炒的，怪不得清脆好吃不出水，先收藏了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/豉汁排骨",
+    "name": "豉汁排骨",
+    "videoUrl": "https://www.bilibili.com/video/BV1M74teJEm6",
+    "sourcePage": "https://www.bilibili.com/video/BV1M74teJEm6",
+    "title": "【不用小苏打和嫩肉粉的豉汁排骨】老师傅亲传嫩肉手法！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/豉汁蒸白鱔/豉汁蒸白鱔",
+    "name": "豉汁蒸白鱔",
+    "videoUrl": "https://www.bilibili.com/video/BV1SE411o7G8",
+    "sourcePage": "https://www.bilibili.com/video/BV1SE411o7G8",
+    "title": "家宴、朋友小聚时必备的“盘龙豉汁蒸白鳝”，肉质嫩滑，飘香满屋",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/贵州辣子鸡/贵州辣子鸡",
+    "name": "贵州辣子鸡",
+    "videoUrl": "https://www.bilibili.com/video/BV1bLBmYQEZt",
+    "sourcePage": "https://www.bilibili.com/video/BV1bLBmYQEZt",
+    "title": "贵州辣子鸡 | 心中的天花板、没有之一！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/辣椒炒肉",
+    "name": "辣椒炒肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1uDdnYRETN",
+    "sourcePage": "https://www.bilibili.com/video/BV1uDdnYRETN",
+    "title": "一口入魂的辣椒炒肉！按照夏叔的详细做法！在家一次就能成功",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/酱排骨/酱排骨",
+    "name": "酱排骨",
+    "videoUrl": "https://www.bilibili.com/video/BV1TAuEziEC8",
+    "sourcePage": "https://www.bilibili.com/video/BV1TAuEziEC8",
+    "title": "【酱烧排骨 饭店招牌菜家庭做法】",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/酱牛肉/酱牛肉",
+    "name": "酱牛肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1VW41147Fh",
+    "sourcePage": "https://www.bilibili.com/video/BV1VW41147Fh",
+    "title": "【小高姐】酱牛肉 肉酥 筋软 味道香 三酱牛肉的秘诀",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/醉排骨/醉排骨",
+    "name": "醉排骨",
+    "videoUrl": "https://www.bilibili.com/video/BV1iS4y1T7aU",
+    "sourcePage": "https://www.bilibili.com/video/BV1iS4y1T7aU",
+    "title": "今天再和两位总厨合作，教大家做一道最传统的醉排骨！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/青椒土豆炒肉/青椒土豆炒肉",
+    "name": "青椒土豆炒肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1Mnd2BDEoJ",
+    "sourcePage": "https://www.bilibili.com/video/BV1Mnd2BDEoJ",
+    "title": "【下饭神菜青椒土豆片炒肉！如何做到锅气十足】",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/青椒酿/青椒酿",
+    "name": "青椒酿",
+    "videoUrl": "https://www.bilibili.com/video/BV1wygCzBEJV",
+    "sourcePage": "https://www.bilibili.com/video/BV1wygCzBEJV",
+    "title": "教你客家青椒酿肉的正确做法，百吃不腻老下饭了，大人小孩都爱吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/香干肉丝",
+    "name": "香干肉丝",
+    "videoUrl": "https://www.bilibili.com/video/BV1gP4y1S79p",
+    "sourcePage": "https://www.bilibili.com/video/BV1gP4y1S79p",
+    "title": "厨师长教你香干炒肉丝的家常做法，步骤详细，嫩滑入味下酒又下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/香干芹菜炒肉/香干芹菜炒肉",
+    "name": "香干芹菜炒肉",
+    "videoUrl": "https://www.bilibili.com/video/BV12A4y1X7UZ",
+    "sourcePage": "https://www.bilibili.com/video/BV12A4y1X7UZ",
+    "title": "难怪饭店的芹菜香干炒肉丝那么好吃，原来技巧在这里，3分钟就学会",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/香煎五花肉/香煎五花肉",
+    "name": "香煎五花肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1kgKgeBEBT",
+    "sourcePage": "https://www.bilibili.com/video/BV1kgKgeBEBT",
+    "title": "【脱脂把子肉攻略】 脱脂的五花肉才叫香而不腻！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/香菇滑鸡/香菇滑鸡",
+    "name": "香菇滑鸡",
+    "videoUrl": "https://www.bilibili.com/video/BV1554y1J7g4",
+    "sourcePage": "https://www.bilibili.com/video/BV1554y1J7g4",
+    "title": "厨师长教你：“香菇蒸滑鸡”的家常做法，鲜香嫩滑，营养美味",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/香辣鸡爪煲/香辣鸡爪煲",
+    "name": "香辣鸡爪煲",
+    "videoUrl": "https://www.bilibili.com/video/BV13E411G7ey",
+    "sourcePage": "https://www.bilibili.com/video/BV13E411G7ey",
+    "title": "广西田螺鸭脚煲做法，鲜香辣爽，开胃十足！浓汤再配螺蛳粉，痛快",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:meat_dish/鱼香肉丝",
+    "name": "鱼香肉丝",
+    "videoUrl": "https://www.bilibili.com/video/BV1zZAAerEJ3",
+    "sourcePage": "https://www.bilibili.com/video/BV1zZAAerEJ3",
+    "title": "鱼香肉丝家常做法，肉丝滑嫩酸甜适口，比饭店的还好吃，超下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/鱼香茄子/鱼香茄子",
+    "name": "鱼香茄子",
+    "videoUrl": "https://www.bilibili.com/video/BV1qwR6B1EYV",
+    "sourcePage": "https://www.bilibili.com/video/BV1qwR6B1EYV",
+    "title": "大厨教你鱼香茄子的做法，讲解详细，酸甜微辣下酒又下饭！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/麻婆豆腐/麻婆豆腐",
+    "name": "麻婆豆腐",
+    "videoUrl": "https://www.bilibili.com/video/BV1md3NzzEnF",
+    "sourcePage": "https://www.bilibili.com/video/BV1md3NzzEnF",
+    "title": "【麻婆豆腐保姆级教程】",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/麻辣香锅",
+    "name": "麻辣香锅",
+    "videoUrl": "https://www.bilibili.com/video/BV1hMo5BYE7k",
+    "sourcePage": "https://www.bilibili.com/video/BV1hMo5BYE7k",
+    "title": "麻辣香锅超详细教程！做法简单巨好吃巨下饭！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/黄油鸡",
+    "name": "黄油鸡",
+    "videoUrl": "https://www.bilibili.com/video/BV16C4y127jt",
+    "sourcePage": "https://www.bilibili.com/video/BV16C4y127jt",
+    "title": "制作蛋黄油，民间俗称凤凰油",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/黄焖鸡",
+    "name": "黄焖鸡",
+    "videoUrl": "https://www.bilibili.com/video/BV1qcXPYVE5c",
+    "sourcePage": "https://www.bilibili.com/video/BV1qcXPYVE5c",
+    "title": "黄焖鸡到底能不能吃！2分钟告诉你，黄焖鸡的真正做法！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/黄瓜炒肉",
+    "name": "黄瓜炒肉",
+    "videoUrl": "https://www.bilibili.com/video/BV1SB4y1777w",
+    "sourcePage": "https://www.bilibili.com/video/BV1SB4y1777w",
+    "title": "厨师长教你经典湘菜“紫苏煎黄瓜”的做法，干香入味，比肉还好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/黑椒牛柳/黑椒牛柳",
+    "name": "黑椒牛柳",
+    "videoUrl": "https://www.bilibili.com/video/BV1hV4y1q7LS",
+    "sourcePage": "https://www.bilibili.com/video/BV1hV4y1q7LS",
+    "title": "哪有男人不会做饭啊！（黑椒牛柳意面）",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:meat_dish/黔式腊肠娃娃菜/黔式腊肠娃娃菜",
+    "name": "黔式腊肠娃娃菜",
+    "videoUrl": "https://www.bilibili.com/video/BV1o94y1d736",
+    "sourcePage": "https://www.bilibili.com/video/BV1o94y1d736",
+    "title": "1碗豌豆1根腊肠，2分钟学会1道四川特色家常菜，挑食的孩子都爱吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:semi-finished/凉皮",
+    "name": "凉皮",
+    "videoUrl": "https://www.bilibili.com/video/BV1Ri4y1y7AW",
+    "sourcePage": "https://www.bilibili.com/video/BV1Ri4y1y7AW",
+    "title": "史上最强凉皮指南：用实力拒绝翻车！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:semi-finished/半成品意面",
+    "name": "半成品意面",
+    "videoUrl": "https://www.bilibili.com/video/BV16T4y1g7y4",
+    "sourcePage": "https://www.bilibili.com/video/BV16T4y1g7y4",
+    "title": "【速食意大利面】超简单懒人做法！新手入门意面，几分钟还原意大利地道美味！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:semi-finished/懒人蛋挞/懒人蛋挞",
+    "name": "懒人蛋挞",
+    "videoUrl": "https://www.bilibili.com/video/BV18qeDzfEKQ",
+    "sourcePage": "https://www.bilibili.com/video/BV18qeDzfEKQ",
+    "title": "五块钱做一大堆！搅一搅就能成功的冰淇淋蛋挞！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:semi-finished/炸薯条/炸薯条",
+    "name": "炸薯条",
+    "videoUrl": "https://www.bilibili.com/video/BV1Q24y147nd",
+    "sourcePage": "https://www.bilibili.com/video/BV1Q24y147nd",
+    "title": "炸薯条，直接下锅炸是大错，教你正确做法，外焦里嫩，凉了嘎嘣脆",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:semi-finished/牛油火锅底料",
+    "name": "牛油火锅底料",
+    "videoUrl": "https://www.bilibili.com/video/BV16kskerE95",
+    "sourcePage": "https://www.bilibili.com/video/BV16kskerE95",
+    "title": "用火锅底料下了个面条，好吃😋",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:semi-finished/空气炸锅羊排/空气炸锅羊排",
+    "name": "空气炸锅羊排",
+    "videoUrl": "https://www.bilibili.com/video/BV1Zj411S7PS",
+    "sourcePage": "https://www.bilibili.com/video/BV1Zj411S7PS",
+    "title": "0失败的空气炸锅烤羊排！屡试不爽！！！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:semi-finished/空气炸锅鸡翅中/空气炸锅鸡翅中",
+    "name": "空气炸锅鸡翅中",
+    "videoUrl": "https://www.bilibili.com/video/BV16JqaBJExp",
+    "sourcePage": "https://www.bilibili.com/video/BV16JqaBJExp",
+    "title": "这么好吃的酱香鸡翅，原来用空气炸锅就可以做",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:semi-finished/速冻水饺",
+    "name": "速冻水饺",
+    "videoUrl": "https://www.bilibili.com/video/BV13s4y1U7sk",
+    "sourcePage": "https://www.bilibili.com/video/BV13s4y1U7sk",
+    "title": "【做饭vlog】绝望水饺：抢救化掉的饺子",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:semi-finished/速冻汤圆/速冻汤圆",
+    "name": "速冻汤圆",
+    "videoUrl": "https://www.bilibili.com/video/BV12A411b7oM",
+    "sourcePage": "https://www.bilibili.com/video/BV12A411b7oM",
+    "title": "冰冻汤圆试过吗！？口感像冰淇淋一样好吃哟",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:semi-finished/速冻馄饨",
+    "name": "速冻馄饨",
+    "videoUrl": "https://www.bilibili.com/video/BV1og411j7Ca",
+    "sourcePage": "https://www.bilibili.com/video/BV1og411j7Ca",
+    "title": "煮速冻馄饨，用凉水和开水都不对，教你正确做法，不破皮不露馅",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:soup/勾芡香菇汤/勾芡香菇汤",
+    "name": "勾芡香菇汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1WQ4y1y7b5",
+    "sourcePage": "https://www.bilibili.com/video/BV1WQ4y1y7b5",
+    "title": "广东人做猪肚汤为什么那么好喝？做法原来好简单，汤汁奶白营养好",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:soup/奶油蘑菇汤",
+    "name": "奶油蘑菇汤",
+    "videoUrl": "https://www.bilibili.com/video/BV19q4y1x7i2",
+    "sourcePage": "https://www.bilibili.com/video/BV19q4y1x7i2",
+    "title": "中式炒锅做法餐！奶香浓郁，绵密顺滑，从此告别西餐厅~丨奶油蘑菇汤",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:soup/小米粥",
+    "name": "小米粥",
+    "videoUrl": "https://www.bilibili.com/video/BV19Y4y1t7QR",
+    "sourcePage": "https://www.bilibili.com/video/BV19Y4y1t7QR",
+    "title": "小米粥最简单的做法，营养又好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:soup/排骨山药玉米汤/排骨山药玉米汤",
+    "name": "排骨山药玉米汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1r54y1F7yB",
+    "sourcePage": "https://www.bilibili.com/video/BV1r54y1F7yB",
+    "title": "炖山药排骨汤时，到底要不要焯水，教你一招，汤鲜肉嫩好喝又补钙",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:soup/排骨苦瓜汤/排骨苦瓜汤",
+    "name": "排骨苦瓜汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1Gb4y1S7ts",
+    "sourcePage": "https://www.bilibili.com/video/BV1Gb4y1S7ts",
+    "title": "厨师长教你：“苦瓜骨头汤”的家常做法，清淡营养，清热祛暑",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:soup/昂刺鱼豆腐汤/昂刺鱼豆腐汤",
+    "name": "昂刺鱼豆腐汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1sD4y1678j",
+    "sourcePage": "https://www.bilibili.com/video/BV1sD4y1678j",
+    "title": "【昂刺鱼豆腐汤】居然成功做出了金色鱼汤！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:soup/朱雀汤/朱雀汤",
+    "name": "朱雀汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1Xw4m1R79i",
+    "sourcePage": "https://www.bilibili.com/video/BV1Xw4m1R79i",
+    "title": "朱雀汤做法！改善上热下寒，虚不受补",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:soup/玉米排骨汤/玉米排骨汤",
+    "name": "玉米排骨汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1JA4y1f7zk",
+    "sourcePage": "https://www.bilibili.com/video/BV1JA4y1f7zk",
+    "title": "厨师长教你：“玉米排骨汤”的家常做法，排骨鲜嫩多汁不腥不柴",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:soup/生汆丸子汤",
+    "name": "生汆丸子汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1Ga411C7zg",
+    "sourcePage": "https://www.bilibili.com/video/BV1Ga411C7zg",
+    "title": "生汆丸子汤，吃的就是一个鲜、嫩、弹，学会打丸子的这些技巧，这碗汤才地道",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:soup/番茄牛肉蛋花汤",
+    "name": "番茄牛肉蛋花汤",
+    "videoUrl": "https://www.bilibili.com/video/BV17D4y1D7Pb",
+    "sourcePage": "https://www.bilibili.com/video/BV17D4y1D7Pb",
+    "title": "茄汁浓郁的番茄金针菇肥牛！十分香浓开胃，好喝到汤都不剩.金银小馒头",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:soup/皮蛋瘦肉粥",
+    "name": "皮蛋瘦肉粥",
+    "videoUrl": "https://www.bilibili.com/video/BV1FV4y1c77K",
+    "sourcePage": "https://www.bilibili.com/video/BV1FV4y1c77K",
+    "title": "这才是皮蛋瘦肉粥的家常做法，浓稠香滑，鲜香味美喝它养胃又解馋",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:soup/米粥",
+    "name": "米粥",
+    "videoUrl": "https://www.bilibili.com/video/BV1Yb4y167or",
+    "sourcePage": "https://www.bilibili.com/video/BV1Yb4y167or",
+    "title": "咸骨粥的正宗做法，猪骨粥的好吃做法",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:soup/紫菜蛋花汤",
+    "name": "紫菜蛋花汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1ct4y1H7sh",
+    "sourcePage": "https://www.bilibili.com/video/BV1ct4y1H7sh",
+    "title": "这才是紫菜蛋花汤的正确做法，汤鲜味美蛋花漂亮，技巧全告诉你",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:soup/罗宋汤",
+    "name": "罗宋汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1e44y1W79X",
+    "sourcePage": "https://www.bilibili.com/video/BV1e44y1W79X",
+    "title": "【罗宋汤】源于俄罗斯，发扬于上海，童年的味道",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:soup/羊肉汤/羊肉汤",
+    "name": "羊肉汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1Ap421Q7WW",
+    "sourcePage": "https://www.bilibili.com/video/BV1Ap421Q7WW",
+    "title": "隋卞一做 |好喝到汗毛都竖起来！家庭版清炖羊肉标准做法！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:soup/腊八粥",
+    "name": "腊八粥",
+    "videoUrl": "https://www.bilibili.com/video/BV1bZ4y1S7Ra",
+    "sourcePage": "https://www.bilibili.com/video/BV1bZ4y1S7Ra",
+    "title": "腊八粥，别用清水直接煮，多加一步，粥香四溢粘稠好喝，真简单",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:soup/菌菇炖乳鸽/菌菇炖乳鸽",
+    "name": "菌菇炖乳鸽",
+    "videoUrl": "https://www.bilibili.com/video/BV1yM4y1T7zw",
+    "sourcePage": "https://www.bilibili.com/video/BV1yM4y1T7zw",
+    "title": "菌菇鸽子汤",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:soup/西红柿鸡蛋汤",
+    "name": "西红柿鸡蛋汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1V34y1J7pi",
+    "sourcePage": "https://www.bilibili.com/video/BV1V34y1J7pi",
+    "title": "番茄蛋汤，切记不要直接放鸡蛋，几个关键，蛋花漂亮，汤浓味美。",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:soup/金针菇汤",
+    "name": "金针菇汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1Ja4y177vv",
+    "sourcePage": "https://www.bilibili.com/video/BV1Ja4y177vv",
+    "title": "1把金针菇，1颗鸡蛋，2分钟教你做营养汤，做法简单又健康",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:soup/银耳莲子粥/银耳莲子粥",
+    "name": "银耳莲子粥",
+    "videoUrl": "https://www.bilibili.com/video/BV197411T7EN",
+    "sourcePage": "https://www.bilibili.com/video/BV197411T7EN",
+    "title": "银耳莲子粥，清热去火、润肺止咳，做法简单又好喝",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:soup/陈皮排骨汤",
+    "name": "陈皮排骨汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1hf4y1k7cu",
+    "sourcePage": "https://www.bilibili.com/video/BV1hf4y1k7cu",
+    "title": "做腊排骨还是喜欢这种重庆的汤锅做法，边吃边煮，舒服惨了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:15:55.187Z"
+  },
+  {
+    "id": "howtocook:soup/陈皮排骨汤/陈皮排骨汤",
+    "name": "陈皮排骨汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1ur421p7u5",
+    "sourcePage": "https://www.bilibili.com/video/BV1ur421p7u5",
+    "title": "绝绝子！腊排骨炖土豆，跟着湖北人学的腊排骨吃法，汤汁浓白排骨咸香，土豆也很粉糯",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:soup/黄瓜皮蛋汤",
+    "name": "黄瓜皮蛋汤",
+    "videoUrl": "https://www.bilibili.com/video/BV1JJ4m1T7kJ",
+    "sourcePage": "https://www.bilibili.com/video/BV1JJ4m1T7kJ",
+    "title": "黄瓜皮蛋真是绝配，简单一做，汤鲜味美，这也是夏季餐桌必备菜",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:staple/中式馅饼/中式馅饼",
+    "name": "中式馅饼",
+    "videoUrl": "https://www.bilibili.com/video/BV1Fq4y1Q7eJ",
+    "sourcePage": "https://www.bilibili.com/video/BV1Fq4y1Q7eJ",
+    "title": "家人最爱吃的肉馅饼，不揉面不擀皮，个个皮薄大馅，咬一口满嘴香",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/凉粉/凉粉",
+    "name": "凉粉",
+    "videoUrl": "https://www.bilibili.com/video/BV1xR4y1F7Ji",
+    "sourcePage": "https://www.bilibili.com/video/BV1xR4y1F7Ji",
+    "title": "1碗淀粉加5碗水，教你在家自制凉粉，搭配万能料汁，比买的好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/利提巧卡",
+    "name": "利提巧卡",
+    "videoUrl": "https://www.bilibili.com/video/BV1gZ4y1G7Wo",
+    "sourcePage": "https://www.bilibili.com/video/BV1gZ4y1G7Wo",
+    "title": "这么丝滑的吗？做法最简单，口感却很惊艳的生巧（无水饴版）",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/印度烤饼",
+    "name": "印度烤饼",
+    "videoUrl": "https://www.bilibili.com/video/BV1SJ41127Nj",
+    "sourcePage": "https://www.bilibili.com/video/BV1SJ41127Nj",
+    "title": "【小高姐】印度烤饼  焦酥与柔软完美结合",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/印度焖饭",
+    "name": "印度焖饭",
+    "videoUrl": "https://www.bilibili.com/video/BV1ot41137oc",
+    "sourcePage": "https://www.bilibili.com/video/BV1ot41137oc",
+    "title": "夏天懒人焖饭，饭和菜一锅出，简单又省事，鸡翅的100种吃法",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/可乐炒饭",
+    "name": "可乐炒饭",
+    "videoUrl": "https://www.bilibili.com/video/BV1sV4y1E7K5",
+    "sourcePage": "https://www.bilibili.com/video/BV1sV4y1E7K5",
+    "title": "3种食材做出比可乐鸡翅还要好吃的可乐炒饭！厨房小白也能轻松掌握！快给你爱的人做份炒饭吧！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/咸肉菜饭",
+    "name": "咸肉菜饭",
+    "videoUrl": "https://www.bilibili.com/video/BV11YfwYNEEK",
+    "sourcePage": "https://www.bilibili.com/video/BV11YfwYNEEK",
+    "title": "家的味道！山珍海味也不换🤩| 上海咸肉菜饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/基础牛奶面包/基础牛奶面包",
+    "name": "基础牛奶面包",
+    "videoUrl": "https://www.bilibili.com/video/BV1tp4y1e7DT",
+    "sourcePage": "https://www.bilibili.com/video/BV1tp4y1e7DT",
+    "title": "在家做面包店最受欢迎的肉松面包卷，好吃不翻车｜老爸的食光",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/微波炉腊肠煲仔饭/微波炉腊肠煲仔饭",
+    "name": "微波炉腊肠煲仔饭",
+    "videoUrl": "https://www.bilibili.com/video/BV1syWDzZEjZ",
+    "sourcePage": "https://www.bilibili.com/video/BV1syWDzZEjZ",
+    "title": "【微波炉煲仔饭】打工人晚餐救星！10分钟微波炉煲仔饭，下班再晚也能吃上热乎的~",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:staple/意式肉酱面/意式肉酱面",
+    "name": "意式肉酱面",
+    "videoUrl": "https://www.bilibili.com/video/BV1rd4y1E7vs",
+    "sourcePage": "https://www.bilibili.com/video/BV1rd4y1E7vs",
+    "title": "浓郁！百搭的意面灵魂伴侣🤩| 正宗意式肉酱！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/手工水饺",
+    "name": "手工水饺",
+    "videoUrl": "https://www.bilibili.com/video/BV1LJ411C7sW",
+    "sourcePage": "https://www.bilibili.com/video/BV1LJ411C7sW",
+    "title": "【纯手工水饺做法】这样调馅才是关键，简单易学，比饭店吃的还香！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:staple/扬州炒饭/扬州炒饭",
+    "name": "扬州炒饭",
+    "videoUrl": "https://www.bilibili.com/video/BV1sU4y1B7MC",
+    "sourcePage": "https://www.bilibili.com/video/BV1sU4y1B7MC",
+    "title": "手把手教你扬州炒饭的家常做法，米饭粒粒分明，真的太香了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/披萨饼皮/披萨饼皮",
+    "name": "披萨饼皮",
+    "videoUrl": "https://www.bilibili.com/video/BV17D4y1k7Vb",
+    "sourcePage": "https://www.bilibili.com/video/BV17D4y1k7Vb",
+    "title": "想吃披萨又怕麻烦？一次多做点饼皮，随吃随烤特别方便",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/日式咖喱饭/日式咖喱饭",
+    "name": "日式咖喱饭",
+    "videoUrl": "https://www.bilibili.com/video/BV1tp4y1t7YG",
+    "sourcePage": "https://www.bilibili.com/video/BV1tp4y1t7YG",
+    "title": "日本太太教你做日式咖喱饭，香喷喷的咖喱味，一口又一口【日本太太的私房菜#9 日式咖喱饭】",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/日式肥牛丼饭/日式肥牛丼饭",
+    "name": "日式肥牛丼饭",
+    "videoUrl": "https://www.bilibili.com/video/BV1UM4y1u7Wa",
+    "sourcePage": "https://www.bilibili.com/video/BV1UM4y1u7Wa",
+    "title": "完爆吉野家的日式肥牛饭！在家只要10分钟就能做好～",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/汤面",
+    "name": "汤面",
+    "videoUrl": "https://www.bilibili.com/video/BV1vv411L7CU",
+    "sourcePage": "https://www.bilibili.com/video/BV1vv411L7CU",
+    "title": "好吃又简单的汤面合集，学会就不用吃泡面啦",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:staple/河南蒸面条/河南蒸面条",
+    "name": "河南蒸面条",
+    "videoUrl": "https://www.bilibili.com/video/BV19W411P785",
+    "sourcePage": "https://www.bilibili.com/video/BV19W411P785",
+    "title": "河南正宗特色，蒸面条，卤面，简单易学，咦，做哩真中！河南老乡的最爱！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:staple/火腿饭团/火腿饭团",
+    "name": "火腿饭团",
+    "videoUrl": "https://www.bilibili.com/video/BV1F6MszrEy6",
+    "sourcePage": "https://www.bilibili.com/video/BV1F6MszrEy6",
+    "title": "口口生津！梅子饭团，新滋味代替旧做法！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/炒凉粉/炒凉粉",
+    "name": "炒凉粉",
+    "videoUrl": "https://www.bilibili.com/video/BV1984y1m7cX",
+    "sourcePage": "https://www.bilibili.com/video/BV1984y1m7cX",
+    "title": "河南特色美食“炒凉粉” 软糯入味 蒜香浓郁 简单又好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/炒年糕",
+    "name": "炒年糕",
+    "videoUrl": "https://www.bilibili.com/video/BV164411R77G",
+    "sourcePage": "https://www.bilibili.com/video/BV164411R77G",
+    "title": "【韩国人教你炒年糕】做法很简单，但是超好吃！姜食堂2同款辣炒年糕，韩式炒年糕",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/炒意大利面/炒意大利面",
+    "name": "炒意大利面",
+    "videoUrl": "https://www.bilibili.com/video/BV13W411C7hu",
+    "sourcePage": "https://www.bilibili.com/video/BV13W411C7hu",
+    "title": "意大利面怎么炒才好吃？饭店大厨教你一个实用的小技巧，非常好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/炒方便面/炒方便面",
+    "name": "炒方便面",
+    "videoUrl": "https://www.bilibili.com/video/BV1rTwBezEHq",
+    "sourcePage": "https://www.bilibili.com/video/BV1rTwBezEHq",
+    "title": "厨师长教你炒方便面的家常做法，步骤详细，鲜香筋道下酒又下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:staple/炒河粉",
+    "name": "炒河粉",
+    "videoUrl": "https://www.bilibili.com/video/BV1z44y1G7av",
+    "sourcePage": "https://www.bilibili.com/video/BV1z44y1G7av",
+    "title": "难怪路边摊的炒河粉那么好吃，原来秘制做法这么简单，实在太香了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/炒馍",
+    "name": "炒馍",
+    "videoUrl": "https://www.bilibili.com/video/BV1M5411A7B2",
+    "sourcePage": "https://www.bilibili.com/video/BV1M5411A7B2",
+    "title": "剩馒头不想吃了？教你做鸡蛋炒馒头，金黄酥脆，简单好吃又营养",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/炸酱面",
+    "name": "炸酱面",
+    "videoUrl": "https://www.bilibili.com/video/BV1Gi421a7di",
+    "sourcePage": "https://www.bilibili.com/video/BV1Gi421a7di",
+    "title": "【炸酱面的酱】究竟怎么熬！保姆级教程，精确讲解。",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/烙饼/烙饼",
+    "name": "烙饼",
+    "videoUrl": "https://www.bilibili.com/video/BV1PN4y1a7K3",
+    "sourcePage": "https://www.bilibili.com/video/BV1PN4y1a7K3",
+    "title": "分享美食家常椒盐饼，这个做法真简单，快速又多层",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/烧饼/芝麻烧饼",
+    "name": "芝麻烧饼",
+    "videoUrl": "https://www.bilibili.com/video/BV1YA411e7Aa",
+    "sourcePage": "https://www.bilibili.com/video/BV1YA411e7Aa",
+    "title": "又酥又软又香的芝麻烧饼，连吃3天都不腻，从发面到上桌不到1小时",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/热干面",
+    "name": "热干面",
+    "videoUrl": "https://www.bilibili.com/video/BV1yK411H7kr",
+    "sourcePage": "https://www.bilibili.com/video/BV1yK411H7kr",
+    "title": "做好热干面有三个重点：麻酱、卤水和掸面，老师傅教你家常热干面",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/煮泡面加蛋",
+    "name": "煮泡面加蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1Br4y1M7oE",
+    "sourcePage": "https://www.bilibili.com/video/BV1Br4y1M7oE",
+    "title": "懒人微波炉三分钟泡面！该吃夜宵了！！！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/照烧鸡腿饭",
+    "name": "照烧鸡腿饭",
+    "videoUrl": "https://www.bilibili.com/video/BV1eT4y1o7Yv",
+    "sourcePage": "https://www.bilibili.com/video/BV1eT4y1o7Yv",
+    "title": "【保姆级教程】如何做出超越吉野家的照烧鸡腿饭？",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/蒸卤面",
+    "name": "蒸卤面",
+    "videoUrl": "https://www.bilibili.com/video/BV1r2wczoEwu",
+    "sourcePage": "https://www.bilibili.com/video/BV1r2wczoEwu",
+    "title": "大厨教你河南美食蒸卤面详细做法，软糯鲜香好吃，赶紧收藏",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/猪油拌饭",
+    "name": "猪油拌饭",
+    "videoUrl": "https://www.bilibili.com/video/BV17ZtCz6Exh",
+    "sourcePage": "https://www.bilibili.com/video/BV17ZtCz6Exh",
+    "title": "香浓油润 猪油拌饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:staple/电饭煲三文鱼炊饭/电饭煲三文鱼炊饭",
+    "name": "电饭煲三文鱼炊饭",
+    "videoUrl": "https://www.bilibili.com/video/BV111bbzjE1h",
+    "sourcePage": "https://www.bilibili.com/video/BV111bbzjE1h",
+    "title": "懒人版炖牛腩做法：电饭煲中放入牛腩、配料与调味，一键启动！出锅软烂汁浓，连吃两碗米饭都不够~",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/空气炸锅照烧鸡饭/空气炸锅照烧鸡饭",
+    "name": "空气炸锅照烧鸡饭",
+    "videoUrl": "https://www.bilibili.com/video/BV1gd4y1T7Lp",
+    "sourcePage": "https://www.bilibili.com/video/BV1gd4y1T7Lp",
+    "title": "空气炸锅|烤鸡天花板！一口就爆汁！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/米饭/煮锅蒸米饭",
+    "name": "煮锅蒸米饭",
+    "videoUrl": "https://www.bilibili.com/video/BV1L3411B7Mx",
+    "sourcePage": "https://www.bilibili.com/video/BV1L3411B7Mx",
+    "title": "没有电饭煲怎么做好米饭？教你n种用锅做米饭的做法！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/米饭/电饭煲蒸米饭",
+    "name": "电饭煲蒸米饭",
+    "videoUrl": "https://www.bilibili.com/video/BV1tN411i7dY",
+    "sourcePage": "https://www.bilibili.com/video/BV1tN411i7dY",
+    "title": "【零基础学做饭】之用电饭锅做白米饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:staple/红芸豆拌饭",
+    "name": "红芸豆拌饭",
+    "videoUrl": "https://www.bilibili.com/video/BV1cv4y1q7LN",
+    "sourcePage": "https://www.bilibili.com/video/BV1cv4y1q7LN",
+    "title": "家常菜干煸芸豆，下饭又下酒，春节必备",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/老友猪肉粉/老友猪肉粉",
+    "name": "老友猪肉粉",
+    "videoUrl": "https://www.bilibili.com/video/BV1pJ411p7x1",
+    "sourcePage": "https://www.bilibili.com/video/BV1pJ411p7x1",
+    "title": "南宁老友粉的传统做法，鲜香开胃简单又好吃！教你在家也能做出不输店里的味道。",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/老干妈拌面",
+    "name": "老干妈拌面",
+    "videoUrl": "https://www.bilibili.com/video/BV1C44y187PE",
+    "sourcePage": "https://www.bilibili.com/video/BV1C44y187PE",
+    "title": "自制老干妈拌面，一口就上瘾了，在宿舍就能做，不要再吃方便面了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/肉蛋盖饭",
+    "name": "肉蛋盖饭",
+    "videoUrl": "https://www.bilibili.com/video/BV1Jf4y1X7k9",
+    "sourcePage": "https://www.bilibili.com/video/BV1Jf4y1X7k9",
+    "title": "【鸡蛋盖饭】这要是再学不会！这币不要也罢！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/茄子肉煎饼/茄子肉煎饼",
+    "name": "茄子肉煎饼",
+    "videoUrl": "https://www.bilibili.com/video/BV1KW411c79P",
+    "sourcePage": "https://www.bilibili.com/video/BV1KW411c79P",
+    "title": "圆茄子最好吃的家常做法，不用土豆，不用肉，爱吃素食一定收藏",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/葱油拌面",
+    "name": "葱油拌面",
+    "videoUrl": "https://www.bilibili.com/video/BV1TgbGzKEiQ",
+    "sourcePage": "https://www.bilibili.com/video/BV1TgbGzKEiQ",
+    "title": "【做一次一个月的早餐都有着落了，巨香不苦的葱油拌面】",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:staple/蛋包饭",
+    "name": "蛋包饭",
+    "videoUrl": "https://www.bilibili.com/video/BV1Y7411377f",
+    "sourcePage": "https://www.bilibili.com/video/BV1Y7411377f",
+    "title": "学不会的来打我！全网最简单的流心蛋包饭教程！（你没有看过的船新版本）",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/蛋炒饭",
+    "name": "蛋炒饭",
+    "videoUrl": "https://www.bilibili.com/video/BV1Dg4y1t7An",
+    "sourcePage": "https://www.bilibili.com/video/BV1Dg4y1t7An",
+    "title": "蛋炒饭怎么做好吃又简单？大厨教你新做法，粒粒分明太香了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/螺蛳粉",
+    "name": "螺蛳粉",
+    "videoUrl": "https://www.bilibili.com/video/BV1FK4y1n7Gb",
+    "sourcePage": "https://www.bilibili.com/video/BV1FK4y1n7Gb",
+    "title": "螺蛳粉香不香就看这一锅底汤，老师傅做法都教你，香辣过瘾停不了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/西红柿鸡蛋挂面/西红柿鸡蛋挂面",
+    "name": "西红柿鸡蛋挂面",
+    "videoUrl": "https://www.bilibili.com/video/BV1w14y1c7vF",
+    "sourcePage": "https://www.bilibili.com/video/BV1w14y1c7vF",
+    "title": "看懒人做荷包蛋清汤面，是如何懒到家的，虽然懒，但味道很好",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/豆角焖面/豆角焖面",
+    "name": "豆角焖面",
+    "videoUrl": "https://www.bilibili.com/video/BV1QZ421T75P",
+    "sourcePage": "https://www.bilibili.com/video/BV1QZ421T75P",
+    "title": "【仔细讲讲 豆角焖面】油亮劲道，根根分明的保姆级教程",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/酱拌荞麦面/酱拌荞麦面",
+    "name": "酱拌荞麦面",
+    "videoUrl": "https://www.bilibili.com/video/BV1Z64y1X78m",
+    "sourcePage": "https://www.bilibili.com/video/BV1Z64y1X78m",
+    "title": "【4个月瘦30斤】无敌好吃鸡蛋酱拌荞麦面+超模蔬果汁",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/酸辣蕨根粉",
+    "name": "酸辣蕨根粉",
+    "videoUrl": "https://www.bilibili.com/video/BV1aW411N7JW",
+    "sourcePage": "https://www.bilibili.com/video/BV1aW411N7JW",
+    "title": "饭店的酸辣蕨根粉为什么做的那么好吃，其实诀窍很简单",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/醪糟小汤圆",
+    "name": "醪糟小汤圆",
+    "videoUrl": "https://www.bilibili.com/video/BV1pM4y1u7V6",
+    "sourcePage": "https://www.bilibili.com/video/BV1pM4y1u7V6",
+    "title": "老奶奶演示快速搓小元宵 分享赤豆酒酿小元宵和酒酿蛋花汤做法",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/陕西油泼面/陕西油泼面",
+    "name": "陕西油泼面",
+    "videoUrl": "https://www.bilibili.com/video/BV1RPh9zMEJ7",
+    "sourcePage": "https://www.bilibili.com/video/BV1RPh9zMEJ7",
+    "title": "油泼面家常做法5分钟就搞定!",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/韩式拌饭/韩式拌饭",
+    "name": "韩式拌饭",
+    "videoUrl": "https://www.bilibili.com/video/BV194411X7PE",
+    "sourcePage": "https://www.bilibili.com/video/BV194411X7PE",
+    "title": "【韩式拌饭】韩国人教你韩国拌饭做法，超好吃！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/韭菜盒子",
+    "name": "韭菜盒子",
+    "videoUrl": "https://www.bilibili.com/video/BV1Jz411q7UA",
+    "sourcePage": "https://www.bilibili.com/video/BV1Jz411q7UA",
+    "title": "【小高姐】传统韭菜盒子",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/鲜肉烧卖",
+    "name": "鲜肉烧卖",
+    "videoUrl": "https://www.bilibili.com/video/BV1K7411E7jM",
+    "sourcePage": "https://www.bilibili.com/video/BV1K7411E7jM",
+    "title": "南方特色早餐烧卖做法：从擀皮到调馅，配方简单，香而不腻",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/鲣鱼海苔玉米饭/鲣鱼海苔玉米饭",
+    "name": "鲣鱼海苔玉米饭",
+    "videoUrl": "https://www.bilibili.com/video/BV1kh411W7RT",
+    "sourcePage": "https://www.bilibili.com/video/BV1kh411W7RT",
+    "title": "四川人喜欢吃的沥米饭，米饭香甜，粒粒分明，比电饭煲煮的好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/鹰嘴豆炸饼",
+    "name": "鹰嘴豆炸饼",
+    "videoUrl": "https://www.bilibili.com/video/BV1ps4y14715",
+    "sourcePage": "https://www.bilibili.com/video/BV1ps4y14715",
+    "title": "【香酥鹰嘴豆】这种香脆的烤鹰嘴豆是完美的咸味、松脆口感的健康零食► 品味食间 Taste Food time Crispy Roasted Chickpeas",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/麻油拌面",
+    "name": "麻油拌面",
+    "videoUrl": "https://www.bilibili.com/video/BV1Hx411q7zQ",
+    "sourcePage": "https://www.bilibili.com/video/BV1Hx411q7zQ",
+    "title": "【椒麻拌面】清爽可口的椒麻拌面，夏季面食的最佳选择",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:staple/麻辣减脂荞麦面",
+    "name": "麻辣减脂荞麦面",
+    "videoUrl": "https://www.bilibili.com/video/BV1P5411W7ad",
+    "sourcePage": "https://www.bilibili.com/video/BV1P5411W7ad",
+    "title": "减脂也能吃的荞麦面我真的爱了！「一周5款不重样的荞麦面」，吃饱才有力气变瘦吖~",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/上汤娃娃菜/上汤娃娃菜",
+    "name": "上汤娃娃菜",
+    "videoUrl": "https://www.bilibili.com/video/BV18e4y1D7M3",
+    "sourcePage": "https://www.bilibili.com/video/BV18e4y1D7M3",
+    "title": "立秋要多喝这道上汤娃娃菜，不用高汤不放鸡精，汤鲜味美营养好喝",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/乾隆白菜/乾隆白菜",
+    "name": "乾隆白菜",
+    "videoUrl": "https://www.bilibili.com/video/BV1ch41147Tq",
+    "sourcePage": "https://www.bilibili.com/video/BV1ch41147Tq",
+    "title": "2分钟学会乾隆白菜，爽脆可口，色香味俱全！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/凉拌木耳/凉拌木耳",
+    "name": "凉拌木耳",
+    "videoUrl": "https://www.bilibili.com/video/BV1KM4y1e7WD",
+    "sourcePage": "https://www.bilibili.com/video/BV1KM4y1e7WD",
+    "title": "凉拌木耳，为什么饭店的这么好吃？泡发和调料都有讲究。",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/凉拌油麦菜",
+    "name": "凉拌油麦菜",
+    "videoUrl": "https://www.bilibili.com/video/BV1VF411V7Wh",
+    "sourcePage": "https://www.bilibili.com/video/BV1VF411V7Wh",
+    "title": "油麦菜用来凉拌也很好吃，清脆爽口开胃解腻，营养丰富比炒要简单",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/凉拌莴笋/凉拌莴笋",
+    "name": "凉拌莴笋",
+    "videoUrl": "https://www.bilibili.com/video/BV1eWoEYbEof",
+    "sourcePage": "https://www.bilibili.com/video/BV1eWoEYbEof",
+    "title": "凉拌莴笋丝像我这样做，3分钟搞定，做法简单，比大鱼大肉都好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/凉拌豆腐",
+    "name": "凉拌豆腐",
+    "videoUrl": "https://www.bilibili.com/video/BV1BZ4y1p7H6",
+    "sourcePage": "https://www.bilibili.com/video/BV1BZ4y1p7H6",
+    "title": "凉拌嫩豆腐这样做，不爱吃豆腐的我竟然没吃够",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/凉拌金针菇",
+    "name": "凉拌金针菇",
+    "videoUrl": "https://www.bilibili.com/video/BV1G34y1E7Mx",
+    "sourcePage": "https://www.bilibili.com/video/BV1G34y1E7Mx",
+    "title": "用万能凉拌汁做的凉拌金针菇，吃着清爽开胃，加点胡萝卜口感丰富",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/凉拌黄瓜",
+    "name": "凉拌黄瓜",
+    "videoUrl": "https://www.bilibili.com/video/BV1RV41167WV",
+    "sourcePage": "https://www.bilibili.com/video/BV1RV41167WV",
+    "title": "【小高姐】拍黄瓜",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/包菜炒鸡蛋粉丝/包菜炒鸡蛋粉丝",
+    "name": "包菜炒鸡蛋粉丝",
+    "videoUrl": "https://www.bilibili.com/video/BV1QV411G7GU",
+    "sourcePage": "https://www.bilibili.com/video/BV1QV411G7GU",
+    "title": "黄瓜炒鸡蛋，怎么做鲜香脆嫩？老厨教你正确做法，调味对了超下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/印度土豆花菜",
+    "name": "印度土豆花菜",
+    "videoUrl": "https://www.bilibili.com/video/BV1aR4y1M7Sd",
+    "sourcePage": "https://www.bilibili.com/video/BV1aR4y1M7Sd",
+    "title": "家常小炒土豆丝的做法，掌握好技巧，清脆爽口，好吃又下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/印度葫芦丸子",
+    "name": "印度葫芦丸子",
+    "videoUrl": "https://www.bilibili.com/video/BV1CB4y1T7CM",
+    "sourcePage": "https://www.bilibili.com/video/BV1CB4y1T7CM",
+    "title": "这才是土豆丸子的正确做法，外酥里软，营养好吃不油腻，太香了！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/地三鲜/地三鲜",
+    "name": "地三鲜",
+    "videoUrl": "https://www.bilibili.com/video/BV1pr421K7Fq",
+    "sourcePage": "https://www.bilibili.com/video/BV1pr421K7Fq",
+    "title": "【你是人间四月天，我是东北地三鲜】地三鲜保姆级教程！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/家常日本豆腐",
+    "name": "家常日本豆腐",
+    "videoUrl": "https://www.bilibili.com/video/BV1tV4y187oV",
+    "sourcePage": "https://www.bilibili.com/video/BV1tV4y187oV",
+    "title": "豆腐简单好吃的家常做法，滑嫩鲜香，入味下饭，比麻婆豆腐还好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/小炒藕丁/小炒藕丁",
+    "name": "小炒藕丁",
+    "videoUrl": "https://www.bilibili.com/video/BV1rK4y1R7cH",
+    "sourcePage": "https://www.bilibili.com/video/BV1rK4y1R7cH",
+    "title": "湖南大厨炒藕尖有妙招，只需2步，藕带酸辣脆爽不发黑，超好吃。",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/干锅花菜/干锅花菜",
+    "name": "干锅花菜",
+    "videoUrl": "https://www.bilibili.com/video/BV1hipUzaEHH",
+    "sourcePage": "https://www.bilibili.com/video/BV1hipUzaEHH",
+    "title": "干锅花菜，家庭小火做出猛火灶过油的锅气",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/手撕包菜/手撕包菜",
+    "name": "手撕包菜",
+    "videoUrl": "https://www.bilibili.com/video/BV1mAGjzBEaZ",
+    "sourcePage": "https://www.bilibili.com/video/BV1mAGjzBEaZ",
+    "title": "【2分钟爆炒出饭店味！手撕包菜】",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/拔丝土豆/拔丝土豆",
+    "name": "拔丝土豆",
+    "videoUrl": "https://www.bilibili.com/video/BV1W541187Un",
+    "sourcePage": "https://www.bilibili.com/video/BV1W541187Un",
+    "title": "一个土豆，一把白糖，中国烹饪大师樊建国传授拔丝土豆拉丝技巧，想拉多长就拉多长，好吃又好玩！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/松仁玉米",
+    "name": "松仁玉米",
+    "videoUrl": "https://www.bilibili.com/video/BV1o4UUYbEi3",
+    "sourcePage": "https://www.bilibili.com/video/BV1o4UUYbEi3",
+    "title": "松仁玉米怎么做？大厨教你家常做法，香甜可口，大人孩子都爱吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/椒盐玉米/椒盐玉米",
+    "name": "椒盐玉米",
+    "videoUrl": "https://www.bilibili.com/video/BV1zj41167rn",
+    "sourcePage": "https://www.bilibili.com/video/BV1zj41167rn",
+    "title": "香酥脆甜的椒盐玉米粒，好吃到破防",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/榄菜肉末四季豆/榄菜肉末四季豆",
+    "name": "榄菜肉末四季豆",
+    "videoUrl": "https://www.bilibili.com/video/BV1AP411C7fE",
+    "sourcePage": "https://www.bilibili.com/video/BV1AP411C7fE",
+    "title": "榄菜肉末四季豆|免油炸更易做 下饭神器",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/水油焖蔬菜",
+    "name": "水油焖蔬菜",
+    "videoUrl": "https://www.bilibili.com/video/BV15T411D7pA",
+    "sourcePage": "https://www.bilibili.com/video/BV15T411D7pA",
+    "title": "油焖笋的经典做法,全程不加一滴水，酱汁浓郁,鲜嫩入味超下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/油醋爆蛋",
+    "name": "油醋爆蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV16C4y127jt",
+    "sourcePage": "https://www.bilibili.com/video/BV16C4y127jt",
+    "title": "制作蛋黄油，民间俗称凤凰油",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/洋葱炒鸡蛋/洋葱炒鸡蛋",
+    "name": "洋葱炒鸡蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1Dp4y1k7Mu",
+    "sourcePage": "https://www.bilibili.com/video/BV1Dp4y1k7Mu",
+    "title": "饭店做的洋葱炒鸡蛋，为什么这么好吃，大厨教你做法，拿肉也不换",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/清炒花菜",
+    "name": "清炒花菜",
+    "videoUrl": "https://www.bilibili.com/video/BV1u14y1e7g9",
+    "sourcePage": "https://www.bilibili.com/video/BV1u14y1e7g9",
+    "title": "小炒苦瓜家常做法，做法简单清脆不苦，清热去火开胃下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/清蒸南瓜",
+    "name": "清蒸南瓜",
+    "videoUrl": "https://www.bilibili.com/video/BV1pE411Y7gh",
+    "sourcePage": "https://www.bilibili.com/video/BV1pE411Y7gh",
+    "title": "清蒸白鲳鱼，做法太简单，关键还这么好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/炒滑蛋/炒滑蛋",
+    "name": "炒滑蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1G1421S7E6",
+    "sourcePage": "https://www.bilibili.com/video/BV1G1421S7E6",
+    "title": "百万人看过的港式茶餐厅滑蛋，其实我留了一手？",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/炒茄子",
+    "name": "炒茄子",
+    "videoUrl": "https://www.bilibili.com/video/BV1HF411j7iB",
+    "sourcePage": "https://www.bilibili.com/video/BV1HF411j7iB",
+    "title": "土豆茄子这样做下饭菜，绵软鲜香又入味，少油又健康，家人都喜欢",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/炒青菜",
+    "name": "炒青菜",
+    "videoUrl": "https://www.bilibili.com/video/BV1of4y1B7gs",
+    "sourcePage": "https://www.bilibili.com/video/BV1of4y1B7gs",
+    "title": "饭店炒的青菜为什么那么好吃？原来是这样炒的，大厨教你技巧",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/烤茄子/烤茄子",
+    "name": "烤茄子",
+    "videoUrl": "https://www.bilibili.com/video/BV1Ff4y1P7ng",
+    "sourcePage": "https://www.bilibili.com/video/BV1Ff4y1P7ng",
+    "title": "会上瘾的烤箱版蒜蓉烤茄子！秒杀一切烧烤店！！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/白灼菜心/白灼菜心",
+    "name": "白灼菜心",
+    "videoUrl": "https://www.bilibili.com/video/BV1LE41157Xb",
+    "sourcePage": "https://www.bilibili.com/video/BV1LE41157Xb",
+    "title": "白灼菜心，广东经典家常菜，好吃的秘诀全在酱料",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/皮蛋豆腐",
+    "name": "皮蛋豆腐",
+    "videoUrl": "https://www.bilibili.com/video/BV1PZ421T7Pw",
+    "sourcePage": "https://www.bilibili.com/video/BV1PZ421T7Pw",
+    "title": "1个小窍门，做出巨好吃的皮蛋豆腐，不腥不涩，鲜香滑嫩，好吃又入味！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/糖拌西红柿/糖拌西红柿",
+    "name": "糖拌西红柿",
+    "videoUrl": "https://www.bilibili.com/video/BV1564y1t7mX",
+    "sourcePage": "https://www.bilibili.com/video/BV1564y1t7mX",
+    "title": "做糖拌西红柿还只放糖就错了，学会这个方法，西红柿口感翻10倍",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/红烧冬瓜/红烧冬瓜",
+    "name": "红烧冬瓜",
+    "videoUrl": "https://www.bilibili.com/video/BV1fG411T7GQ",
+    "sourcePage": "https://www.bilibili.com/video/BV1fG411T7GQ",
+    "title": "这才是冬瓜最好吃的做法，鲜嫩爽滑，我家一周吃5回，营养又美味",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/红烧茄子",
+    "name": "红烧茄子",
+    "videoUrl": "https://www.bilibili.com/video/BV1ot4y1S7Hf",
+    "sourcePage": "https://www.bilibili.com/video/BV1ot4y1S7Hf",
+    "title": "红烧茄子以后别用油炸了，教你健康新吃法，软嫩鲜香又入味，下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/素炒豆角",
+    "name": "素炒豆角",
+    "videoUrl": "https://www.bilibili.com/video/BV1mp4y1a7jy",
+    "sourcePage": "https://www.bilibili.com/video/BV1mp4y1a7jy",
+    "title": "大厨教你炒酸豆角，好吃下饭，酸辣爽口，做法不能再简单了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/脆皮豆腐",
+    "name": "脆皮豆腐",
+    "videoUrl": "https://www.bilibili.com/video/BV11wuTzqErh",
+    "sourcePage": "https://www.bilibili.com/video/BV11wuTzqErh",
+    "title": "脆豆腐 食材很简单可是做出味道可不一般在家可以试试#脆豆腐#美食教程#家常菜#下饭菜",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/芹菜拌茶树菇/芹菜拌茶树菇",
+    "name": "芹菜拌茶树菇",
+    "videoUrl": "https://www.bilibili.com/video/BV1Q7411Y7BX",
+    "sourcePage": "https://www.bilibili.com/video/BV1Q7411Y7BX",
+    "title": "茶树菇烧排骨的做法，出锅实在太香了，好吃又下饭，常吃也不会腻",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/茄子炖土豆",
+    "name": "茄子炖土豆",
+    "videoUrl": "https://www.bilibili.com/video/BV135411w7C2",
+    "sourcePage": "https://www.bilibili.com/video/BV135411w7C2",
+    "title": "土豆炖茄子，到底先放茄子还是先放土豆？这样做比饭店做的还好吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/莴笋叶煎饼/莴笋叶煎饼",
+    "name": "莴笋叶煎饼",
+    "videoUrl": "https://www.bilibili.com/video/BV14J411w7ok",
+    "sourcePage": "https://www.bilibili.com/video/BV14J411w7ok",
+    "title": "芹菜叶这样做不但不会发苦，还很香哦，成品非常软，真的是老少皆宜的餐食",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/菠菜炒鸡蛋/菠菜炒鸡蛋",
+    "name": "菠菜炒鸡蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1rC4y1s7mF",
+    "sourcePage": "https://www.bilibili.com/video/BV1rC4y1s7mF",
+    "title": "大厨教你韭黄炒鸡蛋的正确做法，鸡蛋鲜嫩，韭黄不出水",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/葱煎豆腐",
+    "name": "葱煎豆腐",
+    "videoUrl": "https://www.bilibili.com/video/BV1fd2EYgESd",
+    "sourcePage": "https://www.bilibili.com/video/BV1fd2EYgESd",
+    "title": "【葱烧豆腐】5块钱带来的神仙美味！做法简单用料少！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/蒜蓉空心菜/蒜蓉空心菜",
+    "name": "蒜蓉空心菜",
+    "videoUrl": "https://www.bilibili.com/video/BV15F411f7cG",
+    "sourcePage": "https://www.bilibili.com/video/BV15F411f7cG",
+    "title": "炒空心菜时，直接下锅炒就错了，饭店大厨教你技巧，翠绿不出水",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T16:42:35.735Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/蒜蓉西兰花",
+    "name": "蒜蓉西兰花",
+    "videoUrl": "https://www.bilibili.com/video/BV1K3411J7cj",
+    "sourcePage": "https://www.bilibili.com/video/BV1K3411J7cj",
+    "title": "蒜蓉西兰花，炒之前多加一个步骤，做出来脆嫩入味，营养不流失",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/蒲烧茄子",
+    "name": "蒲烧茄子",
+    "videoUrl": "https://www.bilibili.com/video/BV1wh411471y",
+    "sourcePage": "https://www.bilibili.com/video/BV1wh411471y",
+    "title": "茄子新做法，秘制蒲烧茄子，软嫩鲜香比鳗鱼还好吃！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/虎皮青椒/虎皮青椒",
+    "name": "虎皮青椒",
+    "videoUrl": "https://www.bilibili.com/video/BV11F41187tw",
+    "sourcePage": "https://www.bilibili.com/video/BV11F41187tw",
+    "title": "大厨教你虎皮青椒的正确做法，好吃不油腻，香辣过瘾下酒又下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/蚝油三鲜菇/蚝油三鲜菇",
+    "name": "蚝油三鲜菇",
+    "videoUrl": "https://www.bilibili.com/video/BV11L411c7MB",
+    "sourcePage": "https://www.bilibili.com/video/BV11L411c7MB",
+    "title": "厨师长教你蚝油杏鲍菇的家常做法，步骤详细，爽口不腻下酒又下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/蚝油生菜",
+    "name": "蚝油生菜",
+    "videoUrl": "https://www.bilibili.com/video/BV1M44y187u6",
+    "sourcePage": "https://www.bilibili.com/video/BV1M44y187u6",
+    "title": "生菜不炒才好吃，大厨教你蚝油生菜的家常做法 ，比肉还受欢迎",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/西红柿炒鸡蛋",
+    "name": "西红柿炒鸡蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1SW4y1f7Tc",
+    "sourcePage": "https://www.bilibili.com/video/BV1SW4y1f7Tc",
+    "title": "30年酒店大厨教你做西红柿炒鸡蛋，这烹饪技术太棒了，先收藏了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/西红柿豆腐汤羹/西红柿豆腐汤羹",
+    "name": "西红柿豆腐汤羹",
+    "videoUrl": "https://www.bilibili.com/video/BV1td4y1q7XW",
+    "sourcePage": "https://www.bilibili.com/video/BV1td4y1q7XW",
+    "title": "福州特色家常菜蛤蜊豆腐汤，汤鲜味美又营养，学会了你也是大厨",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/西葫芦炒鸡蛋/西葫芦炒鸡蛋",
+    "name": "西葫芦炒鸡蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1qb411u7e9",
+    "sourcePage": "https://www.bilibili.com/video/BV1qb411u7e9",
+    "title": "西葫芦炒蛋最正确的做法，鸡蛋嫩滑，西葫芦爽脆，一大盘不够吃",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/话梅煮毛豆/话梅煮毛豆",
+    "name": "话梅煮毛豆",
+    "videoUrl": "https://www.bilibili.com/video/BV1BV41177Tj",
+    "sourcePage": "https://www.bilibili.com/video/BV1BV41177Tj",
+    "title": "煮五香花生毛豆，怎么才能既不发黑又很入味呢？老师傅教你小窍门",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/酸辣土豆丝",
+    "name": "酸辣土豆丝",
+    "videoUrl": "https://www.bilibili.com/video/BV1BHZmYjENX",
+    "sourcePage": "https://www.bilibili.com/video/BV1BHZmYjENX",
+    "title": "土豆最常吃的做法！酸辣土豆丝！如何做到爽脆开胃，还不粘锅呢？快来跟五星大厨学学技巧吧！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/金针菇日本豆腐煲",
+    "name": "金针菇日本豆腐煲",
+    "videoUrl": "https://www.bilibili.com/video/BV1VZ4y1H75g",
+    "sourcePage": "https://www.bilibili.com/video/BV1VZ4y1H75g",
+    "title": "超下饭的金针菇日本豆腐煲 记得多煮两碗米饭！还做了鲜嫩多汁的煎鸡翅 今天又是吃的饱饱的一天",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/金钱蛋",
+    "name": "金钱蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1zY4LzFEbv",
+    "sourcePage": "https://www.bilibili.com/video/BV1zY4LzFEbv",
+    "title": "打工人的救星，做法简单还下饭的金钱蛋，新手也能做出饭店味道",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/陕北熬豆角",
+    "name": "陕北熬豆角",
+    "videoUrl": "https://www.bilibili.com/video/BV16d4y137Pb",
+    "sourcePage": "https://www.bilibili.com/video/BV16d4y137Pb",
+    "title": "陕北家常熬豆角，嫂子下厨做的地道味正，春姐抱着碗坐炕头吃舒服",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/雷椒皮蛋",
+    "name": "雷椒皮蛋",
+    "videoUrl": "https://www.bilibili.com/video/BV1DJ4m1T72z",
+    "sourcePage": "https://www.bilibili.com/video/BV1DJ4m1T72z",
+    "title": "厨师长教你：“擂椒皮蛋”的家常做法，椒香四溢，开胃下饭",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/鸡蛋火腿炒黄瓜",
+    "name": "鸡蛋火腿炒黄瓜",
+    "videoUrl": "https://www.bilibili.com/video/BV1Zj96BGEx6",
+    "sourcePage": "https://www.bilibili.com/video/BV1Zj96BGEx6",
+    "title": "黄瓜炒鸡蛋火腿肠，下饭简单方便！",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/鸡蛋羹/微波炉鸡蛋羹",
+    "name": "微波炉鸡蛋羹",
+    "videoUrl": "https://www.bilibili.com/video/BV19W4y167Sd",
+    "sourcePage": "https://www.bilibili.com/video/BV19W4y167Sd",
+    "title": "第一次用微波炉蒸蛋，省力又省时，四分钟搞定，结果太意外了",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/鸡蛋羹/蒸箱鸡蛋羹",
+    "name": "蒸箱鸡蛋羹",
+    "videoUrl": "https://www.bilibili.com/video/BV1eX4y1C74e",
+    "sourcePage": "https://www.bilibili.com/video/BV1eX4y1C74e",
+    "title": "有手就会的鸭蛋羹，色香味俱全的蒸蛋，你值得一试哦～",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/鸡蛋羹/鸡蛋羹",
+    "name": "鸡蛋羹",
+    "videoUrl": "https://www.bilibili.com/video/BV1PqFrzuEEP",
+    "sourcePage": "https://www.bilibili.com/video/BV1PqFrzuEEP",
+    "title": "家庭水蒸蛋万能公式：100%成功！不成功你打电话骂我",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  },
+  {
+    "id": "howtocook:vegetable_dish/鸡蛋花/鸡蛋花",
+    "name": "鸡蛋花",
+    "videoUrl": "https://www.bilibili.com/video/BV1NF3bzKEKH",
+    "sourcePage": "https://www.bilibili.com/video/BV1NF3bzKEKH",
+    "title": "钩针鸡蛋花：点水无瑕，花开有音",
+    "provider": "bilibili",
+    "acquiredAt": "2026-06-13T17:04:13.124Z"
+  }
+]

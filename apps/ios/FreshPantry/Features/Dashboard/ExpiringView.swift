@@ -101,7 +101,9 @@ struct ExpiringView: View {
     private func consume(_ item: Ingredient) async -> InventoryStore.RemoveResult {
         guard let inventoryStore, let store else { return .notFound }
         let result = await inventoryStore.removeWithResult(item, outcome: .consumed)
-        await store.load()
+        // Optimistic instant drop on success; the `onChange(of: inventoryStore.items)`
+        // drift handler (and an undo's re-add) reconciles the snapshot afterward.
+        if case .removed = result { store.remove(id: item.id) }
         return result
     }
 

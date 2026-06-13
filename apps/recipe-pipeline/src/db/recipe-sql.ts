@@ -15,7 +15,7 @@ import type { CleanRecipe } from '../clean/schema';
 export type CatalogRecipe = Pick<
   CleanRecipe,
   'id' | 'name' | 'category' | 'difficulty' | 'cookingMinutes' | 'description'
-  | 'ingredients' | 'steps' | 'tags' | 'imageUrl'
+  | 'ingredients' | 'steps' | 'tags' | 'imageUrl' | 'videoUrl'
 >;
 
 /** SQL 字符串字面量转义:单引号翻倍。 */
@@ -35,7 +35,7 @@ function nullableText(s: string | null | undefined): string {
 
 const COLUMNS = [
   'id', 'name', 'category', 'difficulty', 'cooking_minutes',
-  'description', 'ingredients', 'steps', 'tags', 'image_url',
+  'description', 'ingredients', 'steps', 'tags', 'image_url', 'video_url',
 ] as const;
 
 export const RECIPES_DDL = `create table if not exists public.recipes (
@@ -49,8 +49,12 @@ export const RECIPES_DDL = `create table if not exists public.recipes (
   steps jsonb not null default '[]'::jsonb,
   tags jsonb not null default '[]'::jsonb,
   image_url text,
+  video_url text,
   updated_at timestamptz not null default now()
 );
+
+-- 老库幂等升级:新增 video_url 列(已存在则无操作)
+alter table public.recipes add column if not exists video_url text;
 
 alter table public.recipes enable row level security;
 -- 共享菜谱目录:匿名 + 已登录均可只读;无写策略(仅 service_role/迁移可写)
@@ -62,7 +66,8 @@ grant select on public.recipes to anon, authenticated;`;
 function valuesRow(r: CatalogRecipe): string {
   return `  (${lit(r.id)}, ${lit(r.name)}, ${lit(r.category)}, ${r.difficulty}, `
     + `${r.cookingMinutes}, ${lit(r.description)}, ${jsonbLit(r.ingredients)}, `
-    + `${jsonbLit(r.steps)}, ${jsonbLit(r.tags)}, ${nullableText(r.imageUrl)})`;
+    + `${jsonbLit(r.steps)}, ${jsonbLit(r.tags)}, ${nullableText(r.imageUrl)}, `
+    + `${nullableText(r.videoUrl)})`;
 }
 
 /** 生成 upsert 语句(多行 VALUES + on conflict 更新)。空列表返回空串。 */

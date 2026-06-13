@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit",
     "build:recipes": "flue run build-recipes --target node --payload '{}'",
     "build:recipes:dry": "flue run build-recipes --target node --payload '{\"dryRun\":true}'",
+    "videos:acquire": "npx tsx src/db/acquire-videos.ts",
     "images:apply": "npx tsx src/db/apply-web-images.ts",
     "images:upload": "npx tsx src/db/upload-images.ts",
     "images:rewrite-urls": "npx tsx src/db/rewrite-image-urls.ts",
@@ -15,6 +16,7 @@
   },
   "dependencies": {
     "@flue/runtime": "^0.11.0",
+    "@valibot/to-json-schema": "^1.7.1",
     "valibot": "^1.4.1"
   },
   "devDependencies": {

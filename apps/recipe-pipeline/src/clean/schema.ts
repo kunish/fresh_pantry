@@ -33,6 +33,8 @@ export const CleanRecipeSchema = v.object({
   steps: v.array(v.string()),
   tags: v.array(v.string()),
   imageUrl: v.nullable(v.string()),
+  // 老数据无此键:optional+default=null 兼容缺键(imageUrl 历史上必有该键所以纯 nullable 即可)
+  videoUrl: v.optional(v.nullable(v.string()), null),
   remoteVersion: v.pipe(v.number(), v.integer()),
   clientUpdatedAt: v.nullable(v.string()),
   deletedAt: v.nullable(v.string()),
