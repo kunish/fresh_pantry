@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.14.0...fresh_pantry-v1.15.0) (2026-06-13)
+
+
+### Features
+
+* **recipes:** 封面联网补齐 + 迁 Supabase Storage + 全图离线磁盘缓存 ([4e31ed0](https://github.com/kunish/fresh_pantry/commit/4e31ed0799b64f10a2025481170d75219215f4ec))
+
 ## [1.14.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.13.1...fresh_pantry-v1.14.0) (2026-06-13)
 
 
