@@ -26,6 +26,7 @@ export const RECIPE_CLEANER_INSTRUCTIONS = `你是中文家常菜谱清洗助手
 - 没有 amount 字段,不要输出 amount。
 - difficulty 取 1-5 整数;cookingMinutes 取正整数(可据步骤数与描述合理估算时长)。
 - description:若已提供则原样沿用,否则写一两句简介。
+- tags:给 3-6 个有用的检索标签,从下列维度中取适用的若干——口味(如 麻辣/清淡/酸甜/鲜香)、烹饪方式(如 炒/蒸/煎/炖/凉拌)、地域风味(如 川菜/粤式/江浙/东北)、食用场景(如 下饭/下酒/快手/家常/宴客)。标签须取自菜谱实际内容、简短(2-4 字)、互不重复;不要只返回分类名,也不要硬凑无关标签。
 - 只返回符合 schema 的结构化结果。`;
 
 export function buildEnrichPrompt(raw: RawRecipe): string {
