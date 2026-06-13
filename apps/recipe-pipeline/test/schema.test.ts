@@ -35,6 +35,15 @@ describe('CleanRecipeSchema', () => {
   it('CATEGORIES 恰为 10 个', () => {
     expect(CATEGORIES).toHaveLength(10);
   });
+  it('缺 videoUrl 键的对象向后兼容:parse 不抛,默认 null', () => {
+    const withoutVideo = {
+      id: 'r1', name: '番茄炒蛋', category: '荤菜', difficulty: 1, cookingMinutes: 10,
+      description: 'd', ingredients: [], steps: [], tags: [], imageUrl: null,
+      remoteVersion: 0, clientUpdatedAt: null, deletedAt: null,
+    };
+    const parsed = v.parse(CleanRecipeSchema, withoutVideo);
+    expect(parsed.videoUrl).toBeNull();
+  });
   it('接受真实 howtocook.json 首条', () => {
     const jsonPath = join(
       dirname(fileURLToPath(import.meta.url)),
