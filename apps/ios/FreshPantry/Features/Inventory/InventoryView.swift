@@ -86,11 +86,20 @@ struct InventoryView: View {
                     householdID: householdID,
                     syncWriter: dependencies.syncWriter
                 )
+                // OFFLINE-FIRST, NO FLASH: load the new scope's local rows BEFORE
+                // swapping the stores in. Assigning an empty store first rendered an
+                // empty list for the duration of `load()` — a household switch (incl.
+                // every cold-launch "" → uuid auto-select) flashed empty before the
+                // local data appeared. Loading first keeps the previous household's
+                // list on screen until the new (local, instant) data is ready, then
+                // swaps atomically. Guard so a newer switch landing during the load
+                // doesn't assign this stale scope's stores over the successor's.
+                await store.load()
+                await shopping.load()
+                guard householdID == dependencies.householdID, !Task.isCancelled else { return }
                 self.store = store
                 self.shoppingStore = shopping
                 self.loadedHouseholdID = householdID
-                await store.load()
-                await shopping.load()
             } else {
                 await store?.load()
                 await shoppingStore?.load()
@@ -184,6 +193,12 @@ private struct InventoryContent: View {
     /// Pending batch-delete undo handle — drives the bottom "已删除 · 撤销" banner.
     @State private var batchUndo: InventoryStore.BatchRemovalUndo?
     @State private var isBatchWorking = false
+    /// Long-press 预览菜单 targets: the row to edit (drives the edit sheet, wrapped
+    /// so `.sheet(item:)` has an Identifiable without making the domain `Ingredient`
+    /// one — its id is blank for local rows) and the row to delete (drives the
+    /// single-item 去向追问 dialog). Both nil = no menu action pending.
+    @State private var editTarget: EditTarget?
+    @State private var deletingItem: Ingredient?
 
     var body: some View {
         ScrollView {
@@ -213,6 +228,13 @@ private struct InventoryContent: View {
         .toolbar { toolbarContent }
         .sheet(isPresented: $isAddingPresented) {
             AddIngredientView { Task { await store.load() } }
+        }
+        // Long-press 预览菜单「编辑」: the same edit form the detail screen presents.
+        // `EditIngredientView` updates the store in place; reload tail-syncs anyway.
+        .sheet(item: $editTarget) { target in
+            EditIngredientView(original: target.ingredient, store: store) {
+                Task { await store.load() }
+            }
         }
         .navigationTitle(isSelecting ? "已选 \(selectedKeys.count) 项" : "库存")
         .navigationBarTitleDisplayMode(isSelecting ? .inline : .large)
@@ -259,6 +281,25 @@ private struct InventoryContent: View {
             Button("取消", role: .cancel) {}
         } message: {
             Text("它们怎么了?用于统计你的减废成效。删除后可撤销。")
+        }
+        // 去向追问 for the long-press 预览菜单「删除」: a single-row mirror of the
+        // detail-screen delete, routed through `deleteMany` so it reuses the shared
+        // 撤销 banner and feeds the waste stats.
+        .confirmationDialog(
+            deletingItem.map { "「\($0.name)」要移除" } ?? "移除食材",
+            isPresented: Binding(
+                get: { deletingItem != nil },
+                set: { if !$0 { deletingItem = nil } }
+            ),
+            titleVisibility: .visible,
+            presenting: deletingItem
+        ) { item in
+            Button("吃完 / 用掉了") { Task { await deleteSingle(item, outcome: .consumed) } }
+            Button("没吃完,扔了") { Task { await deleteSingle(item, outcome: .wasted) } }
+            Button("仅移除") { Task { await deleteSingle(item, outcome: nil) } }
+            Button("取消", role: .cancel) {}
+        } message: { _ in
+            Text("它怎么了?用于统计你的减废成效。删除后可撤销。")
         }
     }
 
@@ -363,8 +404,18 @@ private struct InventoryContent: View {
     private var undoBanner: some View {
         if let undo = batchUndo {
             let logged = undo.removed.contains { !$0.loggedEntryId.isEmpty }
+            // Single-row delete (long-press「删除」or a 1-item selection) reads better
+            // as the named subject the detail screen uses ("已记录「番茄」"); only fall
+            // back to the "N 项" count for a true multi-row batch.
+            let count = undo.removed.count
+            let bannerTitle: String = {
+                if count == 1, let name = undo.removed.first?.ingredient.name {
+                    return logged ? "已记录「\(name)」" : "已删除「\(name)」"
+                }
+                return logged ? "已记录并删除 \(count) 项" : "已删除 \(count) 项"
+            }()
             HStack(spacing: FkSpacing.md) {
-                Text(logged ? "已记录并删除 \(undo.removed.count) 项" : "已删除 \(undo.removed.count) 项")
+                Text(bannerTitle)
                     .font(.fkLabelLarge)
                     .foregroundStyle(Color.fkOnSurface)
                 Spacer(minLength: 0)
@@ -404,11 +455,6 @@ private struct InventoryContent: View {
     }
 
     // MARK: Selection actions
-
-    private func enterSelection(with item: Ingredient) {
-        isSelecting = true
-        selectedKeys = [item.identityKey]
-    }
 
     private func exitSelection() {
         isSelecting = false
@@ -451,6 +497,25 @@ private struct InventoryContent: View {
             // Stale selection resolved to no live rows — nothing to delete.
             exitSelection()
         } else {
+            withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { toast = "删除失败，请重试" }
+        }
+    }
+
+    /// Single-row delete from the long-press 预览菜单, routed through the batch
+    /// `deleteMany` path so it reuses the shared 撤销 banner and logs the chosen
+    /// 去向 for the waste stats — exactly like the detail-screen delete, minus the
+    /// navigation pop (we never left the list).
+    private func deleteSingle(_ item: Ingredient, outcome: FoodLogOutcome?) async {
+        guard !isBatchWorking else { return }
+        isBatchWorking = true
+        defer { isBatchWorking = false }
+        if let undo = await store.deleteMany([item], outcome: outcome) {
+            withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { batchUndo = undo }
+        } else if store.items.contains(where: { $0.identityKey == item.identityKey }) {
+            // The row is still here yet `deleteMany` returned nil → the persist
+            // threw. A nil for an already-gone row (removed via sync / another
+            // action) is NOT a failure, so only that case toasts (mirrors
+            // `batchDelete`'s stale-vs-failed split).
             withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { toast = "删除失败，请重试" }
         }
     }
@@ -593,11 +658,14 @@ private struct InventoryContent: View {
 
     /// One inventory row. In normal mode it taps through to detail and shows the
     /// 加购 affordance; in multi-select mode a leading checkmark toggles selection
-    /// and the whole card toggles (no navigation). A long-press enters selection.
+    /// and the whole card toggles (no navigation). A long-press peeks a preview card
+    /// with a quick-action menu (查看详情 / 编辑 / 加购 / 删除) — multi-select is
+    /// reached from the 顶栏 ⋯「多选」 instead. The preview is suppressed while
+    /// selecting (a long-press there would offer single-row actions mid-batch).
     @ViewBuilder
     private func row(for item: Ingredient) -> some View {
         let selected = selectedKeys.contains(item.identityKey)
-        FkCard {
+        let card = FkCard {
             VStack(spacing: FkSpacing.sm) {
                 HStack(spacing: FkSpacing.sm) {
                     if isSelecting {
@@ -628,9 +696,25 @@ private struct InventoryContent: View {
             RoundedRectangle(cornerRadius: FkRadius.lg, style: .continuous)
                 .strokeBorder(selected ? Color.fkPrimary : Color.clear, lineWidth: 2)
         )
-        .onLongPressGesture {
-            if !isSelecting {
-                enterSelection(with: item)
+
+        if isSelecting {
+            card
+        } else {
+            card.contextMenu {
+                Button { selectedIngredient = item } label: {
+                    Label("查看详情", systemImage: "info.circle")
+                }
+                Button { editTarget = EditTarget(ingredient: item) } label: {
+                    Label("编辑", systemImage: "pencil")
+                }
+                Button { Task { await addToShopping(item) } } label: {
+                    Label("加入购物清单", systemImage: "cart.badge.plus")
+                }
+                Button(role: .destructive) { deletingItem = item } label: {
+                    Label("删除", systemImage: "trash")
+                }
+            } preview: {
+                IngredientPreviewCard(ingredient: item)
             }
         }
     }
@@ -703,6 +787,61 @@ private struct InventoryContent: View {
             title: searching ? "没有找到「\(store.searchQuery.trimmed)」"
                 : (store.hasActiveQuery ? "该筛选下暂无食材" : "冰箱空空如也"),
             message: store.hasActiveQuery ? "试试换个关键词或筛选条件" : "去添加一些食材吧"
+        )
+    }
+}
+
+/// Identifiable wrapper so the long-press「编辑」can drive `.sheet(item:)` without
+/// making the domain `Ingredient` Identifiable (its `id` is blank for local rows,
+/// which would make an Identifiable conformance collide across unsaved rows). The
+/// id is the row's stable `identityKey` (mirrors `ShoppingDetailEditRoute`), so the
+/// sheet identity survives a store reload mid-edit rather than churning on a UUID.
+private struct EditTarget: Identifiable {
+    var id: String { ingredient.identityKey }
+    let ingredient: Ingredient
+}
+
+/// The peek shown above the long-press 上下文菜单 (contextMenu `preview:`): a compact
+/// card of the row's essentials — avatar, name, 数量·位置, 新鲜度 + 到期. Read-only
+/// and built from the `Ingredient` already in hand, so it adds no fetch.
+private struct IngredientPreviewCard: View {
+    let ingredient: Ingredient
+
+    var body: some View {
+        HStack(spacing: FkSpacing.md) {
+            FkCategoryAvatar(
+                imageUrl: ingredient.imageUrl,
+                category: ingredient.category,
+                size: 56,
+                cornerRadius: FkRadius.lg,
+                iconScale: 0.5
+            )
+            VStack(alignment: .leading, spacing: FkSpacing.xs) {
+                Text(ingredient.name)
+                    .font(.fkTitleMedium)
+                    .foregroundStyle(Color.fkOnSurface)
+                Text("\(ingredient.quantity)\(ingredient.unit) · \(ingredient.storage.storageAreaLabel)")
+                    .font(.fkLabelMedium)
+                    .foregroundStyle(Color.fkOnSurfaceVariant)
+                HStack(spacing: FkSpacing.sm) {
+                    UrgencyBadge(state: ingredient.state)
+                    if let label = ingredient.expiryLabel {
+                        Text(label)
+                            .font(.fkLabelSmall)
+                            .foregroundStyle(Color.fkOnSurfaceVariant)
+                    }
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(FkSpacing.lg)
+        // maxWidth (not a hard width) so the peek shrinks to fit narrow devices
+        // rather than clipping; rounded fill so the card's corners match the
+        // system preview platter instead of showing square edges.
+        .frame(maxWidth: 320, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: FkRadius.lg, style: .continuous)
+                .fill(Color.fkSurfaceContainerLowest)
         )
     }
 }
