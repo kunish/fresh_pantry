@@ -16,6 +16,7 @@ const valid = {
   steps: ['拍碎'],
   tags: ['素菜'],
   imageUrl: null,
+  videoUrl: null,
   remoteVersion: 0,
   clientUpdatedAt: null,
   deletedAt: null,

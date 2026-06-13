@@ -33,7 +33,7 @@ export const CleanRecipeSchema = v.object({
   steps: v.array(v.string()),
   tags: v.array(v.string()),
   imageUrl: v.nullable(v.string()),
-  videoUrl: v.nullable(v.string()),
+  videoUrl: v.optional(v.nullable(v.string()), null),
   remoteVersion: v.pipe(v.number(), v.integer()),
   clientUpdatedAt: v.nullable(v.string()),
   deletedAt: v.nullable(v.string()),
