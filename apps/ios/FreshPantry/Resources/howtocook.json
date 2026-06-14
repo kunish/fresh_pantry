@@ -70,7 +70,27 @@
     "videoUrl": "https://www.bilibili.com/video/BV1c44y1k7ds",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 750,
+      "protein": 24,
+      "carbs": 32,
+      "fat": 59
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      10,
+      20,
+      20,
+      10,
+      10,
+      180,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:aquatic/响油鳝丝",
@@ -190,7 +210,28 @@
     "videoUrl": "https://www.bilibili.com/video/BV1RK421b7by",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1200,
+      "protein": 78,
+      "carbs": 54,
+      "fat": 72
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      30,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:aquatic/小龙虾/小龙虾",
@@ -302,7 +343,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV15M4m1X7WR",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 580,
+      "protein": 22.5,
+      "carbs": 14.5,
+      "fat": 37
+    }
   },
   {
     "id": "howtocook:aquatic/干煎阿根廷红虾/干煎阿根廷红虾",
@@ -388,7 +435,27 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Hx41147vj",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 200,
+      "protein": 24,
+      "carbs": 4,
+      "fat": 9
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      60,
+      120,
+      null,
+      60,
+      60,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:aquatic/微波葱姜黑鳕鱼",
@@ -463,7 +530,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV173411g7NN",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 760,
+      "protein": 38.3,
+      "carbs": 2,
+      "fat": 66.6
+    }
   },
   {
     "id": "howtocook:aquatic/水煮鱼",
@@ -555,7 +628,26 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Q7h2zLEGd",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 950,
+      "protein": 70,
+      "carbs": 25,
+      "fat": 48
+    },
+    "stepDurations": [
+      18000,
+      null,
+      null,
+      null,
+      null,
+      1800,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:aquatic/油焖大虾/油焖大虾",
@@ -641,7 +733,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1LS66BkEk3",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 330,
+      "protein": 36,
+      "carbs": 10,
+      "fat": 19
+    }
   },
   {
     "id": "howtocook:aquatic/混合烤鱼/烤鱼",
@@ -808,7 +906,35 @@
     "videoUrl": "https://www.bilibili.com/video/BV1uybYzYEav",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 600,
+      "protein": 37,
+      "carbs": 8.5,
+      "fat": 42
+    },
+    "stepDurations": [
+      null,
+      null,
+      1200,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      300
+    ]
   },
   {
     "id": "howtocook:aquatic/清蒸生蚝",
@@ -864,7 +990,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1644y1G7C9",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 130,
+      "protein": 14,
+      "carbs": 8,
+      "fat": 5
+    },
+    "stepDurations": [
+      null,
+      180,
+      null,
+      210,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:aquatic/清蒸鲈鱼/清蒸鲈鱼",
@@ -939,7 +1079,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1oytPeiE8N",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 370,
+      "protein": 46,
+      "carbs": 2,
+      "fat": 15
+    }
   },
   {
     "id": "howtocook:aquatic/白灼虾/白灼虾",
@@ -1027,7 +1173,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1eT4y157of",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 260,
+      "protein": 32,
+      "carbs": 5,
+      "fat": 12
+    },
+    "stepDurations": [
+      null,
+      null,
+      660,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:aquatic/糖醋鲤鱼/糖醋鲤鱼",
@@ -1143,7 +1304,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1NKLZzbEEr",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 550,
+      "protein": 34,
+      "carbs": 32,
+      "fat": 28
+    }
   },
   {
     "id": "howtocook:aquatic/红烧鱼",
@@ -1259,7 +1426,28 @@
     "videoUrl": "https://www.bilibili.com/video/BV1b9xrzmEij",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 650,
+      "protein": 40,
+      "carbs": 12,
+      "fat": 28
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      60,
+      180,
+      20,
+      null
+    ]
   },
   {
     "id": "howtocook:aquatic/红烧鱼头",
@@ -1417,7 +1605,46 @@
     "videoUrl": "https://www.bilibili.com/video/BV1yXHpeHEcH",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 620,
+      "protein": 42,
+      "carbs": 6,
+      "fat": 44
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      3600,
+      null,
+      null,
+      null,
+      null,
+      null,
+      5,
+      120,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:aquatic/红烧鲤鱼",
@@ -1539,7 +1766,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Pd6JYBEop",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 420,
+      "protein": 34,
+      "carbs": 18,
+      "fat": 22
+    }
   },
   {
     "id": "howtocook:aquatic/肉蟹煲",
@@ -1727,7 +1960,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1cs2BYPE9m",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 580,
+      "protein": 25,
+      "carbs": 68,
+      "fat": 20
+    }
   },
   {
     "id": "howtocook:aquatic/芥末黄油罗氏虾/芥末黄油罗氏虾",
@@ -1810,7 +2049,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1dx411z774",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 520,
+      "protein": 48,
+      "carbs": 9,
+      "fat": 30
+    }
   },
   {
     "id": "howtocook:aquatic/葱油桂鱼/葱油桂鱼",
@@ -1899,7 +2144,34 @@
     "videoUrl": "https://www.bilibili.com/video/BV1yAVazmEEc",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 630,
+      "protein": 70,
+      "carbs": 2,
+      "fat": 18
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      60,
+      600,
+      null,
+      null,
+      null,
+      1200,
+      null,
+      null,
+      null,
+      300,
+      null
+    ]
   },
   {
     "id": "howtocook:aquatic/葱烧海参/葱烧海参",
@@ -1977,7 +2249,27 @@
     "videoUrl": "https://www.bilibili.com/video/BV1j85b6jEZk",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 380,
+      "protein": 30,
+      "carbs": 11,
+      "fat": 21
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      10,
+      null,
+      null,
+      null,
+      60,
+      300,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:aquatic/蒜蓉虾/蒜蓉虾",
@@ -2026,7 +2318,19 @@
     "videoUrl": "https://www.bilibili.com/video/BV1s9YUzjEaa",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 350,
+      "protein": 21,
+      "carbs": 5,
+      "fat": 28
+    },
+    "stepDurations": [
+      null,
+      null,
+      180,
+      null
+    ]
   },
   {
     "id": "howtocook:aquatic/蒜香黄油虾/蒜香黄油虾",
@@ -2092,7 +2396,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV13k9BYTEdh",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 450,
+      "protein": 30,
+      "carbs": 2,
+      "fat": 35
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      90,
+      30,
+      60,
+      60,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:aquatic/蛏抱蛋/蛏抱蛋",
@@ -2161,7 +2482,19 @@
     "videoUrl": "https://www.bilibili.com/video/BV1dr4y1u7wE",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 420,
+      "protein": 22,
+      "carbs": 24,
+      "fat": 28
+    },
+    "stepDurations": [
+      120,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:aquatic/酱炖蟹",
@@ -2254,7 +2587,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1FD4y1o7w2",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 550,
+      "protein": 54,
+      "carbs": 24,
+      "fat": 34
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      600
+    ]
   },
   {
     "id": "howtocook:aquatic/阳朔啤酒鱼/阳朔啤酒鱼",
@@ -2364,7 +2710,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV15V411e7MB",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 520,
+      "protein": 55,
+      "carbs": 18,
+      "fat": 18
+    },
+    "stepDurations": [
+      900,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:aquatic/香煎翘嘴鱼/香煎翘嘴鱼",
@@ -2484,7 +2848,26 @@
     "videoUrl": "https://www.bilibili.com/video/BV1dw411x7MV",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 430,
+      "protein": 23,
+      "carbs": 6,
+      "fat": 32
+    },
+    "stepDurations": [
+      null,
+      86400,
+      86400,
+      null,
+      null,
+      30,
+      120,
+      null,
+      null,
+      300,
+      120
+    ]
   },
   {
     "id": "howtocook:aquatic/鲤鱼炖白菜/鲤鱼炖白菜",
@@ -2577,7 +2960,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1gG41117f7",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 520,
+      "protein": 57,
+      "carbs": 11,
+      "fat": 25
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      180,
+      null,
+      900
+    ]
   },
   {
     "id": "howtocook:aquatic/鳊鱼炖豆腐/鳊鱼炖豆腐",
@@ -2692,7 +3089,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1tV4y187oV",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1230,
+      "protein": 150,
+      "carbs": 30,
+      "fat": 55
+    },
+    "stepDurations": [
+      300,
+      null,
+      null,
+      null,
+      null,
+      null,
+      600
+    ]
   },
   {
     "id": "howtocook:aquatic/黄油煎虾/黄油煎虾",
@@ -2763,7 +3175,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV13k9BYTEdh",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 710,
+      "protein": 61,
+      "carbs": 9,
+      "fat": 47
+    },
+    "stepDurations": [
+      null,
+      null,
+      10,
+      null,
+      null,
+      15
+    ]
   },
   {
     "id": "howtocook:breakfast/吐司果酱",
@@ -2801,7 +3227,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1u24y1T7Z2",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 190,
+      "protein": 5.5,
+      "carbs": 38,
+      "fat": 1.5
+    },
+    "stepDurations": [
+      null,
+      null,
+      120,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:breakfast/太阳蛋",
@@ -2849,7 +3288,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1WZsaeDEhs",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 114,
+      "protein": 6.3,
+      "carbs": 0.6,
+      "fat": 9.4
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      180,
+      null,
+      null,
+      null,
+      60,
+      30
+    ]
   },
   {
     "id": "howtocook:breakfast/完美水煮蛋",
@@ -2899,7 +3355,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1v6421M77t",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 70,
+      "protein": 6,
+      "carbs": 0.6,
+      "fat": 5
+    },
+    "stepDurations": [
+      null,
+      null,
+      120,
+      1920,
+      30,
+      30,
+      null
+    ]
   },
   {
     "id": "howtocook:breakfast/微波炉蒸蛋",
@@ -2956,7 +3427,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1ZS4y1x7GZ",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 150,
+      "protein": 12,
+      "carbs": 1,
+      "fat": 11
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      90,
+      null,
+      null,
+      60,
+      null
+    ]
   },
   {
     "id": "howtocook:breakfast/微波炉荷包蛋",
@@ -3007,7 +3495,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Lt411E7sF",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 165,
+      "protein": 12,
+      "carbs": 1,
+      "fat": 13
+    }
   },
   {
     "id": "howtocook:breakfast/微波炉蛋糕",
@@ -3102,7 +3596,29 @@
     "videoUrl": "https://www.bilibili.com/video/BV1QSMXzMExh",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 330,
+      "protein": 8,
+      "carbs": 22,
+      "fat": 24
+    },
+    "stepDurations": [
+      null,
+      15,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      60,
+      null
+    ]
   },
   {
     "id": "howtocook:breakfast/意式香肠北非蛋",
@@ -3191,7 +3707,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV1KLqoBFEmo",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 580,
+      "protein": 24,
+      "carbs": 36,
+      "fat": 35
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      240,
+      120,
+      null,
+      null,
+      180,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:breakfast/手抓饼",
@@ -3267,7 +3801,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1bN411Z77m",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 960,
+      "protein": 35,
+      "carbs": 150,
+      "fat": 27
+    },
+    "stepDurations": [
+      1200,
+      null,
+      600,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:breakfast/桂圆红枣粥",
@@ -3312,7 +3860,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1aE411E7Y5",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 240,
+      "protein": 3.5,
+      "carbs": 58,
+      "fat": 0.5
+    },
+    "stepDurations": [
+      600,
+      600,
+      null,
+      null,
+      3600
+    ]
   },
   {
     "id": "howtocook:breakfast/水煮玉米",
@@ -3358,7 +3919,19 @@
     "videoUrl": "https://www.bilibili.com/video/BV1AeMsz1EVp",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 150,
+      "protein": 5,
+      "carbs": 33,
+      "fat": 1
+    },
+    "stepDurations": [
+      null,
+      null,
+      900,
+      null
+    ]
   },
   {
     "id": "howtocook:breakfast/温泉蛋/温泉蛋",
@@ -3403,7 +3976,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1KLWDeuEDa",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 70,
+      "protein": 6,
+      "carbs": 1,
+      "fat": 5
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      1500,
+      null,
+      180,
+      null
+    ]
   },
   {
     "id": "howtocook:breakfast/溏心蛋",
@@ -3445,7 +4033,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1CFmdB2EKA",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 78,
+      "protein": 6.2,
+      "carbs": 0.6,
+      "fat": 5.3
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      360,
+      600,
+      60
+    ]
   },
   {
     "id": "howtocook:breakfast/煎饺",
@@ -3503,7 +4106,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV1uh411L7tk",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 640,
+      "protein": 20,
+      "carbs": 78,
+      "fat": 28
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      10,
+      null
+    ]
   },
   {
     "id": "howtocook:breakfast/蒸水蛋",
@@ -3547,7 +4168,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1PqFrzuEEP",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 143,
+      "protein": 12.6,
+      "carbs": 1.1,
+      "fat": 9.9
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      240
+    ]
   },
   {
     "id": "howtocook:breakfast/蒸花卷",
@@ -3589,7 +4223,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1n7411R7Je",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 200,
+      "protein": 6
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      900,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:breakfast/燕麦鸡蛋饼",
@@ -3645,7 +4292,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV12V411g7TW",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 570,
+      "protein": 28,
+      "carbs": 50,
+      "fat": 30
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      120,
+      null
+    ]
   },
   {
     "id": "howtocook:breakfast/牛奶燕麦",
@@ -3705,7 +4368,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV1FD4y1q7ch",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 400,
+      "protein": 20,
+      "carbs": 42,
+      "fat": 18
+    },
+    "stepDurations": [
+      null,
+      null,
+      120,
+      null,
+      null,
+      null,
+      null,
+      240,
+      20,
+      null
+    ]
   },
   {
     "id": "howtocook:breakfast/空气炸锅面包片",
@@ -3739,7 +4420,19 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Qx4y1N7AB",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 160,
+      "protein": 6,
+      "carbs": 28,
+      "fat": 2.5
+    },
+    "stepDurations": [
+      null,
+      null,
+      300,
+      null
+    ]
   },
   {
     "id": "howtocook:breakfast/美式炒蛋",
@@ -3787,7 +4480,19 @@
     "videoUrl": "https://www.bilibili.com/video/BV1n7411m7yF",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 257,
+      "protein": 19.2,
+      "carbs": 2.6,
+      "fat": 18.7
+    },
+    "stepDurations": [
+      900,
+      null,
+      null,
+      15
+    ]
   },
   {
     "id": "howtocook:breakfast/苏格兰蛋/苏格兰蛋",
@@ -3843,7 +4548,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV14P411h7Rx",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 450,
+      "protein": 22,
+      "carbs": 25,
+      "fat": 28
+    },
+    "stepDurations": [
+      180,
+      null,
+      null,
+      null,
+      null,
+      null,
+      900,
+      null
+    ]
   },
   {
     "id": "howtocook:breakfast/茶叶蛋",
@@ -3924,7 +4645,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1h2421F74u",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 220,
+      "protein": 14,
+      "carbs": 2,
+      "fat": 14
+    },
+    "stepDurations": [
+      480,
+      null,
+      null,
+      null,
+      null,
+      900
+    ]
   },
   {
     "id": "howtocook:breakfast/蛋煎糍粑",
@@ -3982,7 +4717,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1TT4y1D7Kv",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 760,
+      "protein": 10.8,
+      "carbs": 73,
+      "fat": 18.4
+    }
   },
   {
     "id": "howtocook:breakfast/金枪鱼酱三明治",
@@ -4041,7 +4782,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Sr4y1B7F8",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 470,
+      "protein": 24,
+      "carbs": 28,
+      "fat": 27
+    }
   },
   {
     "id": "howtocook:breakfast/韩国麻药鸡蛋",
@@ -4114,7 +4861,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1hC411H74E",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 110,
+      "protein": 6.5,
+      "carbs": 7,
+      "fat": 6
+    },
+    "stepDurations": [
+      420,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:breakfast/鸡蛋三明治",
@@ -4179,7 +4941,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1t24y1C7VD",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 500,
+      "protein": 18.5,
+      "carbs": 30,
+      "fat": 34
+    }
   },
   {
     "id": "howtocook:condiment/油泼辣子/油泼辣子",
@@ -4301,7 +5069,11 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Vaw9eBEnH",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 110,
+      "protein": 0.5
+    }
   },
   {
     "id": "howtocook:condiment/油酥",
@@ -4342,7 +5114,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Zf4y1M7jJ",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 270,
+      "protein": 5,
+      "carbs": 37,
+      "fat": 10
+    }
   },
   {
     "id": "howtocook:condiment/炸串酱料",
@@ -4496,7 +5274,26 @@
     "videoUrl": "https://www.bilibili.com/video/BV1No4y1A7iH",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1010,
+      "protein": 0,
+      "carbs": 50,
+      "fat": 90
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      10
+    ]
   },
   {
     "id": "howtocook:condiment/糖醋汁",
@@ -4550,7 +5347,19 @@
     "videoUrl": "https://www.bilibili.com/video/BV1N62EYHEnR",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 155,
+      "protein": 4.5,
+      "carbs": 31,
+      "fat": 0
+    },
+    "stepDurations": [
+      null,
+      null,
+      300,
+      null
+    ]
   },
   {
     "id": "howtocook:condiment/草莓酱/草莓酱",
@@ -4591,7 +5400,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1gi4y1N7Ba",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 53,
+      "protein": 0.1,
+      "carbs": 13.5,
+      "fat": 0
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      3600,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:condiment/葱油",
@@ -4656,7 +5480,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1c54y127TP",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 270,
+      "protein": 1,
+      "carbs": 0.5,
+      "fat": 30
+    },
+    "stepDurations": [
+      600,
+      null,
+      300,
+      null,
+      1200
+    ]
   },
   {
     "id": "howtocook:condiment/蒜香酱油",
@@ -4741,7 +5578,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Nm4y1x7gV",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 400,
+      "protein": 0,
+      "carbs": 100,
+      "fat": 0
+    }
   },
   {
     "id": "howtocook:dessert/反沙芋头/反沙芋头",
@@ -4792,7 +5635,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1f6xveXEhU",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 430,
+      "protein": 3,
+      "carbs": 82,
+      "fat": 10
+    }
   },
   {
     "id": "howtocook:dessert/咖啡椰奶冻/咖啡椰奶冻",
@@ -5085,7 +5934,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV1es4y1C79S",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 559,
+      "protein": 10.8,
+      "carbs": 37.3,
+      "fat": 37.7
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      14400,
+      null
+    ]
   },
   {
     "id": "howtocook:dessert/无厨师机蜂蜜面包/无厨师机蜂蜜面包",
@@ -5178,7 +6045,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1SY411J7GU",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 195,
+      "protein": 5,
+      "carbs": 30,
+      "fat": 4
+    }
   },
   {
     "id": "howtocook:dessert/炸鲜奶/炸鲜奶",
@@ -5241,7 +6114,28 @@
     "videoUrl": "https://www.bilibili.com/video/BV13P4y197Aq",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1380,
+      "protein": 35,
+      "carbs": 142,
+      "fat": 75
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      3600,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:dessert/烤箱版巴斯克芝士蛋糕/烤箱版巴斯克芝士蛋糕",
@@ -5303,7 +6197,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1h64y1f7jz",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 269,
+      "protein": 5.3,
+      "carbs": 14,
+      "fat": 21.7
+    },
+    "stepDurations": [
+      20,
+      null,
+      null,
+      null,
+      null,
+      1200,
+      null
+    ]
   },
   {
     "id": "howtocook:dessert/烤蛋挞/烤蛋挞",
@@ -5367,7 +6276,27 @@
     "videoUrl": "https://www.bilibili.com/video/BV1JU4y1a7H1",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 160,
+      "protein": 2,
+      "carbs": 11,
+      "fat": 12
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      600,
+      null,
+      null,
+      43200,
+      1500,
+      null
+    ]
   },
   {
     "id": "howtocook:dessert/玛格丽特饼干/玛格丽特饼干",
@@ -5429,7 +6358,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV17g4y1a7GD",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 36,
+      "protein": 0.3,
+      "carbs": 4.3,
+      "fat": 1.9
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      1200,
+      null
+    ]
   },
   {
     "id": "howtocook:dessert/红柚蛋糕/红柚蛋糕",
@@ -5494,7 +6438,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1D26FBpE2Z",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 620,
+      "protein": 22,
+      "carbs": 74,
+      "fat": 26
+    }
   },
   {
     "id": "howtocook:dessert/胡萝卜甜糕",
@@ -5651,7 +6601,19 @@
     "videoUrl": "https://www.bilibili.com/video/BV1hk4y1u7cG",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "stepDurations": [
+      2400,
+      null,
+      null,
+      1800,
+      null,
+      3600,
+      null,
+      300,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:dessert/英式司康/英式司康",
@@ -5723,7 +6685,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV12K4y1N7B4",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 190,
+      "protein": 5,
+      "carbs": 22,
+      "fat": 9
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      1620
+    ]
   },
   {
     "id": "howtocook:dessert/草莓冰淇淋/草莓冰淇淋",
@@ -5795,7 +6772,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1VS4y1b7eu",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 260,
+      "protein": 4,
+      "carbs": 32,
+      "fat": 13
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      3,
+      null,
+      null,
+      28800
+    ]
   },
   {
     "id": "howtocook:dessert/酸奶意式奶冻/酸奶意式奶冻",
@@ -5846,7 +6838,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1ah4y1j74o",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 260,
+      "protein": 5.8,
+      "carbs": 14.4,
+      "fat": 19.3
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      14400
+    ]
   },
   {
     "id": "howtocook:dessert/雪花酥/雪花酥",
@@ -5905,7 +6911,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1ah411x7hx",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1300,
+      "protein": 25,
+      "carbs": 135,
+      "fat": 68
+    }
   },
   {
     "id": "howtocook:dessert/魔芋蛋糕/魔芋蛋糕",
@@ -5986,7 +6998,45 @@
     "videoUrl": "https://www.bilibili.com/video/BV1UT4y1m7Qc",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 50,
+      "protein": 3,
+      "carbs": 10,
+      "fat": 2.5
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      1500,
+      null,
+      null,
+      600,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:dessert/龟苓膏/龟苓膏",
@@ -6037,7 +7087,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Sf4y1W7MP",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 480,
+      "protein": 2,
+      "carbs": 122,
+      "fat": 0
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      3600
+    ]
   },
   {
     "id": "howtocook:drink/B52轰炸机",
@@ -6082,7 +7146,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1sr4y1K7Ds",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 95,
+      "protein": 0.3,
+      "carbs": 6,
+      "fat": 1.5
+    }
   },
   {
     "id": "howtocook:drink/Mojito莫吉托",
@@ -6151,7 +7221,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1jg4y187kB",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      30,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:drink/冬瓜茶",
@@ -6192,7 +7275,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV14s411n7pD",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 130,
+      "protein": 0.5,
+      "carbs": 32,
+      "fat": 0
+    },
+    "stepDurations": [
+      null,
+      7200,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:drink/冰粉/冰粉",
@@ -6246,7 +7343,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1CJ4m1u7Xm",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 5,
+      "protein": 0,
+      "carbs": 1,
+      "fat": 0
+    },
+    "stepDurations": [
+      null,
+      null,
+      360,
+      9000,
+      null
+    ]
   },
   {
     "id": "howtocook:drink/印度奶茶",
@@ -6442,7 +7552,17 @@
     "videoUrl": "https://www.bilibili.com/video/BV1454y1474R",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      60
+    ]
   },
   {
     "id": "howtocook:drink/奶茶",
@@ -6494,7 +7614,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1s7411L7cq",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 90,
+      "protein": 3,
+      "carbs": 12,
+      "fat": 3.2
+    }
   },
   {
     "id": "howtocook:drink/杨枝甘露",
@@ -6562,7 +7688,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Xi4y1u7MT",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 600,
+      "protein": 12,
+      "carbs": 58,
+      "fat": 38
+    },
+    "stepDurations": [
+      600,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:drink/柠檬水/柠檬水",
@@ -6609,7 +7748,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1QM4m1m7fP",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 150,
+      "protein": 0.2,
+      "carbs": 40,
+      "fat": 0
+    }
   },
   {
     "id": "howtocook:drink/泰国手标红茶/泰国手标红茶",
@@ -6672,7 +7817,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1of4y1b7qd",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 185,
+      "protein": 2.6,
+      "carbs": 38,
+      "fat": 2.7
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      14400,
+      null
+    ]
   },
   {
     "id": "howtocook:drink/海边落日/海边落日",
@@ -6747,7 +7906,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV18nkgYtEmT",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 150,
+      "protein": 0.5,
+      "carbs": 18,
+      "fat": 0.1
+    }
   },
   {
     "id": "howtocook:drink/牛油果拉西",
@@ -6812,7 +7977,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV19Q4y1o7io",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 360,
+      "protein": 10,
+      "carbs": 35,
+      "fat": 22
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      60,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:drink/百香果橙子特调/百香果橙子特调",
@@ -6901,7 +8080,35 @@
     "videoUrl": "https://www.bilibili.com/video/BV1YS4y1h7Sr",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 250,
+      "protein": 2,
+      "carbs": 62,
+      "fat": 0.5
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      43200,
+      null,
+      360,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:drink/砂糖椰子冰沙/砂糖椰子冰沙",
@@ -6946,7 +8153,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1fT421k7nb",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 150,
+      "protein": 2,
+      "carbs": 36,
+      "fat": 2
+    },
+    "stepDurations": [
+      null,
+      36000,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:drink/耙耙柑茶/耙耙柑茶",
@@ -7150,7 +8371,30 @@
     "videoUrl": "https://www.bilibili.com/video/BV1CstpeAE3n",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 220,
+      "protein": 4.6,
+      "carbs": 50,
+      "fat": 0.4
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      120,
+      null,
+      null,
+      86400,
+      null,
+      null,
+      null,
+      600,
+      21600,
+      2400,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:drink/酸梅汤（半成品加工）",
@@ -7195,7 +8439,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1uh41177J5",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 175,
+      "protein": 0,
+      "carbs": 32,
+      "fat": 0
+    }
   },
   {
     "id": "howtocook:drink/酸梅汤/酸梅汤",
@@ -7332,7 +8582,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1dZ4y1x7yj",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 210,
+      "protein": 0.1,
+      "carbs": 30,
+      "fat": 0
+    }
   },
   {
     "id": "howtocook:drink/金菲士/金菲士",
@@ -7406,7 +8662,11 @@
     "videoUrl": "https://www.bilibili.com/video/BV1cZ4y1u7Wc",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 240,
+      "protein": 0.1
+    }
   },
   {
     "id": "howtocook:drink/长岛冰茶",
@@ -7493,7 +8753,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Lb4y117Y5",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 270,
+      "protein": 0,
+      "carbs": 28,
+      "fat": 0
+    }
   },
   {
     "id": "howtocook:meat_dish/农家一碗香/农家一碗香",
@@ -7660,7 +8926,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV1pq4y1t76H",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 720,
+      "protein": 48
+    },
+    "stepDurations": [
+      null,
+      600,
+      null,
+      120,
+      null,
+      null,
+      null,
+      null,
+      900,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/冷吃兔",
@@ -7774,7 +9058,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV13d4y1v7Cp",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 300,
+      "protein": 35,
+      "carbs": 5,
+      "fat": 16
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      900,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/凉拌鸡丝/凉拌鸡丝",
@@ -7858,7 +9160,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Ga5QzWEW5",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 370,
+      "protein": 62,
+      "carbs": 4,
+      "fat": 12
+    }
   },
   {
     "id": "howtocook:meat_dish/卤菜/卤菜",
@@ -8051,7 +9359,33 @@
     "videoUrl": "https://www.bilibili.com/video/BV1ZA411E7KT",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 380,
+      "protein": 25
+    },
+    "stepDurations": [
+      10800,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      150,
+      null,
+      1650,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/口水鸡/口水鸡",
@@ -8166,7 +9500,27 @@
     "videoUrl": "https://www.bilibili.com/video/BV1XKV66qEu5",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 480,
+      "protein": 45,
+      "carbs": 6,
+      "fat": 28
+    },
+    "stepDurations": [
+      null,
+      null,
+      1200,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/可乐鸡翅",
@@ -8244,7 +9598,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV1z3F1zkExH",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 735,
+      "protein": 55,
+      "carbs": 52,
+      "fat": 45
+    },
+    "stepDurations": [
+      120,
+      null,
+      600,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/台式卤肉饭/台式卤肉饭",
@@ -8347,7 +9717,31 @@
     "videoUrl": "https://www.bilibili.com/video/BV1vS4y117LQ",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 820,
+      "protein": 20,
+      "carbs": 16,
+      "fat": 75
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      5,
+      null,
+      60,
+      30,
+      null,
+      null,
+      3600,
+      null,
+      900,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/咕噜肉",
@@ -8443,7 +9837,27 @@
     "videoUrl": "https://www.bilibili.com/video/BV1de411J7XX",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 590,
+      "protein": 20,
+      "carbs": 50,
+      "fat": 31
+    },
+    "stepDurations": [
+      null,
+      1200,
+      null,
+      null,
+      null,
+      null,
+      null,
+      300,
+      60,
+      180,
+      120,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/咖喱肥牛/咖喱肥牛",
@@ -8517,7 +9931,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV1BQPfz4EQC",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 670,
+      "protein": 30.5,
+      "carbs": 34.5,
+      "fat": 42.5
+    },
+    "stepDurations": [
+      null,
+      null,
+      10,
+      null,
+      120,
+      null,
+      null,
+      150
+    ]
   },
   {
     "id": "howtocook:meat_dish/商芝肉",
@@ -8622,7 +10052,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1NK4y1m7DB",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1850,
+      "protein": 35,
+      "carbs": 12,
+      "fat": 145
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      7200,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/啤酒鸭/啤酒鸭",
@@ -8730,7 +10173,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1iHnnzHEbS",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 480,
+      "protein": 28,
+      "carbs": 10,
+      "fat": 32
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      1800,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/回锅肉/回锅肉",
@@ -8826,7 +10283,39 @@
     "videoUrl": "https://www.bilibili.com/video/BV14Qt8eZEdh",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1300,
+      "protein": 20,
+      "carbs": 5,
+      "fat": 128
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      900,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      15,
+      30,
+      60,
+      null,
+      1800,
+      30,
+      15,
+      10,
+      60,
+      10,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/土豆炖排骨/土豆炖排骨",
@@ -8953,7 +10442,31 @@
     "videoUrl": "https://www.bilibili.com/video/BV19z4y1S7iE",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 790,
+      "protein": 44,
+      "carbs": 22,
+      "fat": 57
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      120,
+      null,
+      null,
+      null,
+      120,
+      10,
+      30,
+      2400,
+      900,
+      180,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/奶酪培根通心粉/奶酪培根通心粉",
@@ -9046,7 +10559,28 @@
     "videoUrl": "https://www.bilibili.com/video/BV1g94y1x7Ej",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "stepDurations": [
+      null,
+      null,
+      360,
+      null,
+      null,
+      null,
+      null,
+      5,
+      null,
+      5,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      1440
+    ]
   },
   {
     "id": "howtocook:meat_dish/姜炒鸡/姜炒鸡",
@@ -9130,7 +10664,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1c5411w7Du",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 700,
+      "protein": 45,
+      "carbs": 15,
+      "fat": 45
+    },
+    "stepDurations": [
+      1800,
+      5,
+      30,
+      180,
+      30,
+      120,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/姜葱捞鸡/姜葱捞鸡",
@@ -9202,7 +10751,26 @@
     "videoUrl": "https://www.bilibili.com/video/BV1F34y1J7WV",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1300,
+      "protein": 100,
+      "carbs": 15,
+      "fat": 80
+    },
+    "stepDurations": [
+      null,
+      null,
+      900,
+      1200,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/孜然牛肉",
@@ -9280,7 +10848,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV1pf4y1r7Ma",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 525,
+      "protein": 54,
+      "carbs": 9,
+      "fat": 28
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      1800,
+      null,
+      null,
+      null,
+      90
+    ]
   },
   {
     "id": "howtocook:meat_dish/宫保鸡丁/宫保鸡丁",
@@ -9446,7 +11030,36 @@
     "videoUrl": "https://www.bilibili.com/video/BV1NMXTYKE6M",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 500,
+      "protein": 23,
+      "carbs": 21,
+      "fat": 39
+    },
+    "stepDurations": [
+      600,
+      300,
+      3600,
+      null,
+      30,
+      120,
+      null,
+      null,
+      null,
+      null,
+      null,
+      600,
+      null,
+      3600,
+      60,
+      60,
+      60,
+      120,
+      null,
+      null,
+      10
+    ]
   },
   {
     "id": "howtocook:meat_dish/小炒肉",
@@ -9540,7 +11153,26 @@
     "videoUrl": "https://www.bilibili.com/video/BV1UW4y1e7fB",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 780,
+      "protein": 38,
+      "carbs": 12,
+      "fat": 62
+    },
+    "stepDurations": [
+      null,
+      1800,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      40,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/小炒鸡肝/小炒鸡肝",
@@ -9648,7 +11280,37 @@
     "videoUrl": "https://www.bilibili.com/video/BV1aR4y1M7Sd",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 580,
+      "protein": 36,
+      "carbs": 22,
+      "fat": 34
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      10,
+      null,
+      null,
+      30,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      30,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/小炒黄牛肉/小炒黄牛肉",
@@ -9717,7 +11379,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1ri4y1S7E5",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 360,
+      "protein": 41,
+      "carbs": 9,
+      "fat": 14
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      30,
+      null,
+      60,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/小米辣炒肉",
@@ -9800,7 +11479,17 @@
     "videoUrl": "https://www.bilibili.com/video/BV1RW4y1e7xS",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 520,
+      "protein": 24
+    },
+    "stepDurations": [
+      null,
+      300,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/小酥肉",
@@ -9920,7 +11609,29 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Zj411F7B8",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1900,
+      "protein": 110
+    },
+    "stepDurations": [
+      null,
+      null,
+      300,
+      null,
+      null,
+      null,
+      null,
+      600,
+      1800,
+      null,
+      900,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/尖叫牛蛙/尖叫牛蛙",
@@ -10041,7 +11752,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV13x4y1G7GM",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 450,
+      "protein": 34,
+      "carbs": 14,
+      "fat": 20
+    },
+    "stepDurations": [
+      300,
+      null,
+      300,
+      null,
+      10,
+      null,
+      30,
+      180,
+      40,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/尖椒炒牛肉",
@@ -10117,7 +11846,28 @@
     "videoUrl": "https://www.bilibili.com/video/BV1um4y127BX",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 730,
+      "protein": 52,
+      "carbs": 6,
+      "fat": 15
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      1800,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/山西过油肉",
@@ -10217,7 +11967,16 @@
     "videoUrl": "https://www.bilibili.com/video/BV1jf4y1e7vT",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "stepDurations": [
+      null,
+      900,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/巴基斯坦牛肉咖喱/巴基斯坦牛肉咖喱",
@@ -10296,7 +12055,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1GY4y1z7TC",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 580,
+      "protein": 42,
+      "carbs": 10,
+      "fat": 41
+    }
   },
   {
     "id": "howtocook:meat_dish/带把肘子",
@@ -10387,7 +12152,19 @@
     "videoUrl": "https://www.bilibili.com/video/BV1NG4y1w7GM",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 520,
+      "protein": 36
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      10800,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/干煸仔鸡/干煸仔鸡",
@@ -10503,7 +12280,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV1hV411q7Uu",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1050,
+      "protein": 80,
+      "carbs": 80,
+      "fat": 45
+    },
+    "stepDurations": [
+      null,
+      1800,
+      300,
+      null,
+      180,
+      120,
+      60,
+      60,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/乡村啤酒鸭",
@@ -10648,7 +12443,35 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Ar421h7DC",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 800,
+      "protein": 30,
+      "carbs": 11,
+      "fat": 60
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      240,
+      null,
+      null,
+      null,
+      1800,
+      null,
+      null,
+      null,
+      60,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/广式萝卜牛腩/广式萝卜牛腩",
@@ -10854,7 +12677,16 @@
     "videoUrl": "https://www.bilibili.com/video/BV1vfHfzYELM",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "stepDurations": [
+      null,
+      240,
+      null,
+      60,
+      600,
+      1200,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/意式烤鸡",
@@ -10921,7 +12753,19 @@
     "videoUrl": "https://www.bilibili.com/video/BV1qZ4y1x7ux",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 280,
+      "protein": 25
+    },
+    "stepDurations": [
+      null,
+      1800,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/新疆大盘鸡/新疆大盘鸡",
@@ -11162,7 +13006,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1jT41147Bu",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 600,
+      "protein": 51,
+      "carbs": 10,
+      "fat": 40
+    }
   },
   {
     "id": "howtocook:meat_dish/杀猪菜",
@@ -11287,7 +13137,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1LX4y1M7vh",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 620,
+      "protein": 28
+    },
+    "stepDurations": [
+      600,
+      null,
+      null,
+      null,
+      null,
+      120,
+      null,
+      null,
+      2400,
+      120,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/枝竹羊腩煲/枝竹羊腩煲",
@@ -11443,7 +13310,33 @@
     "videoUrl": "https://www.bilibili.com/video/BV1SJ411u7Mv",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 410,
+      "protein": 27,
+      "carbs": 10,
+      "fat": 30
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      120,
+      null,
+      null,
+      5400,
+      1200,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/柱候牛腩/柱候牛腩",
@@ -11597,7 +13490,42 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Lt411x71y",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 470,
+      "protein": 27,
+      "carbs": 13,
+      "fat": 30
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      30,
+      null,
+      30,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      10800,
+      2400,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/桂林十八酿/桂林十八酿",
@@ -11708,7 +13636,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1f142147mC",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 340,
+      "protein": 18,
+      "carbs": 22,
+      "fat": 18
+    }
   },
   {
     "id": "howtocook:meat_dish/梅菜扣肉/梅菜扣肉",
@@ -11797,7 +13731,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1AfFJzyEDM",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1450,
+      "protein": 18,
+      "carbs": 12,
+      "fat": 155
+    },
+    "stepDurations": [
+      3600,
+      60,
+      1200,
+      900,
+      null,
+      null,
+      null,
+      2700,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/椒盐排条",
@@ -11881,7 +13832,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV1wG411W7tn",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 400,
+      "protein": 22,
+      "carbs": 28,
+      "fat": 18
+    },
+    "stepDurations": [
+      null,
+      1200,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/水煮牛肉/水煮牛肉",
@@ -11977,7 +13944,26 @@
     "videoUrl": "https://www.bilibili.com/video/BV1BBHQesEzU",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 850,
+      "protein": 72,
+      "carbs": 18,
+      "fat": 55
+    },
+    "stepDurations": [
+      null,
+      900,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/水煮肉片",
@@ -12128,7 +14114,29 @@
     "videoUrl": "https://www.bilibili.com/video/BV1H9q8BEEB4",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 580,
+      "protein": 15,
+      "carbs": 8,
+      "fat": 46
+    },
+    "stepDurations": [
+      null,
+      120,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/洋葱炒猪肉",
@@ -12210,7 +14218,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1bLZAYkEcQ",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 700,
+      "protein": 55,
+      "carbs": 40,
+      "fat": 38
+    },
+    "stepDurations": [
+      null,
+      10,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/淄博烧烤/淄博烧烤",
@@ -12277,7 +14299,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV11P41197zR",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 525,
+      "protein": 20,
+      "carbs": 32,
+      "fat": 31
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      900,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/清蒸鳜鱼/清蒸鳜鱼",
@@ -12350,7 +14388,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Vx411o7Qj",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 480,
+      "protein": 48,
+      "carbs": 4,
+      "fat": 26
+    }
   },
   {
     "id": "howtocook:meat_dish/湖南家常红烧肉/湖南家常红烧肉",
@@ -12444,7 +14488,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1vfHfzYELM",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 760,
+      "protein": 12,
+      "carbs": 10,
+      "fat": 62
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      60,
+      1800,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/湘祁米夫鸭/湘祁米夫鸭",
@@ -12535,7 +14593,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1MG4y1B7np",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 950,
+      "protein": 40,
+      "carbs": 90,
+      "fat": 45
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      1200,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/澳门湿版免治牛肉饭/澳门湿版免治牛肉饭",
@@ -12640,7 +14713,24 @@
     "remoteVersion": 0,
     "clientUpdatedAt": null,
     "deletedAt": null,
-    "videoUrl": "https://www.bilibili.com/video/BV12j411F7cv"
+    "videoUrl": "https://www.bilibili.com/video/BV12j411F7cv",
+    "nutrition": {
+      "energyKcal": 705,
+      "protein": 37,
+      "carbs": 70,
+      "fat": 30
+    },
+    "stepDurations": [
+      600,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/烤鸡翅",
@@ -12696,7 +14786,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV14b411g7Gm",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 260,
+      "protein": 22,
+      "carbs": 3,
+      "fat": 18
+    },
+    "stepDurations": [
+      null,
+      1800,
+      null,
+      null,
+      900,
+      900
+    ]
   },
   {
     "id": "howtocook:meat_dish/煎烤羊排/煎烤羊排",
@@ -12800,7 +14904,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1ov411z7eY",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 580,
+      "protein": 42,
+      "carbs": 2,
+      "fat": 45
+    }
   },
   {
     "id": "howtocook:meat_dish/牛排/牛排",
@@ -12919,7 +15029,41 @@
     "videoUrl": "https://www.bilibili.com/video/BV1dN4y1D7j8",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 830,
+      "protein": 55,
+      "carbs": 35,
+      "fat": 70
+    },
+    "stepDurations": [
+      null,
+      1800,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      90,
+      90,
+      30,
+      null,
+      null,
+      60,
+      null,
+      null,
+      null,
+      null,
+      300,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/猪皮冻/猪皮冻",
@@ -13040,7 +15184,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Ru411D7ju",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 110,
+      "protein": 10,
+      "carbs": 0,
+      "fat": 7
+    },
+    "stepDurations": [
+      43200,
+      null,
+      180,
+      5400,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/猪肉烩酸菜",
@@ -13127,7 +15285,27 @@
     "videoUrl": "https://www.bilibili.com/video/BV17341127kz",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 620,
+      "protein": 28,
+      "carbs": 7,
+      "fat": 50
+    },
+    "stepDurations": [
+      null,
+      null,
+      300,
+      null,
+      null,
+      null,
+      180,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/甜辣烤全翅",
@@ -13216,7 +15394,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1hm421K7zo",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 420,
+      "protein": 30,
+      "carbs": 5,
+      "fat": 25
+    },
+    "stepDurations": [
+      null,
+      null,
+      180,
+      7200,
+      null,
+      1500,
+      null,
+      1500,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/田螺酿/田螺酿",
@@ -13344,7 +15539,38 @@
     "videoUrl": "https://www.bilibili.com/video/BV1gK411P7xK",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 350,
+      "protein": 26,
+      "carbs": 4,
+      "fat": 28
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      600,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/番茄红酱",
@@ -13433,7 +15659,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Za41177d9",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 310,
+      "protein": 20.7,
+      "carbs": 14.6,
+      "fat": 18.8
+    },
+    "stepDurations": [
+      null,
+      null,
+      10,
+      null,
+      1800
+    ]
   },
   {
     "id": "howtocook:meat_dish/瘦肉土豆片/瘦肉土豆片",
@@ -13507,7 +15746,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV1xTxieNEYe",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 580,
+      "protein": 58,
+      "carbs": 41,
+      "fat": 18
+    },
+    "stepDurations": [
+      null,
+      null,
+      600,
+      300,
+      10,
+      20,
+      null,
+      180
+    ]
   },
   {
     "id": "howtocook:meat_dish/白菜猪肉炖粉条",
@@ -13583,7 +15838,26 @@
     "videoUrl": "https://www.bilibili.com/video/BV1ty6KYBEYz",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 600,
+      "protein": 15,
+      "carbs": 23,
+      "fat": 47
+    },
+    "stepDurations": [
+      300,
+      null,
+      null,
+      10,
+      null,
+      60,
+      60,
+      1200,
+      null,
+      300,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/空气炸锅脆皮现腌炸鸡/空气炸锅脆皮现腌炸鸡",
@@ -13684,7 +15958,31 @@
     "videoUrl": "https://www.bilibili.com/video/BV1PT411a7yH",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 880,
+      "protein": 46,
+      "carbs": 72,
+      "fat": 48
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      600,
+      null,
+      null,
+      null,
+      1200,
+      300,
+      null,
+      600,
+      360,
+      null,
+      60
+    ]
   },
   {
     "id": "howtocook:meat_dish/粉蒸肉",
@@ -13871,7 +16169,16 @@
     "videoUrl": "https://www.bilibili.com/video/BV1pBGMzkEon",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "stepDurations": [
+      120,
+      null,
+      180,
+      null,
+      30,
+      300,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/糖醋里脊",
@@ -13958,7 +16265,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1RT4QzXEyD",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 360,
+      "protein": 28,
+      "carbs": 24,
+      "fat": 15
+    },
+    "stepDurations": [
+      1200,
+      null,
+      null,
+      null,
+      40,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/红烧猪蹄/红烧猪蹄",
@@ -14053,7 +16375,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV1zfq6YLEy5",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 480,
+      "protein": 32,
+      "carbs": 14,
+      "fat": 32
+    },
+    "stepDurations": [
+      900,
+      120,
+      null,
+      60,
+      null,
+      900,
+      null,
+      30
+    ]
   },
   {
     "id": "howtocook:meat_dish/红烧肉/南派红烧肉",
@@ -14170,7 +16508,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1PzhAzGEwT",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1200,
+      "protein": 15,
+      "carbs": 13,
+      "fat": 85
+    }
   },
   {
     "id": "howtocook:meat_dish/红烧肉/简易红烧肉",
@@ -14286,7 +16630,31 @@
     "videoUrl": "https://www.bilibili.com/video/BV1vfHfzYELM",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      900,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      2400,
+      null,
+      null,
+      null,
+      2400,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/红烧鸡翅",
@@ -14413,7 +16781,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV1hP4y1V7ya",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      30,
+      10,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/羊排焖面/羊排焖面",
@@ -14495,7 +16881,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1J44y1z7GS",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 780,
+      "protein": 34.5,
+      "carbs": 48,
+      "fat": 22
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      2400,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/老妈蹄花/老妈蹄花",
@@ -14600,7 +17003,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1q14y1J7Kv",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 680,
+      "protein": 58,
+      "carbs": 38,
+      "fat": 36
+    },
+    "stepDurations": [
+      null,
+      null,
+      600,
+      2400,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/老式锅包肉/老式锅包肉",
@@ -14772,7 +17190,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1ssiCBQEUe",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 680,
+      "protein": 24,
+      "carbs": 78,
+      "fat": 28
+    }
   },
   {
     "id": "howtocook:meat_dish/肉饼炖蛋",
@@ -14831,7 +17255,18 @@
     "videoUrl": "https://www.bilibili.com/video/BV17u411M7p4",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 960,
+      "protein": 72,
+      "carbs": 4,
+      "fat": 82
+    },
+    "stepDurations": [
+      null,
+      null,
+      900
+    ]
   },
   {
     "id": "howtocook:meat_dish/腐乳肉",
@@ -14919,7 +17354,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1PzhAzGEwT",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1300,
+      "protein": 50,
+      "carbs": 30,
+      "fat": 120
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      2400,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/芥末罗氏虾/芥末罗氏虾",
@@ -15019,7 +17469,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1hC4y1P7dv",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 520,
+      "protein": 28,
+      "carbs": 15,
+      "fat": 22
+    }
   },
   {
     "id": "howtocook:meat_dish/茭白炒肉/茭白炒肉",
@@ -15096,7 +17552,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1KY4y1C72V",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 508,
+      "protein": 23,
+      "carbs": 22,
+      "fat": 37
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      60,
+      60,
+      60,
+      120
+    ]
   },
   {
     "id": "howtocook:meat_dish/荔枝肉/荔枝肉",
@@ -15191,7 +17662,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV1U5411S7Sh",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 900,
+      "protein": 35,
+      "carbs": 75,
+      "fat": 45
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      30,
+      60,
+      30,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/荷兰豆炒腊肠/荷兰豆炒腊肠",
@@ -15242,7 +17731,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV148411t783",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 630,
+      "protein": 19,
+      "carbs": 12,
+      "fat": 54
+    },
+    "stepDurations": [
+      null,
+      null,
+      45,
+      10,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/萝卜炖羊排",
@@ -15328,7 +17831,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV1wc411z7Wk",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 900,
+      "protein": 70,
+      "carbs": 10,
+      "fat": 60
+    },
+    "stepDurations": [
+      null,
+      null,
+      600,
+      300,
+      null,
+      900,
+      null,
+      null,
+      600,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/蒜苔炒肉末",
@@ -15392,7 +17913,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1124y1j7yw",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 420,
+      "protein": 12,
+      "carbs": 10,
+      "fat": 38
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      10,
+      10,
+      30,
+      30,
+      300,
+      30
+    ]
   },
   {
     "id": "howtocook:meat_dish/虎皮肘子",
@@ -15542,7 +18080,46 @@
     "videoUrl": "https://www.bilibili.com/video/BV181421X7EZ",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 2350,
+      "protein": 168,
+      "carbs": 22,
+      "fat": 165
+    },
+    "stepDurations": [
+      3600,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      300,
+      null,
+      null,
+      null,
+      null,
+      1200,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      2400,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/蚂蚁上树",
@@ -15627,7 +18204,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV1J14y117ba",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 760,
+      "protein": 27.2
+    },
+    "stepDurations": [
+      1200,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      300,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/血浆鸭/血浆鸭",
@@ -15884,7 +18477,35 @@
     "videoUrl": "https://www.bilibili.com/video/BV1sK411i758",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 480,
+      "protein": 42,
+      "carbs": 35,
+      "fat": 22
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      1800,
+      null,
+      null,
+      null,
+      1200,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/西红柿牛腩/西红柿牛腩",
@@ -15985,7 +18606,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV1RN4y1r7dt",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 680,
+      "protein": 52,
+      "carbs": 12,
+      "fat": 58
+    },
+    "stepDurations": [
+      120,
+      3600,
+      null,
+      null,
+      null,
+      null,
+      180,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/豆豉鲮鱼油麦菜/豆豉鲮鱼油麦菜",
@@ -16051,7 +18688,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1ky4y1H7us",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 450,
+      "protein": 20,
+      "carbs": 9,
+      "fat": 32
+    }
   },
   {
     "id": "howtocook:meat_dish/豉汁排骨",
@@ -16146,7 +18789,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1M74teJEm6",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1100,
+      "protein": 56,
+      "carbs": 19,
+      "fat": 80
+    }
   },
   {
     "id": "howtocook:meat_dish/豉汁蒸白鱔/豉汁蒸白鱔",
@@ -16251,7 +18900,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1SE411o7G8",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 480,
+      "protein": 46,
+      "carbs": 4,
+      "fat": 30
+    }
   },
   {
     "id": "howtocook:meat_dish/贵州辣子鸡/贵州辣子鸡",
@@ -16345,7 +19000,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1bLBmYQEZt",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 750,
+      "protein": 40,
+      "carbs": 20,
+      "fat": 55
+    }
   },
   {
     "id": "howtocook:meat_dish/辣椒炒肉",
@@ -16430,7 +19091,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1uDdnYRETN",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 410,
+      "protein": 41,
+      "carbs": 10.2,
+      "fat": 20
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      600,
+      60,
+      45,
+      180,
+      30,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/酱排骨/酱排骨",
@@ -16516,7 +19194,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1TAuEziEC8",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 520,
+      "protein": 30,
+      "carbs": 18,
+      "fat": 34
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      60,
+      2400,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/酱牛肉/酱牛肉",
@@ -16705,7 +19397,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1iS4y1T7aU",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 580,
+      "protein": 32,
+      "carbs": 18,
+      "fat": 35
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      30,
+      60,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/青椒土豆炒肉/青椒土豆炒肉",
@@ -16792,7 +19499,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Mnd2BDEoJ",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 780,
+      "protein": 25,
+      "carbs": 60,
+      "fat": 50
+    },
+    "stepDurations": [
+      null,
+      null,
+      5,
+      60,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/青椒酿/青椒酿",
@@ -16924,7 +19644,37 @@
     "videoUrl": "https://www.bilibili.com/video/BV1wygCzBEJV",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 800,
+      "protein": 50,
+      "carbs": 30,
+      "fat": 60
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      600,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      300,
+      null,
+      null,
+      null,
+      null,
+      600,
+      null,
+      240
+    ]
   },
   {
     "id": "howtocook:meat_dish/香干肉丝",
@@ -16998,7 +19748,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV1gP4y1S79p",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 460,
+      "protein": 33,
+      "carbs": 18,
+      "fat": 29
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      60,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/香干芹菜炒肉/香干芹菜炒肉",
@@ -17091,7 +19859,26 @@
     "videoUrl": "https://www.bilibili.com/video/BV12A4y1X7UZ",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 290,
+      "protein": 22,
+      "carbs": 6,
+      "fat": 20
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      10,
+      null,
+      null,
+      120,
+      60,
+      60,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/香煎五花肉/香煎五花肉",
@@ -17169,7 +19956,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1kgKgeBEBT",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 680,
+      "protein": 22,
+      "carbs": 3,
+      "fat": 62
+    },
+    "stepDurations": [
+      null,
+      600,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/香菇滑鸡/香菇滑鸡",
@@ -17264,7 +20065,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV1554y1J7g4",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 340,
+      "protein": 28.5
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      60,
+      null,
+      null,
+      null,
+      20,
+      120
+    ]
   },
   {
     "id": "howtocook:meat_dish/香辣鸡爪煲/香辣鸡爪煲",
@@ -17364,7 +20181,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV13E411G7ey",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 420,
+      "protein": 24,
+      "carbs": 5,
+      "fat": 30
+    },
+    "stepDurations": [
+      null,
+      null,
+      1800,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/鱼香肉丝",
@@ -17491,7 +20323,42 @@
     "videoUrl": "https://www.bilibili.com/video/BV1zZAAerEJ3",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 580,
+      "protein": 44,
+      "carbs": 38,
+      "fat": 26
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      14400,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      140,
+      20,
+      15
+    ]
   },
   {
     "id": "howtocook:meat_dish/鱼香茄子/鱼香茄子",
@@ -17592,7 +20459,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1qwR6B1EYV",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 450,
+      "protein": 8,
+      "carbs": 35,
+      "fat": 30
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      160,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/麻婆豆腐/麻婆豆腐",
@@ -17687,7 +20569,28 @@
     "videoUrl": "https://www.bilibili.com/video/BV1md3NzzEnF",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 600,
+      "protein": 29,
+      "carbs": 10,
+      "fat": 41
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      10,
+      20,
+      60,
+      null,
+      null,
+      600,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/麻辣香锅",
@@ -17753,7 +20656,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1hMo5BYE7k",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1265,
+      "protein": 45,
+      "carbs": 44,
+      "fat": 80.5
+    }
   },
   {
     "id": "howtocook:meat_dish/黄油鸡",
@@ -17926,7 +20835,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV16C4y127jt",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 440,
+      "protein": 28,
+      "carbs": 13,
+      "fat": 31.5
+    }
   },
   {
     "id": "howtocook:meat_dish/黄焖鸡",
@@ -18025,7 +20940,29 @@
     "videoUrl": "https://www.bilibili.com/video/BV1qcXPYVE5c",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 380,
+      "protein": 28,
+      "carbs": 18,
+      "fat": 18
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      900,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/黄瓜炒肉",
@@ -18095,7 +21032,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1SB4y1777w",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 540,
+      "protein": 11,
+      "carbs": 5,
+      "fat": 53
+    },
+    "stepDurations": [
+      600,
+      null,
+      300,
+      null,
+      null,
+      null,
+      null,
+      30,
+      50
+    ]
   },
   {
     "id": "howtocook:meat_dish/黑椒牛柳/黑椒牛柳",
@@ -18168,7 +21122,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1hV4y1q7LS",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 220,
+      "protein": 22,
+      "carbs": 5,
+      "fat": 13
+    },
+    "stepDurations": [
+      null,
+      null,
+      1200,
+      null,
+      null,
+      120,
+      120,
+      30,
+      null
+    ]
   },
   {
     "id": "howtocook:meat_dish/黔式腊肠娃娃菜/黔式腊肠娃娃菜",
@@ -18213,7 +21184,11 @@
     "videoUrl": "https://www.bilibili.com/video/BV1o94y1d736",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1050,
+      "protein": 45
+    }
   },
   {
     "id": "howtocook:semi-finished/凉皮",
@@ -18318,7 +21293,36 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Ri4y1y7AW",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 590,
+      "protein": 32,
+      "carbs": 78,
+      "fat": 19
+    },
+    "stepDurations": [
+      null,
+      60,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:semi-finished/半成品意面",
@@ -18363,7 +21367,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV16T4y1g7y4",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 420,
+      "protein": 16,
+      "carbs": 68,
+      "fat": 11
+    },
+    "stepDurations": [
+      null,
+      null,
+      60,
+      60,
+      null,
+      null,
+      null,
+      null,
+      120,
+      null
+    ]
   },
   {
     "id": "howtocook:semi-finished/懒人蛋挞/懒人蛋挞",
@@ -18402,7 +21424,19 @@
     "videoUrl": "https://www.bilibili.com/video/BV18qeDzfEKQ",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 160,
+      "protein": 3,
+      "carbs": 15,
+      "fat": 10
+    },
+    "stepDurations": [
+      600,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:semi-finished/炸薯条/炸薯条",
@@ -18444,7 +21478,11 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Q24y147nd",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1000,
+      "protein": 12
+    }
   },
   {
     "id": "howtocook:semi-finished/牛油火锅底料",
@@ -18648,7 +21686,29 @@
     "videoUrl": "https://www.bilibili.com/video/BV16kskerE95",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 520,
+      "protein": 3,
+      "carbs": 4,
+      "fat": 55
+    },
+    "stepDurations": [
+      null,
+      300,
+      null,
+      15,
+      null,
+      null,
+      null,
+      432000,
+      86400,
+      null,
+      null,
+      1500,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:semi-finished/空气炸锅羊排/空气炸锅羊排",
@@ -18707,7 +21767,19 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Zj411S7PS",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 420,
+      "protein": 28,
+      "carbs": 4,
+      "fat": 32
+    },
+    "stepDurations": [
+      null,
+      1200,
+      600,
+      300
+    ]
   },
   {
     "id": "howtocook:semi-finished/空气炸锅鸡翅中/空气炸锅鸡翅中",
@@ -18748,7 +21820,18 @@
     "videoUrl": "https://www.bilibili.com/video/BV16JqaBJExp",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 530,
+      "protein": 45,
+      "carbs": 2,
+      "fat": 37
+    },
+    "stepDurations": [
+      1200,
+      600,
+      420
+    ]
   },
   {
     "id": "howtocook:semi-finished/速冻水饺",
@@ -18803,7 +21886,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV13s4y1U7sk",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 300,
+      "protein": 12,
+      "carbs": 40,
+      "fat": 10
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      3,
+      null,
+      480,
+      null
+    ]
   },
   {
     "id": "howtocook:semi-finished/速冻汤圆/速冻汤圆",
@@ -18838,7 +21937,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV12A411b7oM",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 550,
+      "protein": 8,
+      "carbs": 90,
+      "fat": 16
+    },
+    "stepDurations": [
+      null,
+      null,
+      240,
+      null,
+      60
+    ]
   },
   {
     "id": "howtocook:semi-finished/速冻馄饨",
@@ -18904,7 +22016,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV1og411j7Ca",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 350,
+      "protein": 12,
+      "carbs": 55,
+      "fat": 10
+    },
+    "stepDurations": [
+      2100,
+      null,
+      null,
+      null,
+      1200,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:soup/勾芡香菇汤/勾芡香菇汤",
@@ -18970,7 +22098,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1WQ4y1y7b5",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 141,
+      "protein": 2.1,
+      "carbs": 10.9,
+      "fat": 9.2
+    },
+    "stepDurations": [
+      900,
+      null,
+      null,
+      50,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:soup/奶油蘑菇汤",
@@ -19048,7 +22190,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV19q4y1x7i2",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 431,
+      "protein": 15.4,
+      "carbs": 28.7,
+      "fat": 31.5
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      600,
+      60,
+      null
+    ]
   },
   {
     "id": "howtocook:soup/小米粥",
@@ -19089,7 +22246,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV19Y4y1t7QR",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 90,
+      "protein": 2.3,
+      "carbs": 18.8,
+      "fat": 0.9
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      360,
+      900
+    ]
   },
   {
     "id": "howtocook:soup/排骨山药玉米汤/排骨山药玉米汤",
@@ -19186,7 +22356,36 @@
     "videoUrl": "https://www.bilibili.com/video/BV1r54y1F7yB",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 280,
+      "protein": 18,
+      "carbs": 18,
+      "fat": 16
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      180,
+      null,
+      null,
+      10,
+      null,
+      60,
+      null,
+      null,
+      null,
+      2400,
+      null,
+      null,
+      120,
+      null
+    ]
   },
   {
     "id": "howtocook:soup/排骨苦瓜汤/排骨苦瓜汤",
@@ -19245,7 +22444,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Gb4y1S7ts",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 300,
+      "protein": 20,
+      "carbs": 3,
+      "fat": 19
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      7200,
+      null,
+      null,
+      2700,
+      null
+    ]
   },
   {
     "id": "howtocook:soup/昂刺鱼豆腐汤/昂刺鱼豆腐汤",
@@ -19322,7 +22538,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1sD4y1678j",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 350,
+      "protein": 26,
+      "carbs": 3,
+      "fat": 22
+    },
+    "stepDurations": [
+      900,
+      300,
+      null,
+      600,
+      300
+    ]
   },
   {
     "id": "howtocook:soup/朱雀汤/朱雀汤",
@@ -19369,7 +22598,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Xw4m1R79i",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 169,
+      "protein": 6,
+      "carbs": 20,
+      "fat": 7
+    }
   },
   {
     "id": "howtocook:soup/玉米排骨汤/玉米排骨汤",
@@ -19464,7 +22699,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV1JA4y1f7zk",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 400,
+      "protein": 30,
+      "carbs": 13,
+      "fat": 25
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      60,
+      null,
+      3600,
+      180
+    ]
   },
   {
     "id": "howtocook:soup/生汆丸子汤",
@@ -19642,7 +22895,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV17D4y1D7Pb",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 280,
+      "protein": 38,
+      "carbs": 5,
+      "fat": 11
+    }
   },
   {
     "id": "howtocook:soup/皮蛋瘦肉粥",
@@ -19788,7 +23047,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Yb4y167or",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 250,
+      "protein": 5,
+      "carbs": 58,
+      "fat": 2
+    }
   },
   {
     "id": "howtocook:soup/紫菜蛋花汤",
@@ -19969,7 +23234,28 @@
     "videoUrl": "https://www.bilibili.com/video/BV1e44y1W79X",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 380,
+      "protein": 20,
+      "carbs": 35,
+      "fat": 15
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      300,
+      null,
+      null,
+      null,
+      null,
+      null,
+      3600,
+      null,
+      1800,
+      null
+    ]
   },
   {
     "id": "howtocook:soup/羊肉汤/羊肉汤",
@@ -20179,7 +23465,19 @@
     "videoUrl": "https://www.bilibili.com/video/BV1bZ4y1S7Ra",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 300,
+      "protein": 9
+    },
+    "stepDurations": [
+      28800,
+      10800,
+      1800,
+      3600,
+      3600,
+      null
+    ]
   },
   {
     "id": "howtocook:soup/菌菇炖乳鸽/菌菇炖乳鸽",
@@ -20239,7 +23537,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1yM4y1T7zw",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 250,
+      "protein": 18,
+      "carbs": 12,
+      "fat": 12
+    }
   },
   {
     "id": "howtocook:soup/西红柿鸡蛋汤",
@@ -20303,7 +23607,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV1V34y1J7pi",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 235,
+      "protein": 7,
+      "carbs": 6,
+      "fat": 20
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      30,
+      60,
+      null,
+      null,
+      30
+    ]
   },
   {
     "id": "howtocook:soup/金针菇汤",
@@ -20352,7 +23672,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Ja4y177vv",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 165,
+      "protein": 10,
+      "carbs": 18,
+      "fat": 2
+    },
+    "stepDurations": [
+      null,
+      null,
+      180,
+      null,
+      30
+    ]
   },
   {
     "id": "howtocook:soup/银耳莲子粥/银耳莲子粥",
@@ -20411,7 +23744,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV197411T7EN",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 160,
+      "protein": 5,
+      "carbs": 38,
+      "fat": 1
+    },
+    "stepDurations": [
+      7200,
+      null,
+      null,
+      3600,
+      1800,
+      300,
+      null
+    ]
   },
   {
     "id": "howtocook:soup/陈皮排骨汤",
@@ -20474,7 +23822,22 @@
     "remoteVersion": 0,
     "clientUpdatedAt": null,
     "deletedAt": null,
-    "videoUrl": "https://www.bilibili.com/video/BV1hf4y1k7cu"
+    "videoUrl": "https://www.bilibili.com/video/BV1hf4y1k7cu",
+    "nutrition": {
+      "energyKcal": 260,
+      "protein": 19,
+      "carbs": 2,
+      "fat": 22
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      5400,
+      null
+    ]
   },
   {
     "id": "howtocook:soup/陈皮排骨汤/陈皮排骨汤",
@@ -20616,7 +23979,11 @@
     "videoUrl": "https://www.bilibili.com/video/BV1JJ4m1T7kJ",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 330,
+      "protein": 17.2
+    }
   },
   {
     "id": "howtocook:staple/中式馅饼/中式馅饼",
@@ -20718,7 +24085,33 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Fq4y1Q7eJ",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1250,
+      "protein": 34,
+      "carbs": 170,
+      "fat": 47
+    },
+    "stepDurations": [
+      1800,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      120,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      20,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/凉粉/凉粉",
@@ -20808,7 +24201,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1xR4y1F7Ji",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 380,
+      "protein": 3,
+      "carbs": 82,
+      "fat": 7
+    }
   },
   {
     "id": "howtocook:staple/利提巧卡",
@@ -20967,7 +24366,38 @@
     "videoUrl": "https://www.bilibili.com/video/BV1gZ4y1G7Wo",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 240,
+      "protein": 7.5,
+      "carbs": 34,
+      "fat": 9.5
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      900,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/印度烤饼",
@@ -21076,7 +24506,43 @@
     "videoUrl": "https://www.bilibili.com/video/BV1SJ41127Nj",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 280,
+      "protein": 7,
+      "carbs": 45,
+      "fat": 9
+    },
+    "stepDurations": [
+      null,
+      300,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      3600,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      90,
+      90,
+      null,
+      null,
+      null,
+      null,
+      240,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/印度焖饭",
@@ -21251,7 +24717,39 @@
     "videoUrl": "https://www.bilibili.com/video/BV1ot41137oc",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 700,
+      "protein": 30
+    },
+    "stepDurations": [
+      null,
+      null,
+      3600,
+      900,
+      null,
+      900,
+      null,
+      null,
+      null,
+      null,
+      360,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      180,
+      1800,
+      300,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/可乐炒饭",
@@ -21343,7 +24841,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1sV4y1E7K5",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 900,
+      "protein": 34,
+      "carbs": 82,
+      "fat": 48
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      120,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/咸肉菜饭",
@@ -21422,7 +24935,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV11YfwYNEEK",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 420,
+      "protein": 13,
+      "carbs": 62,
+      "fat": 11.5
+    },
+    "stepDurations": [
+      600,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      600,
+      300
+    ]
   },
   {
     "id": "howtocook:staple/基础牛奶面包/基础牛奶面包",
@@ -21510,7 +25040,18 @@
     "videoUrl": "https://www.bilibili.com/video/BV1tp4y1e7DT",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 250,
+      "protein": 8,
+      "carbs": 45,
+      "fat": 4.5
+    },
+    "stepDurations": [
+      300,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/微波炉腊肠煲仔饭/微波炉腊肠煲仔饭",
@@ -21600,7 +25141,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV1syWDzZEjZ",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "stepDurations": [
+      null,
+      360,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      360,
+      120,
+      240,
+      40,
+      null,
+      30,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/意式肉酱面/意式肉酱面",
@@ -21658,7 +25217,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1rd4y1E7vs",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1150,
+      "protein": 45
+    },
+    "stepDurations": [
+      360,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/手工水饺",
@@ -21773,7 +25346,40 @@
     "videoUrl": "https://www.bilibili.com/video/BV1LJ411C7sW",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 660,
+      "protein": 41,
+      "carbs": 81,
+      "fat": 18
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      2700,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      1800,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      60
+    ]
   },
   {
     "id": "howtocook:staple/扬州炒饭/扬州炒饭",
@@ -21870,7 +25476,33 @@
     "videoUrl": "https://www.bilibili.com/video/BV1sU4y1B7MC",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1780,
+      "protein": 79,
+      "carbs": 158,
+      "fat": 87
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      60,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/披萨饼皮/披萨饼皮",
@@ -21939,7 +25571,29 @@
     "videoUrl": "https://www.bilibili.com/video/BV17D4y1k7Vb",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 530,
+      "protein": 15,
+      "carbs": 96,
+      "fat": 11
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      36000,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      960,
+      1080,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/日式咖喱饭/日式咖喱饭",
@@ -22023,7 +25677,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1tp4y1t7YG",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 520,
+      "protein": 32,
+      "carbs": 38,
+      "fat": 28
+    }
   },
   {
     "id": "howtocook:staple/日式肥牛丼饭/日式肥牛丼饭",
@@ -22131,7 +25791,29 @@
     "videoUrl": "https://www.bilibili.com/video/BV1UM4y1u7Wa",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 720,
+      "protein": 32,
+      "carbs": 82,
+      "fat": 24
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      60,
+      null,
+      null,
+      180,
+      null,
+      600,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/汤面",
@@ -22191,7 +25873,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1vv411L7CU",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 380,
+      "protein": 14,
+      "carbs": 75,
+      "fat": 5
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      600,
+      300,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/河南蒸面条/河南蒸面条",
@@ -22316,7 +26013,35 @@
     "videoUrl": "https://www.bilibili.com/video/BV19W411P785",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 970,
+      "protein": 27,
+      "carbs": 74,
+      "fat": 59
+    },
+    "stepDurations": [
+      null,
+      900,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      60,
+      60,
+      60,
+      60,
+      60,
+      180,
+      null,
+      null,
+      900,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/火腿饭团/火腿饭团",
@@ -22388,7 +26113,19 @@
     "videoUrl": "https://www.bilibili.com/video/BV1F6MszrEy6",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 900,
+      "protein": 29
+    },
+    "stepDurations": [
+      null,
+      120,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/炒凉粉/炒凉粉",
@@ -22475,7 +26212,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1984y1m7cX",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 320,
+      "protein": 3,
+      "carbs": 52,
+      "fat": 10
+    },
+    "stepDurations": [
+      null,
+      null,
+      10,
+      null,
+      10,
+      10,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/炒年糕",
@@ -22544,7 +26296,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV164411R77G",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1050,
+      "protein": 15,
+      "carbs": 115,
+      "fat": 56
+    }
   },
   {
     "id": "howtocook:staple/炒意大利面/炒意大利面",
@@ -22609,7 +26367,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV13W411C7hu",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 330,
+      "protein": 13,
+      "carbs": 39,
+      "fat": 14
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      60,
+      60,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/炒方便面/炒方便面",
@@ -22681,7 +26453,37 @@
     "videoUrl": "https://www.bilibili.com/video/BV1rTwBezEHq",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 700,
+      "protein": 18,
+      "carbs": 55,
+      "fat": 40
+    },
+    "stepDurations": [
+      null,
+      null,
+      45,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      20,
+      20,
+      null,
+      20,
+      10,
+      30,
+      30,
+      30,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/炒河粉",
@@ -22883,7 +26685,11 @@
     "videoUrl": "https://www.bilibili.com/video/BV1M5411A7B2",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 540,
+      "protein": 19
+    }
   },
   {
     "id": "howtocook:staple/炸酱面",
@@ -22960,7 +26766,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Gi421a7di",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 920,
+      "protein": 48,
+      "carbs": 115,
+      "fat": 29
+    }
   },
   {
     "id": "howtocook:staple/烙饼/烙饼",
@@ -23017,7 +26829,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1PN4y1a7K3",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 410,
+      "protein": 10,
+      "carbs": 76,
+      "fat": 6
+    },
+    "stepDurations": [
+      2400,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      120,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/烧饼/芝麻烧饼",
@@ -23095,7 +26924,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1YA411e7Aa",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "stepDurations": [
+      600,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/热干面",
@@ -23195,7 +27030,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1yK411H7kr",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 650,
+      "protein": 20,
+      "carbs": 70,
+      "fat": 28
+    },
+    "stepDurations": [
+      25,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/煮泡面加蛋",
@@ -23243,7 +27092,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Br4y1M7oE",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 380,
+      "protein": 14
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      60,
+      null,
+      240
+    ]
   },
   {
     "id": "howtocook:staple/照烧鸡腿饭",
@@ -23357,7 +27219,27 @@
     "videoUrl": "https://www.bilibili.com/video/BV1eT4y1o7Yv",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 799,
+      "protein": 51.3,
+      "carbs": 65.3,
+      "fat": 34.2
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      300,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/蒸卤面",
@@ -23467,7 +27349,27 @@
     "videoUrl": "https://www.bilibili.com/video/BV1r2wczoEwu",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1100,
+      "protein": 32,
+      "carbs": 95,
+      "fat": 55
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      60,
+      60,
+      180,
+      180,
+      900,
+      null,
+      null,
+      600
+    ]
   },
   {
     "id": "howtocook:staple/猪油拌饭",
@@ -23534,7 +27436,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV17ZtCz6Exh",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 440,
+      "protein": 7,
+      "carbs": 56,
+      "fat": 17
+    }
   },
   {
     "id": "howtocook:staple/电饭煲三文鱼炊饭/电饭煲三文鱼炊饭",
@@ -23596,7 +27504,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV111bbzjE1h",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 900,
+      "protein": 64,
+      "carbs": 39,
+      "fat": 50
+    }
   },
   {
     "id": "howtocook:staple/空气炸锅照烧鸡饭/空气炸锅照烧鸡饭",
@@ -23663,7 +27577,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1gd4y1T7Lp",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 670,
+      "protein": 60,
+      "carbs": 68,
+      "fat": 18
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      2400,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/米饭/煮锅蒸米饭",
@@ -23705,7 +27632,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1L3411B7Mx",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 280,
+      "protein": 5.6,
+      "carbs": 62,
+      "fat": 0.8
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      600,
+      300,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/米饭/电饭煲蒸米饭",
@@ -23744,7 +27686,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1tN411i7dY",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 200,
+      "protein": 4,
+      "carbs": 44,
+      "fat": 0.5
+    },
+    "stepDurations": [
+      null,
+      null,
+      1800,
+      null,
+      600,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/红芸豆拌饭",
@@ -23889,7 +27845,11 @@
     "videoUrl": "https://www.bilibili.com/video/BV1cv4y1q7LN",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 580,
+      "protein": 22
+    }
   },
   {
     "id": "howtocook:staple/老友猪肉粉/老友猪肉粉",
@@ -23991,7 +27951,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1pJ411p7x1",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1200,
+      "protein": 35,
+      "carbs": 215,
+      "fat": 22
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      60,
+      null,
+      180
+    ]
   },
   {
     "id": "howtocook:staple/老干妈拌面",
@@ -24044,7 +28018,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1C44y187PE",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 450,
+      "protein": 15,
+      "carbs": 86,
+      "fat": 11
+    }
   },
   {
     "id": "howtocook:staple/肉蛋盖饭",
@@ -24127,7 +28107,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Jf4y1X7k9",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1150,
+      "protein": 55,
+      "carbs": 75,
+      "fat": 70
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      180,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/茄子肉煎饼/茄子肉煎饼",
@@ -24195,7 +28191,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1KW411c79P",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 560,
+      "protein": 15,
+      "carbs": 74,
+      "fat": 18
+    }
   },
   {
     "id": "howtocook:staple/葱油拌面",
@@ -24263,7 +28265,28 @@
     "videoUrl": "https://www.bilibili.com/video/BV1TgbGzKEiQ",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 410,
+      "protein": 11,
+      "carbs": 60,
+      "fat": 16
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      60,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/蛋包饭",
@@ -24344,7 +28367,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Y7411377f",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 650,
+      "protein": 28,
+      "carbs": 73,
+      "fat": 28
+    },
+    "stepDurations": [
+      null,
+      10,
+      180,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/蛋炒饭",
@@ -24514,7 +28555,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1FK4y1n7Gb",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 600,
+      "protein": 10,
+      "carbs": 90,
+      "fat": 20
+    }
   },
   {
     "id": "howtocook:staple/西红柿鸡蛋挂面/西红柿鸡蛋挂面",
@@ -24631,7 +28678,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1w14y1c7vF",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 630,
+      "protein": 21,
+      "carbs": 66,
+      "fat": 34
+    }
   },
   {
     "id": "howtocook:staple/豆角焖面/豆角焖面",
@@ -24751,7 +28804,29 @@
     "videoUrl": "https://www.bilibili.com/video/BV1QZ421T75P",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      5,
+      5,
+      null,
+      120,
+      null,
+      null,
+      null,
+      300,
+      null,
+      180,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/酱拌荞麦面/酱拌荞麦面",
@@ -24800,7 +28875,18 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Z64y1X78m",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 477,
+      "protein": 15.7,
+      "carbs": 79.4,
+      "fat": 13.3
+    },
+    "stepDurations": [
+      480,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/酸辣蕨根粉",
@@ -24878,7 +28964,29 @@
     "videoUrl": "https://www.bilibili.com/video/BV1aW411N7JW",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 300,
+      "protein": 5,
+      "carbs": 50,
+      "fat": 9
+    },
+    "stepDurations": [
+      null,
+      480,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/醪糟小汤圆",
@@ -24932,7 +29040,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1pM4y1u7V6",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 910,
+      "protein": 19,
+      "carbs": 217,
+      "fat": 2
+    },
+    "stepDurations": [
+      null,
+      480,
+      120,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/陕西油泼面/陕西油泼面",
@@ -25039,7 +29160,26 @@
     "videoUrl": "https://www.bilibili.com/video/BV1RPh9zMEJ7",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 800,
+      "protein": 12,
+      "carbs": 60,
+      "fat": 50
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      90,
+      60,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/韩式拌饭/韩式拌饭",
@@ -25137,7 +29277,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV194411X7PE",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 700,
+      "protein": 33,
+      "carbs": 55,
+      "fat": 42
+    },
+    "stepDurations": [
+      null,
+      180,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/韭菜盒子",
@@ -25196,7 +29353,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Jz411q7UA",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 390,
+      "protein": 18.5,
+      "carbs": 52,
+      "fat": 9
+    },
+    "stepDurations": [
+      1800,
+      null,
+      null,
+      180,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/鲜肉烧卖",
@@ -25347,7 +29517,29 @@
     "videoUrl": "https://www.bilibili.com/video/BV1K7411E7jM",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 530,
+      "protein": 27,
+      "carbs": 57,
+      "fat": 21
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      1800,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      540
+    ]
   },
   {
     "id": "howtocook:staple/鲣鱼海苔玉米饭/鲣鱼海苔玉米饭",
@@ -25388,7 +29580,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1kh411W7RT",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 305,
+      "protein": 15,
+      "carbs": 56,
+      "fat": 3
+    }
   },
   {
     "id": "howtocook:staple/鹰嘴豆炸饼",
@@ -25570,7 +29768,44 @@
     "videoUrl": "https://www.bilibili.com/video/BV1ps4y14715",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 350,
+      "protein": 9,
+      "carbs": 33,
+      "fat": 20
+    },
+    "stepDurations": [
+      28800,
+      null,
+      null,
+      1500,
+      null,
+      null,
+      360,
+      60,
+      300,
+      null,
+      120,
+      null,
+      null,
+      900,
+      null,
+      null,
+      null,
+      null,
+      null,
+      1800,
+      null,
+      null,
+      null,
+      null,
+      60,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/麻油拌面",
@@ -25636,7 +29871,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Hx411q7zQ",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 530,
+      "protein": 9,
+      "carbs": 52,
+      "fat": 32
+    },
+    "stepDurations": [
+      null,
+      180,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:staple/麻辣减脂荞麦面",
@@ -25717,7 +29967,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1P5411W7ad",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 720,
+      "protein": 22,
+      "carbs": 74,
+      "fat": 32
+    },
+    "stepDurations": [
+      null,
+      null,
+      300,
+      120,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/上汤娃娃菜/上汤娃娃菜",
@@ -25867,7 +30130,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1ch41147Tq",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 350,
+      "protein": 10.6,
+      "carbs": 31,
+      "fat": 23
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      300
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/凉拌木耳/凉拌木耳",
@@ -25950,7 +30227,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1KM4y1e7WD",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 120,
+      "protein": 3,
+      "carbs": 18,
+      "fat": 5
+    },
+    "stepDurations": [
+      2700,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/凉拌油麦菜",
@@ -26023,7 +30314,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1VF411V7Wh",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 260,
+      "protein": 10.7,
+      "carbs": 35.3,
+      "fat": 11.2
+    }
   },
   {
     "id": "howtocook:vegetable_dish/凉拌莴笋/凉拌莴笋",
@@ -26089,7 +30386,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1eWoEYbEof",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 130,
+      "protein": 2,
+      "carbs": 8,
+      "fat": 9
+    },
+    "stepDurations": [
+      600,
+      null,
+      60,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/凉拌豆腐",
@@ -26168,7 +30478,28 @@
     "videoUrl": "https://www.bilibili.com/video/BV1BZ4y1p7H6",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 304,
+      "protein": 21.6,
+      "carbs": 10.9,
+      "fat": 21.2
+    },
+    "stepDurations": [
+      null,
+      null,
+      90,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/凉拌金针菇",
@@ -26247,7 +30578,28 @@
     "videoUrl": "https://www.bilibili.com/video/BV1G34y1E7Mx",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 165,
+      "protein": 6,
+      "carbs": 18,
+      "fat": 10
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      60,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/凉拌黄瓜",
@@ -26310,7 +30662,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1RV41167WV",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 95,
+      "protein": 2.2,
+      "carbs": 8.5,
+      "fat": 3.5
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      900,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/包菜炒鸡蛋粉丝/包菜炒鸡蛋粉丝",
@@ -26406,7 +30772,26 @@
     "videoUrl": "https://www.bilibili.com/video/BV1QV411G7GU",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 620,
+      "protein": 21,
+      "carbs": 70,
+      "fat": 30
+    },
+    "stepDurations": [
+      null,
+      3600,
+      15,
+      null,
+      null,
+      8,
+      30,
+      null,
+      null,
+      15,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/印度土豆花菜",
@@ -26521,7 +30906,30 @@
     "videoUrl": "https://www.bilibili.com/video/BV1aR4y1M7Sd",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 320,
+      "protein": 7,
+      "carbs": 41,
+      "fat": 16
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      10,
+      210,
+      60,
+      150,
+      null,
+      60,
+      120,
+      null,
+      810,
+      null,
+      60,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/印度葫芦丸子",
@@ -26664,7 +31072,33 @@
     "videoUrl": "https://www.bilibili.com/video/BV1CB4y1T7CM",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 300,
+      "protein": 6,
+      "carbs": 18,
+      "fat": 20
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      10,
+      null,
+      60,
+      300,
+      null,
+      120,
+      300,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/地三鲜/地三鲜",
@@ -26761,7 +31195,36 @@
     "videoUrl": "https://www.bilibili.com/video/BV1pr421K7Fq",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 580,
+      "protein": 8,
+      "carbs": 62,
+      "fat": 36
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      1800,
+      null,
+      null,
+      null,
+      210,
+      null,
+      150,
+      null,
+      null,
+      15,
+      null,
+      null,
+      null,
+      10,
+      null,
+      20,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/家常日本豆腐",
@@ -26871,7 +31334,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1tV4y187oV",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 480,
+      "protein": 12,
+      "carbs": 32,
+      "fat": 38
+    }
   },
   {
     "id": "howtocook:vegetable_dish/小炒藕丁/小炒藕丁",
@@ -26942,7 +31411,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1rK4y1R7cH",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 300,
+      "protein": 7,
+      "carbs": 42,
+      "fat": 12
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      120,
+      null,
+      null,
+      null,
+      null,
+      120
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/干锅花菜/干锅花菜",
@@ -27018,7 +31504,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1hipUzaEHH",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 740,
+      "protein": 19,
+      "carbs": 26,
+      "fat": 63
+    },
+    "stepDurations": [
+      1200,
+      60,
+      null,
+      null,
+      null,
+      null,
+      null,
+      60,
+      60
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/手撕包菜/手撕包菜",
@@ -27111,7 +31614,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV1mAGjzBEaZ",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 1400,
+      "protein": 25,
+      "carbs": 25,
+      "fat": 120
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      180,
+      60,
+      60,
+      120
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/拔丝土豆/拔丝土豆",
@@ -27243,7 +31762,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1o4UUYbEi3",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 545,
+      "protein": 9.5,
+      "carbs": 54,
+      "fat": 34.5
+    },
+    "stepDurations": [
+      60,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/椒盐玉米/椒盐玉米",
@@ -27312,7 +31845,29 @@
     "videoUrl": "https://www.bilibili.com/video/BV1zj41167rn",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 750,
+      "protein": 13,
+      "carbs": 114,
+      "fat": 29
+    },
+    "stepDurations": [
+      900,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      30,
+      180,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/榄菜肉末四季豆/榄菜肉末四季豆",
@@ -27372,7 +31927,26 @@
     "videoUrl": "https://www.bilibili.com/video/BV1AP411C7fE",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 540,
+      "protein": 16,
+      "carbs": 18,
+      "fat": 47
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      120,
+      null,
+      300,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/水油焖蔬菜",
@@ -27424,7 +31998,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV15T411D7pA",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 110,
+      "protein": 10,
+      "carbs": 14,
+      "fat": 3
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      60,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/油醋爆蛋",
@@ -27503,7 +32092,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV16C4y127jt",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 630,
+      "protein": 24.5,
+      "carbs": 9,
+      "fat": 59
+    }
   },
   {
     "id": "howtocook:vegetable_dish/洋葱炒鸡蛋/洋葱炒鸡蛋",
@@ -27623,7 +32218,26 @@
     "videoUrl": "https://www.bilibili.com/video/BV1u14y1e7g9",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 200,
+      "protein": 6,
+      "carbs": 15,
+      "fat": 14
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      120,
+      null,
+      null,
+      null,
+      120,
+      null,
+      60,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/清蒸南瓜",
@@ -27665,7 +32279,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1pE411Y7gh",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 78,
+      "protein": 3,
+      "carbs": 19.5,
+      "fat": 0.3
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      900,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/炒滑蛋/炒滑蛋",
@@ -27710,7 +32339,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1G1421S7E6",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 380,
+      "protein": 25,
+      "carbs": 2,
+      "fat": 30
+    },
+    "stepDurations": [
+      null,
+      30,
+      30,
+      5,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/炒茄子",
@@ -27793,7 +32435,29 @@
     "videoUrl": "https://www.bilibili.com/video/BV1HF411j7iB",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 680,
+      "protein": 15,
+      "carbs": 30,
+      "fat": 55
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      60,
+      null,
+      null,
+      null,
+      null,
+      null,
+      40,
+      60,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/炒青菜",
@@ -27857,7 +32521,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV1of4y1B7gs",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 140,
+      "protein": 2.2
+    },
+    "stepDurations": [
+      null,
+      null,
+      30,
+      60,
+      null,
+      60,
+      120,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/烤茄子/烤茄子",
@@ -27934,7 +32612,26 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Ff4y1P7ng",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 280,
+      "protein": 3.5,
+      "carbs": 16,
+      "fat": 22
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      120,
+      720,
+      null,
+      null,
+      null,
+      240,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/白灼菜心/白灼菜心",
@@ -28003,7 +32700,22 @@
     "videoUrl": "https://www.bilibili.com/video/BV1LE41157Xb",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 150,
+      "protein": 4,
+      "carbs": 9,
+      "fat": 10
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      120,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/皮蛋豆腐",
@@ -28082,7 +32794,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1PZ421T7Pw",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 620,
+      "protein": 30,
+      "carbs": 15,
+      "fat": 45
+    }
   },
   {
     "id": "howtocook:vegetable_dish/糖拌西红柿/糖拌西红柿",
@@ -28125,7 +32843,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV1564y1t7mX",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 130,
+      "protein": 4,
+      "carbs": 32,
+      "fat": 0
+    },
+    "stepDurations": [
+      null,
+      10,
+      null,
+      null,
+      null,
+      null,
+      600,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/红烧冬瓜/红烧冬瓜",
@@ -28297,7 +33031,27 @@
     "videoUrl": "https://www.bilibili.com/video/BV1ot4y1S7Hf",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 780,
+      "protein": 13,
+      "carbs": 75,
+      "fat": 43
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      75,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/素炒豆角",
@@ -28383,7 +33137,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV1mp4y1a7jy",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 200,
+      "protein": 6,
+      "carbs": 16,
+      "fat": 13
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      30,
+      120,
+      null,
+      480,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/脆皮豆腐",
@@ -28456,7 +33228,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV11wuTzqErh",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 782,
+      "protein": 38,
+      "carbs": 66,
+      "fat": 42
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      10,
+      null,
+      180,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/芹菜拌茶树菇/芹菜拌茶树菇",
@@ -28522,7 +33310,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV1Q7411Y7BX",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 165,
+      "protein": 6,
+      "carbs": 12,
+      "fat": 5
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      25,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/茄子炖土豆",
@@ -28602,7 +33408,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV135411w7C2",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 600,
+      "protein": 30,
+      "carbs": 35,
+      "fat": 35
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      30,
+      30,
+      30,
+      300,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/莴笋叶煎饼/莴笋叶煎饼",
@@ -28660,7 +33484,18 @@
     "videoUrl": "https://www.bilibili.com/video/BV14J411w7ok",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 480,
+      "protein": 13.5,
+      "carbs": 18,
+      "fat": 40
+    },
+    "stepDurations": [
+      null,
+      null,
+      180
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/菠菜炒鸡蛋/菠菜炒鸡蛋",
@@ -28781,7 +33616,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1fd2EYgESd",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 210,
+      "protein": 13,
+      "carbs": 5,
+      "fat": 16
+    }
   },
   {
     "id": "howtocook:vegetable_dish/蒜蓉空心菜/蒜蓉空心菜",
@@ -28843,7 +33684,21 @@
     "videoUrl": "https://www.bilibili.com/video/BV15F411f7cG",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 510,
+      "protein": 9.5,
+      "carbs": 23,
+      "fat": 46
+    },
+    "stepDurations": [
+      null,
+      null,
+      13,
+      null,
+      18,
+      10
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/蒜蓉西兰花",
@@ -28902,7 +33757,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1K3411J7cj",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 180,
+      "protein": 8,
+      "carbs": 22,
+      "fat": 11
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      120,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/蒲烧茄子",
@@ -28976,7 +33848,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV1wh411471y",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 380,
+      "protein": 3,
+      "carbs": 48,
+      "fat": 16
+    },
+    "stepDurations": [
+      null,
+      300,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/虎皮青椒/虎皮青椒",
@@ -29047,7 +33936,24 @@
     "videoUrl": "https://www.bilibili.com/video/BV11F41187tw",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 340,
+      "protein": 4,
+      "carbs": 30,
+      "fat": 20
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      120,
+      30
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/蚝油三鲜菇/蚝油三鲜菇",
@@ -29162,7 +34068,25 @@
     "videoUrl": "https://www.bilibili.com/video/BV11L411c7MB",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 200,
+      "protein": 7,
+      "carbs": 22,
+      "fat": 10
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      180,
+      60,
+      null,
+      30,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/蚝油生菜",
@@ -29234,7 +34158,23 @@
     "videoUrl": "https://www.bilibili.com/video/BV1M44y187u6",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 90,
+      "protein": 2.5,
+      "carbs": 5,
+      "fat": 7
+    },
+    "stepDurations": [
+      null,
+      null,
+      10,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/西红柿炒鸡蛋",
@@ -29323,7 +34263,31 @@
     "videoUrl": "https://www.bilibili.com/video/BV1SW4y1f7Tc",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 180,
+      "protein": 10,
+      "carbs": 7,
+      "fat": 12
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      20,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/西红柿豆腐汤羹/西红柿豆腐汤羹",
@@ -29462,7 +34426,18 @@
     "videoUrl": "https://www.bilibili.com/video/BV1qb411u7e9",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      270,
+      15,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/话梅煮毛豆/话梅煮毛豆",
@@ -29673,7 +34648,18 @@
     "videoUrl": "https://www.bilibili.com/video/BV1VZ4y1H75g",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 480,
+      "protein": 27,
+      "carbs": 22,
+      "fat": 30
+    },
+    "stepDurations": [
+      null,
+      null,
+      300
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/金钱蛋",
@@ -29866,7 +34852,26 @@
     "videoUrl": "https://www.bilibili.com/video/BV16d4y137Pb",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 361,
+      "protein": 10.7,
+      "carbs": 54.4,
+      "fat": 13.1
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      30,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/雷椒皮蛋",
@@ -29961,7 +34966,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1DJ4m1T72z",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 500,
+      "protein": 16,
+      "carbs": 17,
+      "fat": 38
+    }
   },
   {
     "id": "howtocook:vegetable_dish/鸡蛋火腿炒黄瓜",
@@ -30100,7 +35111,26 @@
     "videoUrl": "https://www.bilibili.com/video/BV19W4y167Sd",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 155,
+      "protein": 13,
+      "carbs": 1,
+      "fat": 11
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      120,
+      120,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/鸡蛋羹/蒸箱鸡蛋羹",
@@ -30159,7 +35189,29 @@
     "videoUrl": "https://www.bilibili.com/video/BV1eX4y1C74e",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 120,
+      "protein": 7.5,
+      "carbs": 1,
+      "fat": 9.8
+    },
+    "stepDurations": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      600,
+      null,
+      null,
+      null
+    ]
   },
   {
     "id": "howtocook:vegetable_dish/鸡蛋羹/鸡蛋羹",
@@ -30233,7 +35285,13 @@
     "videoUrl": "https://www.bilibili.com/video/BV1PqFrzuEEP",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 180,
+      "protein": 13,
+      "carbs": 2,
+      "fat": 13
+    }
   },
   {
     "id": "howtocook:vegetable_dish/鸡蛋花/鸡蛋花",
@@ -30287,6 +35345,20 @@
     "videoUrl": "https://www.bilibili.com/video/BV1NF3bzKEKH",
     "remoteVersion": 0,
     "clientUpdatedAt": null,
-    "deletedAt": null
+    "deletedAt": null,
+    "nutrition": {
+      "energyKcal": 100,
+      "protein": 6,
+      "carbs": 8,
+      "fat": 5
+    },
+    "stepDurations": [
+      null,
+      90,
+      null,
+      null,
+      null,
+      null
+    ]
   }
 ]
