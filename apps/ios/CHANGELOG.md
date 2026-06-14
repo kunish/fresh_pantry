@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.19.0...fresh_pantry-v1.20.0) (2026-06-14)
+
+
+### Features
+
+* **ios:** 食谱卡片长按快捷菜单(收藏/加入计划/加购缺料/编辑·删除) ([a5adf8b](https://github.com/kunish/fresh_pantry/commit/a5adf8ba903f9a05424ac65681c9e0da922dd88c))
+
 ## [1.19.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.18.0...fresh_pantry-v1.19.0) (2026-06-14)
 
 
