@@ -169,12 +169,32 @@ final class MealPlanStore {
     @discardableResult
     func addDish(recipe: Recipe, date: Date, servings: Int = 1) async -> Bool {
         guard !recipe.id.isEmpty else { return false }
-        let entry = MealPlanEntry(
-            id: Self.newId(),
-            date: date,
+        return await addPlannedEntry(
             recipeId: recipe.id,
             recipeName: recipe.name,
             recipeImageUrl: recipe.imageUrl,
+            date: date,
+            servings: servings
+        )
+    }
+
+    /// Core optimistic add shared by `addDish` and `applyTemplate` — plans a dish
+    /// from its identity fields (recipeId/name/image) rather than a full `Recipe`.
+    @discardableResult
+    private func addPlannedEntry(
+        recipeId: String,
+        recipeName: String,
+        recipeImageUrl: String?,
+        date: Date,
+        servings: Int
+    ) async -> Bool {
+        guard !recipeId.isEmpty else { return false }
+        let entry = MealPlanEntry(
+            id: Self.newId(),
+            date: date,
+            recipeId: recipeId,
+            recipeName: recipeName,
+            recipeImageUrl: recipeImageUrl,
             servings: max(servings, 1)
         )
         entries.append(entry) // optimistic
@@ -295,6 +315,50 @@ final class MealPlanStore {
             }
             return true
         }
+    }
+
+    // MARK: Templates (#14 — reusable weekly plans, device-local)
+
+    /// Saved templates, newest first.
+    func templates() -> [MealPlanTemplate] { MealPlanTemplates.load() }
+
+    /// Serializes the VISIBLE week's dishes into a named template (device-local).
+    /// nil when the name is blank or the week has no recipe dishes. Replaces an
+    /// existing same-name template.
+    @discardableResult
+    func saveCurrentWeekAsTemplate(name: String) -> MealPlanTemplate? {
+        let trimmed = name.trimmed
+        let items = MealPlanTemplates.items(from: entriesInVisibleWeek, weekStart: weekStart)
+        guard !trimmed.isEmpty, !items.isEmpty else { return nil }
+        let template = MealPlanTemplate(id: Self.newId(), name: trimmed, items: items)
+        MealPlanTemplates.save(MealPlanTemplates.upserting(template, into: MealPlanTemplates.load()))
+        return template
+    }
+
+    func removeTemplate(id: String) {
+        MealPlanTemplates.save(MealPlanTemplates.load().filter { $0.id != id })
+    }
+
+    /// Applies a template to the VISIBLE week — adds each item at weekStart +
+    /// dayOffset. Returns how many dishes were added (additive: it never clears the
+    /// existing week). Mirrors `addDish`'s optimistic single-row contract per item.
+    @discardableResult
+    func applyTemplate(_ template: MealPlanTemplate) async -> Int {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .current
+        var added = 0
+        for item in template.items {
+            guard let date = calendar.date(byAdding: .day, value: item.dayOffset, to: weekStart) else { continue }
+            let ok = await addPlannedEntry(
+                recipeId: item.recipeId,
+                recipeName: item.recipeName,
+                recipeImageUrl: item.recipeImageUrl,
+                date: MealPlanEntry.dateOnly(date),
+                servings: item.servings
+            )
+            if ok { added += 1 }
+        }
+        return added
     }
 
     // MARK: Static helpers

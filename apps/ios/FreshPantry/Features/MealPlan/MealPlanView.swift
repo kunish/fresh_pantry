@@ -24,6 +24,13 @@ struct MealPlanView: View {
         }
         .navigationTitle("膳食计划")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if let store {
+                ToolbarItem(placement: .topBarTrailing) {
+                    MealPlanTemplateMenu(store: store)
+                }
+            }
+        }
         // Rebuild the store whenever the active household changes (login "" → uuid,
         // switch, or leave) so the calendar re-scopes to the new household rather
         // than keeping the prior scope's stale entries.
