@@ -41,10 +41,14 @@ struct FoodLogStats: Equatable, Sendable {
     var wasted: Int
     /// Consumed AND already past fresh — "抢救临期" credit.
     var rescued: Int
+    /// Donated + composted — positive去向, NOT counted as waste. Defaulted so
+    /// existing call sites stay source-compatible.
+    var saved: Int = 0
 
-    static let empty = FoodLogStats(consumed: 0, wasted: 0, rescued: 0)
+    static let empty = FoodLogStats(consumed: 0, wasted: 0, rescued: 0, saved: 0)
 
-    /// consumed + wasted (rescued is a subset of consumed, not added in).
+    /// consumed + wasted (rescued is a subset of consumed; saved is a separate
+    /// positive去向, not in the use-up denominator).
     var total: Int { consumed + wasted }
 
     /// consumed / (consumed + wasted), 0 when nothing has departed (guarded /0).
@@ -250,15 +254,19 @@ final class WasteInsightsStore {
         var consumed = 0
         var wasted = 0
         var rescued = 0
+        var saved = 0
         for entry in entries {
             if entry.isConsumed {
                 consumed += 1
                 if entry.wasExpiring { rescued += 1 }
+            } else if entry.outcome.isSaved {
+                // 捐了/堆肥 = 非浪费正向去向,绝不计入 wasted。
+                saved += 1
             } else {
                 wasted += 1
             }
         }
-        return FoodLogStats(consumed: consumed, wasted: wasted, rescued: rescued)
+        return FoodLogStats(consumed: consumed, wasted: wasted, rescued: rescued, saved: saved)
     }
 
     /// Per-category consumed/wasted counts, normalized + sorted by
@@ -270,7 +278,8 @@ final class WasteInsightsStore {
             let category = FoodCategories.dropdownValue(entry.category)
             if entry.isConsumed {
                 consumedBy[category, default: 0] += 1
-            } else {
+            } else if entry.isWasted {
+                // 捐了/堆肥 不计入浪费分类(它们是正向去向)。
                 wastedBy[category, default: 0] += 1
             }
         }
@@ -290,7 +299,7 @@ final class WasteInsightsStore {
     /// are tallied). Ports the Flutter "最常浪费" ranking.
     static func computeMostWasted(_ entries: [FoodLogEntry]) -> [WasteCategoryCount] {
         var wastedBy: [String: Int] = [:]
-        for entry in entries where !entry.isConsumed {
+        for entry in entries where entry.isWasted {
             wastedBy[FoodCategories.dropdownValue(entry.category), default: 0] += 1
         }
         return wastedBy

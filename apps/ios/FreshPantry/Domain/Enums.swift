@@ -55,11 +55,18 @@ func storageAreaLabel(_ type: IconType) -> String { type.storageAreaLabel }
 
 // MARK: - Food log
 
-/// Departure outcome. Unknown / dirty data conservatively resolves to
-/// `.consumed` (don't overstate waste).
+/// Departure outcome. `donated` (捐了) / `composted` (堆肥) are POSITIVE去向 —
+/// the food left the kitchen but was NOT wasted, so they're counted as "saved",
+/// never as waste. Unknown / dirty data conservatively resolves to `.consumed`
+/// (don't overstate waste).
 enum FoodLogOutcome: String, Codable, Sendable, CaseIterable {
     case consumed
     case wasted
+    case donated
+    case composted
+
+    /// 非浪费的正向去向(捐赠/堆肥)——保留过期临期食物的价值,计入"减废"而非浪费。
+    var isSaved: Bool { self == .donated || self == .composted }
 
     static func fromName(_ name: String?) -> FoodLogOutcome {
         for outcome in FoodLogOutcome.allCases where outcome.rawValue == name {

@@ -276,6 +276,8 @@ private struct InventoryContent: View {
             titleVisibility: .visible
         ) {
             Button("全部吃完 / 用掉了") { Task { await batchDelete(outcome: .consumed) } }
+            Button("全部捐了") { Task { await batchDelete(outcome: .donated) } }
+            Button("全部堆肥了") { Task { await batchDelete(outcome: .composted) } }
             Button("全部没吃完,扔了") { Task { await batchDelete(outcome: .wasted) } }
             Button("仅移除") { Task { await batchDelete(outcome: nil) } }
             Button("取消", role: .cancel) {}
@@ -295,6 +297,8 @@ private struct InventoryContent: View {
             presenting: deletingItem
         ) { item in
             Button("吃完 / 用掉了") { Task { await deleteSingle(item, outcome: .consumed) } }
+            Button("捐了") { Task { await deleteSingle(item, outcome: .donated) } }
+            Button("堆肥了") { Task { await deleteSingle(item, outcome: .composted) } }
             Button("没吃完,扔了") { Task { await deleteSingle(item, outcome: .wasted) } }
             Button("仅移除") { Task { await deleteSingle(item, outcome: nil) } }
             Button("取消", role: .cancel) {}

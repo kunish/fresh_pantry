@@ -339,6 +339,10 @@ private struct MetricRow: View {
             MetricTile(label: "用掉", value: stats.consumed, tint: .fkPrimary, fill: .fkPrimarySoft)
             MetricTile(label: "浪费", value: stats.wasted, tint: .fkDanger, fill: .fkDangerSoft)
             MetricTile(label: "抢救临期", value: stats.rescued, tint: .fkWarnInk, fill: .fkWarnSoft)
+            // 捐赠/堆肥 正向去向 — only when there are any, to keep the row tidy.
+            if stats.saved > 0 {
+                MetricTile(label: "捐赠堆肥", value: stats.saved, tint: .fkSuccess, fill: .fkSuccess.opacity(0.15))
+            }
         }
     }
 }

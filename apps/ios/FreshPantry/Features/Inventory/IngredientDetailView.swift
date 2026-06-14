@@ -107,6 +107,8 @@ struct IngredientDetailView: View {
             titleVisibility: .visible
         ) {
             Button("吃完 / 用掉了") { Task { await performRemove(outcome: .consumed) } }
+            Button("捐了") { Task { await performRemove(outcome: .donated) } }
+            Button("堆肥了") { Task { await performRemove(outcome: .composted) } }
             Button("没吃完,扔了") { Task { await performRemove(outcome: .wasted) } }
             Button("仅移除") { Task { await performDelete() } }
             Button("取消", role: .cancel) {}
