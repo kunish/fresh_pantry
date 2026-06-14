@@ -166,6 +166,8 @@ struct RecipeDetailView: View {
             Button("改成素食版") { Task { await rewrite("改成素食版,把肉类换成合适的素食食材") } }
             Button("低卡少油版") { Task { await rewrite("改成低卡少油版,减少油和高热量食材") } }
             Button("用我现有的食材替换") { Task { await rewrite("尽量用我现有的食材替换缺少的材料") } }
+            // #16: re-atomize the steps without changing the dish.
+            Button("整理步骤(拆成单步)") { Task { await rewrite("保持食材和做法不变,只把步骤拆成单一动作的短句,一步只做一件事") } }
             Button("取消", role: .cancel) {}
         } message: {
             Text("AI 会生成一个改写版本供你审核保存,原菜谱不变。")

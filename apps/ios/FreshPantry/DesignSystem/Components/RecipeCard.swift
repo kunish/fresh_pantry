@@ -18,6 +18,8 @@ struct RecipeCard: View {
     /// Distinct expiring/expired items this recipe would use up; a "临期 · N" badge
     /// renders when > 0.
     var expiringUse: Int = 0
+    /// Times the user has cooked this recipe (#7); a "做过 N 次" badge renders when > 0.
+    var cookCount: Int = 0
 
     private var palette: FkCategoryColors { FkCategoryIcon.palette(for: recipe.category) }
 
@@ -104,6 +106,14 @@ struct RecipeCard: View {
                         .padding(.horizontal, FkSpacing.sm)
                         .padding(.vertical, 2)
                         .background(Capsule().fill(Color.fkWarnSoft))
+                }
+                if cookCount > 0 {
+                    Text("做过 \(cookCount) 次")
+                        .font(.fkLabelSmall)
+                        .foregroundStyle(Color.fkPrimary)
+                        .padding(.horizontal, FkSpacing.sm)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(Color.fkPrimarySoft))
                 }
             }
 

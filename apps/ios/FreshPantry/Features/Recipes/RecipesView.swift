@@ -608,7 +608,8 @@ private struct RecipesContent: View {
                             onToggleFavorite: { store.toggleFavorite(recipe) },
                             matchedCount: store.hasInventoryContext ? store.matchedCount(recipe) : nil,
                             totalIngredients: store.hasInventoryContext ? recipe.ingredients.count : nil,
-                            expiringUse: store.expiringUseCount(recipe)
+                            expiringUse: store.expiringUseCount(recipe),
+                            cookCount: store.cookCount(recipe)
                         )
                     }
                     .buttonStyle(.fkPressable)
