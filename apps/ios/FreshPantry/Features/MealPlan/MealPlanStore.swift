@@ -167,35 +167,62 @@ final class MealPlanStore {
     /// tap lands), servings clamped to ≥ 1, minting a fresh UUID id (sync-clean).
     /// Returns whether a row was added; a persist failure removes it.
     @discardableResult
-    func addDish(recipe: Recipe, date: Date, servings: Int = 1) async -> Bool {
+    func addDish(recipe: Recipe, date: Date, servings: Int = 1, mealType: String? = nil, isLeftover: Bool = false) async -> Bool {
         guard !recipe.id.isEmpty else { return false }
         return await addPlannedEntry(
             recipeId: recipe.id,
             recipeName: recipe.name,
             recipeImageUrl: recipe.imageUrl,
             date: date,
-            servings: servings
+            servings: servings,
+            mealType: mealType,
+            isLeftover: isLeftover
         )
     }
 
-    /// Core optimistic add shared by `addDish` and `applyTemplate` — plans a dish
-    /// from its identity fields (recipeId/name/image) rather than a full `Recipe`.
+    /// Plans a free-text NOTE (no recipe) on `day` — "周三吃外卖", "泡面" etc. Empty
+    /// title is rejected. Optimistic, same single-row contract as `addDish`.
+    @discardableResult
+    func addNote(title: String, date: Date, mealType: String? = nil) async -> Bool {
+        let trimmed = title.trimmed
+        guard !trimmed.isEmpty else { return false }
+        return await addPlannedEntry(
+            recipeId: "",
+            recipeName: "",
+            recipeImageUrl: nil,
+            date: date,
+            servings: 1,
+            title: trimmed,
+            mealType: mealType
+        )
+    }
+
+    /// Core optimistic add shared by `addDish` / `addNote` / `applyTemplate` —
+    /// plans an entry from its identity fields rather than a full `Recipe`. A note
+    /// passes an empty recipeId + a `title`.
     @discardableResult
     private func addPlannedEntry(
         recipeId: String,
         recipeName: String,
         recipeImageUrl: String?,
         date: Date,
-        servings: Int
+        servings: Int,
+        title: String? = nil,
+        mealType: String? = nil,
+        isLeftover: Bool = false
     ) async -> Bool {
-        guard !recipeId.isEmpty else { return false }
+        // Either a recipe dish (recipeId) or a note (title) must be present.
+        guard !recipeId.isEmpty || !(title?.trimmed.isEmpty ?? true) else { return false }
         let entry = MealPlanEntry(
             id: Self.newId(),
             date: date,
             recipeId: recipeId,
             recipeName: recipeName,
             recipeImageUrl: recipeImageUrl,
-            servings: max(servings, 1)
+            servings: max(servings, 1),
+            title: title,
+            mealType: mealType,
+            isLeftover: isLeftover
         )
         entries.append(entry) // optimistic
         return await serializedPersist {
@@ -370,6 +397,8 @@ final class MealPlanStore {
         for entry: MealPlanEntry,
         recipesById: [String: Recipe]
     ) -> Recipe? {
+        // Leftovers were already cooked → no deduction; notes have no recipe.
+        guard !entry.isLeftover, !entry.recipeId.isEmpty else { return nil }
         guard let recipe = recipesById[entry.recipeId], !recipe.ingredients.isEmpty else { return nil }
         return recipe
     }

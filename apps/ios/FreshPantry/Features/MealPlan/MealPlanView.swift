@@ -79,6 +79,8 @@ private struct MealPlanContent: View {
     let dependencies: AppDependencies
 
     @State private var showingPicker = false
+    @State private var showNoteInput = false
+    @State private var noteText = ""
     /// Recipe corpus (id → recipe) + inventory names, for the 缺料 shortfall card.
     @State private var recipesById: [String: Recipe] = [:]
     @State private var inventoryNames: Set<String> = []
@@ -172,6 +174,19 @@ private struct MealPlanContent: View {
                     }
                 }
             )
+        }
+        .alert("添加便签", isPresented: $showNoteInput) {
+            TextField("如:周三吃外卖、聚餐", text: $noteText)
+            Button("取消", role: .cancel) {}
+            Button("添加") {
+                Task {
+                    if !(await store.addNote(title: noteText, date: store.selectedDay)) {
+                        showToast("便签内容不能为空")
+                    }
+                }
+            }
+        } message: {
+            Text("记一条不绑定菜谱的安排(不进缺料、不扣库存)")
         }
         // Completing a dish whose recipe still resolves offers a skippable
         // cook-time deduction — the same factory + review the detail 「做菜」 CTA
@@ -398,13 +413,23 @@ private struct MealPlanContent: View {
                     .foregroundStyle(Color.fkOnSurfaceVariant)
             }
             Spacer(minLength: FkSpacing.sm)
-            Button {
-                showingPicker = true
+            Menu {
+                Button {
+                    showingPicker = true
+                } label: {
+                    Label("添加菜谱", systemImage: "fork.knife")
+                }
+                Button {
+                    noteText = ""
+                    showNoteInput = true
+                } label: {
+                    Label("添加便签", systemImage: "note.text")
+                }
             } label: {
                 HStack(spacing: FkSpacing.xs) {
                     Image(systemName: "plus")
                         .font(.system(size: 13, weight: .bold))
-                    Text("添加菜品")
+                    Text("添加")
                         .font(.fkLabelMedium)
                 }
                 .foregroundStyle(Color.fkOnPrimary)
@@ -413,6 +438,7 @@ private struct MealPlanContent: View {
                 .background(Capsule().fill(Color.fkPrimary))
             }
             .buttonStyle(.fkPressable)
+            .accessibilityLabel("添加菜谱或便签")
         }
     }
 
@@ -626,19 +652,38 @@ private struct MealPlanDishRow: View {
             HStack(spacing: FkSpacing.md) {
                 cover
                 VStack(alignment: .leading, spacing: FkSpacing.xs) {
-                    Text(entry.recipeName)
+                    Text(entry.displayTitle)
                         .font(.fkTitleMedium)
                         .foregroundStyle(entry.done ? Color.fkOnSurfaceVariant : Color.fkOnSurface)
                         .strikethrough(entry.done, color: Color.fkOnSurfaceVariant)
                         .lineLimit(2)
-                    Text("\(entry.servings) 份")
-                        .font(.fkLabelSmall)
-                        .foregroundStyle(Color.fkOnSurfaceVariant)
+                    HStack(spacing: FkSpacing.xs) {
+                        if let mealType = entry.mealType, !mealType.isEmpty {
+                            tag(mealType, color: .fkPrimary)
+                        }
+                        if entry.isLeftover { tag("剩菜", color: .fkWarn) }
+                        if entry.isNote {
+                            tag("便签", color: .fkOnSurfaceVariant)
+                        } else {
+                            Text("\(entry.servings) 份")
+                                .font(.fkLabelSmall)
+                                .foregroundStyle(Color.fkOnSurfaceVariant)
+                        }
+                    }
                 }
                 Spacer(minLength: FkSpacing.sm)
                 doneToggle
             }
         }
+    }
+
+    private func tag(_ text: String, color: Color) -> some View {
+        Text(text)
+            .font(.fkLabelSmall)
+            .foregroundStyle(color)
+            .padding(.horizontal, FkSpacing.xs)
+            .padding(.vertical, 1)
+            .background(Capsule().fill(color.opacity(0.15)))
     }
 
     private var cover: some View {
@@ -655,7 +700,7 @@ private struct MealPlanDishRow: View {
     }
 
     private var glyph: some View {
-        Image(systemName: "fork.knife")
+        Image(systemName: entry.isNote ? "note.text" : "fork.knife")
             .font(.system(size: 22, weight: .semibold))
             .foregroundStyle(Color.fkPrimary)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
