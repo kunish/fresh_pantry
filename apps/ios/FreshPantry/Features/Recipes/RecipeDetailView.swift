@@ -221,6 +221,9 @@ struct RecipeDetailView: View {
                     // itself waits for this sheet's onDismiss) and re-sync the
                     // inventory-derived UI with the stock that just changed.
                     leftoverPromptPending = true
+                    // #7: 做菜 == cooking it → record a cook tally (best-effort).
+                    let cookedId = recipe.id
+                    Task { try? await dependencies.cookHistoryRepository.recordCook(recipeId: cookedId) }
                     if outcome.affectedCount > 0 {
                         withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
                             toast = "已扣减 \(outcome.affectedCount) 项库存"

@@ -54,7 +54,8 @@ struct MealPlanView: View {
             let store = MealPlanStore(
                 repository: dependencies.mealPlanRepository,
                 householdID: householdID,
-                syncWriter: dependencies.syncWriter
+                syncWriter: dependencies.syncWriter,
+                cookHistoryRepository: dependencies.cookHistoryRepository
             )
             // OFFLINE-FIRST, NO FLASH: load the new scope's local entries BEFORE
             // swapping the store in, so a household switch keeps the previous

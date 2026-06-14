@@ -17,6 +17,9 @@ final class MealPlanStore {
     private let householdID: String
     /// Optional outbox seam — nil keeps existing tests/previews local-only.
     private let syncWriter: SyncWriter?
+    /// Optional device-local cook tally (#7) — marking a planned dish done records
+    /// a cook. nil keeps existing tests local-only.
+    private let cookHistoryRepository: CookHistoryRepository?
 
     /// Repo-ordered entries (the source of truth for the whole household scope —
     /// every persist re-syncs this from a canonical reload).
@@ -34,11 +37,13 @@ final class MealPlanStore {
         repository: MealPlanRepository,
         householdID: String,
         today: Date = Date(),
-        syncWriter: SyncWriter? = nil
+        syncWriter: SyncWriter? = nil,
+        cookHistoryRepository: CookHistoryRepository? = nil
     ) {
         self.repository = repository
         self.householdID = householdID
         self.syncWriter = syncWriter
+        self.cookHistoryRepository = cookHistoryRepository
         let start = MealPlanStore.weekStart(containing: today)
         self.weekStart = start
         self.selectedDay = MealPlanEntry.dateOnly(today)
@@ -272,6 +277,11 @@ final class MealPlanStore {
                     patch: patch,
                     baseVersion: prior.remoteVersion
                 )
+            }
+            // #7: marking a recipe dish done == cooking it → record a cook tally
+            // (best-effort; not for notes/leftovers, which weren't freshly cooked).
+            if updatedEntry.done, !updatedEntry.recipeId.isEmpty, !updatedEntry.isLeftover {
+                try? await self.cookHistoryRepository?.recordCook(recipeId: updatedEntry.recipeId)
             }
             return true
         }

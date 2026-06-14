@@ -17,6 +17,8 @@ final class AppDependencies {
     /// Append-only food-departure log (consumed/wasted) — the waste-stats source
     /// of truth. The cook → deduction flow auto-logs consumed departures here.
     let foodLogRepository: FoodLogRepository
+    /// Device-local per-recipe cook tally (#7) — drives 最常做/好久没做 + 做过 N 次.
+    let cookHistoryRepository: CookHistoryRepository
     /// Single-row local cache of the current user's profile (avatar/name/nickname).
     let profileRepository: ProfileRepository
     /// Drives the profile-edit screen + the登录后 onboarding profile gate. Shared
@@ -138,6 +140,7 @@ final class AppDependencies {
     ) {
         self.inventoryRepository = InventoryRepository(modelContainer: modelContainer)
         self.foodLogRepository = FoodLogRepository(modelContainer: modelContainer)
+        self.cookHistoryRepository = CookHistoryRepository(modelContainer: modelContainer)
         self.profileRepository = ProfileRepository(modelContainer: modelContainer)
         self.shoppingRepository = ShoppingRepository(modelContainer: modelContainer)
         self.customRecipeRepository = CustomRecipeRepository(modelContainer: modelContainer)

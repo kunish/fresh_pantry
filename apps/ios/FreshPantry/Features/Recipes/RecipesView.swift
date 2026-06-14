@@ -134,7 +134,8 @@ struct RecipesView: View {
                     dietaryStore: dependencies.dietaryPreferencesStore,
                     dietPreferenceStore: dependencies.dietPreferenceStore,
                     remoteCatalog: dependencies.remoteRecipeCatalog,
-                    catalogCache: dependencies.recipeCatalogCache
+                    catalogCache: dependencies.recipeCatalogCache,
+                    cookHistoryRepository: dependencies.cookHistoryRepository
                 )
                 let customStore = CustomRecipeStore(
                     repository: dependencies.customRecipeRepository,
@@ -430,6 +431,14 @@ private struct RecipesContent: View {
                     isOn: store.favoritesOnly,
                     count: store.favoriteCount
                 ) { store.favoritesOnly.toggle() }
+
+                // #7 做过次数 sort — re-tap to turn off (back to source order).
+                FkChip(label: "最常做", isSelected: store.cookSort == .mostCooked) {
+                    store.cookSort = store.cookSort == .mostCooked ? .none : .mostCooked
+                }
+                FkChip(label: "好久没做", isSelected: store.cookSort == .leastRecent) {
+                    store.cookSort = store.cookSort == .leastRecent ? .none : .leastRecent
+                }
 
                 FkChip(
                     label: "全部",
