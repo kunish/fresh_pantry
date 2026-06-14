@@ -165,7 +165,7 @@ struct CookModeView: View {
                 Text(progress.label(index))
                     .font(.fkLabelLarge)
                     .foregroundStyle(Color.fkPrimary)
-                Text(text)
+                StepAnnotatedText(step: text, ingredients: ingredients)
                     .font(Self.stepFont)
                     .foregroundStyle(Color.fkOnSurface)
                     .lineSpacing(8)
@@ -256,8 +256,8 @@ struct CookModeView: View {
                                     .font(.fkBodyMedium)
                                     .foregroundStyle(Color.fkOnSurface)
                                 Spacer(minLength: FkSpacing.md)
-                                if !ingredient.displayAmount.trimmed.isEmpty {
-                                    Text(ingredient.displayAmount)
+                                if !ingredient.fractionAmount.trimmed.isEmpty {
+                                    Text(ingredient.fractionAmount)
                                         .font(.fkLabelMedium)
                                         .foregroundStyle(Color.fkOnSurfaceVariant)
                                 }

@@ -602,8 +602,8 @@ struct RecipeDetailView: View {
             Spacer(minLength: FkSpacing.sm)
             // Amount keeps layout priority so a long name truncates before it —
             // the quantity is the dense, must-read half of the row.
-            if !ingredient.displayAmount.trimmed.isEmpty {
-                Text(ingredient.displayAmount)
+            if !ingredient.fractionAmount.trimmed.isEmpty {
+                Text(ingredient.fractionAmount)
                     .font(.fkLabelMedium)
                     .foregroundStyle(Color.fkOnSurfaceVariant)
                     .layoutPriority(1)
@@ -642,9 +642,12 @@ struct RecipeDetailView: View {
         defer { isAddingMissing = false }
         var added = 0
         var failed = 0
-        for ingredient in missingIngredients {
-            let category = FoodKnowledge.lookup(ingredient.name)?.category
-            switch await shoppingStore.addItem(name: ingredient.name, category: category) {
+        // Carry the SCALED amount (备料倍数) as the shopping detail so the row shows
+        // a quantity and same-unit re-adds merge — fixes「改了份量却不进购物数量」.
+        let adds = RecipeMatching.missingShoppingDetails(inventoryNames, recipe, scaleFactor: scaleFactor)
+        for add in adds {
+            let category = FoodKnowledge.lookup(add.name)?.category
+            switch await shoppingStore.addItem(name: add.name, detail: add.detail, category: category) {
             case .added: added += 1
             case .duplicate: break // already on the list — the goal is met
             case .failed: failed += 1
