@@ -138,6 +138,8 @@ private struct ExpiringContent: View {
     @State private var pendingUndo: InventoryStore.RemovalUndo?
     /// True while the 清冰箱 AI generation is running (blocks re-tap + shows spinner).
     @State private var isGenerating = false
+    /// Free-text 约束 (口味/时间/餐次/忌口) folded into the generation prompt (#5).
+    @State private var generateConstraint = ""
     /// Inline 清冰箱 failure message (network / parse / not-configured), surfaced
     /// under the button. Cleared on a fresh attempt. nil ⇒ no error.
     @State private var generateError: String?
@@ -250,6 +252,16 @@ private struct ExpiringContent: View {
                     .font(.fkBodySmall)
                     .foregroundStyle(Color.fkOnSurfaceVariant)
 
+                TextField("可选要求:清淡 / 15分钟 / 晚餐 / 不要香菜…", text: $generateConstraint)
+                    .font(.fkBodyMedium)
+                    .textFieldStyle(.plain)
+                    .padding(.horizontal, FkSpacing.sm)
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: FkRadius.chip, style: .continuous)
+                            .fill(Color.fkSurface)
+                    )
+
                 Button {
                     Task { await generate() }
                 } label: {
@@ -315,7 +327,10 @@ private struct ExpiringContent: View {
         defer { isGenerating = false }
 
         do {
-            let draft = try await AiRecipeGenerator.fromIngredients(names) { messages in
+            let draft = try await AiRecipeGenerator.fromIngredients(
+                names,
+                constraint: generateConstraint
+            ) { messages in
                 try await AiClient.chat(
                     settings: settings,
                     messages: messages,
