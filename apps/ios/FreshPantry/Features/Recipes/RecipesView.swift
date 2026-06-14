@@ -351,6 +351,25 @@ private struct RecipesContent: View {
     /// one push mechanism (see the owner's comment).
     @Binding var selectedRoute: RecipeRoute?
 
+    @Environment(AppDependencies.self) private var dependencies
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    // The card long-press 快捷菜单 needs the same two writer stores the detail
+    // screen lazily builds for 加购 / 加入计划. Built once per household scope and
+    // dropped on a switch so a write never lands in the prior scope's lists
+    // (mirrors `RecipeDetailView`'s `storeScope` sentinel).
+    @State private var shoppingStore: ShoppingStore?
+    @State private var mealPlanStore: MealPlanStore?
+    @State private var storeScope: String?
+
+    /// `.sheet(item:)` routes carrying the recipe a contextMenu action fired on
+    /// (`Recipe` is `Hashable` but not `Identifiable`, hence the wrapper).
+    @State private var planRoute: RecipeActionRoute?
+    @State private var editRoute: RecipeActionRoute?
+    @State private var deleteRoute: RecipeActionRoute?
+    /// Local action feedback (加购 / 加入计划 / 删除) — own toast like the detail screen.
+    @State private var actionToast: String?
+
     var body: some View {
         ScrollView {
             VStack(spacing: FkSpacing.md) {
@@ -391,6 +410,190 @@ private struct RecipesContent: View {
                 customStore: customStore,
                 isCustom: customStore.recipes.contains { $0.id == route.recipe.id }
             )
+        }
+        // Build (and re-scope) the 加购 / 加入计划 writer stores for the card menu.
+        .task(id: dependencies.householdID) {
+            let householdID = dependencies.householdID
+            if storeScope != householdID {
+                shoppingStore = nil
+                mealPlanStore = nil
+                storeScope = householdID
+            }
+            if shoppingStore == nil {
+                let shopping = ShoppingStore(
+                    repository: dependencies.shoppingRepository,
+                    householdID: householdID,
+                    syncWriter: dependencies.syncWriter
+                )
+                await shopping.load()
+                guard dependencies.householdID == householdID, !Task.isCancelled else { return }
+                shoppingStore = shopping
+            }
+            if mealPlanStore == nil {
+                let plan = MealPlanStore(
+                    repository: dependencies.mealPlanRepository,
+                    householdID: householdID,
+                    syncWriter: dependencies.syncWriter
+                )
+                await plan.load()
+                guard dependencies.householdID == householdID, !Task.isCancelled else { return }
+                mealPlanStore = plan
+            }
+        }
+        .sheet(item: $planRoute) { route in
+            PlanDayPickerSheet(recipeName: route.recipe.name) { day in
+                await addToPlan(route.recipe, on: day)
+            }
+        }
+        .sheet(item: $editRoute) { route in
+            CustomRecipeFormView(
+                recipe: route.recipe,
+                store: customStore,
+                aiSettingsStore: dependencies.aiSettingsStore,
+                onSaved: { Task { await store.load(); await customStore.load() } }
+            )
+        }
+        .confirmationDialog(
+            "删除食谱",
+            isPresented: Binding(get: { deleteRoute != nil }, set: { if !$0 { deleteRoute = nil } }),
+            titleVisibility: .visible,
+            presenting: deleteRoute
+        ) { route in
+            Button("删除", role: .destructive) {
+                Task { await deleteCustom(route.recipe) }
+            }
+            Button("取消", role: .cancel) {}
+        } message: { route in
+            Text("确定要删除「\(route.recipe.name)」吗？此操作无法撤销。")
+        }
+        .overlay(alignment: .top) { actionToastBanner }
+    }
+
+    // MARK: Card long-press 快捷菜单
+
+    /// Quick actions for a recipe card's long-press 上下文菜单 — mirrors the detail
+    /// toolbar (收藏 / 加入膳食计划 / 加购缺料 / 自建食谱 编辑·删除) so a long-press finally
+    /// gives feedback, consistent with 库存 / 购物 / 膳食计划.
+    @ViewBuilder
+    private func recipeContextMenu(for recipe: Recipe) -> some View {
+        Button {
+            store.toggleFavorite(recipe)
+        } label: {
+            Label(
+                store.isFavorite(recipe) ? "取消收藏" : "收藏",
+                systemImage: store.isFavorite(recipe) ? "heart.slash" : "heart"
+            )
+        }
+        Button {
+            planRoute = RecipeActionRoute(recipe: recipe)
+        } label: {
+            Label("加入膳食计划", systemImage: "calendar.badge.plus")
+        }
+        .disabled(mealPlanStore == nil)
+        // 加购缺料 — only when an inventory context exists AND something is missing,
+        // so there's never a dead "加购缺少的 0 件" action.
+        if store.hasInventoryContext {
+            let missing = RecipeMatching.missingIngredients(store.inventoryNames, recipe).count
+            if missing > 0 {
+                Button {
+                    Task { await addMissingToShopping(recipe) }
+                } label: {
+                    Label("加购缺少的 \(missing) 件", systemImage: "cart.badge.plus")
+                }
+                .disabled(shoppingStore == nil)
+            }
+        }
+        if isCustom(recipe) {
+            Divider()
+            Button {
+                editRoute = RecipeActionRoute(recipe: recipe)
+            } label: {
+                Label("编辑", systemImage: "pencil")
+            }
+            Button(role: .destructive) {
+                deleteRoute = RecipeActionRoute(recipe: recipe)
+            } label: {
+                Label("删除", systemImage: "trash")
+            }
+        }
+    }
+
+    /// Whether `recipe` is a user-authored custom recipe (drives 编辑 / 删除).
+    private func isCustom(_ recipe: Recipe) -> Bool {
+        customStore.recipes.contains { $0.id == recipe.id }
+    }
+
+    /// Adds the recipe's missing ingredients to the shopping list (unscaled — the
+    /// list has no 备料倍数 control), then toasts. Reuses the exact detail-screen
+    /// add path so dedup / merge / category lookup stay one source of truth.
+    private func addMissingToShopping(_ recipe: Recipe) async {
+        guard let shoppingStore else { return }
+        let adds = RecipeMatching.missingShoppingDetails(store.inventoryNames, recipe, scaleFactor: 1)
+        guard !adds.isEmpty else { return }
+        var added = 0
+        var failed = 0
+        for add in adds {
+            let category = FoodKnowledge.lookup(add.name)?.category
+            switch await shoppingStore.addItem(name: add.name, detail: add.detail, category: category) {
+            case .added: added += 1
+            case .duplicate: break // already on the list — the goal is met
+            case .failed: failed += 1
+            }
+        }
+        if failed > 0 {
+            setActionToast(added > 0 ? "已添加 \(added) 项，部分添加失败，请重试" : "添加失败，请重试")
+        } else {
+            setActionToast(added > 0 ? "已添加 \(added) 项到购物清单" : "缺少的食材已在购物清单中")
+        }
+    }
+
+    /// Plans `recipe` on `day`, dismisses the picker, and toasts (mirrors the
+    /// detail screen's `addToPlan`).
+    private func addToPlan(_ recipe: Recipe, on day: Date) async {
+        guard let mealPlanStore else { return }
+        let ok = await mealPlanStore.addDish(recipe: recipe, date: day)
+        planRoute = nil
+        setActionToast(ok ? "已加入 \(PlanDayPickerSheet.dayLabel(day)) 的膳食计划" : "加入计划失败,请重试")
+    }
+
+    /// Deletes a custom recipe, then refreshes the merged browse list + toasts.
+    private func deleteCustom(_ recipe: Recipe) async {
+        guard await customStore.remove(recipe.id) else {
+            setActionToast("删除失败,请重试")
+            return
+        }
+        await store.load()
+        setActionToast("已删除「\(recipe.name)」")
+    }
+
+    private func setActionToast(_ message: String) {
+        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
+            actionToast = message
+        }
+    }
+
+    /// The standard top toast (mirrors `RecipesView.toastBanner`).
+    @ViewBuilder
+    private var actionToastBanner: some View {
+        if let actionToast {
+            Text(actionToast)
+                .font(.fkLabelLarge)
+                .foregroundStyle(Color.fkOnSurface)
+                .padding(.horizontal, FkSpacing.lg)
+                .padding(.vertical, FkSpacing.md)
+                .background(
+                    RoundedRectangle(cornerRadius: FkRadius.lg, style: .continuous)
+                        .fill(Color.fkSurfaceContainerLowest)
+                )
+                .fkCardShadow()
+                .padding(.top, FkSpacing.sm)
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .task(id: actionToast) {
+                    try? await Task.sleep(for: .seconds(2))
+                    if !Task.isCancelled {
+                        withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { self.actionToast = nil }
+                    }
+                }
         }
     }
 
@@ -561,6 +764,7 @@ private struct RecipesContent: View {
                                     seasonalPill(recipe)
                                 }
                                 .buttonStyle(.fkPressable)
+                                .contextMenu { recipeContextMenu(for: recipe) }
                             }
                         }
                         .padding(.horizontal, FkSpacing.lg)
@@ -613,6 +817,10 @@ private struct RecipesContent: View {
                         )
                     }
                     .buttonStyle(.fkPressable)
+                    // Long-press → quick-action menu (the screen used to give NO
+                    // long-press feedback while every other list tab did). Same
+                    // Button-in-fkPressable + .contextMenu pattern as MealPlanDishRow.
+                    .contextMenu { recipeContextMenu(for: recipe) }
                     .fkEntrance(index: index)
                 }
             }
@@ -734,4 +942,12 @@ private struct FavoritesChip: View {
 /// already, but wrapping keeps the route type explicit and future-proof.)
 private struct RecipeRoute: Hashable {
     let recipe: Recipe
+}
+
+/// `Identifiable` wrapper so a card's long-press contextMenu action can drive a
+/// `.sheet(item:)` / `.confirmationDialog(presenting:)` with the specific recipe
+/// it fired on (`Recipe` is `Hashable` but not `Identifiable`).
+private struct RecipeActionRoute: Identifiable {
+    let recipe: Recipe
+    var id: String { recipe.id }
 }

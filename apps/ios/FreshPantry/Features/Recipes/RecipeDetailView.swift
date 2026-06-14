@@ -936,8 +936,9 @@ private struct CookSession: Identifiable {
 
 /// 7-day picker for "加入膳食计划" — lists today + the next 6 local days with a
 /// weekday + date label, calling `onPick` (an async add) on tap. Mirrors the Dart
-/// `_PlanDayPickerSheet`.
-private struct PlanDayPickerSheet: View {
+/// `_PlanDayPickerSheet`. Internal (not `private`) so the 食谱 list's card
+/// long-press 加入膳食计划 reuses the exact same picker as the detail toolbar.
+struct PlanDayPickerSheet: View {
     let recipeName: String
     /// Async add action; the parent toasts + dismisses on completion.
     let onPick: (Date) async -> Void
