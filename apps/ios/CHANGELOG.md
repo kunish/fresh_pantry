@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.19.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.18.0...fresh_pantry-v1.19.0) (2026-06-14)
+
+
+### Features
+
+* **ios:** [#15](https://github.com/kunish/fresh_pantry/issues/15) 减废去向口径 — 捐了/堆肥(donated/composted) ([d904bd5](https://github.com/kunish/fresh_pantry/commit/d904bd5c2a297730a4a39f39b7bd53c400acea00))
+* **ios:** P4 收藏/忌口家庭同步 — 集合成员确定性 id + 端到端同步 ([e275b9d](https://github.com/kunish/fresh_pantry/commit/e275b9da45ae812d65a3839debf007b3d611e78d))
+* **ios:** 懒饭对齐——贴士/内嵌视频/今天做什么 Intent/营养卡/步骤倒计时 ([8716cea](https://github.com/kunish/fresh_pantry/commit/8716cead7a1125a3e7d5ce824f52c8014ef0b496))
+* **ios:** 竞品 follow-up — [#7](https://github.com/kunish/fresh_pantry/issues/7) RecipeCard 做过N次徽章 + [#16](https://github.com/kunish/fresh_pantry/issues/16) AI整理步骤预设 ([7fba958](https://github.com/kunish/fresh_pantry/commit/7fba95878d394547b9261b0a8b4c49d742daa288))
+* **ios:** 竞品落地批次1 — 加购缩放传导/营养评分徽章/步骤食材内联/缩放分数显示 ([d3143d6](https://github.com/kunish/fresh_pantry/commit/d3143d6e108c2950bbe2b06fa7f1a700f5a29a7b))
+* **ios:** 竞品落地批次10(Recipe区) — [#16](https://github.com/kunish/fresh_pantry/issues/16) AI步骤原子化(导入 prompt) ([6976909](https://github.com/kunish/fresh_pantry/commit/69769097cc0cd5b5fa9b2195c234b2dbfe606c11))
+* **ios:** 竞品落地批次11(Recipe区) — [#6](https://github.com/kunish/fresh_pantry/issues/6) AI改写菜谱 ([9256ae2](https://github.com/kunish/fresh_pantry/commit/9256ae22a628849fb72d946a55c628a83302283d))
+* **ios:** 竞品落地批次12(Recipe区) — [#7](https://github.com/kunish/fresh_pantry/issues/7) 做过次数/上次做履历(设备本地) ([0a42d64](https://github.com/kunish/fresh_pantry/commit/0a42d6429d29387113e30408fa6112eb38dec515))
+* **ios:** 竞品落地批次13(Recipe区) — [#18](https://github.com/kunish/fresh_pantry/issues/18) 临期看板「→做这道菜」直达 ([e2f2df0](https://github.com/kunish/fresh_pantry/commit/e2f2df070914f83cede8c9273974509fd7c7fdcf))
+* **ios:** 竞品落地批次2 — [#19](https://github.com/kunish/fresh_pantry/issues/19) 购物货架动线可拖拽自定义排序 ([9b2bf63](https://github.com/kunish/fresh_pantry/commit/9b2bf636284ab07b788ceed9fe2933aa4f9eecaa))
+* **ios:** 竞品落地批次3 — [#15](https://github.com/kunish/fresh_pantry/issues/15) 减废游戏化(零浪费连胜+成就徽章) ([038a47c](https://github.com/kunish/fresh_pantry/commit/038a47c162f28286507199480357f37eb401a229))
+* **ios:** 竞品落地批次4 — [#8](https://github.com/kunish/fresh_pantry/issues/8) 消耗速率预测式补货 ([0a93c43](https://github.com/kunish/fresh_pantry/commit/0a93c43f50091e89ac1e06bef1d0eaf7ad027c57))
+* **ios:** 竞品落地批次5 — [#11](https://github.com/kunish/fresh_pantry/issues/11) 节气时令推荐 ([b332576](https://github.com/kunish/fresh_pantry/commit/b332576bedf3a69cfebf005ad4b4ab649eae8582))
+* **ios:** 竞品落地批次6 — [#14](https://github.com/kunish/fresh_pantry/issues/14) 整周膳食模板 ([ccdf490](https://github.com/kunish/fresh_pantry/commit/ccdf4906ddf26270055b4c0154ff81126f110689))
+* **ios:** 竞品落地批次7 — [#12](https://github.com/kunish/fresh_pantry/issues/12) MealPlan 便签+餐别+剩菜(payload-only,零SQL迁移) ([eb639d7](https://github.com/kunish/fresh_pantry/commit/eb639d773fc5844c09efdf995ab2ca3466e419b5))
+* **ios:** 竞品落地批次8 — [#13](https://github.com/kunish/fresh_pantry/issues/13) App内语音口述录入 ([bec722b](https://github.com/kunish/fresh_pantry/commit/bec722b6f7b9302e33bb76c29ad8b5d8f17d7e43))
+* **ios:** 竞品落地批次9(Recipe区) — [#4](https://github.com/kunish/fresh_pantry/issues/4) URL导入白名单放宽 + [#5](https://github.com/kunish/fresh_pantry/issues/5) 对话式约束生成 ([469b9ed](https://github.com/kunish/fresh_pantry/commit/469b9ed2f5a5bef416a9627649de5c9b0a647024))
+* **pipeline:** 全量补菜谱营养/时长 + 灌 prod ([fe62126](https://github.com/kunish/fresh_pantry/commit/fe621265f4d29d58e8b93d5ffd4072ea006227a9))
+* **pipeline:** 菜谱营养估算 + 每步时长 enrich + 灌库列 + iOS 读取 ([fa7510a](https://github.com/kunish/fresh_pantry/commit/fa7510a7261b8c72bcb49ed648d6df63df73535b))
+
 ## [1.18.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.17.0...fresh_pantry-v1.18.0) (2026-06-14)
 
 
