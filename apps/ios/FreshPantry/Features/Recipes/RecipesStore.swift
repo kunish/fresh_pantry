@@ -256,6 +256,20 @@ final class RecipesStore {
             .filter { !RecipeMatching.hasExcludedIngredient($0, exclusions) }
     }
 
+    /// 当前节气名 (e.g. "芒种") — labels the 时令推荐 carousel.
+    func currentSolarTermName(now: Date = Date()) -> String {
+        SeasonalRules.currentTerm(now).name
+    }
+
+    /// In-season recipes for today (ranked by distinct in-season ingredients),
+    /// honoring 忌口 exclusions. Empty when nothing matches. Shown only on the
+    /// 探索 tab with no active query so it never fights the filtered list.
+    func seasonalRecipes(now: Date = Date(), limit: Int = 6) -> [Recipe] {
+        let exclusions = dietaryStore?.keywords ?? []
+        let eligible = recipes.filter { !RecipeMatching.hasExcludedIngredient($0, exclusions) }
+        return SeasonalRules.rankRecipes(eligible, date: now, limit: limit)
+    }
+
     /// The per-tab source list BEFORE the shared filters. `explore`/`mine` keep
     /// source order; `available`/`expiring` are inventory-ranked (empty without
     /// an inventory context, which the view renders as a contextual empty state).

@@ -355,6 +355,8 @@ private struct RecipesContent: View {
                     expiringBanner
                 }
 
+                seasonalCarousel
+
                 listBody
             }
             .padding(.top, FkSpacing.sm)
@@ -508,6 +510,58 @@ private struct RecipesContent: View {
     }
 
     // MARK: List / empty / loading
+
+    /// 节气时令推荐 — a horizontal carousel of in-season dishes, only on the 探索
+    /// tab with no active query (so it never competes with a filtered list).
+    @ViewBuilder
+    private var seasonalCarousel: some View {
+        if store.tab == .explore, !store.hasActiveQuery {
+            let seasonal = store.seasonalRecipes()
+            if !seasonal.isEmpty {
+                VStack(alignment: .leading, spacing: FkSpacing.sm) {
+                    HStack(spacing: FkSpacing.xs) {
+                        Image(systemName: "leaf.fill")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Color.fkPrimary)
+                        Text("\(store.currentSolarTermName()) · 时令推荐")
+                            .font(.fkTitleSmall)
+                            .foregroundStyle(Color.fkOnSurface)
+                    }
+                    .padding(.horizontal, FkSpacing.lg)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: FkSpacing.sm) {
+                            ForEach(seasonal, id: \.id) { recipe in
+                                Button {
+                                    selectedRoute = RecipeRoute(recipe: recipe)
+                                } label: {
+                                    seasonalPill(recipe)
+                                }
+                                .buttonStyle(.fkPressable)
+                            }
+                        }
+                        .padding(.horizontal, FkSpacing.lg)
+                    }
+                }
+            }
+        }
+    }
+
+    private func seasonalPill(_ recipe: Recipe) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(recipe.name)
+                .font(.fkLabelLarge)
+                .foregroundStyle(Color.fkOnSurface)
+                .lineLimit(1)
+            Text(recipe.category)
+                .font(.fkLabelSmall)
+                .foregroundStyle(Color.fkOnSurfaceVariant)
+        }
+        .padding(FkSpacing.md)
+        .frame(width: 130, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: FkRadius.lg, style: .continuous).fill(Color.fkPrimarySoft))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("时令推荐 \(recipe.name)")
+    }
 
     @ViewBuilder
     private var listBody: some View {
