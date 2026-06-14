@@ -149,6 +149,7 @@ private struct ExpiringContent: View {
     /// Recipes' `RecipeRoute`).
     @State private var generatedDraft: GeneratedDraftRoute?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(RecipeFilterRouter.self) private var recipeFilterRouter
 
     var body: some View {
         VStack(spacing: FkSpacing.md) {
@@ -372,6 +373,10 @@ private struct ExpiringContent: View {
                         withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) { toast = message }
                     }
                 }
+            }
+            // #18: jump to 食谱 tab filtered to dishes using this expiring item.
+            actionButton("做这道菜", systemImage: "frying.pan", tint: Color.fkPrimary) {
+                recipeFilterRouter.capture(ingredient: item.name)
             }
         }
     }

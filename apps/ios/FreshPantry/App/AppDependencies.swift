@@ -79,6 +79,8 @@ final class AppDependencies {
     /// Holds a recipe URL handed in by the Share Extension until 食谱 can open the
     /// pre-filled 新建食谱 import form. Always built (no backend dependency).
     let recipeImportRouter: RecipeImportRouter
+    /// Carries an ingredient name from 临期看板「→做这道菜」 to the Recipes tab (#18).
+    let recipeFilterRouter: RecipeFilterRouter
     /// Holds a tapped expiry-notification id until the Dashboard pushes the 临期
     /// screen. Producer = `notificationService.onTap` (wired below); consumer =
     /// `DashboardView`. Always built (local notifications need no backend).
@@ -159,6 +161,7 @@ final class AppDependencies {
         self.debugMenuGate = DebugMenuGate()
         self.inviteRouter = InviteRouter()
         self.recipeImportRouter = RecipeImportRouter()
+        self.recipeFilterRouter = RecipeFilterRouter()
         let notificationTapRouter = NotificationTapRouter()
         self.notificationTapRouter = notificationTapRouter
         self.spotlightIndexer = SpotlightIndexer()

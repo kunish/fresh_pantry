@@ -16,6 +16,7 @@ struct RecipesView: View {
 
     @Environment(AppDependencies.self) private var dependencies
     @Environment(RecipeImportRouter.self) private var importRouter
+    @Environment(RecipeFilterRouter.self) private var recipeFilterRouter
     @State private var store: RecipesStore?
     /// CRUD owner for the user's custom recipes — drives the create/edit form and
     /// distinguishes custom recipes (for the detail edit/delete affordances).
@@ -163,6 +164,7 @@ struct RecipesView: View {
             consumeImportIntent()
             consumePendingRecipe()
             consumePendingRecipesTab()
+            consumePendingIngredient()
             #if DEBUG
             // Snapshot affordance: `-initialRoute cook` seeds the inventory,
             // picks a recipe that matches it, and pushes its detail (whose own
@@ -184,6 +186,19 @@ struct RecipesView: View {
         // appears. The cold `.task` above tail-applies the not-yet-loaded case.
         .task(id: pendingRecipeID) { consumePendingRecipe() }
         .task(id: pendingRecipesTab) { consumePendingRecipesTab() }
+        .task(id: recipeFilterRouter.pendingIngredient) { consumePendingIngredient() }
+    }
+
+    /// 临期→做这道菜 (#18): filter the 探索 tab to recipes using the tapped
+    /// ingredient by setting the search to its name. Clears other narrowing
+    /// filters first so the full set of matching dishes shows. Waits for load so a
+    /// cold-start intent resolves against the real corpus.
+    private func consumePendingIngredient() {
+        guard let name = recipeFilterRouter.pendingIngredient, let store, store.hasLoaded else { return }
+        recipeFilterRouter.consume()
+        store.tab = .explore
+        store.clearFilters()
+        store.searchQuery = name
     }
 
     /// Applies a pending Spotlight deep link: pushes the matching recipe's
