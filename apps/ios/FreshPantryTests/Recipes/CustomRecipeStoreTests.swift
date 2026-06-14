@@ -212,6 +212,39 @@ struct CustomRecipeStoreTests {
         #expect(built.tags == ["新标签", "宴客"])
     }
 
+    // MARK: 贴士/备注
+
+    @Test func newRecipeCarriesDraftNotes() {
+        let built = CustomRecipeDraft(
+            name: "测试",
+            cookingMinutes: "20",
+            difficulty: 3,
+            ingredients: [.init(name: "盐", quantity: "1", unit: "勺")],
+            steps: [.init(text: "拌匀")],
+            notes: "焯水后冲冷水,肉质更紧实"
+        ).buildRecipe()
+        #expect(built.notes == "焯水后冲冷水,肉质更紧实")
+    }
+
+    @Test func buildTrimsBlankNotesToNil() {
+        // 空白贴士保存为 nil(与 description 同一规整),不落空串。
+        let built = CustomRecipeDraft(
+            name: "测试",
+            cookingMinutes: "20",
+            difficulty: 3,
+            ingredients: [.init(name: "盐", quantity: "1", unit: "勺")],
+            steps: [.init(text: "拌匀")],
+            notes: "   "
+        ).buildRecipe()
+        #expect(built.notes == nil)
+    }
+
+    @Test func seedFromRecipeExposesNotes() {
+        let existing = recipe(id: "abc").copyWith(notes: "记得少放盐")
+        let draft = CustomRecipeDraft(recipe: existing)
+        #expect(draft.notes == "记得少放盐")
+    }
+
     @Test func editPreservesRangeQuantity() {
         // 编辑带范围用量的食材时,上界必须经文本框往返保留(回归:曾退化成下界,丢 quantityMax)
         let existing = recipe(id: "r1").copyWith(

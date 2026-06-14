@@ -59,6 +59,8 @@ struct CustomRecipeDraft: Equatable {
     /// `buildRecipe` canonicalizes via `Ingredient.normalizeTags` on save — the same
     /// single-source shaping the inventory tags use.
     var tags: [String]
+    /// 烹饪贴士/备注:可选自由文本,保存进 `Recipe.notes`(空白 → nil)。
+    var notes: String
 
     init(
         name: String = "",
@@ -69,7 +71,8 @@ struct CustomRecipeDraft: Equatable {
         ingredients: [IngredientRow] = [IngredientRow()],
         steps: [StepRow] = [StepRow()],
         imageUrl: String? = nil,
-        tags: [String] = []
+        tags: [String] = [],
+        notes: String = ""
     ) {
         self.name = name
         self.category = category
@@ -80,6 +83,7 @@ struct CustomRecipeDraft: Equatable {
         self.steps = steps
         self.imageUrl = imageUrl
         self.tags = tags
+        self.notes = notes
     }
 
     /// Seeds the draft from an existing recipe (edit mode). The structured
@@ -112,7 +116,8 @@ struct CustomRecipeDraft: Equatable {
             ingredients: rows.isEmpty ? [IngredientRow()] : rows,
             steps: steps.isEmpty ? [StepRow()] : steps,
             imageUrl: recipe.imageUrl,
-            tags: recipe.tags
+            tags: recipe.tags,
+            notes: recipe.notes ?? ""
         )
     }
 
@@ -369,6 +374,7 @@ struct CustomRecipeDraft: Equatable {
             // the seed-from-existing path keeps an untouched edit identical.
             tags: Ingredient.normalizeTags(tags),
             imageUrl: imageUrl?.trimmed.isEmpty == false ? imageUrl?.trimmed : nil,
+            notes: notes.trimmed.isEmpty ? nil : notes.trimmed,
             remoteVersion: existing?.remoteVersion ?? 0,
             clientUpdatedAt: existing?.clientUpdatedAt,
             deletedAt: existing?.deletedAt

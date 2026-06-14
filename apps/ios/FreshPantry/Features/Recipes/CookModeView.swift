@@ -38,11 +38,14 @@ struct CookModeProgress: Equatable, Sendable {
 
 /// Full-screen cooking mode (fullScreenCover): one swipeable page per step with
 /// large readable text, 上一步/下一步 controls (完成 on the last page), a 食材速查
-/// sheet, and an idle-timer override so the screen stays awake at the stove.
-/// Timers / Live Activities / voice are explicitly out of scope this round.
+/// sheet, an idle-timer override so the screen stays awake at the stove, and a
+/// per-step countdown timer when the step carries a pipeline-parsed duration.
 struct CookModeView: View {
     let title: String
     let steps: [String]
+    /// 每步时长(秒,与 `steps` 索引对齐;某步无时长为 nil)。空数组 = 整菜无时长
+    /// 数据。驱动每步右上角的「计时」倒计时按钮。
+    var stepDurations: [Int?] = []
     /// Already scaled by the caller's 备料倍数 (`RecipeDetailView.scaledIngredients`)
     /// — Cook Mode renders amounts verbatim so scaling keeps a single source.
     let ingredients: [RecipeIngredient]
@@ -158,13 +161,21 @@ struct CookModeView: View {
     }
 
     /// One full step per page; the ScrollView keeps long steps readable without
-    /// truncation.
+    /// truncation. When the step has a parsed duration, a 计时 countdown button
+    /// sits beside the page label.
     private func stepPage(index: Int, text: String) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: FkSpacing.lg) {
-                Text(progress.label(index))
-                    .font(.fkLabelLarge)
-                    .foregroundStyle(Color.fkPrimary)
+                HStack(spacing: FkSpacing.md) {
+                    Text(progress.label(index))
+                        .font(.fkLabelLarge)
+                        .foregroundStyle(Color.fkPrimary)
+                    Spacer(minLength: FkSpacing.sm)
+                    if let seconds = durationForStep(index) {
+                        // `.id(index)` 让换步时倒计时归零重置(SwiftUI 重建该视图)。
+                        StepCountdownButton(totalSeconds: seconds).id(index)
+                    }
+                }
                 Text(text)
                     .font(Self.stepFont)
                     .foregroundStyle(Color.fkOnSurface)
@@ -174,6 +185,15 @@ struct CookModeView: View {
             .padding(FkSpacing.lg)
             .padding(.top, FkSpacing.md)
         }
+    }
+
+    /// The step's effective countdown seconds, or nil when it has no parsed
+    /// duration (array shorter than steps, a nil element, or a non-positive value).
+    private func durationForStep(_ index: Int) -> Int? {
+        guard stepDurations.indices.contains(index), let seconds = stepDurations[index], seconds > 0 else {
+            return nil
+        }
+        return seconds
     }
 
     // MARK: 上一步 / 下一步 / 完成
@@ -282,5 +302,63 @@ struct CookModeView: View {
             .tint(.fkPrimary)
         }
         .presentationDetents([.medium, .large])
+    }
+}
+
+/// 单步倒计时按钮:点击开始 → mm:ss 递减 → 再点暂停 / 继续。换步时父级用 `.id`
+/// 重建即重置。归零震动一次并停。纯展示状态机(格式化见已测的 `CookStepTimer`)。
+private struct StepCountdownButton: View {
+    let totalSeconds: Int
+    @State private var remaining: Int?
+    @State private var running = false
+
+    private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        Button(action: toggle) {
+            HStack(spacing: FkSpacing.xs) {
+                Image(systemName: running ? "pause.fill" : (remaining == nil ? "timer" : "play.fill"))
+                    .font(.system(size: 13, weight: .semibold))
+                Text(label)
+                    .font(.fkLabelLarge)
+                    .monospacedDigit()
+            }
+            .foregroundStyle(Color.fkPrimaryContainer)
+            .padding(.horizontal, FkSpacing.md)
+            .padding(.vertical, 8)
+            .background(Capsule().fill(Color.fkPrimarySoft))
+        }
+        .buttonStyle(.fkPressable)
+        .onReceive(ticker) { _ in tick() }
+        .accessibilityLabel(
+            running
+                ? "暂停计时,剩余 \(CookStepTimer.countdown(remaining: remaining ?? 0))"
+                : "开始计时 \(CookStepTimer.label(seconds: totalSeconds))"
+        )
+    }
+
+    private var label: String {
+        if let remaining { return CookStepTimer.countdown(remaining: remaining) }
+        return "计时 · " + CookStepTimer.label(seconds: totalSeconds)
+    }
+
+    private func toggle() {
+        if running {
+            running = false
+        } else {
+            if remaining == nil || remaining == 0 { remaining = totalSeconds }
+            running = true
+        }
+    }
+
+    private func tick() {
+        guard running, let current = remaining else { return }
+        if current > 1 {
+            remaining = current - 1
+        } else {
+            remaining = 0
+            running = false
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        }
     }
 }

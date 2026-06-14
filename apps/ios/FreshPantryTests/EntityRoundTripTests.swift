@@ -96,6 +96,68 @@ struct EntityRoundTripTests {
         #expect(decoded.videoUrl == nil)
     }
 
+    @Test func recipeNotesRoundTrip() throws {
+        // 烹饪贴士/备注:自由文本随菜谱往返编解码。
+        let recipe = Recipe(
+            id: "r_n", name: "红烧肉", category: "荤菜", difficulty: 3,
+            cookingMinutes: 60, description: "下饭",
+            ingredients: [], steps: ["焯水", "炖"], tags: [],
+            notes: "焯水后冲冷水,肉质更紧实"
+        )
+        let json = try DomainJSON.encodeToString(recipe)
+        let decoded = try DomainJSON.decode(Recipe.self, from: json)
+        #expect(decoded.notes == "焯水后冲冷水,肉质更紧实")
+    }
+
+    @Test func recipeMissingNotesDecodesNil() throws {
+        // 老数据没有 notes 键 → 向后兼容解码为 nil(lenient)。
+        let legacy = #"{"id":"r1","name":"n","category":"荤菜","difficulty":1,"cookingMinutes":10,"description":"d","ingredients":[],"steps":[],"tags":[],"imageUrl":null,"remoteVersion":0}"#
+        let decoded = try DomainJSON.decode(Recipe.self, from: legacy)
+        #expect(decoded.notes == nil)
+    }
+
+    @Test func recipeNutritionRoundTrip() throws {
+        // 每份营养(pipeline LLM 估算)随菜谱往返。
+        let recipe = Recipe(
+            id: "r_nut", name: "番茄炒蛋", category: "家常", difficulty: 2,
+            cookingMinutes: 15, description: "", ingredients: [], steps: [],
+            nutrition: NutritionFacts(energyKcal: 220, protein: 12, carbs: 8, fat: 14)
+        )
+        let json = try DomainJSON.encodeToString(recipe)
+        let decoded = try DomainJSON.decode(Recipe.self, from: json)
+        #expect(decoded.nutrition?.energyKcal == 220)
+        #expect(decoded.nutrition?.protein == 12)
+        #expect(decoded.nutrition?.carbs == 8)
+        #expect(decoded.nutrition?.fat == 14)
+    }
+
+    @Test func recipeMissingNutritionDecodesNil() throws {
+        // 老数据无 nutrition 键 → 向后兼容解码为 nil。
+        let legacy = #"{"id":"r1","name":"n","category":"荤菜","difficulty":1,"cookingMinutes":10,"description":"d","ingredients":[],"steps":[],"tags":[],"remoteVersion":0}"#
+        let decoded = try DomainJSON.decode(Recipe.self, from: legacy)
+        #expect(decoded.nutrition == nil)
+    }
+
+    @Test func recipeStepDurationsRoundTrip() throws {
+        // 每步时长(秒,与 steps 索引对齐;某步无时长为 null)随菜谱往返。
+        let recipe = Recipe(
+            id: "r_sd", name: "炖肉", category: "荤菜", difficulty: 3,
+            cookingMinutes: 40, description: "", ingredients: [],
+            steps: ["焯水", "炖煮"], stepDurations: [nil, 1800]
+        )
+        let json = try DomainJSON.encodeToString(recipe)
+        let decoded = try DomainJSON.decode(Recipe.self, from: json)
+        #expect(decoded.stepDurations == [nil, 1800])
+    }
+
+    @Test func recipeMissingStepDurationsDecodesNil() throws {
+        // 老数据无 stepDurations 键 → 向后兼容解码为 nil(steps 仍是纯字符串)。
+        let legacy = #"{"id":"r1","name":"n","category":"荤菜","difficulty":1,"cookingMinutes":10,"description":"d","ingredients":[],"steps":["a"],"tags":[],"remoteVersion":0}"#
+        let decoded = try DomainJSON.decode(Recipe.self, from: legacy)
+        #expect(decoded.stepDurations == nil)
+        #expect(decoded.steps == ["a"])
+    }
+
     @Test func difficultyLabel() {
         func recipe(_ d: Int) -> Recipe {
             Recipe(id: "x", name: "n", category: "", difficulty: d,

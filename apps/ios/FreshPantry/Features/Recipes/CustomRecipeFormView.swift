@@ -449,6 +449,10 @@ struct CustomRecipeFormView: View {
                     multilineField(text: $draft.description, placeholder: "简单描述这道菜的特色…")
                 }
 
+                FkFormField(label: "烹饪贴士") {
+                    multilineField(text: $draft.notes, placeholder: "做菜小窍门、易错点(可选)…")
+                }
+
                 FkFormField(label: "标签") {
                     IngredientTagsEditor(tags: $draft.tags)
                 }

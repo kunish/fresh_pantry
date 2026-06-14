@@ -93,6 +93,7 @@ struct RecipeDetailView: View {
                 hero
                 header
                 ingredientsSection
+                nutritionSection
                 stepsSection
             }
             .padding(.bottom, FkSpacing.huge)
@@ -214,7 +215,25 @@ struct RecipeDetailView: View {
             }
         }
         .sheet(item: $videoLink) { link in
-            SafariView(url: link.url).ignoresSafeArea()
+            NavigationStack {
+                WebVideoView(url: link.url)
+                    .ignoresSafeArea(edges: .bottom)
+                    .navigationTitle("做法视频")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            // 保留「跳出到系统浏览器」作为补充入口(弹幕/评论等完整体验)。
+                            Link(destination: link.url) {
+                                Image(systemName: "safari")
+                            }
+                            .accessibilityLabel("在浏览器中打开")
+                        }
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("完成") { videoLink = nil }
+                        }
+                    }
+            }
+            .presentationDetents([.medium, .large])
         }
         .sheet(isPresented: $showPlanPicker) {
             PlanDayPickerSheet(recipeName: recipe.name) { day in
@@ -231,7 +250,7 @@ struct RecipeDetailView: View {
         }) {
             // Pass the SCALED ingredients so the 食材速查 sheet matches the
             // active 备料倍数 (single scaling source: `scaledIngredients`).
-            CookModeView(title: recipe.name, steps: recipe.steps, ingredients: scaledIngredients) {
+            CookModeView(title: recipe.name, steps: recipe.steps, stepDurations: recipe.stepDurations ?? [], ingredients: scaledIngredients) {
                 // 完成 (vs the X close): the dish got cooked — reflect it in the
                 // step checklist and queue the deduction offer.
                 checkedSteps = Set(recipe.steps.indices)
@@ -464,6 +483,9 @@ struct RecipeDetailView: View {
                     .foregroundStyle(Color.fkOnSurfaceVariant)
                     .padding(.top, FkSpacing.xs)
             }
+            if let notes = recipe.notes?.trimmed, !notes.isEmpty {
+                tipsBlock(notes)
+            }
             if let url = videoURL {
                 Button {
                     videoLink = VideoLink(url: url)
@@ -489,6 +511,33 @@ struct RecipeDetailView: View {
                 .font(.fkLabelMedium)
         }
         .foregroundStyle(Color.fkOnSurfaceVariant)
+    }
+
+    /// 烹饪贴士展示块(详情页 header 内,简介之后、视频之前)。承接懒饭「防出错
+    /// 贴士」的价值,走个人/家庭路径——纯展示 `recipe.notes`,无社区。
+    private func tipsBlock(_ text: String) -> some View {
+        HStack(alignment: .top, spacing: FkSpacing.sm) {
+            Image(systemName: "lightbulb.fill")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Color.fkPrimary)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("小贴士")
+                    .font(.fkLabelMedium)
+                    .foregroundStyle(Color.fkOnSurfaceVariant)
+                Text(text)
+                    .font(.fkBodyMedium)
+                    .foregroundStyle(Color.fkOnSurface)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .padding(FkSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: FkRadius.lg, style: .continuous)
+                .fill(Color.fkPrimarySoft)
+        )
+        .padding(.top, FkSpacing.xs)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("小贴士:\(text)")
     }
 
     // MARK: Ingredients
@@ -670,6 +719,18 @@ struct RecipeDetailView: View {
         showPlanPicker = false
         withAnimation(FkMotion.animation(FkMotion.standard, reduceMotion: reduceMotion)) {
             toast = ok ? "已加入 \(PlanDayPickerSheet.dayLabel(day)) 的膳食计划" : "加入计划失败,请重试"
+        }
+    }
+
+    // MARK: Nutrition
+
+    /// 每份营养卡(复用库存的 `NutritionCard`,副标题改「每份 · 约」)。仅当该菜
+    /// 估算过营养(`hasAny`)时显示;懒饭把营养锁会员墙,这里免费给。
+    @ViewBuilder
+    private var nutritionSection: some View {
+        if let nutrition = recipe.nutrition, nutrition.hasAny {
+            NutritionCard(nutrition: nutrition, caption: "每份 · 约")
+                .padding(.horizontal, FkSpacing.lg)
         }
     }
 

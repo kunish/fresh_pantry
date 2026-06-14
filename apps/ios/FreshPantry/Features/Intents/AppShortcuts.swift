@@ -29,5 +29,15 @@ struct FreshPantryAppShortcuts: AppShortcutsProvider {
             shortTitle: "查临期食材",
             systemImageName: "clock.badge.exclamationmark"
         )
+        AppShortcut(
+            intent: TodayRecipeIntent(),
+            phrases: [
+                "用\(.applicationName)今天做什么",
+                "\(.applicationName)今天吃什么",
+                "用\(.applicationName)推荐做菜",
+            ],
+            shortTitle: "今天做什么",
+            systemImageName: "fork.knife"
+        )
     }
 }

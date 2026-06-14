@@ -7,11 +7,13 @@ import SwiftUI
 /// 1-decimal.
 struct NutritionCard: View {
     let nutrition: NutritionFacts
+    /// 副标题语义:库存食材是「每 100g」(OFF 默认),菜谱是「每份 · 约」(估算)。
+    var caption: String = "每 100g"
 
     var body: some View {
         FkCard {
             VStack(alignment: .leading, spacing: FkSpacing.md) {
-                Text("营养成分 · 每 100g")
+                Text("营养成分 · \(caption)")
                     .font(.fkTitleMedium)
                     .foregroundStyle(Color.fkOnSurface)
                 HStack(alignment: .top, spacing: FkSpacing.md) {

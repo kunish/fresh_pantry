@@ -238,6 +238,14 @@ struct Recipe: Hashable, Sendable, Codable {
     var tags: [String]
     var imageUrl: String?
     var videoUrl: String?
+    /// 烹饪贴士/备注:自由文本。自定义菜谱由用户填写;远程菜谱将来可携带。
+    var notes: String?
+    /// 每份营养(pipeline LLM 估算,展示标注「约」)。复用 OFF 的 `NutritionFacts` 结构,
+    /// 但语义是「每份」而非「每 100g」。nil = 该菜未估算营养。
+    var nutrition: NutritionFacts?
+    /// 每步时长(秒),与 `steps` 索引对齐;某步无明确时长为 nil。整个数组 nil = 未解析。
+    /// 由 pipeline 从步骤文本预解析(端上不正则),驱动 Cook Mode 每步倒计时。
+    var stepDurations: [Int?]?
     var remoteVersion: Int
     var clientUpdatedAt: Date?
     var deletedAt: Date?
@@ -269,6 +277,9 @@ struct Recipe: Hashable, Sendable, Codable {
         tags: [String] = [],
         imageUrl: String? = nil,
         videoUrl: String? = nil,
+        notes: String? = nil,
+        nutrition: NutritionFacts? = nil,
+        stepDurations: [Int?]? = nil,
         remoteVersion: Int = 0,
         clientUpdatedAt: Date? = nil,
         deletedAt: Date? = nil
@@ -285,6 +296,9 @@ struct Recipe: Hashable, Sendable, Codable {
         self.tags = tags
         self.imageUrl = imageUrl
         self.videoUrl = videoUrl
+        self.notes = notes
+        self.nutrition = nutrition
+        self.stepDurations = stepDurations
         self.remoteVersion = remoteVersion
         self.clientUpdatedAt = clientUpdatedAt
         self.deletedAt = deletedAt
@@ -295,7 +309,7 @@ struct Recipe: Hashable, Sendable, Codable {
 
     private enum CodingKeys: String, CodingKey {
         case id, name, category, difficulty, cookingMinutes, description
-        case ingredients, steps, tags, imageUrl, videoUrl
+        case ingredients, steps, tags, imageUrl, videoUrl, notes, nutrition, stepDurations
         case remoteVersion, clientUpdatedAt, deletedAt
     }
 
@@ -312,6 +326,9 @@ struct Recipe: Hashable, Sendable, Codable {
         try c.encode(tags, forKey: .tags)
         try c.encodeAlways(imageUrl, forKey: .imageUrl)
         try c.encodeAlways(videoUrl, forKey: .videoUrl)
+        try c.encodeAlways(notes, forKey: .notes)
+        try c.encodeIfPresent(nutrition, forKey: .nutrition)
+        try c.encodeIfPresent(stepDurations, forKey: .stepDurations)
         try c.encode(remoteVersion, forKey: .remoteVersion)
         try c.encodeISODateAlways(clientUpdatedAt, forKey: .clientUpdatedAt)
         try c.encodeISODateAlways(deletedAt, forKey: .deletedAt)
@@ -332,6 +349,9 @@ struct Recipe: Hashable, Sendable, Codable {
             tags: c.decodeLenientIfPresent([String].self, forKey: .tags) ?? [],
             imageUrl: c.decodeLenientIfPresent(String.self, forKey: .imageUrl),
             videoUrl: c.decodeLenientIfPresent(String.self, forKey: .videoUrl),
+            notes: c.decodeLenientIfPresent(String.self, forKey: .notes),
+            nutrition: c.decodeLenientIfPresent(NutritionFacts.self, forKey: .nutrition),
+            stepDurations: c.decodeLenientIfPresent([Int?].self, forKey: .stepDurations),
             remoteVersion: c.decodeIntIfPresent(forKey: .remoteVersion) ?? 0,
             clientUpdatedAt: c.decodeISODateIfPresent(forKey: .clientUpdatedAt),
             deletedAt: c.decodeISODateIfPresent(forKey: .deletedAt)
@@ -350,6 +370,9 @@ struct Recipe: Hashable, Sendable, Codable {
         tags: [String]? = nil,
         imageUrl: String? = nil,
         videoUrl: String? = nil,
+        notes: String? = nil,
+        nutrition: NutritionFacts? = nil,
+        stepDurations: [Int?]? = nil,
         remoteVersion: Int? = nil,
         clientUpdatedAt: Date? = nil,
         deletedAt: Date? = nil,
@@ -368,6 +391,9 @@ struct Recipe: Hashable, Sendable, Codable {
             tags: tags ?? self.tags,
             imageUrl: imageUrl ?? self.imageUrl,
             videoUrl: videoUrl ?? self.videoUrl,
+            notes: notes ?? self.notes,
+            nutrition: nutrition ?? self.nutrition,
+            stepDurations: stepDurations ?? self.stepDurations,
             remoteVersion: remoteVersion ?? self.remoteVersion,
             clientUpdatedAt: clearClientUpdatedAt ? nil : (clientUpdatedAt ?? self.clientUpdatedAt),
             deletedAt: clearDeletedAt ? nil : (deletedAt ?? self.deletedAt)
