@@ -67,7 +67,7 @@ function splitSections(md: string): { preamble: string; sections: Section[] } {
   return { preamble, sections };
 }
 
-export function parseHowtocook(markdown: string): ParsedHowtocook {
+export function parseHowtocook(markdown: string, warn?: (name: string) => void): ParsedHowtocook {
   const { preamble, sections } = splitSections(markdown);
 
   const titleMatch = preamble.match(/^#\s+(.+?)\s*$/m);
@@ -100,7 +100,10 @@ export function parseHowtocook(markdown: string): ParsedHowtocook {
 
   const ingSection = find('必备原料') ?? find('原料');
   const rawIngredients = ingSection
-    ? bulletLines(ingSection.body).filter((l) => !isTool(l))
+    ? bulletLines(ingSection.body).filter((l) => {
+        if (isTool(l)) { warn?.(l); return false; }
+        return true;
+      })
     : [];
 
   const calcSection = find('计算');

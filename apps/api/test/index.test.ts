@@ -76,4 +76,64 @@ describe("fresh-pantry-api", () => {
     expect(response.status).toBe(405);
     expect(response.headers.get("allow")).toBe("GET, HEAD");
   });
+
+  it("HEAD /health returns 200", async () => {
+    const response = await worker.fetch(
+      new Request("https://api.fresh-pantry.kunish.eu.org/health", { method: "HEAD" }),
+    );
+
+    expect(response.status).toBe(200);
+  });
+
+  it("HEAD /invite/<token> returns 302", async () => {
+    const response = await worker.fetch(
+      new Request("https://api.fresh-pantry.kunish.eu.org/invite/abcDEF123_-", {
+        method: "HEAD",
+      }),
+    );
+
+    expect(response.status).toBe(302);
+  });
+
+  it("GET /nonexistent returns 404", async () => {
+    const response = await worker.fetch(
+      new Request("https://api.fresh-pantry.kunish.eu.org/nonexistent"),
+    );
+
+    expect(response.status).toBe(404);
+  });
+
+  it("rejects a 9-char invite token (below minimum length)", async () => {
+    const response = await worker.fetch(
+      new Request("https://api.fresh-pantry.kunish.eu.org/invite/123456789"),
+    );
+
+    expect(response.status).toBe(400);
+  });
+
+  it("accepts a 10-char invite token (minimum valid length)", async () => {
+    const response = await worker.fetch(
+      new Request("https://api.fresh-pantry.kunish.eu.org/invite/1234567890"),
+    );
+
+    expect(response.status).toBe(302);
+  });
+
+  it("accepts a 160-char invite token (maximum valid length)", async () => {
+    const token = "a".repeat(160);
+    const response = await worker.fetch(
+      new Request(`https://api.fresh-pantry.kunish.eu.org/invite/${token}`),
+    );
+
+    expect(response.status).toBe(302);
+  });
+
+  it("rejects a 161-char invite token (above maximum length)", async () => {
+    const token = "a".repeat(161);
+    const response = await worker.fetch(
+      new Request(`https://api.fresh-pantry.kunish.eu.org/invite/${token}`),
+    );
+
+    expect(response.status).toBe(400);
+  });
 });

@@ -2,7 +2,7 @@ import Foundation
 import os
 
 /// Owns the local⇄remote reconciliation for a household's shared content:
-/// uploading local-only rows, subscribing to the four realtime streams, and
+/// uploading local-only rows, subscribing to the seven realtime streams, and
 /// merging remote rows with still-pending local ones.
 ///
 /// Ported from `lib/sync/household_content_sync_coordinator.dart`. The
@@ -34,7 +34,7 @@ actor HouseholdContentSyncCoordinator {
     private var activeHouseholdId = ""
     /// Bumped on every household switch / stop; the guard for in-flight applies.
     private var generation = 0
-    /// The four realtime-subscription tasks; cancelled + cleared on switch/stop.
+    /// The seven realtime-subscription tasks; cancelled + cleared on switch/stop.
     private var subscriptionTasks: [Task<Void, Never>] = []
     /// The in-flight `startSync` task. The generation guard already drops a stale
     /// run's writes; cancelling it as well stops the stale run's remaining network
@@ -285,9 +285,11 @@ actor HouseholdContentSyncCoordinator {
             try await remote.upsertInventory(householdId, uploadInventory.compactMap { DomainJSON.valueMap($0) })
             guard isCurrent(gen, householdId) else { return }
             let uploaded = Set(uploadInventory.map(\.id))
-            try? await inventory.saveItems(householdId, localInventory.map {
+            if (try? await inventory.saveItems(householdId, localInventory.map {
                 uploaded.contains($0.id) ? $0.copyWith(remoteVersion: 1) : $0
-            })
+            })) == nil {
+                Self.logger.error("version bump after inventory upload failed; rows may stay at remoteVersion 0 until the next full pull")
+            }
         }
 
         // Shopping
@@ -300,9 +302,11 @@ actor HouseholdContentSyncCoordinator {
             try await remote.upsertShopping(householdId, uploadShopping.compactMap { DomainJSON.valueMap($0) })
             guard isCurrent(gen, householdId) else { return }
             let uploaded = Set(uploadShopping.map(\.id))
-            try? await shopping.saveItems(householdId, localShopping.map {
+            if (try? await shopping.saveItems(householdId, localShopping.map {
                 uploaded.contains($0.id) ? $0.copyWith(remoteVersion: 1) : $0
-            })
+            })) == nil {
+                Self.logger.error("version bump after shopping upload failed; rows may stay at remoteVersion 0 until the next full pull")
+            }
         }
 
         // Custom recipes
@@ -315,9 +319,11 @@ actor HouseholdContentSyncCoordinator {
             try await remote.upsertCustomRecipes(householdId, uploadRecipes.compactMap { DomainJSON.valueMap($0) })
             guard isCurrent(gen, householdId) else { return }
             let uploaded = Set(uploadRecipes.map(\.id))
-            try? await customRecipe.saveRecipes(householdId, localRecipes.map {
+            if (try? await customRecipe.saveRecipes(householdId, localRecipes.map {
                 uploaded.contains($0.id) ? $0.copyWith(remoteVersion: 1) : $0
-            })
+            })) == nil {
+                Self.logger.error("version bump after custom-recipe upload failed; rows may stay at remoteVersion 0 until the next full pull")
+            }
         }
 
         // Meal plan
@@ -330,9 +336,11 @@ actor HouseholdContentSyncCoordinator {
             try await remote.upsertMealPlanEntries(householdId, uploadMealPlan.compactMap { DomainJSON.valueMap($0) })
             guard isCurrent(gen, householdId) else { return }
             let uploaded = Set(uploadMealPlan.map(\.id))
-            try? await mealPlan.saveEntries(householdId, localMealPlan.map {
+            if (try? await mealPlan.saveEntries(householdId, localMealPlan.map {
                 uploaded.contains($0.id) ? $0.copyWith(remoteVersion: 1) : $0
-            })
+            })) == nil {
+                Self.logger.error("version bump after meal-plan upload failed; rows may stay at remoteVersion 0 until the next full pull")
+            }
         }
 
         // Food log (append-only history → full backfill)
@@ -345,9 +353,11 @@ actor HouseholdContentSyncCoordinator {
             try await remote.upsertFoodLogEntries(householdId, uploadFoodLog.compactMap { DomainJSON.valueMap($0) })
             guard isCurrent(gen, householdId) else { return }
             let uploaded = Set(uploadFoodLog.map(\.id))
-            try? await foodLog.saveEntries(householdId, localFoodLog.map {
+            if (try? await foodLog.saveEntries(householdId, localFoodLog.map {
                 uploaded.contains($0.id) ? $0.copyWith(remoteVersion: 1) : $0
-            })
+            })) == nil {
+                Self.logger.error("version bump after food-log upload failed; rows may stay at remoteVersion 0 until the next full pull")
+            }
         }
 
         // Favorite recipes (set-membership → upload never-synced marks)
@@ -360,9 +370,11 @@ actor HouseholdContentSyncCoordinator {
             try await remote.upsertFavoriteRecipes(householdId, uploadFavorites.compactMap { DomainJSON.valueMap($0) })
             guard isCurrent(gen, householdId) else { return }
             let uploaded = Set(uploadFavorites.map(\.id))
-            try? await favoriteRecipe.saveEntries(householdId, localFavorites.map {
+            if (try? await favoriteRecipe.saveEntries(householdId, localFavorites.map {
                 uploaded.contains($0.id) ? $0.copyWith(remoteVersion: 1) : $0
-            })
+            })) == nil {
+                Self.logger.error("version bump after favorite-recipes upload failed; rows may stay at remoteVersion 0 until the next full pull")
+            }
         }
 
         // Dietary preferences (set-membership → upload never-synced keywords)
@@ -375,13 +387,15 @@ actor HouseholdContentSyncCoordinator {
             try await remote.upsertDietaryPreferences(householdId, uploadDietary.compactMap { DomainJSON.valueMap($0) })
             guard isCurrent(gen, householdId) else { return }
             let uploaded = Set(uploadDietary.map(\.id))
-            try? await dietaryPreference.saveEntries(householdId, localDietary.map {
+            if (try? await dietaryPreference.saveEntries(householdId, localDietary.map {
                 uploaded.contains($0.id) ? $0.copyWith(remoteVersion: 1) : $0
-            })
+            })) == nil {
+                Self.logger.error("version bump after dietary-preferences upload failed; rows may stay at remoteVersion 0 until the next full pull")
+            }
         }
     }
 
-    /// Starts the four realtime subscriptions. Each iterates the entity's
+    /// Starts the seven realtime subscriptions. Each iterates the entity's
     /// non-throwing `AsyncStream` and applies every yielded snapshot under the
     /// generation guard. Stream errors are swallowed by construction (the stream
     /// is non-throwing — a transient channel drop never crashes; invariant #9).

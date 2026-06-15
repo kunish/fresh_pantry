@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
+import { atomicWriteJson } from '../util/atomic-write';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -67,7 +68,7 @@ const recipes = JSON.parse(readFileSync(config.outPath, 'utf8')) as CleanRecipe[
 const now = new Date().toISOString();
 const { updated, attributions } = applyAcquiredImages(recipes, acquired, now);
 
-writeFileSync(config.outPath, JSON.stringify(recipes, null, 2) + '\n', 'utf8');
+await atomicWriteJson(config.outPath, recipes);
 
 const prevAttr: Attribution[] = existsSync(config.attributionsPath)
   ? (JSON.parse(readFileSync(config.attributionsPath, 'utf8')) as Attribution[])

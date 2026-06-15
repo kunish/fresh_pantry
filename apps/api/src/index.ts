@@ -1,6 +1,8 @@
 const INVITE_TOKEN_PATTERN = /^[A-Za-z0-9_-]{10,160}$/;
 const APP_DEEP_LINK_SCHEME = "com.kunish.freshpantry";
 
+type Env = Record<string, never>;
+
 function json(body: unknown, init: ResponseInit = {}): Response {
   return new Response(JSON.stringify(body), {
     ...init,
@@ -37,12 +39,20 @@ function inviteFallback(token: string): Response {
     </main>
   </body>
 </html>`,
-    { headers: { "content-type": "text/html; charset=utf-8" } },
+    {
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "Cache-Control": "no-store",
+        "Content-Security-Policy": "default-src 'none'; base-uri 'none'",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+      },
+    },
   );
 }
 
 export default {
-  async fetch(request: Request): Promise<Response> {
+  async fetch(request: Request, _env?: Env, _ctx?: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const method = request.method.toUpperCase();
     const isReadMethod = method === "GET" || method === "HEAD";
@@ -54,11 +64,10 @@ export default {
           headers: { Allow: "GET, HEAD" },
         });
       }
-      return json({
-        service: "fresh-pantry-api",
-        ok: true,
-        timestamp: new Date().toISOString(),
-      });
+      return json(
+        { service: "fresh-pantry-api", ok: true, timestamp: new Date().toISOString() },
+        { headers: { "Access-Control-Allow-Origin": "*" } },
+      );
     }
 
     const inviteMatch = url.pathname.match(/^\/invite\/([^/]+)$/);
@@ -77,10 +86,11 @@ export default {
       if (accept.includes("text/html")) {
         return inviteFallback(token);
       }
-      return Response.redirect(
-        `${APP_DEEP_LINK_SCHEME}://invite/${encodeURIComponent(token)}`,
-        302,
-      );
+      const deepLink = `${APP_DEEP_LINK_SCHEME}://invite/${encodeURIComponent(token)}`;
+      return new Response(null, {
+        status: 302,
+        headers: { Location: deepLink, "Cache-Control": "no-store" },
+      });
     }
 
     return new Response("Not found", { status: 404 });

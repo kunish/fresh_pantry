@@ -1,5 +1,10 @@
 # XcodeGen output — regenerate with `xcodegen generate`
 FreshPantry.xcodeproj/
+# Track Package.resolved for reproducible CI dependency resolution.
+# Run `git add -f FreshPantry.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`
+# once after xcodegen generate to commit the current lockfile.
+!FreshPantry.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+!FreshPantry.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
 # Xcode
 build/

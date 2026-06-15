@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 /// Result returned from an Open Food Facts name search (product name + image).
 /// Mirrors the Dart `FoodSearchResult`.
@@ -470,10 +471,13 @@ enum OpenFoodFactsService {
         return components.url
     }
 
+    private static let logger = Logger(subsystem: "com.kunish.freshPantry", category: "openFoodFacts")
+
     private static func log(_ context: String, _ error: Error) {
         // Best-effort lookup: surface the failure (not silently hidden) but never
-        // propagate it to the detail screen.
-        print("OpenFoodFacts \(context) error: \(error)")
+        // propagate it to the detail screen. Use os.Logger (subsystem-scoped,
+        // filterable in Console) instead of a bare print to stdout.
+        logger.error("\(context, privacy: .public) error: \(error.localizedDescription, privacy: .public)")
     }
 }
 

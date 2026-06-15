@@ -12,6 +12,10 @@ struct FkSearchField: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: FkSize.iconSm, weight: .semibold))
                 .foregroundStyle(Color.fkOnSurfaceVariant)
+                // Decorative: the adjacent TextField carries the search semantics.
+                // Hiding it avoids VoiceOver reading the system's English
+                // "Magnifying glass" label inside this Chinese-only UI.
+                .accessibilityHidden(true)
             TextField(placeholder, text: $text)
                 .font(.fkBodyMedium)
                 .foregroundStyle(Color.fkOnSurface)

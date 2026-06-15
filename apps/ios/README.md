@@ -83,15 +83,32 @@ xcodebuild build-for-testing -project apps/ios/FreshPantry.xcodeproj -scheme Fre
 - build number 不入库:CI 用 `date -u +%Y%m%d%H%M`,单调递增,天然规避 TestFlight「build 号必须更大」。
 - git tag 沿用 `fresh_pantry-v<version>`(release-please component=`fresh_pantry`),与历史标签连续。
 
-## 签名:ASC API Key 自动签名(无需手动管描述文件)
+## 签名：手动签名（Apple Distribution 证书 + Provisioning Profiles）
 
-CI 用 **App Store Connect API Key** + `xcodebuild -allowProvisioningUpdates`:Xcode 按需
-自动创建/续期 **Apple Distribution 证书**与 **App Store provisioning profile**。
+CI 使用**手动签名**——预先导出 Apple Distribution 证书及两个 App Store provisioning profiles，
+以 base64 编码存入 GitHub Secrets，每次 CI 构建时导入临时 keychain 并安装 profiles。
 
-- **不用** fastlane match、**不**托管证书 repo、**不**需要手动下载 `.mobileprovision`
-  描述文件——所以仓库里没有、也不需要任何描述文件/证书。
-- 本地开发用 `CODE_SIGN_STYLE: Automatic`(个人开发签名,模拟器免签)。
-- 首次发版若报签名错,多半是 API Key 角色权限不足(需 Admin / App Manager 才能建分发证书),在 App Store Connect 调整 Key 角色即可。
+**为何不用 `-allowProvisioningUpdates` 自动签名？** ephemeral runner 每次都是干净 keychain，
+Xcode 自动签名会新建证书，几次后撞上账户证书配额（"Your account has reached the maximum
+number of certificates"），导致连带报 "No profiles ... were found"。导入同一张固定 Distribution
+证书则不存在此问题（详见 `release.yml` 中 `Import Apple Distribution certificate` step 注释）。
+
+### 一次性准备步骤
+
+1. 在 App Store Connect 创建（或复用已有的）**Apple Distribution 证书**，导出为 `.p12`（含私钥）。
+2. 在 App Store Connect 创建两个 **App Store Distribution Provisioning Profiles**：
+   - 主 App：`com.kunish.freshPantry`
+   - Widget Extension：`com.kunish.freshPantry.widget`
+   并下载各自的 `.mobileprovision` 文件。
+3. Base64 编码各文件：
+
+   ```bash
+   base64 -i dist_cert.p12 | tr -d '\n' | pbcopy                   # → APPLE_DIST_CERT_P12_BASE64
+   base64 -i fp_app_store.mobileprovision | tr -d '\n' | pbcopy    # → APPLE_PROFILE_APP_BASE64
+   base64 -i fp_ext_app_store.mobileprovision | tr -d '\n' | pbcopy # → APPLE_PROFILE_EXT_BASE64
+   ```
+
+4. 将各值及证书导出密码一并写入 GitHub Secrets（见下表）。
 
 ## CI 需要的 GitHub Secrets
 
@@ -101,17 +118,92 @@ CI 用 **App Store Connect API Key** + `xcodebuild -allowProvisioningUpdates`:Xc
 |---|---|
 | `ASC_KEY_ID` | App Store Connect API Key ID |
 | `ASC_ISSUER_ID` | API Key Issuer ID |
-| `ASC_API_KEY_P8` | `.p8` 私钥全文(签名 + altool 上传) |
+| `ASC_API_KEY_P8` | `.p8` 私钥全文（altool 上传 TestFlight） |
+| `APPLE_DIST_CERT_P12_BASE64` | Apple Distribution 证书（含私钥）的 base64 |
+| `APPLE_DIST_CERT_PASSWORD` | `.p12` 导出密码 |
+| `APPLE_PROFILE_APP_BASE64` | 主 App（`com.kunish.freshPantry`）App Store profile 的 base64 |
+| `APPLE_PROFILE_EXT_BASE64` | Widget Extension（`com.kunish.freshPantry.widget`）App Store profile 的 base64 |
 | `SUPABASE_URL` | 写入 CI 生成的 Secrets.plist |
 | `SUPABASE_PUBLISHABLE_KEY` | 写入 CI 生成的 Secrets.plist |
-| `SENTRY_AUTH_TOKEN` | sentry-cli 上传 dSYM(需 `project:releases` 权限) |
+| `SENTRY_AUTH_TOKEN` | sentry-cli 上传 dSYM（需 `project:releases` 权限） |
 
-非敏感、直接写在配置里:team `62HCT6Q83X`、bundle id `com.kunish.freshPantry`、
-Sentry org `kunish` / project `fresh_pantry`。`SENTRY_DSN` 不设 secret——CI 留空,
-运行时退回 `AppConfig` 内置默认 DSN;CI 固定 `SENTRY_ENVIRONMENT=production`。
+非敏感、直接写在配置里：team `62HCT6Q83X`、bundle id `com.kunish.freshPantry`、
+Sentry org `kunish` / project `fresh_pantry`。`SENTRY_DSN` 不设 secret——CI 留空，
+运行时退回 `AppConfig` 内置默认 DSN；CI 固定 `SENTRY_ENVIRONMENT=production`。
 
 ## Runner 与版本
 
 iOS 26 / Swift 6 需要 Xcode 26,workflow 用 `runs-on: macos-26` + `xcode-version: latest-stable`。
 若 GitHub 尚未提供 `macos-26` 镜像或其 stable Xcode 低于 26,改成带 Xcode 26 的可用
 runner / 固定 `xcode-version` 即可(job 支持 re-run)。
+
+## 常见构建问题（Troubleshooting）
+
+### (a) XCBBuildService 脏状态（构建卡死 / SIGKILL 后）
+
+Xcode 被强杀后 XCBBuildService 可能处于不一致状态，导致下次构建卡死不动。
+
+```bash
+pkill -9 XCBBuildService
+rm -rf ~/Library/Developer/Xcode/DerivedData
+```
+
+重新打开 Xcode 并构建即可恢复。
+
+### (b) Sentry xcframework 下载卡死（"network connection was lost"）
+
+`xcodebuild -resolvePackageDependencies` 或构建时若 Sentry 二进制 xcframework 下载中途报
+`"The network connection was lost"` 而卡住，重跑包解析即可（会重试下载）：
+
+```bash
+# 在 apps/ios 目录执行
+xcodebuild -resolvePackageDependencies -project FreshPantry.xcodeproj -scheme FreshPantry
+```
+
+若仍失败，清除 SPM 缓存再试：
+
+```bash
+rm -rf ~/Library/Caches/org.swift.swiftpm
+```
+
+### (c) "destination ambiguous"（模拟器名重复）
+
+```
+error: destination "iPhone 17 Pro" is ambiguous; please specify the UDID
+```
+
+多个 iOS runtime 安装时同名模拟器会触发 ambiguous 错误，改用 UDID：
+
+```bash
+# 列出可用 iPhone 模拟器及 UDID
+xcrun simctl list devices available | grep iPhone
+
+# 用 UDID 指定目标
+xcodebuild test -project FreshPantry.xcodeproj -scheme FreshPantry \
+  -destination 'platform=iOS Simulator,id=<UDID>'
+```
+
+CI 的 `Run tests (gate)` step 已自动取第一个可用 iPhone 模拟器的 UDID，本地同理：
+
+```bash
+UDID=$(xcrun simctl list devices available -j | python3 -c \
+  "import json,sys; d=json.load(sys.stdin)['devices']; \
+   c=[v for rt in d for v in d[rt] if v.get('isAvailable') and v['name'].startswith('iPhone')]; \
+   print(c[0]['udid'] if c else '')")
+```
+
+### (d) xcode-build-server：buildServer.json 须在仓库根生成
+
+`xcode-build-server` 必须在**仓库根目录**（非 `apps/ios/`）运行才有效——sourcekit-lsp 从
+工作区根（仓库根）查找 `buildServer.json`，放在子目录不生效：
+
+```bash
+# 错误示例（不生效）
+cd apps/ios && xcode-build-server config -scheme FreshPantry -project FreshPantry.xcodeproj
+
+# 正确：在仓库根执行
+cd <repo-root>
+xcode-build-server config -scheme FreshPantry -project apps/ios/FreshPantry.xcodeproj
+```
+
+完整 LSP 索引设置见上方 [编辑器/SourceKit 索引](#编辑器sourckit-索引sourcekit-lsp) 一节。

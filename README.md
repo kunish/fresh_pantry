@@ -28,6 +28,8 @@ xcodegen generate
 open FreshPantry.xcodeproj
 ```
 
+For editor/LSP integration (eliminates phantom `No such module 'UIKit'/'Supabase'` errors in VS Code and Claude Code), set up [`xcode-build-server`](https://github.com/SolaWing/xcode-build-server) — see the "编辑器/SourceKit 索引" section in `apps/ios/README.md`. Important: `buildServer.json` must be generated at the **repo root**, not inside `apps/ios/`.
+
 Secrets live in `apps/ios/FreshPantry/Support/Secrets.plist` (copy from `Secrets.example.plist`; the real file is git-ignored). In CI it is generated from repository secrets. See `apps/ios/README.md` for the full build, signing, and TestFlight setup.
 
 ### Supabase

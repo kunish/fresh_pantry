@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 /// The single seam every mutating store / controller uses to record an outbox
 /// op then kick a (coalesced) push. Mirrors the Flutter `SyncEnqueue` mixin in
@@ -24,6 +25,8 @@ final class SyncWriter {
         var patch: [String: JSONValue]
         var baseVersion: Int?
     }
+
+    private static let logger = Logger(subsystem: "com.kunish.freshPantry", category: "sync")
 
     private let outbox: SyncOutboxRepository
     /// nil in local-only mode (no client) — ops are recorded but never pushed.
@@ -85,6 +88,12 @@ final class SyncWriter {
                 // SwiftData write failed (disk full, migration mismatch, …).
                 // Do NOT set recordedAny — this op was never persisted; skipping
                 // the trailing push avoids a spurious badge-clear on a lost write.
+                // The local mutation already committed, so this op will never reach
+                // the server (silent local/remote drift) until the row is re-edited
+                // — log it so the maintainer can spot the divergence in Console.
+                Self.logger.error(
+                    "outbox enqueue failed for \(op.entityType.rawValue, privacy: .public)/\(op.entityId, privacy: .public): \(error.localizedDescription, privacy: .public) — local write will not sync until re-edited"
+                )
             }
         }
 

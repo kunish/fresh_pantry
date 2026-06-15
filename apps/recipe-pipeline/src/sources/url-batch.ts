@@ -38,7 +38,18 @@ export function urlBatchSource(cfg: UrlBatchConfig, _enricher: RecipeEnricher): 
     async *collect(ctx: SourceContext): AsyncIterable<RawRecipe> {
       for (const url of cfg.urls) {
         try {
-          const res = await doFetch(url);
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 15_000);
+          let res: Response;
+          try {
+            res = await doFetch(url, { signal: ctrl.signal });
+          } finally {
+            clearTimeout(timer);
+          }
+          if (!res.ok) {
+            ctx.log(`fetch error ${res.status} ${url}`);
+            continue;
+          }
           const html = await res.text();
           yield {
             id: urlIdFor(url),

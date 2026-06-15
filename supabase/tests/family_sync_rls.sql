@@ -1,6 +1,6 @@
 begin;
 
-select plan(83);
+select plan(91);
 
 create or replace function pg_temp.authenticate_as(user_id uuid, user_email text)
 returns void
@@ -170,6 +170,22 @@ select lives_ok(
   'member can write own sync event'
 );
 
+-- Setup: insert one row in each later-added synced table so outsider isolation
+-- tests below can assert both SELECT returns 0 and INSERT is denied.
+select pg_temp.authenticate_as('11111111-1111-1111-1111-111111111111', 'owner@example.com');
+
+insert into public.meal_plan_entries (household_id, payload)
+  values ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '{"date":"2026-06-15","recipeId":"r1","recipeName":"Dumplings"}'::jsonb);
+
+insert into public.food_log_entries (household_id, payload)
+  values ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '{"name":"Apple","outcome":"consumed"}'::jsonb);
+
+insert into public.favorite_recipes (household_id, payload)
+  values ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '{"recipeID":"r1","recipeName":"Dumplings"}'::jsonb);
+
+insert into public.dietary_preferences (household_id, payload)
+  values ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '{"keyword":"gluten-free"}'::jsonb);
+
 select pg_temp.authenticate_as('33333333-3333-3333-3333-333333333333', 'outsider@example.com');
 
 select is(
@@ -243,6 +259,72 @@ select throws_ok(
   '42501',
   'new row violates row-level security policy for table "household_members"',
   'non-owner cannot self-add as household owner'
+);
+
+-- === Outsider isolation: meal_plan_entries / food_log_entries / favorite_recipes / dietary_preferences ===
+
+select is(
+  (select count(*) from public.meal_plan_entries where household_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  0::bigint,
+  'non-member cannot read meal plan entries'
+);
+
+select throws_ok(
+  $$
+    insert into public.meal_plan_entries (household_id, payload)
+    values ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '{"date":"2026-06-16","recipeId":"r2"}'::jsonb)
+  $$,
+  '42501',
+  'new row violates row-level security policy for table "meal_plan_entries"',
+  'non-member cannot write meal plan entries'
+);
+
+select is(
+  (select count(*) from public.food_log_entries where household_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  0::bigint,
+  'non-member cannot read food log entries'
+);
+
+select throws_ok(
+  $$
+    insert into public.food_log_entries (household_id, payload)
+    values ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '{"name":"Banana","outcome":"wasted"}'::jsonb)
+  $$,
+  '42501',
+  'new row violates row-level security policy for table "food_log_entries"',
+  'non-member cannot write food log entries'
+);
+
+select is(
+  (select count(*) from public.favorite_recipes where household_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  0::bigint,
+  'non-member cannot read favorite recipes'
+);
+
+select throws_ok(
+  $$
+    insert into public.favorite_recipes (household_id, payload)
+    values ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '{"recipeID":"r2","recipeName":"Noodles"}'::jsonb)
+  $$,
+  '42501',
+  'new row violates row-level security policy for table "favorite_recipes"',
+  'non-member cannot write favorite recipes'
+);
+
+select is(
+  (select count(*) from public.dietary_preferences where household_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  0::bigint,
+  'non-member cannot read dietary preferences'
+);
+
+select throws_ok(
+  $$
+    insert into public.dietary_preferences (household_id, payload)
+    values ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '{"keyword":"dairy-free"}'::jsonb)
+  $$,
+  '42501',
+  'new row violates row-level security policy for table "dietary_preferences"',
+  'non-member cannot write dietary preferences'
 );
 
 select pg_temp.authenticate_as('11111111-1111-1111-1111-111111111111', 'owner@example.com');

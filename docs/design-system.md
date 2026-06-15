@@ -1,3 +1,10 @@
+> **⚠️ 历史文档（Flutter 时代）**
+> 本文档描述的是 Flutter/Dart 版本的设计系统（`lib/theme/`、`AppColors`、`AppSpacing`、`MaterialApp`/`ThemeData` 等）。
+> Flutter 版本已由 SwiftUI 重写取代。当前生效的设计系统位于
+> `apps/ios/FreshPantry/DesignSystem/`，包含 `FkColor`、`FkTypography`、`FkMotion`、
+> `FkSpacing`/`FkLayout`、`FkStatusStyle`、`FkCategoryPalette` 等 SwiftUI 专用 token。
+> 本文保留仅供历史参考，**不再是任何 UI 开发的参考标准**。
+
 # Fresh Pantry Design System
 
 **Status**: Draft (phase 0 establishing baseline)

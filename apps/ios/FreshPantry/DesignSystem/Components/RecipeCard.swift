@@ -138,6 +138,9 @@ struct RecipeCard: View {
                     }
                 }
                 .frame(height: 4)
+                // Decorative: the line below states the same match count in words,
+                // so the bar is a redundant empty VoiceOver stop.
+                .accessibilityHidden(true)
                 Text(missing == 0 ? "食材齐全" : "已有 \(matched)/\(total) · 缺 \(missing) 件")
                     .font(.fkLabelSmall)
                     .foregroundStyle(missing == 0 ? Color.fkSuccess : Color.fkOnSurfaceVariant)

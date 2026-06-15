@@ -15,8 +15,9 @@ import type { CleanRecipe } from '../clean/schema';
  */
 
 const TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
-const REF = process.env.SUPABASE_PROJECT_REF ?? 'nkugeupizmphbeicykpj';
 if (!TOKEN) throw new Error('SUPABASE_ACCESS_TOKEN 未设置(从 keychain 注入)');
+const REF = process.env.SUPABASE_PROJECT_REF;
+if (!REF) throw new Error('SUPABASE_PROJECT_REF 未设置');
 
 function lit(s: string): string {
   return `'${s.replace(/'/g, "''")}'`;

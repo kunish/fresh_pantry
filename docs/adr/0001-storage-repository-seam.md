@@ -6,6 +6,11 @@ Date: 2026-05-22
 
 Accepted
 
+> **⚠️ Status: Superseded (Flutter-era)**
+> 本 ADR 描述的是 Flutter/Dart 版本的 `StorageAdapter` / `SharedPreferences` 仓储模式（`InMemoryStorageAdapter`、`_prefs.setString()` 等 Dart 代码）。
+> Flutter 版本已由 SwiftUI 重写取代，当前存储层使用 SwiftData `@ModelActor` backed repositories 和 `SecretStore`/`KeychainStore`，见 `apps/ios/FreshPantry/Persistence/`。
+> 本 ADR 保留仅供历史参考，不代表现行架构。
+
 ## Context
 
 Every stateful notifier (`InventoryNotifier`, `ShoppingNotifier`, `CustomRecipeNotifier`, `AiSettingsNotifier`) has a hard dependency on `SharedPreferences`. This means:

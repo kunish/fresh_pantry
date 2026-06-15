@@ -36,8 +36,8 @@ export function howtocookIdFromPath(relPath: string): string {
   return `howtocook:${noPrefix}`;
 }
 
-export function rawFromMarkdown(relPath: string, md: string): RawRecipe {
-  const parsed = parseHowtocook(md);
+export function rawFromMarkdown(relPath: string, md: string, warn?: (name: string) => void): RawRecipe {
+  const parsed = parseHowtocook(md, warn);
   const engCat = relPath.replace(/^dishes\//, '').split('/')[0];
   return {
     id: howtocookIdFromPath(relPath),
@@ -83,7 +83,8 @@ export function howtocookSource(): RecipeSource {
       for await (const relPath of walkMarkdown(dishesDir, repoDir)) {
         if (isTemplateDish(relPath)) continue;
         const md = await readFile(join(repoDir, relPath), 'utf8');
-        const raw = rawFromMarkdown(relPath, md);
+        const id = howtocookIdFromPath(relPath);
+        const raw = rawFromMarkdown(relPath, md, (name) => ctx.log(`工具过滤警告: ${name} (in ${id})`));
         if (raw.rawIngredients.length || raw.steps.length) yield raw;
       }
     },

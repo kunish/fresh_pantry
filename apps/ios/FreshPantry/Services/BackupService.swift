@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 /// The full backup payload: the Flutter-parity `BackupData` core plus the
 /// iOS-only optional scopes. Defined at the codec boundary (not in
@@ -283,9 +284,17 @@ enum BackupService {
         .object(history.mapValues { object($0) })
     }
 
+    private static let logger = Logger(subsystem: "com.kunish.freshPantry", category: "backup")
+
     /// Pretty-prints a `JSONValue` envelope with 2-space indentation + sorted keys
     /// (Foundation's `.prettyPrinted` uses 2-space indent, matching Dart's
     /// `JsonEncoder.withIndent('  ')`; `.sortedKeys` makes the output stable).
+    ///
+    /// On serialization failure this returns `"{}"` (an empty-but-valid envelope)
+    /// rather than throwing, so the export never crashes — but a `"{}"` backup is
+    /// effectively empty and would fail restore validation. Log it so a silent
+    /// empty backup is observable. NOTE: the proper fix is to make this `throws`
+    /// and surface the failure at the export call site (tracked as follow-up).
     private static func prettyPrinted(_ value: JSONValue) -> String {
         guard let encoded = try? DomainJSON.encoder.encode(value),
               let object = try? JSONSerialization.jsonObject(with: encoded),
@@ -294,7 +303,10 @@ enum BackupService {
                   options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
               ),
               let string = String(data: pretty, encoding: .utf8)
-        else { return "{}" }
+        else {
+            logger.error("backup serialization failed — exported backup is EMPTY (\"{}\") and will not restore")
+            return "{}"
+        }
         return string
     }
 

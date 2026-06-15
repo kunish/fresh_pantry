@@ -3,6 +3,8 @@ name: release
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -10,6 +12,20 @@ permissions:
   pull-requests: write
 
 jobs:
+  # Node.js 质量门禁:跑 api:test && recipes:test。每次 push main 和 PR 均执行,
+  # 秒级反馈,确认 API/pipeline 无回归后才允许 testflight job 继续。
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install dependencies
+        run: npm ci
+      - name: Run quality checks (api:test && recipes:test)
+        run: npm run check
+
   # 平时 push main 只跑这一段(便宜)。release-please 累积 Conventional Commits
   # 到一个 Release PR;合并 Release PR 那次 push 才 release_created==true,驱动
   # 下游 testflight。版本真源在 apps/ios/version.txt(release-please 维护)。
@@ -28,7 +44,7 @@ jobs:
   # iOS 26 / Swift 6 需要 Xcode 26,故用 macos-26 runner(若 GitHub 尚未提供该镜像,
   # 改成带 Xcode 26 的可用 runner 即可)。私有仓 macOS 按 10x 计费,故只在发版时跑。
   testflight:
-    needs: release-please
+    needs: [release-please, quality]
     if: ${{ needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch' }}
     runs-on: macos-26
     defaults:

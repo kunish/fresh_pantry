@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 /// Drives the profile-edit + onboarding UI. Local-first optimistic writes: an
 /// edit updates local state immediately, then pushes to the backend; a push
@@ -34,6 +35,8 @@ final class ProfileStore {
     /// already-persisted `avatarPath` (the user re-picks to retry the image).
     private var pendingAvatarData: Data?
 
+    private static let logger = Logger(subsystem: "com.kunish.freshPantry", category: "profile")
+
     init(remote: ProfileRemote?, local: ProfileRepository) {
         self.remote = remote
         self.local = local
@@ -65,6 +68,11 @@ final class ProfileStore {
                 }
             } catch {
                 // Keep the local snapshot; surfacing here would be noisy on launch.
+                // Stay silent to the USER, but log for the maintainer so a
+                // systematic remote-profile load failure (RLS change, expired
+                // token, schema drift) is diagnosable instead of invisible.
+                Self.logger.error("remote profile load failed: \(error.localizedDescription, privacy: .public)")
+                lastFailureDetail = String(describing: error)
             }
         }
         hasLoaded = true

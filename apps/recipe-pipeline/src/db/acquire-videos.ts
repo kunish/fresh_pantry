@@ -3,6 +3,7 @@ import { acquireMissingVideos, mergeVideoAttributions, type VideoAttribution } f
 import { createBilibiliVideoSearch } from '../sources/video-search-bilibili';
 import type { CleanRecipe } from '../clean/schema';
 import { config } from '../config';
+import { atomicWriteJson } from '../util/atomic-write';
 
 /**
  * pipeline 自带的视频补齐:读 howtocook.json,为缺视频的菜谱用 B站搜索 provider 补一条
@@ -19,7 +20,7 @@ const report = await acquireMissingVideos(recipes, {
   delayMs: Number(process.env.RECIPE_VIDEO_DELAY_MS ?? '1500'),
   log: (m) => console.log(`[videos] ${m}`),
 });
-writeFileSync(config.outPath, JSON.stringify(recipes, null, 2) + '\n', 'utf8');
+await atomicWriteJson(config.outPath, recipes);
 
 const prev: VideoAttribution[] = existsSync(config.videoAttributionsPath)
   ? (JSON.parse(readFileSync(config.videoAttributionsPath, 'utf8')) as VideoAttribution[])

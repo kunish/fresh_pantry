@@ -6,6 +6,11 @@ Date: 2026-05-29
 
 Accepted
 
+> **⚠️ Status: Superseded (Flutter-era)**
+> 本 ADR 描述的是 Flutter/Dart 版本中同步元数据挂载在领域模型上的方案（`lib/widgets/`、`lib/sync/remote_row_codec.dart`、Flutter `copyWith`/`hashCode` 等）。
+> Flutter 版本已由 SwiftUI 重写取代，当前同步实现使用 SwiftData `@ModelActor` repositories，见 `apps/ios/FreshPantry/Persistence/`。
+> 本 ADR 保留仅供历史参考，不代表现行架构。
+
 ## Context
 
 An architecture review proposed moving the sync-only fields

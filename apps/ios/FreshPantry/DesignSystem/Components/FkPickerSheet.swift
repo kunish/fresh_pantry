@@ -82,5 +82,8 @@ struct FkPickerSheet<Value: Hashable>: View {
         .padding(.horizontal, FkSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
+        // The checkmark conveys selection only visually; expose it to VoiceOver
+        // so users know which option is already active.
+        .accessibilityAddTraits(option.value == selected ? .isSelected : [])
     }
 }

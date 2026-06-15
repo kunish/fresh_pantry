@@ -1,7 +1,8 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import type { CleanRecipe } from '../clean/schema';
 import { storageKeyFor } from './storage-key';
 import { config } from '../config';
+import { atomicWriteJson } from '../util/atomic-write';
 
 /**
  * 把 howtocook.json 里 `assets/recipes/images/<file>` 形态的 imageUrl 改写为
@@ -38,6 +39,6 @@ for (const r of recipes) {
   }
 }
 
-writeFileSync(config.outPath, JSON.stringify(recipes, null, 2) + '\n', 'utf8');
+await atomicWriteJson(config.outPath, recipes);
 console.log(`rewrite-image-urls: 改写 ${rewritten} 条 → ${publicBase}…  已是远程 ${alreadyRemote} 条`);
 console.log(`  示例: ${recipes.find((r) => r.imageUrl?.startsWith(base))?.imageUrl ?? '(无)'}`);

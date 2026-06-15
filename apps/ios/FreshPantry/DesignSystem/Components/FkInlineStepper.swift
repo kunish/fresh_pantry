@@ -54,7 +54,9 @@ struct FkInlineStepper: View {
     }
 
     private func stepButton(systemImage: String, enabled: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        let suffixLabel = suffix.map { " \($0)" } ?? ""
+        let label = systemImage == "minus" ? "减少\(suffixLabel)" : "增加\(suffixLabel)"
+        return Button(action: action) {
             Image(systemName: systemImage)
                 .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(enabled ? Color.fkPrimary : Color.fkOutlineVariant)
@@ -65,5 +67,8 @@ struct FkInlineStepper: View {
         }
         .buttonStyle(.fkPressable)
         .disabled(!enabled)
+        // Icon-only buttons announce just "minus"/"plus" without context; give
+        // VoiceOver the action + the unit being adjusted.
+        .accessibilityLabel(label)
     }
 }

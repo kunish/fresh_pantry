@@ -19,7 +19,7 @@ describe('htmlToText', () => {
 
 describe('urlBatchSource', () => {
   it('注入 fetch,产出带 rawText 的 RawRecipe(llm-extract)', async () => {
-    const fakeFetch = async () => ({ text: async () => '<title>番茄炒蛋</title><p>正文内容</p>' }) as unknown as Response;
+    const fakeFetch = async () => ({ ok: true, status: 200, text: async () => '<title>番茄炒蛋</title><p>正文内容</p>' }) as unknown as Response;
     const src = urlBatchSource({ urls: ['https://x.com/r/1'], fetchImpl: fakeFetch }, enr);
     expect(src.kind).toBe('llm-extract');
     const out: string[] = [];
@@ -34,7 +34,7 @@ describe('urlBatchSource', () => {
   it('fetch 失败的 url 被跳过,不中断其余', async () => {
     const seq = [
       async () => { throw new Error('network'); },
-      async () => ({ text: async () => '<title>好菜</title><p>正文</p>' }) as unknown as Response,
+      async () => ({ ok: true, status: 200, text: async () => '<title>好菜</title><p>正文</p>' }) as unknown as Response,
     ];
     let i = 0;
     const fakeFetch = (async () => seq[i++]()) as unknown as typeof fetch;
