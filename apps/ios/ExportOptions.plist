@@ -21,6 +21,8 @@
 		<string>FreshPantry App Store</string>
 		<key>com.kunish.freshPantry.ShareExtension</key>
 		<string>FreshPantry ShareExtension App Store</string>
+		<key>com.kunish.freshPantry.Widgets</key>
+		<string>FreshPantry Widgets App Store</string>
 	</dict>
 	<key>destination</key>
 	<string>export</string>

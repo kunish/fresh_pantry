@@ -125,11 +125,13 @@ jobs:
         env:
           PROFILE_APP_BASE64: ${{ secrets.APPLE_PROFILE_APP_BASE64 }}
           PROFILE_EXT_BASE64: ${{ secrets.APPLE_PROFILE_EXT_BASE64 }}
+          PROFILE_WIDGET_BASE64: ${{ secrets.APPLE_PROFILE_WIDGET_BASE64 }}
         run: |
           PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$PROFILES_DIR"
           echo -n "$PROFILE_APP_BASE64" | base64 --decode > "$PROFILES_DIR/fp_app_store.mobileprovision"
           echo -n "$PROFILE_EXT_BASE64" | base64 --decode > "$PROFILES_DIR/fp_ext_app_store.mobileprovision"
+          echo -n "$PROFILE_WIDGET_BASE64" | base64 --decode > "$PROFILES_DIR/fp_widget_app_store.mobileprovision"
           ls -la "$PROFILES_DIR"
 
       # Secrets.plist 须在 xcodegen 之前生成,才会被收进 app bundle(否则运行时
