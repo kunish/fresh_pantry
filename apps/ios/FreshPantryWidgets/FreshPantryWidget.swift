@@ -1,56 +1,71 @@
 import SwiftUI
 import WidgetKit
 
-// 每类内容一个独立 StaticConfiguration widget(零配置依赖,真机稳定)。
-// 用户在 widget 库里直接挑要的那类添加;不再是单个「可配置」widget。
+// 4 个独立固定 widget(零配置依赖,真机稳定)+ 1 个可配置 widget(补充,真机可配置性待验证)。
+// 每个都支持系统尺寸 + 锁屏配件(circular/rectangular/inline),配件按各自内容类别渲染。
+
+private let allFamilies: [WidgetFamily] = [
+    .systemSmall, .systemMedium, .systemLarge,
+    .accessoryCircular, .accessoryRectangular, .accessoryInline,
+]
 
 struct ExpiringWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "FreshPantryExpiring", provider: SnapshotProvider()) { entry in
-            StaticWidgetRootView(entry: entry, content: .expiring)
-                .containerBackground(.fill.tertiary, for: .widget)
+        StaticConfiguration(kind: "FreshPantryExpiring", provider: SnapshotProvider(content: .expiring)) { entry in
+            WidgetRootView(entry: entry).containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("临期食材")
         .description("临期 / 过期食材一览")
-        .supportedFamilies([
-            .systemSmall, .systemMedium, .systemLarge,
-            .accessoryCircular, .accessoryRectangular, .accessoryInline,
-        ])
+        .supportedFamilies(allFamilies)
     }
 }
 
 struct MealPlanWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "FreshPantryMealPlan", provider: SnapshotProvider()) { entry in
-            StaticWidgetRootView(entry: entry, content: .mealPlan)
-                .containerBackground(.fill.tertiary, for: .widget)
+        StaticConfiguration(kind: "FreshPantryMealPlan", provider: SnapshotProvider(content: .mealPlan)) { entry in
+            WidgetRootView(entry: entry).containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("今日膳食")
         .description("今天要做的菜")
-        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryRectangular])
+        .supportedFamilies(allFamilies)
     }
 }
 
 struct ShoppingWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "FreshPantryShopping", provider: SnapshotProvider()) { entry in
-            StaticWidgetRootView(entry: entry, content: .shopping)
-                .containerBackground(.fill.tertiary, for: .widget)
+        StaticConfiguration(kind: "FreshPantryShopping", provider: SnapshotProvider(content: .shopping)) { entry in
+            WidgetRootView(entry: entry).containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("购物清单")
         .description("待买清单,可直接勾选")
-        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryRectangular])
+        .supportedFamilies(allFamilies)
     }
 }
 
 struct WasteWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "FreshPantryWaste", provider: SnapshotProvider()) { entry in
-            StaticWidgetRootView(entry: entry, content: .waste)
-                .containerBackground(.fill.tertiary, for: .widget)
+        StaticConfiguration(kind: "FreshPantryWaste", provider: SnapshotProvider(content: .waste)) { entry in
+            WidgetRootView(entry: entry).containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("减废成效")
         .description("用掉率与减废统计")
-        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryRectangular])
+        .supportedFamilies(allFamilies)
+    }
+}
+
+/// 补充:单个可配置 widget(长按「编辑小组件」切内容)。真机 Release 可配置性待验证;
+/// 与上面 4 个固定 widget 并存,即便不可配置也不影响它们。
+struct ConfigurableWidget: Widget {
+    var body: some WidgetConfiguration {
+        AppIntentConfiguration(
+            kind: "FreshPantryWidget",
+            intent: SelectWidgetContentIntent.self,
+            provider: ConfigurableSnapshotProvider()
+        ) { entry in
+            WidgetRootView(entry: entry).containerBackground(.fill.tertiary, for: .widget)
+        }
+        .configurationDisplayName("Fresh Pantry(可配置)")
+        .description("一个组件切换 临期 / 今日膳食 / 购物 / 减废")
+        .supportedFamilies(allFamilies)
     }
 }
