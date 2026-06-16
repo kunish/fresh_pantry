@@ -58,7 +58,7 @@ struct WasteWidget: Widget {
 struct ConfigurableWidget: Widget {
     var body: some WidgetConfiguration {
         AppIntentConfiguration(
-            kind: "FreshPantryWidget",
+            kind: "FreshPantryConfigurable",
             intent: SelectWidgetContentIntent.self,
             provider: ConfigurableSnapshotProvider()
         ) { entry in
