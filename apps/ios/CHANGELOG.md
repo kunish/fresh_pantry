@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.22.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.21.0...fresh_pantry-v1.22.0) (2026-06-16)
+
+
+### Features
+
+* **ios:** widget 锁屏配件按 4 类细化 + 补充一个可配置 widget ([ebd6276](https://github.com/kunish/fresh_pantry/commit/ebd62760338de2602dd577e7b44276f00bc14859))
+
+
+### Bug Fixes
+
+* **ios:** CI 改用 Xcode 27 构建 + 加回可配置 widget(真机 iOS 27 需 SDK 对齐) ([dd21225](https://github.com/kunish/fresh_pantry/commit/dd21225a71c74c81b19dc65f465f592f2fd4331e))
+* **ios:** widget 改 4 个独立固定 widget(真机不认可配置 intent 的真根因) ([950051a](https://github.com/kunish/fresh_pantry/commit/950051a998c1f3cba76adbd0f2de64ca75707e98))
+* **ios:** 修可配置 widget 真机不出「编辑小组件」(配置 intent 改 widget 专属 + 换新 kind) ([60e2d28](https://github.com/kunish/fresh_pantry/commit/60e2d289dd556f9e3f2e0cbbe2a6134e2193c655))
+* **ios:** 移除真机不工作的可配置 widget,保留 4 个固定 widget + 细化配件 ([26d709e](https://github.com/kunish/fresh_pantry/commit/26d709e81599b26204da2c2de98390bc6c77826a))
+
 ## [1.21.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.20.0...fresh_pantry-v1.21.0) (2026-06-16)
 
 
