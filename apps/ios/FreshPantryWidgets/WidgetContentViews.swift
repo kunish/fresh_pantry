@@ -90,7 +90,7 @@ struct ShoppingWidgetView: View {
             if family == .systemSmall {
                 if let first = snapshot.items.first { Text(first.name).font(.subheadline).lineLimit(1) }
             } else {
-                ForEach(Array(snapshot.items.prefix(rowLimit).enumerated()), id: \.offset) { _, item in
+                ForEach(snapshot.items.prefix(rowLimit), id: \.id) { item in
                     ShoppingRowView(item: item)
                 }
             }
@@ -105,14 +105,18 @@ struct ShoppingWidgetView: View {
     private var rowLimit: Int { family == .systemLarge ? 8 : 3 }
 }
 
-/// 单行购物项。Task 10 会把前面的图标换成 `Button(intent:)` 交互勾选。
+/// 单行购物项,带交互勾选按钮(iOS 17+)。点击翻转 store + 重载时间线。
 struct ShoppingRowView: View {
     let item: WidgetShoppingSnapshot.Item
     var body: some View {
         HStack {
-            Image(systemName: item.isChecked ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(item.isChecked ? .blue : .secondary)
+            Button(intent: ToggleShoppingItemIntent(itemID: item.id)) {
+                Image(systemName: item.isChecked ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(item.isChecked ? .blue : .secondary)
+            }
+            .buttonStyle(.plain)
             Text(item.name).font(.subheadline).strikethrough(item.isChecked).lineLimit(1)
+            Spacer()
         }
     }
 }
