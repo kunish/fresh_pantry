@@ -52,20 +52,3 @@ struct WasteWidget: Widget {
         .supportedFamilies(allFamilies)
     }
 }
-
-/// 补充:单个可配置 widget(长按「编辑小组件」切内容)。真机 Release 可配置性待验证;
-/// 与上面 4 个固定 widget 并存,即便不可配置也不影响它们。
-struct ConfigurableWidget: Widget {
-    var body: some WidgetConfiguration {
-        AppIntentConfiguration(
-            kind: "FreshPantryConfigurable",
-            intent: SelectWidgetContentIntent.self,
-            provider: ConfigurableSnapshotProvider()
-        ) { entry in
-            WidgetRootView(entry: entry).containerBackground(.fill.tertiary, for: .widget)
-        }
-        .configurationDisplayName("Fresh Pantry(可配置)")
-        .description("一个组件切换 临期 / 今日膳食 / 购物 / 减废")
-        .supportedFamilies(allFamilies)
-    }
-}

@@ -1,9 +1,7 @@
-import AppIntents
 import WidgetKit
 
-/// 一条时间线条目:渲染时刻 + 内容类别 + 四类快照合集。内容类别来源:固定 widget
-/// 由其 `SnapshotProvider(content:)` 注入;可配置 widget 由 `SelectWidgetContentIntent`
-/// 注入。视图统一读 `entry.content`。
+/// 一条时间线条目:渲染时刻 + 内容类别 + 四类快照合集。内容类别由所属固定 widget
+/// 的 `SnapshotProvider(content:)` 注入;视图统一读 `entry.content`。
 struct WidgetEntry: TimelineEntry {
     let date: Date
     let content: WidgetContentChoice
@@ -43,23 +41,5 @@ struct SnapshotProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<WidgetEntry>) -> Void) {
         let now = Date.now
         completion(Timeline(entries: [makeWidgetEntry(content: content, now: now)], policy: .after(nextWidgetReload(after: now))))
-    }
-}
-
-/// 可配置 widget 的 provider(`AppIntentTimelineProvider`,内容类别来自配置 intent)。
-/// ⚠️ 真机 Release 是否认该配置待验证;作为「补充」与 4 个固定 widget 并存,
-/// 即便不可配置也不影响固定 widget。
-struct ConfigurableSnapshotProvider: AppIntentTimelineProvider {
-    func placeholder(in context: Context) -> WidgetEntry {
-        WidgetEntry(date: .now, content: .expiring, bundle: .empty, needsAppLaunch: false)
-    }
-
-    func snapshot(for configuration: SelectWidgetContentIntent, in context: Context) async -> WidgetEntry {
-        makeWidgetEntry(content: configuration.content, now: .now)
-    }
-
-    func timeline(for configuration: SelectWidgetContentIntent, in context: Context) async -> Timeline<WidgetEntry> {
-        let now = Date.now
-        return Timeline(entries: [makeWidgetEntry(content: configuration.content, now: now)], policy: .after(nextWidgetReload(after: now)))
     }
 }

@@ -8,6 +8,5 @@ struct FreshPantryWidgetBundle: WidgetBundle {
         MealPlanWidget()
         ShoppingWidget()
         WasteWidget()
-        ConfigurableWidget()
     }
 }
