@@ -1,4 +1,5 @@
 import Foundation
+import os
 import SwiftData
 
 /// 小组件交互勾选的可测核心。翻转共享 store 里某购物项的 `isChecked`,并在有
@@ -31,7 +32,15 @@ enum ShoppingToggleService {
             clientId: clientID,
             createdAt: now
         )
-        try? await outbox.enqueue(op)
+        do {
+            try await outbox.enqueue(op)
+        } catch {
+            // 与 SyncWriter 一致:outbox 写失败意味着这条翻转在该行被重新编辑前
+            // 永不同步(本地已改、远程不知)。本地翻转已成功,故仍返 true,但记一条
+            // error 供 Console 排查这种静默漂移。
+            Logger(subsystem: "com.kunish.freshPantry", category: "widget")
+                .error("widget shopping toggle outbox enqueue failed for \(toggled.id, privacy: .public): \(error.localizedDescription, privacy: .public) — will not sync until re-edited")
+        }
         return true
     }
 }

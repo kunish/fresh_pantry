@@ -91,9 +91,9 @@ struct FreshPantryApp: App {
                     // fall through to the SDK auth handler (OTP link flows). Each
                     // `capture` is a no-op for URLs it doesn't own.
                     if dependencies.recipeImportRouter.capture(url: url) { return }
-                    // 小组件深链(freshpantry://expiring|mealplan|shopping|waste):
-                    // 必须 BEFORE invite —— invite 把「任意 host」当邀请 token 拦截,
-                    // 否则 widget host 会被它吞掉。
+                    // 保持与其它 capture 一致的短路顺序;widget host
+                    // (freshpantry://expiring|mealplan|shopping|waste)与 invite host
+                    // (freshpantry://invite/<token>)不冲突,放在 invite 之前更稳妥。
                     if dependencies.widgetDeepLinkRouter.capture(url: url) { return }
                     if dependencies.inviteRouter.capture(url: url) { return }
                     dependencies.clientProvider.handleOpenURL(url)
