@@ -30,6 +30,10 @@ struct FoodLogStats: Equatable, Sendable {
 
 /// 纯聚合(无 SwiftData,可单测)。
 enum FoodLogStatistics {
+    /// 减废统计的有界滞留窗口(天)。app 的 WasteInsightsStore 与小组件 reader
+    /// 共用此单一真源(Flutter `foodLogRecentWindow = Duration(days: 90)`)。
+    static let recentWindowDays = 90
+
     /// Tallies consumed / wasted / rescued / saved over `entries`. `rescued`
     /// counts a consumed entry whose batch was already expiring (`wasExpiring`).
     static func computeStats(_ entries: [FoodLogEntry]) -> FoodLogStats {

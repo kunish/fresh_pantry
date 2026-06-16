@@ -57,7 +57,7 @@ final class WasteInsightsStore {
     /// Bounded hydration window (days). The widest selectable window
     /// (`last90Days`) must not exceed this, so a query never reaches past the
     /// loaded slice. Mirrors Flutter `foodLogRecentWindow = Duration(days: 90)`.
-    static let recentWindowDays = 90
+    static let recentWindowDays = FoodLogStatistics.recentWindowDays
 
     private let repository: FoodLogRepository
     private let syncWriter: SyncWriter?
