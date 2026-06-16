@@ -161,7 +161,11 @@ targets:
         PRODUCT_NAME: FreshPantryWidgetKit
         GENERATE_INFOPLIST_FILE: YES
         DEFINES_MODULE: YES
-        SKIP_INSTALL: NO
+        # 嵌入式 framework 必须 SKIP_INSTALL: YES,否则它会作为【顶层产物】进归档,
+        # 使归档类型歧义 → Export IPA 报 "Unknown Distribution Error / method expected
+        # one {}"(分发方式检测返回空)。嵌入由 app 依赖的 embed: true 控制,与 SKIP_INSTALL
+        # 无关(已验证 SKIP_INSTALL: YES 下 framework 仍进 app/Frameworks/)。
+        SKIP_INSTALL: YES
       configs:
         Debug:
           CODE_SIGN_STYLE: Automatic
