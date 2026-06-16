@@ -18,6 +18,7 @@ struct RootView: View {
     @Environment(RecipeFilterRouter.self) private var recipeFilterRouter
     @Environment(NotificationTapRouter.self) private var notificationTapRouter
     @Environment(SpotlightRouter.self) private var spotlightRouter
+    @Environment(WidgetDeepLinkRouter.self) private var widgetDeepLinkRouter
     @Environment(\.scenePhase) private var scenePhase
     @State private var selection: Section = RootView.initialSelection()
     /// Reactive reachability for the offline / 待同步 banner.
@@ -365,6 +366,7 @@ struct RootView: View {
         .task { await refreshPendingCount() }
         .onChange(of: dependencies.syncSession.dataRevision) {
             Task { await refreshPendingCount() }
+            WidgetRefreshCoordinator.reloadAll()
         }
         // An outbound push finished (SyncWriter pulse): re-read the outbox so a
         // just-synced row's 待同步 badge clears without waiting for a foreground
@@ -410,6 +412,18 @@ struct RootView: View {
             case .recipe(let id):
                 pendingRecipeID = id
                 selection = .recipes
+            }
+        }
+        // 小组件深链:购物切购物 tab(就地 consume);临期/今日膳食/减废切到
+        // 首页 tab,由 DashboardView 消费并 push 对应 DashboardRoute。
+        .task(id: widgetDeepLinkRouter.pending) {
+            guard let dest = widgetDeepLinkRouter.pending else { return }
+            switch dest {
+            case .shopping:
+                widgetDeepLinkRouter.consume()
+                selection = .shopping
+            case .expiring, .mealPlan, .waste:
+                selection = .home
             }
         }
         // SPOTLIGHT INDEX + REMINDER RESCHEDULE: rebuild on launch, on household
@@ -541,4 +555,5 @@ struct RootView: View {
     RootView()
         .modelContainer(container)
         .environment(AppDependencies(modelContainer: container))
+        .environment(WidgetDeepLinkRouter())
 }

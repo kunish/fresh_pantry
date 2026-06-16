@@ -22,6 +22,7 @@ struct DashboardView: View {
 
     @Environment(AppDependencies.self) private var dependencies
     @Environment(NotificationTapRouter.self) private var tapRouter
+    @Environment(WidgetDeepLinkRouter.self) private var widgetDeepLinkRouter
     @State private var store: DashboardStore?
     /// Programmatic stack path. Normally empty; the `-initialRoute` launch hook
     /// pre-seeds it (in `.task`) so a pushed screen (e.g. 膳食计划) can be
@@ -123,6 +124,21 @@ struct DashboardView: View {
             guard tapRouter.pendingTap != nil else { return }
             tapRouter.consume()
             if path.last != .expiring { path.append(.expiring) }
+        }
+        // 小组件深链(临期/今日膳食/减废)→ push 对应 DashboardRoute。购物由
+        // RootView 切 tab 处理(此处返回 nil 不消费)。
+        .task(id: widgetDeepLinkRouter.pending) {
+            guard let dest = widgetDeepLinkRouter.pending else { return }
+            let route: DashboardRoute?
+            switch dest {
+            case .expiring: route = .expiring
+            case .mealPlan: route = .mealPlan
+            case .waste: route = .wasteInsights
+            case .shopping: route = nil
+            }
+            guard let route else { return }
+            widgetDeepLinkRouter.consume()
+            if path.last != route { path.append(route) }
         }
     }
 }

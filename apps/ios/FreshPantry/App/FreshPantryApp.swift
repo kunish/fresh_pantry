@@ -83,6 +83,7 @@ struct FreshPantryApp: App {
                 .environment(dependencies.recipeFilterRouter)
                 .environment(dependencies.notificationTapRouter)
                 .environment(dependencies.spotlightRouter)
+                .environment(dependencies.widgetDeepLinkRouter)
                 .onOpenURL { url in
                     // Share-extension recipe import → capture + short-circuit
                     // (RecipesView opens the pre-filled 新建食谱). Then invite deep
@@ -90,6 +91,10 @@ struct FreshPantryApp: App {
                     // fall through to the SDK auth handler (OTP link flows). Each
                     // `capture` is a no-op for URLs it doesn't own.
                     if dependencies.recipeImportRouter.capture(url: url) { return }
+                    // 小组件深链(freshpantry://expiring|mealplan|shopping|waste):
+                    // 必须 BEFORE invite —— invite 把「任意 host」当邀请 token 拦截,
+                    // 否则 widget host 会被它吞掉。
+                    if dependencies.widgetDeepLinkRouter.capture(url: url) { return }
                     if dependencies.inviteRouter.capture(url: url) { return }
                     dependencies.clientProvider.handleOpenURL(url)
                 }
@@ -105,6 +110,22 @@ struct FreshPantryApp: App {
                 // iOS can schedule an opportunistic flush even before the first
                 // background transition.
                 .task { Self.scheduleAppRefresh() }
+                // WIDGET 身份镜像:把当前家庭 + clientId 写进 App Group,供小组件
+                // 读取查询作用域 / 构造 outbox 操作;并触发一次时间线重载。
+                .task {
+                    WidgetSharedDefaults.writeIdentity(
+                        householdID: dependencies.householdID,
+                        clientID: dependencies.syncSession.clientId
+                    )
+                    WidgetRefreshCoordinator.reloadAll()
+                }
+                .onChange(of: dependencies.householdID) { _, newID in
+                    WidgetSharedDefaults.writeIdentity(
+                        householdID: newID,
+                        clientID: dependencies.syncSession.clientId
+                    )
+                    WidgetRefreshCoordinator.reloadAll()
+                }
                 // INTENT ADD HANDOFF: drain the names captured by
                 // `AddToShoppingListIntent` once the active household is resolved
                 // (keyed on `householdID` so a cold-start drain runs AFTER sign-in
@@ -121,6 +142,7 @@ struct FreshPantryApp: App {
                 // household is unchanged).
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .background {
+                        WidgetRefreshCoordinator.reloadAll()
                         Self.scheduleAppRefresh()
                         // Re-sync expiry reminders against the session's FINAL
                         // inventory before suspension — one hook covers every

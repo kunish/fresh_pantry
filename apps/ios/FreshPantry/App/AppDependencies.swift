@@ -83,6 +83,9 @@ final class AppDependencies {
     /// Holds a recipe URL handed in by the Share Extension until 食谱 can open the
     /// pre-filled 新建食谱 import form. Always built (no backend dependency).
     let recipeImportRouter: RecipeImportRouter
+    /// Holds a 小组件深链(临期/今日膳食/购物/减废)captured by `onOpenURL` until
+    /// `RootView`/`DashboardView` route it. Always built (no backend dependency).
+    let widgetDeepLinkRouter: WidgetDeepLinkRouter
     /// Carries an ingredient name from 临期看板「→做这道菜」 to the Recipes tab (#18).
     let recipeFilterRouter: RecipeFilterRouter
     /// Holds a tapped expiry-notification id until the Dashboard pushes the 临期
@@ -165,6 +168,7 @@ final class AppDependencies {
         self.debugMenuGate = DebugMenuGate()
         self.inviteRouter = InviteRouter()
         self.recipeImportRouter = RecipeImportRouter()
+        self.widgetDeepLinkRouter = WidgetDeepLinkRouter()
         self.recipeFilterRouter = RecipeFilterRouter()
         let notificationTapRouter = NotificationTapRouter()
         self.notificationTapRouter = notificationTapRouter
