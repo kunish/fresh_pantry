@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.1](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.22.0...fresh_pantry-v1.22.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* **ios:** widget 购物清单勾选点不动(容器 widgetURL 抢点 + 命中区过小) ([80605d2](https://github.com/kunish/fresh_pantry/commit/80605d207bde763a849fefaaf2aa26dd5879205d))
+
 ## [1.22.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.21.0...fresh_pantry-v1.22.0) (2026-06-16)
 
 
