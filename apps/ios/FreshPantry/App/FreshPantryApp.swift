@@ -142,6 +142,7 @@ struct FreshPantryApp: App {
                 // applied to whatever scope is now active.
                 .task(id: dependencies.householdID) {
                     await IntentAddDrainer.drain(dependencies: dependencies)
+                    await WidgetPendingToggleDrainer.drain(dependencies: dependencies)
                 }
                 // Re-arm the background request when leaving the foreground (each
                 // BGTask is one-shot — it must resubmit itself, see below). On
@@ -167,7 +168,10 @@ struct FreshPantryApp: App {
                                 .reschedule(householdID: dependencies.householdID)
                         }
                     } else if phase == .active {
-                        Task { await IntentAddDrainer.drain(dependencies: dependencies) }
+                        Task {
+                            await IntentAddDrainer.drain(dependencies: dependencies)
+                            await WidgetPendingToggleDrainer.drain(dependencies: dependencies)
+                        }
                     }
                 }
                 // In-process nudge from `AddToShoppingListIntent` (openAppWhenRun):

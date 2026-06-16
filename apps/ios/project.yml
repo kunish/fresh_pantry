@@ -108,26 +108,18 @@ targets:
     sources:
       # widget-only 代码
       - path: FreshPantryWidgets
-      # shared widget 逻辑(app target 也编它们,测试可见)
+      # 跨进程纯类型:快照/读写/身份/内容枚举/待落库队列(app target 也编,测试可见)
       - path: FreshPantry/Widgets/Shared
-      # 纯领域层(仅 Foundation/CryptoKit,整目录安全)
-      - path: FreshPantry/Domain
-      # 持久化层:13 个 @Model 记录 + ModelContainerFactory(Persistence/ 顶层),
-      # 排除会拖入 Supabase / Sync-Household 依赖的文件;repos 单独按需纳入。
-      - path: FreshPantry/Persistence
-        excludes:
-          - "HouseholdCache.swift"
-          - "RecipeCatalogCache.swift"
-          - "Stores/**"
-          - "Repositories/**"
-      - path: FreshPantry/Persistence/Repositories/ShoppingRepository.swift
-      - path: FreshPantry/Persistence/Repositories/InventoryRepository.swift
-      - path: FreshPantry/Persistence/Repositories/MealPlanRepository.swift
-      - path: FreshPantry/Persistence/Repositories/FoodLogRepository.swift
-      - path: FreshPantry/Persistence/Repositories/SyncOutboxRepository.swift
-      # ProfileRecord(@Model)依赖的纯 Foundation DTO `UserProfile`,定义在
-      # Sync/Household/ 下但只 import Foundation(无 Supabase/SwiftUI),按需单独纳入。
-      - path: FreshPantry/Sync/Household/ProfileModels.swift
+      # 仅纳入快照所需的纯枚举(FreshnessState;Enums.swift 仅 import Foundation)。
+      # 不纳入整个 Domain —— 其中 BackupData 等反向依赖 Persistence 类型,会拖累
+      # widget 二进制且引入编译依赖。
+      - path: FreshPantry/Domain/Enums.swift
+      # ⚠️ widget 扩展刻意【不】链接 Persistence / repos / SwiftData:取数全在 app 侧
+      # 算好写进 App Group(WidgetSnapshotPublisher),widget 只读那份小 JSON 显示;
+      # 交互勾选只 append 到 App Group 队列(WidgetPendingToggleStore),app 前台再落库
+      # (WidgetPendingToggleDrainer→ShoppingToggleService)。这样 widget 二进制最小、
+      # 启动不加载 SwiftData 框架——避免真机约 30MB 预算下启动即超限被 jetsam(模拟器
+      # 不强制内存限,故此前模拟器正常、真机停占位)。
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kunish.freshPantry.Widgets
