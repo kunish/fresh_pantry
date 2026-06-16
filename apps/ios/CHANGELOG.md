@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.21.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.20.0...fresh_pantry-v1.21.0) (2026-06-16)
+
+
+### Features
+
+* **ios:** app 集成 widget(写 App Group 身份/刷新触发/深链路由) ([0f929ee](https://github.com/kunish/fresh_pantry/commit/0f929ee4b7d17f4d6add48cddd2371ed2c3717cb))
+* **ios:** ShoppingToggleService widget 勾选写路径 ([1276e12](https://github.com/kunish/fresh_pantry/commit/1276e12a282456101510a24d8ceb9312a05e9e27))
+* **ios:** SwiftData store 迁移到 App Group 容器 + widget 只读变体 ([5b4d67e](https://github.com/kunish/fresh_pantry/commit/5b4d67e1a89f8556346a17586e45748f2d034069))
+* **ios:** widget 扩展 target + App Group + 共享源码骨架 ([bcc47da](https://github.com/kunish/fresh_pantry/commit/bcc47daf09feabce8ba5dafe6fa69b85e143145d))
+* **ios:** widget 视图(system + 锁屏配件)+ 装配 widget kind ([5e22d3f](https://github.com/kunish/fresh_pantry/commit/5e22d3fde593b4f67058b351edf4f2b32337c450))
+* **ios:** widget 购物清单交互勾选(ToggleShoppingItemIntent) ([d985837](https://github.com/kunish/fresh_pantry/commit/d9858379dff28731ba2bc19501a1f49a3b0b5982))
+* **ios:** widget 配置 intent + 时间线 Provider ([a3011a3](https://github.com/kunish/fresh_pantry/commit/a3011a3be40a76ffd05faf888d29698cfc0d8866))
+* **ios:** WidgetDataReader 四类内容投影 ([7a7c3b0](https://github.com/kunish/fresh_pantry/commit/7a7c3b0c61e499b816782784819c3856f086ee7f))
+* **ios:** WidgetDeepLinkRouter 深链路由解析 ([225e8ab](https://github.com/kunish/fresh_pantry/commit/225e8abba99deb7ecc36d5d80bf8c8ad61081944))
+* **ios:** WidgetRefreshCoordinator 刷新 seam ([48af647](https://github.com/kunish/fresh_pantry/commit/48af647d28cff37eae6910c75b35893677c3af21))
+* **ios:** WidgetSharedDefaults 跨进程身份通道 ([bd943c1](https://github.com/kunish/fresh_pantry/commit/bd943c1088d14422418a94c5d173c8ec9cf3f284))
+
+
+### Bug Fixes
+
+* **ios:** makeShared 打开失败回退默认位置 + 修正迁移调用者注释 ([bb60ded](https://github.com/kunish/fresh_pantry/commit/bb60ded092dcbff3a5675f9c8bd6adab6eacbe1a))
+* **ios:** widget Info.plist 补 CFBundleExecutable(否则 appex 缺执行体名导致宿主 app 装不上) ([0e688d8](https://github.com/kunish/fresh_pantry/commit/0e688d89d8dadbc47d3c84bc8278405574a9f7d5))
+* **ios:** widget Info.plist 补版本键以对齐父 app(消除 embed 校验 warning) ([cc2ac5a](https://github.com/kunish/fresh_pantry/commit/cc2ac5addfacaf1093797bc2c2815e1b803949ae))
+* **ios:** widget reader 对齐 app 口径(日历 cutoff/displayTitle)+ 补 limit/空态测试 ([261d9b7](https://github.com/kunish/fresh_pantry/commit/261d9b7e601f6d761e5051133151ce0fcaf6102d))
+* **ios:** widget 取数搬出扩展进程(app 预算快照写 App Group,时间线只读) ([f21dcd4](https://github.com/kunish/fresh_pantry/commit/f21dcd41c725e056f48905f4a33c03aeab243b04))
+* **ios:** widget 扩展彻底移除 SwiftData/数据层(真机内存根因) ([c72c71e](https://github.com/kunish/fresh_pantry/commit/c72c71e5f7f13b1fec98fd1e19024f4612a718c5))
+* **ios:** widget 按需只算当前内容快照(修真机加组件后停在占位空白) ([fcb0c3b](https://github.com/kunish/fresh_pantry/commit/fcb0c3baada628a5f3fc4e7c54027bf70b28c58b))
+
 ## [1.20.0](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.19.0...fresh_pantry-v1.20.0) (2026-06-14)
 
 
