@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import FreshPantryWidgetKit
 
 /// 从共享 SwiftData 容器派生小组件展示数据。复用既有 `@ModelActor` repo 加载,
 /// 派生口径对齐 app(`ExpiryCalculator` 临期分级,`FoodLogStatistics` 减废)。
@@ -60,7 +61,7 @@ struct WidgetDataReader {
 
         func count(_ s: FreshnessState) -> Int { nonFresh.lazy.filter { $0.state == s }.count }
         let items = sorted.prefix(limit).map {
-            WidgetExpiringSnapshot.Item(name: $0.ingredient.name, daysRemaining: $0.days, state: $0.state)
+            WidgetExpiringSnapshot.Item(name: $0.ingredient.name, daysRemaining: $0.days)
         }
         return WidgetExpiringSnapshot(
             expiredCount: count(.expired),

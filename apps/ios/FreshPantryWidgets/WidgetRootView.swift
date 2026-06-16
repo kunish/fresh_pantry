@@ -1,5 +1,6 @@
 import SwiftUI
 import WidgetKit
+import FreshPantryWidgetKit
 
 /// 所有 widget 共用根视图:内容类别读 `entry.content`(固定 widget 由其 provider
 /// 固定,可配置 widget 由配置 intent 决定)。系统尺寸走对应内容视图;锁屏配件

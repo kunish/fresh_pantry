@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import FreshPantryWidgetKit
 @testable import FreshPantry
 
 struct WidgetSnapshotStoreTests {
@@ -7,7 +8,7 @@ struct WidgetSnapshotStoreTests {
         WidgetSnapshotBundle(
             expiring: WidgetExpiringSnapshot(
                 expiredCount: 2, urgentCount: 1, soonCount: 0,
-                items: [.init(name: "牛奶", daysRemaining: -1, state: .expired)]
+                items: [.init(name: "牛奶", daysRemaining: -1)]
             ),
             mealPlan: WidgetMealPlanSnapshot(
                 items: [.init(title: "番茄炒蛋", done: false, mealType: "lunch")]

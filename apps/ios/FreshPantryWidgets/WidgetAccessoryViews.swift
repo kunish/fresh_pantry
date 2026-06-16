@@ -1,5 +1,6 @@
 import SwiftUI
 import WidgetKit
+import FreshPantryWidgetKit
 
 /// accessoryCircular:按内容类别的环形摘要。
 struct AccessoryCircularView: View {

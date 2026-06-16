@@ -7,7 +7,7 @@ import Foundation
 /// 组件停在占位)。改为:widget 只 append 一条 itemID 到这里 + 就地补丁展示快照;
 /// **app** 下次前台把队列里的翻转真正落库(经 `ShoppingToggleService`)并清空。
 /// 纯 Foundation,无任何重框架。
-enum WidgetPendingToggleStore {
+public enum WidgetPendingToggleStore {
     private static let fileName = "widget-pending-toggles.json"
 
     private static func fileURL() -> URL? {
@@ -29,13 +29,13 @@ enum WidgetPendingToggleStore {
 
     /// **widget 侧**:追加一条待落库翻转(每次点击一条;同项重复点击各记一条,
     /// app 按序回放即与点击次数一致)。
-    static func enqueue(itemID: String) {
+    public static func enqueue(itemID: String) {
         guard !itemID.isEmpty else { return }
         write(read() + [itemID])
     }
 
     /// **app 侧**:取出并清空队列,返回待落库的 itemID(按入队顺序)。
-    static func drain() -> [String] {
+    public static func drain() -> [String] {
         let ids = read()
         guard !ids.isEmpty else { return [] }
         write([])

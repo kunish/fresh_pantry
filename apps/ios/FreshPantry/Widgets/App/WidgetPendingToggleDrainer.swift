@@ -1,4 +1,5 @@
 import Foundation
+import FreshPantryWidgetKit
 
 /// **app 侧**:把 widget 攒下的「待落库勾选」真正落库。widget 进程只 append 了
 /// itemID 到 App Group 队列(不碰 SwiftData);这里在主进程经 `ShoppingToggleService`

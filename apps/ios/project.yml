@@ -45,6 +45,11 @@ targets:
           # stay in the repo as the pipeline's upload source but are excluded from the
           # app target (see apps/recipe-pipeline/README.md → 联网补图 / Supabase 迁移).
           - "Resources/RecipeImages"
+          # Widgets/Shared 现编进独立 framework FreshPantryWidgetKit(app+widget 都链接、
+          # 唯一模块/唯一类型)。绝不能再让 app target 直接编译它,否则又造出
+          # FreshPantry.* 重复类型,交互 widget intent 真机执行查找命名不匹配(chronod
+          # "no metadata for ... in com.kunish.freshPantry")。见 FreshPantryWidgetKit target。
+          - "Widgets/Shared"
     dependencies:
       - package: Supabase
         product: Supabase
@@ -56,6 +61,10 @@ targets:
       - target: ShareExtension
         embed: true
       - target: FreshPantryWidgets
+        embed: true
+      # 共享 widget intent/类型的唯一模块。app 嵌入它(随 .app 进 Frameworks/),
+      # widget 链接同一份 → 单一类型身份,intent 元数据经 AppIntentsPackage 聚合进 app bundle。
+      - target: FreshPantryWidgetKit
         embed: true
     settings:
       base:
@@ -106,20 +115,20 @@ targets:
     platform: iOS
     deploymentTarget: "26.0"
     sources:
-      # widget-only 代码
+      # widget-only 代码(视图/provider/bundle)。跨进程共享类型(intent/快照/队列/
+      # 身份/内容枚举)已移入 FreshPantryWidgetKit framework,widget 链接它而非重复编译
+      # ——否则 widget 模块会生成 FreshPantryWidgets.* 独立类型,与 app bundle 里的不一致,
+      # 交互 intent 真机执行查找失配(chronod "no metadata in com.kunish.freshPantry")。
       - path: FreshPantryWidgets
-      # 跨进程纯类型:快照/读写/身份/内容枚举/待落库队列(app target 也编,测试可见)
-      - path: FreshPantry/Widgets/Shared
-      # 仅纳入快照所需的纯枚举(FreshnessState;Enums.swift 仅 import Foundation)。
-      # 不纳入整个 Domain —— 其中 BackupData 等反向依赖 Persistence 类型,会拖累
-      # widget 二进制且引入编译依赖。
-      - path: FreshPantry/Domain/Enums.swift
       # ⚠️ widget 扩展刻意【不】链接 Persistence / repos / SwiftData:取数全在 app 侧
       # 算好写进 App Group(WidgetSnapshotPublisher),widget 只读那份小 JSON 显示;
       # 交互勾选只 append 到 App Group 队列(WidgetPendingToggleStore),app 前台再落库
-      # (WidgetPendingToggleDrainer→ShoppingToggleService)。这样 widget 二进制最小、
-      # 启动不加载 SwiftData 框架——避免真机约 30MB 预算下启动即超限被 jetsam(模拟器
-      # 不强制内存限,故此前模拟器正常、真机停占位)。
+      # (WidgetPendingToggleDrainer→ShoppingToggleService)。framework 全是纯 Foundation/
+      # AppIntents,不引入 SwiftData,真机 30MB 预算不受影响。
+    dependencies:
+      # 共享 intent/类型的唯一模块(由宿主 app 嵌入,扩展只链接不重复 embed)。
+      - target: FreshPantryWidgetKit
+        embed: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kunish.freshPantry.Widgets
@@ -134,6 +143,33 @@ targets:
           CODE_SIGN_STYLE: Manual
           CODE_SIGN_IDENTITY: Apple Distribution
           PROVISIONING_PROFILE_SPECIFIER: FreshPantry Widgets App Store
+
+  # 共享 widget 模块:app 与 widget 都链接的唯一动态 framework,承载交互/配置 intent
+  # 与跨进程纯类型。目的=全工程只有一个 ToggleShoppingItemIntent / SelectWidgetContentIntent
+  # 类型身份(模块名 FreshPantryWidgetKit),widget 的 Button(intent:) 发出的 LNAction
+  # 与 app bundle 聚合元数据里的 mangled 名一致,chronod 后台执行(openAppWhenRun=NO)
+  # 才能在主 app bundle 命中。全是 Foundation/AppIntents,不拖 SwiftData。
+  FreshPantryWidgetKit:
+    type: framework
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: FreshPantry/Widgets/Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kunish.freshPantry.WidgetKit
+        PRODUCT_NAME: FreshPantryWidgetKit
+        GENERATE_INFOPLIST_FILE: YES
+        DEFINES_MODULE: YES
+        SKIP_INSTALL: NO
+      configs:
+        Debug:
+          CODE_SIGN_STYLE: Automatic
+        Release:
+          # 框架无 entitlements,不需描述文件;随 app 嵌入时以 app 的分发身份签名。
+          CODE_SIGN_STYLE: Manual
+          CODE_SIGN_IDENTITY: Apple Distribution
+          PROVISIONING_PROFILE_SPECIFIER: ""
 
   FreshPantryTests:
     type: bundle.unit-test

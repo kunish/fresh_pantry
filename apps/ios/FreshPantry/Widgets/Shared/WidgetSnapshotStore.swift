@@ -8,7 +8,7 @@ import Foundation
 /// 的 SwiftData 容器 + 取数会被系统 jetsam 杀掉 / 在跨进程打开时崩溃,导致组件
 /// 永远停在 redaction 占位渲染不出内容。把取数搬到 app、widget 只读标量快照,是
 /// Apple 对 widget「时间线要轻」的官方做法,且对内存/崩溃/并发各成因通杀。
-enum WidgetSnapshotStore {
+public enum WidgetSnapshotStore {
     private static let fileName = "widget-snapshot.json"
 
     /// App Group 容器内快照文件 URL;App Group 未授权(本地未签名 dev)时为 nil。
@@ -20,14 +20,14 @@ enum WidgetSnapshotStore {
 
     /// **app 侧**:原子写入最新四类快照。失败容忍——下次刷新重试,widget 退回
     /// 旧值 / 占位,绝不因一次写失败崩溃。
-    static func write(_ bundle: WidgetSnapshotBundle) {
+    public static func write(_ bundle: WidgetSnapshotBundle) {
         guard let url = fileURL(), let data = try? JSONEncoder().encode(bundle) else { return }
         try? data.write(to: url, options: .atomic)
     }
 
     /// **widget 侧**:读已写入的快照。不存在(app 尚未首次发布)/ 损坏 → nil,
     /// 调用方据此显示 needsAppLaunch 占位。纯文件读,无 SwiftData。
-    static func read() -> WidgetSnapshotBundle? {
+    public static func read() -> WidgetSnapshotBundle? {
         guard let url = fileURL(), let data = try? Data(contentsOf: url) else { return nil }
         return try? JSONDecoder().decode(WidgetSnapshotBundle.self, from: data)
     }
@@ -36,14 +36,14 @@ enum WidgetSnapshotStore {
     /// 让 `reloadAllTimelines()` 后立即反映新状态;真正的 store 写 + outbox 由
     /// `ShoppingToggleService` 负责,app 下次刷新会用权威数据覆盖本快照。
     /// 目标项不在快照内(超出展示上限)→ no-op(store 仍已翻转,app 刷新后对齐)。
-    static func toggleShoppingItem(itemID: String) {
+    public static func toggleShoppingItem(itemID: String) {
         guard let bundle = read() else { return }
         write(togglingShoppingItem(in: bundle, itemID: itemID))
     }
 
     /// 纯变换(可单测,不碰文件):翻转 `itemID` 那项的勾选,并相应 ±1 调整
     /// `uncheckedCount`;目标项不存在 → 原样返回。
-    static func togglingShoppingItem(in bundle: WidgetSnapshotBundle, itemID: String) -> WidgetSnapshotBundle {
+    public static func togglingShoppingItem(in bundle: WidgetSnapshotBundle, itemID: String) -> WidgetSnapshotBundle {
         var delta = 0
         let items = bundle.shopping.items.map { item -> WidgetShoppingSnapshot.Item in
             guard item.id == itemID else { return item }
