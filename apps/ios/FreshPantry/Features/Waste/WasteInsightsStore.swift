@@ -33,33 +33,6 @@ enum WasteStatsWindow: String, CaseIterable, Sendable {
     }
 }
 
-/// Aggregated food-departure stats for one window. All values are item COUNTS,
-/// never quantities (quantities are free-text and intentionally not summed).
-/// `useUpRate` is the headline metric; `/0` is guarded to 0 (no departures yet).
-struct FoodLogStats: Equatable, Sendable {
-    var consumed: Int
-    var wasted: Int
-    /// Consumed AND already past fresh — "抢救临期" credit.
-    var rescued: Int
-    /// Donated + composted — positive去向, NOT counted as waste. Defaulted so
-    /// existing call sites stay source-compatible.
-    var saved: Int = 0
-
-    static let empty = FoodLogStats(consumed: 0, wasted: 0, rescued: 0, saved: 0)
-
-    /// consumed + wasted (rescued is a subset of consumed; saved is a separate
-    /// positive去向, not in the use-up denominator).
-    var total: Int { consumed + wasted }
-
-    /// consumed / (consumed + wasted), 0 when nothing has departed (guarded /0).
-    var useUpRate: Double { total == 0 ? 0 : Double(consumed) / Double(total) }
-
-    /// 0...100 integer percent for the headline (e.g. 85 → "85% 用掉率").
-    var useUpPercent: Int { Int((useUpRate * 100).rounded()) }
-
-    var isEmpty: Bool { total == 0 }
-}
-
 /// One category's consumed-vs-wasted split, for the breakdown chart/list.
 struct WasteCategoryBreakdown: Equatable, Sendable, Identifiable {
     let category: String
@@ -248,25 +221,10 @@ final class WasteInsightsStore {
 
     // MARK: Pure aggregation (testable without SwiftData)
 
-    /// Tallies consumed / wasted / rescued over `entries`. `rescued` counts a
-    /// consumed entry whose batch was already expiring (`wasExpiring`).
+    /// 转发到 Domain 的 `FoodLogStatistics`(纯口径单一真源)。保留此静态方法,
+    /// 既有 call site / 测试无需改动。
     static func computeStats(_ entries: [FoodLogEntry]) -> FoodLogStats {
-        var consumed = 0
-        var wasted = 0
-        var rescued = 0
-        var saved = 0
-        for entry in entries {
-            if entry.isConsumed {
-                consumed += 1
-                if entry.wasExpiring { rescued += 1 }
-            } else if entry.outcome.isSaved {
-                // 捐了/堆肥 = 非浪费正向去向,绝不计入 wasted。
-                saved += 1
-            } else {
-                wasted += 1
-            }
-        }
-        return FoodLogStats(consumed: consumed, wasted: wasted, rescued: rescued, saved: saved)
+        FoodLogStatistics.computeStats(entries)
     }
 
     /// Per-category consumed/wasted counts, normalized + sorted by
