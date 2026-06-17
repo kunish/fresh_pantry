@@ -76,4 +76,41 @@ struct WidgetDrainPulseTests {
 
         #expect(counter.value == 0)
     }
+
+    // MARK: outbox push + 待同步 convergence
+    //
+    // The widget path enqueues the .toggleChecked op directly into the outbox
+    // (it bypasses SyncWriter), so the drain must itself mirror SyncWriter's
+    // trailing action — kick a push and bump pendingSyncRevision — or the op
+    // lingers as "同步中,1 条待同步": never pushed promptly, and the banner /
+    // 待同步 badges never re-read the outbox to converge.
+
+    @Test func householdDrainBumpsPendingSyncRevisionAfterFlippingRow() async throws {
+        let container = try ModelContainerFactory.makeInMemory()
+        let dependencies = AppDependencies(modelContainer: container, householdID: "home")
+        try await dependencies.shoppingRepository.saveItems("home", [
+            ShoppingItem(id: "s1", name: "牛奶", detail: "", category: FoodCategories.other, isChecked: false),
+        ])
+        let before = dependencies.syncSession.pendingSyncRevision
+
+        await WidgetPendingToggleDrainer.drain(dependencies: dependencies, pending: ["s1"], center: NotificationCenter())
+
+        #expect(dependencies.syncSession.pendingSyncRevision == before + 1)
+    }
+
+    @Test func localOnlyDrainDoesNotBumpPendingSyncRevision() async throws {
+        // No household selected → the toggle never enqueues an outbox op (nothing
+        // to sync), so the sync-convergence pulse must stay quiet even though the
+        // local row was flipped (the list still reloads via the separate pulse).
+        let container = try ModelContainerFactory.makeInMemory()
+        let dependencies = AppDependencies(modelContainer: container, householdID: "")
+        try await dependencies.shoppingRepository.saveItems("", [
+            ShoppingItem(id: "s1", name: "牛奶", detail: "", category: FoodCategories.other, isChecked: false),
+        ])
+        let before = dependencies.syncSession.pendingSyncRevision
+
+        await WidgetPendingToggleDrainer.drain(dependencies: dependencies, pending: ["s1"], center: NotificationCenter())
+
+        #expect(dependencies.syncSession.pendingSyncRevision == before)
+    }
 }
