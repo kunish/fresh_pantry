@@ -1,6 +1,5 @@
 import Foundation
 import Testing
-import FreshPantryWidgetKit
 @testable import FreshPantry
 
 struct WidgetSharedDefaultsTests {

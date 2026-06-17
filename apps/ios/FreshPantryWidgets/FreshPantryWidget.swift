@@ -1,6 +1,5 @@
 import SwiftUI
 import WidgetKit
-import FreshPantryWidgetKit
 
 // 4 个独立固定 widget(零配置依赖,真机稳定)+ 1 个可配置 widget(补充,真机可配置性待验证)。
 // 每个都支持系统尺寸 + 锁屏配件(circular/rectangular/inline),配件按各自内容类别渲染。

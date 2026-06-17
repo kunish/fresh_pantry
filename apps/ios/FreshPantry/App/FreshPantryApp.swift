@@ -3,19 +3,11 @@ import BackgroundTasks
 import CoreSpotlight
 import SwiftData
 import SwiftUI
-import FreshPantryWidgetKit
 
-/// 把共享 framework 的 AppIntents 元数据(`ToggleShoppingItemIntent` /
-/// `SelectWidgetContentIntent`)聚合进 **主 app bundle `com.kunish.freshPantry`**。这是
-/// 修复「交互 widget 勾选真机无反应 / 可配置 widget 占位无编辑」的关键:chronod 后台执行
-/// 交互 intent(openAppWhenRun=NO)按主 app bundle id 解析元数据,缺则报
-/// "no metadata for ToggleShoppingItemIntent in com.kunish.freshPantry"。
-///
-/// 用独立非隔离 struct 而非挂在 `@main App` 上(App 是 MainActor 隔离,跨隔离一致性触发
-/// Swift6 ConformanceIsolation 错误)。构建系统扫描 target 内任意 AppIntentsPackage 即可。
-struct FreshPantryAppIntentsPackage: AppIntentsPackage {
-    static var includedPackages: [any AppIntentsPackage.Type] { [FreshPantryWidgetKitPackage.self] }
-}
+// 交互/配置 widget 的 AppIntents(ToggleShoppingItemIntent / SelectWidgetContentIntent)
+// 经 dual-target membership 直接编进本 app target(源在 Widgets/Shared,见 project.yml),
+// 主 app bundle 因此自带其元数据并由 linkd 在安装时注册进运行时索引,chronod 后台执行
+// (openAppWhenRun=NO)即可在 com.kunish.freshPantry 按 identifier 命中。无需 AppIntentsPackage。
 
 /// Application entry point.
 ///

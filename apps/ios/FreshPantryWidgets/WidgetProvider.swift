@@ -1,6 +1,5 @@
 import AppIntents
 import WidgetKit
-import FreshPantryWidgetKit
 
 /// 一条时间线条目:渲染时刻 + 内容类别 + 四类快照合集。内容类别来源:固定 widget
 /// 由其 `SnapshotProvider(content:)` 注入;可配置 widget 由 `SelectWidgetContentIntent`

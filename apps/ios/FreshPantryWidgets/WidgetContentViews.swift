@@ -1,6 +1,5 @@
 import SwiftUI
 import WidgetKit
-import FreshPantryWidgetKit
 
 // MARK: 临期
 

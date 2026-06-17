@@ -1,6 +1,5 @@
 import Foundation
 import SwiftData
-import FreshPantryWidgetKit
 
 /// **app 侧**小组件刷新入口:在主进程(内存充足)算好四类快照写进 App Group,
 /// 再重载所有时间线。取代散落的裸 `WidgetRefreshCoordinator.reloadAll()` —— widget

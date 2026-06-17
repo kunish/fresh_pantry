@@ -1,6 +1,5 @@
 import Foundation
 import SwiftData
-import FreshPantryWidgetKit
 
 /// Builds the shared SwiftData schema + container for the local store.
 ///
