@@ -108,19 +108,10 @@ targets:
     sources:
       # widget-only 代码(视图/provider/bundle)。
       - path: FreshPantryWidgets
-      # 跨进程共享类型(intent/快照/队列/身份/内容枚举)= **dual-target membership**:
-      # 同一批源文件 Widgets/Shared 同时编进【主 app target】和【本 widget 扩展 target】,
-      # 不经任何 framework。这是 Apple DTS / 官方 sample(Emoji Rangers)对交互式 widget
-      # AppIntent 的指定做法。原因:`openAppWhenRun=NO` 的交互 intent 执行被路由到主 app
-      # 进程,chronod 按【主 app bundle】里的 AppIntents 运行时索引(linkd/appintentsd 在
-      # 安装时注册)按 **identifier** 查找。intent 必须随 app 自身模块被标准抽取/注册,系统
-      # 才会在 release/TestFlight 下把它索引进去。
-      #   走 framework(无论动态还是 staticlib)都不行:元数据文件虽合并进 app bundle,但
-      #   release 下 linkd 不会把 framework/AppIntentsPackage 的 intent 注册进运行时索引
-      #   (feedback-assistant #425),真机恒报 "no metadata for ToggleShoppingItemIntent in
-      #   com.kunish.freshPantry"(删除+重启+重装也不消失=已排除缓存)。
-      #   app 模块是 FreshPantry.*、widget 模块是 FreshPantryWidgets.*,mangled 名不同但
-      #   **不失配**:匹配按 identifier "ToggleShoppingItemIntent",各 bundle 用各自模块名自洽。
+      # 跨进程共享类型(intent/快照/队列/身份/内容枚举)经 **dual-target membership** 同时编进
+      # app + widget 两个 target(app 侧见 FreshPantry target:不再 exclude Widgets/Shared),
+      # **不走 framework**:交互/配置 intent 由 chronod 按主 app bundle 的运行时 AppIntents 索引
+      # (按 identifier)解析,而 framework 的 intent 在 release 下不被 linkd 注册进该索引(FB #425)。
       - path: FreshPantry/Widgets/Shared
       # ⚠️ widget 扩展仍刻意【只】编 Widgets/Shared(纯 Foundation/AppIntents),【不】编
       # Widgets/App / Persistence / repos / SwiftData:取数全在 app 侧算好写进 App Group
