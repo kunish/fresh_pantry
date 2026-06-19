@@ -53,6 +53,27 @@ Physical location — `fridge`, `freezer`, `pantry`, etc. (see `StorageArea` enu
 > **Dev:** "And `米 5kg` + existing `米 3kg`?"
 > **You:** "Non-perishable, same unit/storage → default merge: `米 8kg`."
 
+## Sync vocabulary (infrastructure, not domain)
+
+**Sync Finish** (the finishing sequence):
+The ordered tail every local write runs *after* touching the outbox — one coalesced
+**push**, a `pendingSyncRevision` **bump** (re-reads only the 待同步 badges; never the
+heavier `dataRevision`, which is the remote-merge pulse that reloads every store), and
+an optional cross-instance **refresh pulse** (so other *live store instances* reload).
+Owned by one seam (`SyncWriter`) so that *"enqueue without finishing"* is
+**unrepresentable** — the defect class behind `c0defc8` (missing pulse → stale list) and
+`dabcbd4` (missing push+bump → stuck 「同步中,1 条待同步」). A **direct-outbox writer**
+(the widget drainer, which enqueues in-process to keep Supabase out of the widget
+extension) may bypass the *enqueue*, but must call the same **Sync Finish** entry —
+it can skip a step only by not reaching the finish, which the seam forbids.
+_Avoid_: re-deriving push/bump/pulse by hand in a new write path; bumping `dataRevision`
+from a local write.
+
+**CoordinatorPushing**:
+The one-method seam (`pushPending()`) that `SyncCoordinator` conforms to, so **Sync
+Finish** can be driven by a push-spy in tests — the structural gap whose absence let
+both bugs ship past the suite.
+
 ## Flagged ambiguities
 
 - "ingredient" — both inventory rows AND recipe-required food. Resolved: **Ingredient** = inventory row only; recipes use "recipe ingredient" / "required food".

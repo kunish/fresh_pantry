@@ -30,10 +30,13 @@ final class SyncWriter {
 
     private let outbox: SyncOutboxRepository
     /// nil in local-only mode (no client) — ops are recorded but never pushed.
-    private let coordinator: SyncCoordinator?
+    /// Held behind the `CoordinatorPushing` seam (not the concrete actor) so the
+    /// trailing push is assertable with a spy — the gap that hid `c0defc8` /
+    /// `dabcbd4`.
+    private let coordinator: CoordinatorPushing?
     private let session: SyncSession
 
-    init(outbox: SyncOutboxRepository, coordinator: SyncCoordinator?, session: SyncSession) {
+    init(outbox: SyncOutboxRepository, coordinator: CoordinatorPushing?, session: SyncSession) {
         self.outbox = outbox
         self.coordinator = coordinator
         self.session = session
@@ -97,19 +100,43 @@ final class SyncWriter {
             }
         }
 
-        // Fire-and-forget a single trailing push; the coordinator coalesces
-        // concurrent pushes into one in-flight run + at most one trailing rerun.
-        // After it finishes, pulse `pendingSyncRevision` so the per-item 待同步
-        // badges re-read the outbox and converge (a successful push clears the
-        // op, but nothing else would refresh the badge until the next foreground
-        // / reconnect). Bumping regardless of outcome is correct: the refresh
-        // re-reads reality, keeping the badge lit if ops remain.
+        // Fire-and-forget the shared finish so the mutating store never blocks on
+        // the network. Gated on `recordedAny`: if every enqueue threw, nothing was
+        // persisted, so skip the finish — pushing would spuriously clear the 待同步
+        // badge for a write that never landed.
         guard recordedAny else { return }
-        let coordinator = coordinator
-        let session = session
-        Task { @MainActor in
-            await coordinator?.pushPending()
-            session.bumpPendingSyncRevision()
-        }
+        Task { @MainActor in await self.finishPush() }
+    }
+
+    /// Finishing sequence for a writer that recorded its outbox op OUT OF BAND —
+    /// the widget toggle drain via `ShoppingToggleService`, which must stay
+    /// coordinator-free so `SyncCoordinator` / Supabase never link into the widget
+    /// process. The enqueue is allowed to bypass `SyncWriter`; the FINISH is not.
+    /// Runs the SAME push + bump the enqueue path runs (so a finishing step can't
+    /// be dropped — the `dabcbd4` bug), preceded by the optional cross-instance
+    /// refresh pulse (so other live store instances reload — the `c0defc8` bug).
+    ///
+    /// `didWrite` is the caller's assertion that a real local change landed: the
+    /// drain gates on a flipped row, not on `recordedAny`, because the enqueue
+    /// happened across the bypass where this seam can't observe it. A local-only
+    /// flip (no household) enqueued nothing, so it refreshes the foreground list
+    /// but has nothing to push and no badge to converge.
+    func finishDirectOutboxWrite(didWrite: Bool, refresh: (@MainActor () -> Void)? = nil) async {
+        guard didWrite else { return }
+        refresh?()
+        guard !session.selectedHouseholdId.isEmpty else { return }
+        await finishPush()
+    }
+
+    /// The shared finish core: one coalesced push, THEN the 待同步 bump (ordered —
+    /// bump after the push, regardless of its outcome, so the badge re-reads a
+    /// converged outbox and stays lit if ops remain). `coordinator` may be nil
+    /// (local-only-with-household / no client): the push no-ops but the bump still
+    /// fires so badges re-read reality. Both the fire-and-forget enqueue tail and
+    /// the awaited direct-outbox entry funnel through HERE, so push + bump can
+    /// never diverge between the two write paths.
+    private func finishPush() async {
+        await coordinator?.pushPending()
+        session.bumpPendingSyncRevision()
     }
 }

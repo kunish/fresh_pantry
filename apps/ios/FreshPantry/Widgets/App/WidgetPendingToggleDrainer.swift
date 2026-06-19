@@ -46,22 +46,16 @@ enum WidgetPendingToggleDrainer {
             container: dependencies.modelContainer,
             householdID: dependencies.householdID
         )
-        // Pulse only on a real flip — a drain that matched no row (the queued item
-        // was deleted before foreground) changed nothing, so the visible list has
-        // nothing new to show and a reload would be wasted work.
-        guard didWrite else { return }
-        // Reload the visible list FIRST (local store already holds the flip — fast).
-        center.post(name: .widgetDidDrainShoppingToggle, object: nil)
-        // Then sync the just-enqueued outbox ops and converge the banner / 待同步
-        // badges, exactly as every in-app mutation does via SyncWriter. This path
-        // enqueues to the outbox DIRECTLY (ShoppingToggleService bypasses
-        // SyncWriter), so it must mirror that trailing push + pendingSyncRevision
-        // bump itself — otherwise the op is never pushed promptly (it only rides
-        // RootView's racy foreground push) and the count never re-reads the outbox,
-        // leaving an eternal 「同步中,1 条待同步」. Household-only: a local-only flip
-        // never enqueues, so there is nothing to push.
-        guard !dependencies.householdID.isEmpty else { return }
-        await dependencies.syncCoordinator?.pushPending()
-        dependencies.syncSession.bumpPendingSyncRevision()
+        // The enqueue already happened out of band — `ShoppingToggleService`
+        // writes the outbox directly to keep `SyncCoordinator` / Supabase out of
+        // the widget process — but the FINISH runs through the one shared Sync
+        // Finish seam so a step can't be dropped (the `c0defc8` missing-pulse +
+        // `dabcbd4` missing-push/bump bug). `finishDirectOutboxWrite` refreshes the
+        // foreground list (a DIFFERENT `ShoppingStore` instance) first, then kicks
+        // the coalesced push and bumps the 待同步 badge — gated on a real flip
+        // (`didWrite`) and household scope, exactly as before but in one place.
+        await dependencies.syncWriter.finishDirectOutboxWrite(didWrite: didWrite) {
+            center.post(name: .widgetDidDrainShoppingToggle, object: nil)
+        }
     }
 }

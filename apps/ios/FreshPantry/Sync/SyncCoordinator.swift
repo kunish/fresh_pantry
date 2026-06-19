@@ -21,6 +21,17 @@ protocol OutboxReading: Sendable {
     func removeAcknowledged(_ ids: Set<String>) async throws
 }
 
+/// The push surface the **Sync Finish** seam depends on, so a write path can be
+/// asserted to actually KICK a push — not merely bump the `pendingSyncRevision`
+/// proxy — in tests. The concrete `actor SyncCoordinator` conforms; tests inject
+/// a counting spy. Its absence (a bare concrete actor with no seam) is the
+/// structural reason `c0defc8` / `dabcbd4` shipped invisibly past the suite: the
+/// only observable effect was the revision bump, which can fire independently of
+/// an actual push.
+protocol CoordinatorPushing: Sendable {
+    func pushPending() async
+}
+
 /// Drives outbox push without overlapping runs, ported from
 /// `lib/sync/sync_coordinator.dart`.
 ///
@@ -35,7 +46,7 @@ protocol OutboxReading: Sendable {
 /// Single-flight is enforced by actor isolation rather than a Dart `Future`
 /// field: the `inFlight` task and `rerunRequested` flag are only ever touched
 /// inside the actor.
-actor SyncCoordinator {
+actor SyncCoordinator: CoordinatorPushing {
     private let outbox: OutboxReading
     private let remote: RemoteSyncGateway
     private let retry: SyncRetryPolicy
