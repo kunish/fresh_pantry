@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.23.4](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.23.3...fresh_pantry-v1.23.4) (2026-06-20)
+
+
+### Bug Fixes
+
+* **ios:** Cook Mode 显式导入 Combine,修复倒计时发布者编译依赖 ([f895487](https://github.com/kunish/fresh_pantry/commit/f895487516526fe24d8f92210904103db5486383))
+
 ## [1.23.3](https://github.com/kunish/fresh_pantry/compare/fresh_pantry-v1.23.2...fresh_pantry-v1.23.3) (2026-06-17)
 
 
