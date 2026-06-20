@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Combine
 
 /// Pure paging math for Cook Mode: clamps the step index, answers the
 /// 上一步/下一步 boundary questions, and formats the per-page "第 x / n 步"
