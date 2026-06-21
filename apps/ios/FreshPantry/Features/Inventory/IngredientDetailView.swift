@@ -54,8 +54,7 @@ struct IngredientDetailView: View {
             if detailsStore == nil {
                 let store = FoodDetailsStore(
                     ingredient: ingredient,
-                    repository: dependencies.foodDetailsRepository,
-                    client: dependencies.foodDetailsClient
+                    repository: dependencies.foodDetailsRepository
                 )
                 detailsStore = store
                 await store.load()

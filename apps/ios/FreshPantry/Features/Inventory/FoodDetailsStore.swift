@@ -2,9 +2,9 @@ import Foundation
 
 /// Drives the ingredient-detail nutrition card. CACHE-FIRST, then a best-effort
 /// network lookup on a miss — mirrors the Flutter `foodDetailsProvider`
-/// (`detailsFor` reads the cache, falls back to `client.lookup`, and persists
-/// real results). The OFF lookup itself never throws (errors → nil + log), so a
-/// flaky network surfaces as `.notFound`, never a crash.
+/// (`detailsFor` reads the cache, falls back to `OpenFoodFactsService.lookupDetails`,
+/// and persists real results). The OFF lookup itself never throws (errors → nil +
+/// log), so a flaky network surfaces as `.notFound`, never a crash.
 @Observable
 @MainActor
 final class FoodDetailsStore {
@@ -20,16 +20,13 @@ final class FoodDetailsStore {
 
     private let ingredient: Ingredient
     private let repository: FoodDetailsRepository
-    private let client: OpenFoodFactsDetailsClient
 
     init(
         ingredient: Ingredient,
-        repository: FoodDetailsRepository,
-        client: OpenFoodFactsDetailsClient
+        repository: FoodDetailsRepository
     ) {
         self.ingredient = ingredient
         self.repository = repository
-        self.client = client
     }
 
     /// Cache-first lookup: a fresh-version cache hit shows immediately; otherwise
@@ -52,7 +49,7 @@ final class FoodDetailsStore {
         }
 
         // 2) Network — best-effort. A nil result (not found / offline) → notFound.
-        let fetched = try? await client.lookup(ingredient)
+        let fetched = await OpenFoodFactsService.lookupDetails(name: ingredient.name, barcode: ingredient.barcode)
         guard let fetched else {
             state = .notFound
             return

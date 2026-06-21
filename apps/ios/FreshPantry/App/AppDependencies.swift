@@ -52,9 +52,6 @@ final class AppDependencies {
     /// barcode). Powers the scan fast-path (local hit > OFF > manual). NOT
     /// synced — see `BarcodeMemoryRecord` for the per-device scope decision.
     let barcodeMemoryRepository: BarcodeMemoryRepository
-    /// Best-effort OFF lookup client (barcode-first, then name search). The DI
-    /// seam the ingredient-detail nutrition card builds its store from.
-    let foodDetailsClient: OpenFoodFactsDetailsClient
     /// UserDefaults-backed favorites; shared so favorite state is consistent
     /// across the recipes list and detail screens.
     let favoritesStore: FavoritesStore
@@ -158,7 +155,6 @@ final class AppDependencies {
         self.localRecipeRepository = LocalRecipeRepository()
         self.foodDetailsRepository = FoodDetailsRepository(modelContainer: modelContainer)
         self.barcodeMemoryRepository = BarcodeMemoryRepository(modelContainer: modelContainer)
-        self.foodDetailsClient = OpenFoodFactsDetailsClient()
         self.reminderSettingsStore = ReminderSettingsStore()
         self.dietPreferenceStore = DietPreferenceStore()
         self.aiSettingsStore = AiSettingsStore(secrets: KeychainStore())
