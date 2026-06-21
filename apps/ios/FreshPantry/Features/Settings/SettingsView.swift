@@ -58,8 +58,6 @@ private struct SettingsContent: View {
     @State private var householdStore: HouseholdSessionStore?
     /// Drives the 清除常买记忆 destructive-action confirmation alert.
     @State private var showClearHistoryConfirm = false
-    /// 隐藏调试菜单的连点计数:累计点「版本」行 7 次解锁 `DebugMenuGate`。
-    @State private var versionTapCount = 0
 
     var body: some View {
         Form {
@@ -72,9 +70,6 @@ private struct SettingsContent: View {
             assistantSection
             appearanceSection
             comingSoonSection
-            if dependencies.debugMenuGate.isUnlocked {
-                debugSection
-            }
             aboutSection
         }
         .scrollContentBackground(.hidden)
@@ -450,23 +445,6 @@ private struct SettingsContent: View {
                     .font(.fkBodyMedium)
                     .foregroundStyle(Color.fkOnSurfaceVariant)
             }
-            .contentShape(Rectangle())
-            .onTapGesture {
-                guard !dependencies.debugMenuGate.isUnlocked else { return }
-                versionTapCount += 1
-                if versionTapCount >= 7 {
-                    dependencies.debugMenuGate.unlock()
-                    versionTapCount = 0
-                }
-            }
-            .sensoryFeedback(.success, trigger: dependencies.debugMenuGate.isUnlocked)
-            if dependencies.featureFlagStore.isEnabled(.demoFeature) {
-                HStack {
-                    Text("🎉 示例功能已开启")
-                        .font(.fkBodyMedium)
-                        .foregroundStyle(Color.fkOnSurface)
-                }
-            }
             HStack {
                 Text("开源致谢")
                     .font(.fkBodyMedium)
@@ -482,25 +460,6 @@ private struct SettingsContent: View {
         .listRowBackground(Color.fkSurfaceContainerLowest)
     }
 
-    // MARK: 调试
-
-    /// 隐藏调试菜单入口:仅当 `DebugMenuGate.isUnlocked` 时由 `body` 条件渲染。
-    private var debugSection: some View {
-        Section {
-            NavigationLink {
-                DebugMenuView()
-            } label: {
-                SettingsLinkLabel(
-                    systemImage: "ladybug.fill",
-                    title: "调试菜单",
-                    subtitle: "功能开关与实验项"
-                )
-            }
-        } header: {
-            Text("调试")
-        }
-        .listRowBackground(Color.fkSurfaceContainerLowest)
-    }
 }
 
 // MARK: - Rows

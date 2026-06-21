@@ -31,6 +31,15 @@ enum JSONDate {
     /// a trailing `Z` for UTC dates. Foundation `Date` carries no zone, so we
     /// always encode in UTC with the `Z` suffix (the Flutter model normalizes
     /// the sync-critical timestamps — loggedAt, deletedAt — to UTC already).
+    ///
+    /// ponytail: deliberately NOT `ISO8601DateFormatter` (even though this file
+    /// already builds one for parsing). The formatter ROUNDS sub-millisecond
+    /// fractions to the nearest ms; Dart `toIso8601String()` TRUNCATES, and the
+    /// `.rounded(.down)` floor below matches it. Swapping in the formatter drifts
+    /// ~50% of `Date()` outbox writes by one ms (and carries into the seconds
+    /// field at the .9995 boundary), silently corrupting the sync wire bytes.
+    /// Keep hand-rolled — a formatter would need the Date pre-truncated to whole
+    /// ms first, which is more code, not less.
     static func iso8601(_ date: Date) -> String {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = utc
