@@ -58,7 +58,7 @@ final class ExpiringStore {
     /// Non-fresh items, urgency-sorted within each tier. Empty when the pantry
     /// is healthy.
     var sortedItems: [Ingredient] {
-        sortByUrgency(items.filter { DashboardStore.isNonFresh($0.state) })
+        FreshnessSort.byUrgency(items.filter { DashboardStore.isNonFresh($0.state) })
     }
 
     /// Sectioned by tier in severity order: expired → urgent → expiringSoon.
@@ -72,29 +72,6 @@ final class ExpiringStore {
         }
     }
 
-    // MARK: Sorting internals
-
-    private func sortByUrgency(_ list: [Ingredient]) -> [Ingredient] {
-        let order: [FreshnessState] = [.expired, .urgent, .expiringSoon, .fresh]
-        func rank(_ state: FreshnessState) -> Int { order.firstIndex(of: state) ?? order.count }
-
-        return list.enumerated().sorted { lhs, rhs in
-            let lRank = rank(lhs.element.state)
-            let rRank = rank(rhs.element.state)
-            if lRank != rRank { return lRank < rRank }
-
-            switch (lhs.element.expiryDate, rhs.element.expiryDate) {
-            case let (l?, r?) where l != r:
-                return l < r
-            case (.some, nil):
-                return true
-            case (nil, .some):
-                return false
-            default:
-                return lhs.offset < rhs.offset
-            }
-        }.map(\.element)
-    }
 }
 
 extension FreshnessState {

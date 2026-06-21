@@ -540,7 +540,7 @@ final class InventoryStore {
             .filter(matchesStorageFilter)
             .filter(matchesTagFilter)
             .filter(matchesSearch)
-        return sortByUrgency(filtered)
+        return FreshnessSort.byUrgency(filtered)
     }
 
     /// The tag chips to surface, derived from the CURRENT inventory: every tag in
@@ -616,30 +616,6 @@ final class InventoryStore {
         let query = searchQuery.trimmed.lowercased()
         if query.isEmpty { return true }
         return PinyinMatcher.matches(item.name, query: query)
-    }
-
-    /// Sort: most-severe state first (expired→urgent→expiringSoon→fresh), then
-    /// soonest expiry first (nil expiry last), stable by original index.
-    private func sortByUrgency(_ list: [Ingredient]) -> [Ingredient] {
-        let order: [FreshnessState] = [.expired, .urgent, .expiringSoon, .fresh]
-        func rank(_ state: FreshnessState) -> Int { order.firstIndex(of: state) ?? order.count }
-
-        return list.enumerated().sorted { lhs, rhs in
-            let lRank = rank(lhs.element.state)
-            let rRank = rank(rhs.element.state)
-            if lRank != rRank { return lRank < rRank }
-
-            switch (lhs.element.expiryDate, rhs.element.expiryDate) {
-            case let (l?, r?) where l != r:
-                return l < r
-            case (.some, nil):
-                return true
-            case (nil, .some):
-                return false
-            default:
-                return lhs.offset < rhs.offset // stable by source order
-            }
-        }.map(\.element)
     }
 
     /// Stable identity resolution: id first (when non-empty), else the first

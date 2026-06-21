@@ -100,7 +100,7 @@ final class DashboardStore {
     /// soonest expiry first). The ExpiringView renders the full list; the
     /// Dashboard preview is its prefix.
     var sortedNonFresh: [Ingredient] {
-        sortByUrgency(inventory.filter { Self.isNonFresh($0.state) })
+        FreshnessSort.byUrgency(inventory.filter { Self.isNonFresh($0.state) })
     }
 
     // MARK: Classification / sorting internals
@@ -116,31 +116,6 @@ final class DashboardStore {
 
     private func count(of state: FreshnessState) -> Int {
         inventory.lazy.filter { $0.state == state }.count
-    }
-
-    /// Sort: most-severe state first (expired→urgent→expiringSoon), then soonest
-    /// expiry first (nil expiry last), stable by original index. Mirrors the
-    /// Inventory store's urgency sort so the two stay consistent.
-    private func sortByUrgency(_ list: [Ingredient]) -> [Ingredient] {
-        let order: [FreshnessState] = [.expired, .urgent, .expiringSoon, .fresh]
-        func rank(_ state: FreshnessState) -> Int { order.firstIndex(of: state) ?? order.count }
-
-        return list.enumerated().sorted { lhs, rhs in
-            let lRank = rank(lhs.element.state)
-            let rRank = rank(rhs.element.state)
-            if lRank != rRank { return lRank < rRank }
-
-            switch (lhs.element.expiryDate, rhs.element.expiryDate) {
-            case let (l?, r?) where l != r:
-                return l < r
-            case (.some, nil):
-                return true
-            case (nil, .some):
-                return false
-            default:
-                return lhs.offset < rhs.offset // stable by source order
-            }
-        }.map(\.element)
     }
 }
 
