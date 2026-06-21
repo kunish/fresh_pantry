@@ -119,4 +119,18 @@ struct SyncSessionTests {
         #expect(second.selectedHouseholdId == "explicit")
         #expect(defaults.string(forKey: SyncSession.selectedHouseholdIdKey) == "old")
     }
+
+    // MARK: - Dropped-write notice
+
+    @Test func noteDroppedWriteAccumulatesAndClearResets() {
+        let session = SyncSession(defaults: suite())
+        #expect(session.droppedWriteCount == 0)
+
+        session.noteDroppedWrite()
+        session.noteDroppedWrite()
+        #expect(session.droppedWriteCount == 2)
+
+        session.clearDroppedWrites()
+        #expect(session.droppedWriteCount == 0)
+    }
 }

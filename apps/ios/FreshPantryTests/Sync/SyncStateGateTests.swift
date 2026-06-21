@@ -40,6 +40,15 @@ struct SyncStateGateTests {
             == "3 条同步失败")
     }
 
+    @Test func droppedWriteWinsOverEveryOtherState() {
+        // A dropped local write is a LOCAL storage failure — it outranks offline,
+        // pending, and dead-letter, and shows regardless of connectivity.
+        #expect(SyncStatusBanner.message(isOnline: false, pendingCount: 5, failedCount: 2, droppedCount: 1)
+            == "1 项更改未能保存,请重试")
+        #expect(SyncStatusBanner.message(isOnline: true, pendingCount: 0, failedCount: 0, droppedCount: 3)
+            == "3 项更改未能保存,请重试")
+    }
+
     // MARK: - InviteRouter.gateOutcome
 
     @Test func noPendingInviteIsNoAction() {

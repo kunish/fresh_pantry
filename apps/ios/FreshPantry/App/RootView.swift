@@ -72,7 +72,11 @@ struct RootView: View {
                     isOnline: connectivity.isOnline,
                     pendingCount: pendingCount,
                     failedCount: failedCount,
-                    onFailedTap: failedCount > 0 ? { Task { await presentSyncFailures() } } : nil
+                    // Reactive: SyncSession is @Observable, so reading the count in
+                    // body re-renders the banner when SyncWriter bumps it.
+                    droppedCount: dependencies.syncSession.droppedWriteCount,
+                    onFailedTap: failedCount > 0 ? { Task { await presentSyncFailures() } } : nil,
+                    onDroppedDismiss: { dependencies.syncSession.clearDroppedWrites() }
                 )
                 tabs
             }

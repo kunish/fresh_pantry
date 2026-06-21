@@ -87,6 +87,21 @@ final class SyncSession {
 
     func bumpInviteRefresh() { inviteRefreshRevision += 1 }
 
+    /// Count of local writes whose outbox enqueue PERSISTENTLY failed this session
+    /// (the SwiftData write threw on every retry): the row changed locally but no
+    /// op queued, so it will never sync until re-edited. Surfaced as a dismissible
+    /// danger banner so the drop isn't silent. In-memory only — a relaunch resets
+    /// it (a real storage fault re-triggers on the next failed write); the user
+    /// dismisses it once acknowledged.
+    private(set) var droppedWriteCount: Int = 0
+
+    /// Records one persistently-dropped local write. Called by `SyncWriter` on the
+    /// main actor after every enqueue retry failed.
+    func noteDroppedWrite() { droppedWriteCount += 1 }
+
+    /// Clears the dropped-write notice (the user dismissed the banner).
+    func clearDroppedWrites() { droppedWriteCount = 0 }
+
     /// The last successful inbound bulk-pull watermark for `householdId`, or nil
     /// when a full pull is required (first sync / after a failed run).
     func syncCursor(for householdId: String) -> Date? {

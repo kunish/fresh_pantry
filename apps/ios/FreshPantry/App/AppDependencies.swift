@@ -216,7 +216,7 @@ final class AppDependencies {
                 apiBaseURL: (config?.backend.apiBaseURL ?? BackendConfig.defaultAPIBaseURL).absoluteString
             )
             self.remotePantryRepository = remoteRepository
-            self.syncWriter = SyncWriter(outbox: outbox, coordinator: coordinator, session: session)
+            self.syncWriter = SyncWriter(outbox: outbox, coordinator: coordinator, session: session, diagnostics: diagnostics)
             self.householdContentSync = HouseholdContentSyncCoordinator(
                 remote: remoteRepository,
                 push: coordinator,
@@ -234,7 +234,7 @@ final class AppDependencies {
         } else {
             self.syncCoordinator = nil
             self.remotePantryRepository = nil
-            self.syncWriter = SyncWriter(outbox: outbox, coordinator: nil, session: session)
+            self.syncWriter = SyncWriter(outbox: outbox, coordinator: nil, session: session, diagnostics: diagnostics)
             self.householdContentSync = nil
         }
         // 收藏 / 忌口 集合恒走仓库支撑 + 家庭同步:本地模式下 session 域为 ""、

@@ -28,18 +28,32 @@ final class SyncWriter {
 
     private static let logger = Logger(subsystem: "com.kunish.freshPantry", category: "sync")
 
-    private let outbox: SyncOutboxRepository
+    /// Held behind the `OutboxEnqueuing` seam (not the concrete actor) so the
+    /// enqueue-FAILURE escalation is assertable with a throwing fake.
+    private let outbox: OutboxEnqueuing
     /// nil in local-only mode (no client) — ops are recorded but never pushed.
     /// Held behind the `CoordinatorPushing` seam (not the concrete actor) so the
     /// trailing push is assertable with a spy — the gap that hid `c0defc8` /
     /// `dabcbd4`.
     private let coordinator: CoordinatorPushing?
     private let session: SyncSession
+    private let diagnostics: Diagnostics
 
-    init(outbox: SyncOutboxRepository, coordinator: CoordinatorPushing?, session: SyncSession) {
+    /// Max enqueue attempts. A SwiftData write can fail transiently while the
+    /// background sync apply touches the same container; a couple of immediate
+    /// retries recover that without blocking the mutating store on the network.
+    private static let maxEnqueueAttempts = 3
+
+    init(
+        outbox: OutboxEnqueuing,
+        coordinator: CoordinatorPushing?,
+        session: SyncSession,
+        diagnostics: Diagnostics = NoopDiagnostics()
+    ) {
         self.outbox = outbox
         self.coordinator = coordinator
         self.session = session
+        self.diagnostics = diagnostics
     }
 
     /// Records ONE op then kicks a (coalesced) push. No-op — the correct
@@ -84,20 +98,7 @@ final class SyncWriter {
                 clientId: session.clientId,
                 createdAt: Date()
             )
-            do {
-                try await outbox.enqueue(operation)
-                recordedAny = true
-            } catch {
-                // SwiftData write failed (disk full, migration mismatch, …).
-                // Do NOT set recordedAny — this op was never persisted; skipping
-                // the trailing push avoids a spurious badge-clear on a lost write.
-                // The local mutation already committed, so this op will never reach
-                // the server (silent local/remote drift) until the row is re-edited
-                // — log it so the maintainer can spot the divergence in Console.
-                Self.logger.error(
-                    "outbox enqueue failed for \(op.entityType.rawValue, privacy: .public)/\(op.entityId, privacy: .public): \(error.localizedDescription, privacy: .public) — local write will not sync until re-edited"
-                )
-            }
+            if await record(operation) { recordedAny = true }
         }
 
         // Fire-and-forget the shared finish so the mutating store never blocks on
@@ -106,6 +107,41 @@ final class SyncWriter {
         // badge for a write that never landed.
         guard recordedAny else { return }
         Task { @MainActor in await self.finishPush() }
+    }
+
+    /// Records one op, retrying a TRANSIENT SwiftData write failure (the apply
+    /// path can momentarily hold the container). Returns whether it persisted.
+    ///
+    /// A PERSISTENT failure — every attempt threw — is the one silent local/remote
+    /// drift: the local mutation already committed, but no op queued, so it will
+    /// never sync until the row is re-edited. The old code logged that to Console
+    /// only; here it ALSO escalates to `diagnostics.failure` so the drop is
+    /// observable (Sentry), not invisible. The caller leaves `recordedAny` false,
+    /// so the finish is skipped (no spurious 待同步 badge-clear for a lost write).
+    private func record(_ operation: SyncOperation) async -> Bool {
+        for attempt in 1...Self.maxEnqueueAttempts {
+            do {
+                try await outbox.enqueue(operation)
+                return true
+            } catch {
+                guard attempt < Self.maxEnqueueAttempts else {
+                    Self.logger.error(
+                        "outbox enqueue failed for \(operation.entityType.rawValue, privacy: .public)/\(operation.entityId, privacy: .public) after \(attempt) attempts: \(error.localizedDescription, privacy: .public) — local write will not sync until re-edited"
+                    )
+                    diagnostics.failure(
+                        "sync.enqueue",
+                        error: error,
+                        ["entityType": operation.entityType.rawValue, "entityId": operation.entityId]
+                    )
+                    // Surface the drop in-app (a dismissible danger banner) so the
+                    // lost write isn't invisible to the user, not just to Sentry.
+                    session.noteDroppedWrite()
+                    return false
+                }
+                try? await Task.sleep(for: .milliseconds(50))
+            }
+        }
+        return false
     }
 
     /// Finishing sequence for a writer that recorded its outbox op OUT OF BAND —

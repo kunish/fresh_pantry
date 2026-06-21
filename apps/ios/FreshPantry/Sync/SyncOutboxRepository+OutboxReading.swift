@@ -13,3 +13,15 @@ import Foundation
 /// the bare conformance compiles without bridging methods — leaving the
 /// existing `SyncOutboxRepository.swift` untouched as required.
 extension SyncOutboxRepository: OutboxReading {}
+
+/// The outbox WRITE surface `SyncWriter` depends on, so the enqueue-FAILURE path
+/// (a SwiftData write that throws) is assertable with a fake that throws. That
+/// failure is the one genuinely silent local/remote drift after a write: the row
+/// changed locally but no op queued, so it never syncs until re-edited. The
+/// production actor's synchronous-throwing `enqueue` satisfies the `async throws`
+/// requirement across the actor hop, so the conformance is bare.
+protocol OutboxEnqueuing: Sendable {
+    func enqueue(_ operation: SyncOperation) async throws
+}
+
+extension SyncOutboxRepository: OutboxEnqueuing {}
