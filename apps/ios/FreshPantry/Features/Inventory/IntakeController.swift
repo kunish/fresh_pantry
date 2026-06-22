@@ -89,16 +89,8 @@ final class IntakeController {
         // the intent's `baseVersion` (nil for a new row, else the prior version).
         // No-op when no household is selected — the writer's local-first guard.
         let ops: [SyncWriter.PendingOp] = result.syncIntents.compactMap { intent in
-            guard let row = result.inventory.first(where: { $0.id == intent.entityId }),
-                  let patch = DomainJSON.valueMap(row)
-            else { return nil }
-            return SyncWriter.PendingOp(
-                entityType: .inventoryItem,
-                entityId: intent.entityId,
-                operation: intent.operation,
-                patch: patch,
-                baseVersion: intent.baseVersion
-            )
+            guard let row = result.inventory.first(where: { $0.id == intent.entityId }) else { return nil }
+            return SyncWriter.PendingOp(row, type: .inventoryItem, operation: intent.operation, baseVersion: intent.baseVersion)
         }
         await syncWriter?.enqueueBatch(ops)
 

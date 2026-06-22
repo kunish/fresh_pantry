@@ -52,14 +52,7 @@ final class CustomRecipeStore {
     @discardableResult
     func add(_ recipe: Recipe) async -> Bool {
         await mutate(apply: { recipes in recipes.append(recipe); return true }) {
-            guard let patch = DomainJSON.valueMap(recipe) else { return }
-            await self.syncWriter?.enqueue(
-                entityType: .customRecipe,
-                entityId: recipe.id,
-                operation: .create,
-                patch: patch,
-                baseVersion: nil
-            )
+            await self.syncWriter?.enqueue(recipe, type: .customRecipe, operation: .create, baseVersion: nil)
         }
     }
 
@@ -75,14 +68,7 @@ final class CustomRecipeStore {
                 return true
             },
             enqueue: {
-                guard let patch = DomainJSON.valueMap(recipe) else { return }
-                await self.syncWriter?.enqueue(
-                    entityType: .customRecipe,
-                    entityId: recipe.id,
-                    operation: .update,
-                    patch: patch,
-                    baseVersion: recipe.remoteVersion
-                )
+                await self.syncWriter?.enqueue(recipe, type: .customRecipe, operation: .update, baseVersion: recipe.remoteVersion)
             }
         )
     }
@@ -102,14 +88,8 @@ final class CustomRecipeStore {
                 return true
             },
             enqueue: {
-                guard let removed, let patch = DomainJSON.valueMap(removed) else { return }
-                await self.syncWriter?.enqueue(
-                    entityType: .customRecipe,
-                    entityId: id,
-                    operation: .delete,
-                    patch: patch,
-                    baseVersion: removed.remoteVersion
-                )
+                guard let removed else { return }
+                await self.syncWriter?.enqueue(removed, type: .customRecipe, operation: .delete, baseVersion: removed.remoteVersion)
             }
         )
         // Nothing references the deleted row's cover anymore — clean up a local

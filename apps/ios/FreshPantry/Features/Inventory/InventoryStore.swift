@@ -184,15 +184,7 @@ final class InventoryStore {
             Self.logger.error("FoodLog append failed for removal: \(error.localizedDescription, privacy: .public)")
         }
         // FoodLog now syncs to the household: enqueue the departure as a create.
-        if let patch = DomainJSON.valueMap(entry) {
-            await syncWriter?.enqueue(
-                entityType: .foodLogEntry,
-                entityId: entry.id,
-                operation: .create,
-                patch: patch,
-                baseVersion: entry.remoteVersion
-            )
-        }
+        await syncWriter?.enqueue(entry, type: .foodLogEntry, operation: .create, baseVersion: entry.remoteVersion)
         return entry.id
     }
 
@@ -226,15 +218,7 @@ final class InventoryStore {
         }
         // Undelete path: re-assert the restored row remotely via a full-row write
         // (`.update`), which clears the soft-delete the original `.delete` set.
-        if let patch = DomainJSON.valueMap(undo.ingredient) {
-            await syncWriter?.enqueue(
-                entityType: .inventoryItem,
-                entityId: undo.ingredient.id,
-                operation: .update,
-                patch: patch,
-                baseVersion: undo.ingredient.remoteVersion
-            )
-        }
+        await enqueueUpdate(undo.ingredient, baseVersion: undo.ingredient.remoteVersion)
         return true
     }
 
@@ -277,14 +261,7 @@ final class InventoryStore {
     /// prior `baseVersion` for optimistic-concurrency merge. Skipped — still a
     /// successful local edit — when the row can't be serialized to a wire patch.
     private func enqueueUpdate(_ row: Ingredient, baseVersion: Int) async {
-        guard let patch = DomainJSON.valueMap(row) else { return }
-        await syncWriter?.enqueue(
-            entityType: .inventoryItem,
-            entityId: row.id,
-            operation: .update,
-            patch: patch,
-            baseVersion: baseVersion
-        )
+        await syncWriter?.enqueue(row, type: .inventoryItem, operation: .update, baseVersion: baseVersion)
     }
 
     // MARK: Partial consume (用了一部分)
@@ -350,14 +327,7 @@ final class InventoryStore {
     /// `deleted_at`). Skipped — still a successful local delete — when the row
     /// can't be serialized to a wire patch.
     private func enqueueDelete(_ removed: Ingredient) async {
-        guard let patch = DomainJSON.valueMap(removed) else { return }
-        await syncWriter?.enqueue(
-            entityType: .inventoryItem,
-            entityId: removed.id,
-            operation: .delete,
-            patch: patch,
-            baseVersion: removed.remoteVersion
-        )
+        await syncWriter?.enqueue(removed, type: .inventoryItem, operation: .delete, baseVersion: removed.remoteVersion)
     }
 
     /// Deletes ALL rows for the household (顶栏「清空全部」), persisting the empty

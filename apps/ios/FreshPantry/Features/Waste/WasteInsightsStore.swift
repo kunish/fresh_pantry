@@ -201,15 +201,7 @@ final class WasteInsightsStore {
             // Stamp the persisted row (its bumped remoteVersion / clientUpdatedAt)
             // over the optimistic copy.
             if let index { entries[index] = updated }
-            if let patch = DomainJSON.valueMap(updated) {
-                await syncWriter?.enqueue(
-                    entityType: .foodLogEntry,
-                    entityId: updated.id,
-                    operation: .update,
-                    patch: patch,
-                    baseVersion: updated.remoteVersion
-                )
-            }
+            await syncWriter?.enqueue(updated, type: .foodLogEntry, operation: .update, baseVersion: updated.remoteVersion)
             return true
         } catch {
             if let index, let prior { entries[index] = prior } // rollback

@@ -237,15 +237,7 @@ final class MealPlanStore {
                 self.entries.removeAll { $0.id == entry.id }
                 return false
             }
-            if let patch = DomainJSON.valueMap(entry) {
-                await self.syncWriter?.enqueue(
-                    entityType: .mealPlanEntry,
-                    entityId: entry.id,
-                    operation: .create,
-                    patch: patch,
-                    baseVersion: nil
-                )
-            }
+            await self.syncWriter?.enqueue(entry, type: .mealPlanEntry, operation: .create, baseVersion: nil)
             return true
         }
     }
@@ -269,15 +261,7 @@ final class MealPlanStore {
                 if let i = self.entries.firstIndex(where: { $0.id == prior.id }) { self.entries[i] = prior }
                 return false
             }
-            if let patch = DomainJSON.valueMap(updatedEntry) {
-                await self.syncWriter?.enqueue(
-                    entityType: .mealPlanEntry,
-                    entityId: updatedEntry.id,
-                    operation: .update,
-                    patch: patch,
-                    baseVersion: prior.remoteVersion
-                )
-            }
+            await self.syncWriter?.enqueue(updatedEntry, type: .mealPlanEntry, operation: .update, baseVersion: prior.remoteVersion)
             // #7: marking a recipe dish done == cooking it → record a cook tally
             // (best-effort; not for notes/leftovers, which weren't freshly cooked).
             if updatedEntry.done, !updatedEntry.recipeId.isEmpty, !updatedEntry.isLeftover {
@@ -303,15 +287,7 @@ final class MealPlanStore {
                 self.entries = snapshot
                 return false
             }
-            if let patch = DomainJSON.valueMap(removed) {
-                await self.syncWriter?.enqueue(
-                    entityType: .mealPlanEntry,
-                    entityId: removed.id,
-                    operation: .delete,
-                    patch: patch,
-                    baseVersion: removed.remoteVersion
-                )
-            }
+            await self.syncWriter?.enqueue(removed, type: .mealPlanEntry, operation: .delete, baseVersion: removed.remoteVersion)
             return true
         }
     }
@@ -341,15 +317,7 @@ final class MealPlanStore {
                 if let i = self.entries.firstIndex(where: { $0.id == prior.id }) { self.entries[i] = prior }
                 return false
             }
-            if let patch = DomainJSON.valueMap(updatedEntry) {
-                await self.syncWriter?.enqueue(
-                    entityType: .mealPlanEntry,
-                    entityId: updatedEntry.id,
-                    operation: .update,
-                    patch: patch,
-                    baseVersion: prior.remoteVersion
-                )
-            }
+            await self.syncWriter?.enqueue(updatedEntry, type: .mealPlanEntry, operation: .update, baseVersion: prior.remoteVersion)
             return true
         }
     }

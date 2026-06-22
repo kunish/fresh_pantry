@@ -176,3 +176,25 @@ final class SyncWriter {
         session.bumpPendingSyncRevision()
     }
 }
+
+extension SyncWriter.PendingOp {
+    /// Full-row op from a synced entity: serializes the wire patch
+    /// (`DomainJSON.valueMap`) and takes the row's id, so stores/controllers stop
+    /// hand-rolling `if let patch = DomainJSON.valueMap(row)`. nil when
+    /// serialization fails — the caller skips the op, exactly as the inline guard did.
+    init?(_ entity: some SyncableEntity, type: SyncEntityType, operation: SyncOperationType, baseVersion: Int?) {
+        guard let patch = DomainJSON.valueMap(entity) else { return nil }
+        self.init(entityType: type, entityId: entity.id, operation: operation, patch: patch, baseVersion: baseVersion)
+    }
+}
+
+extension SyncWriter {
+    /// Records a full-row op for a synced entity — folds the `DomainJSON.valueMap`
+    /// + `entityId` plumbing every mutating store hand-rolled. No-op (the
+    /// local-first contract, not a dropped write) when no household is selected or
+    /// serialization fails, mirroring the old inline `if let patch` skip.
+    func enqueue(_ entity: some SyncableEntity, type: SyncEntityType, operation: SyncOperationType, baseVersion: Int?) async {
+        guard let op = PendingOp(entity, type: type, operation: operation, baseVersion: baseVersion) else { return }
+        await enqueueBatch([op])
+    }
+}

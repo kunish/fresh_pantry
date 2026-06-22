@@ -164,37 +164,20 @@ final class BackupController {
         imported archive: BackupArchive
     ) -> [SyncWriter.PendingOp] {
         var ops: [SyncWriter.PendingOp] = []
-        ops += entityOps(
-            .inventoryItem, imported: archive.data.inventory, previous: previous.inventory,
-            id: { $0.id }, remoteVersion: { $0.remoteVersion }
-        )
-        ops += entityOps(
-            .shoppingItem, imported: archive.data.shopping, previous: previous.shopping,
-            id: { $0.id }, remoteVersion: { $0.remoteVersion }
-        )
-        ops += entityOps(
-            .customRecipe, imported: archive.data.customRecipes, previous: previous.customRecipes,
-            id: { $0.id }, remoteVersion: { $0.remoteVersion }
-        )
-        ops += entityOps(
-            .mealPlanEntry, imported: archive.data.mealPlan, previous: previous.mealPlan,
-            id: { $0.id }, remoteVersion: { $0.remoteVersion }
-        )
+        ops += entityOps(.inventoryItem, imported: archive.data.inventory, previous: previous.inventory)
+        ops += entityOps(.shoppingItem, imported: archive.data.shopping, previous: previous.shopping)
+        ops += entityOps(.customRecipe, imported: archive.data.customRecipes, previous: previous.customRecipes)
+        ops += entityOps(.mealPlanEntry, imported: archive.data.mealPlan, previous: previous.mealPlan)
         if let entries = archive.foodLog {
-            ops += entityOps(
-                .foodLogEntry, imported: entries, previous: previous.foodLog,
-                id: { $0.id }, remoteVersion: { $0.remoteVersion }
-            )
+            ops += entityOps(.foodLogEntry, imported: entries, previous: previous.foodLog)
         }
         return ops
     }
 
-    private static func entityOps<Row: Encodable>(
+    private static func entityOps<Row: SyncableEntity>(
         _ entityType: SyncEntityType,
         imported: [Row],
-        previous: [Row],
-        id: (Row) -> String,
-        remoteVersion: (Row) -> Int
+        previous: [Row]
     ) -> [SyncWriter.PendingOp] {
         // Pre-import versions by id: a manual edit bases its op on the EXISTING
         // row's remoteVersion, so the restore must too. An archive row that
@@ -204,37 +187,23 @@ final class BackupController {
         // would roll the restore back. `max` also keeps an archive newer than
         // the snapshot read authoritative.
         let previousVersionById = Dictionary(
-            previous.map { (id($0), remoteVersion($0)) },
+            previous.map { ($0.id, $0.remoteVersion) },
             uniquingKeysWith: max
         )
         var ops: [SyncWriter.PendingOp] = []
         var importedIds = Set<String>()
         for row in imported {
-            let rowId = id(row)
-            guard !rowId.trimmed.isEmpty else { continue }
-            importedIds.insert(rowId)
-            guard let patch = DomainJSON.valueMap(row) else { continue }
-            let base = max(remoteVersion(row), previousVersionById[rowId] ?? 0)
-            ops.append(SyncWriter.PendingOp(
-                entityType: entityType,
-                entityId: rowId,
-                operation: base > 0 ? .update : .create,
-                patch: patch,
-                baseVersion: base > 0 ? base : nil
-            ))
+            guard !row.id.trimmed.isEmpty else { continue }
+            importedIds.insert(row.id)
+            let base = max(row.remoteVersion, previousVersionById[row.id] ?? 0)
+            if let op = SyncWriter.PendingOp(row, type: entityType, operation: base > 0 ? .update : .create, baseVersion: base > 0 ? base : nil) {
+                ops.append(op)
+            }
         }
-        for row in previous {
-            let rowId = id(row)
-            guard !rowId.trimmed.isEmpty, !importedIds.contains(rowId),
-                  let patch = DomainJSON.valueMap(row)
-            else { continue }
-            ops.append(SyncWriter.PendingOp(
-                entityType: entityType,
-                entityId: rowId,
-                operation: .delete,
-                patch: patch,
-                baseVersion: remoteVersion(row)
-            ))
+        for row in previous where !row.id.trimmed.isEmpty && !importedIds.contains(row.id) {
+            if let op = SyncWriter.PendingOp(row, type: entityType, operation: .delete, baseVersion: row.remoteVersion) {
+                ops.append(op)
+            }
         }
         return ops
     }

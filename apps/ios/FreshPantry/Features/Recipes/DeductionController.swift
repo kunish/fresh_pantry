@@ -125,25 +125,12 @@ final class DeductionController {
             } else {
                 row = result.inventory.first { $0.id == intent.entityId }
             }
-            guard let row, let patch = DomainJSON.valueMap(row) else { return nil }
-            return SyncWriter.PendingOp(
-                entityType: .inventoryItem,
-                entityId: intent.entityId,
-                operation: intent.operation,
-                patch: patch,
-                baseVersion: intent.baseVersion
-            )
+            guard let row else { return nil }
+            return SyncWriter.PendingOp(row, type: .inventoryItem, operation: intent.operation, baseVersion: intent.baseVersion)
         }
         // FoodLog departures now sync to the household (append-only creates).
         ops.append(contentsOf: loggedEntries.compactMap { entry in
-            guard let patch = DomainJSON.valueMap(entry) else { return nil }
-            return SyncWriter.PendingOp(
-                entityType: .foodLogEntry,
-                entityId: entry.id,
-                operation: .create,
-                patch: patch,
-                baseVersion: entry.remoteVersion
-            )
+            SyncWriter.PendingOp(entry, type: .foodLogEntry, operation: .create, baseVersion: entry.remoteVersion)
         })
         await syncWriter?.enqueueBatch(ops)
 

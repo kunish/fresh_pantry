@@ -160,12 +160,7 @@ final class DietaryPreferencesStore {
             let pref = DietaryPreference.make(householdID: hid, keyword: keyword, clientUpdatedAt: now)
             rows[keyword] = pref
             try? await repository.upsert(hid, pref)
-            if let patch = DomainJSON.valueMap(pref) {
-                await syncWriter?.enqueue(
-                    entityType: .dietaryPreference, entityId: pref.id,
-                    operation: .create, patch: patch, baseVersion: nil
-                )
-            }
+            await syncWriter?.enqueue(pref, type: .dietaryPreference, operation: .create, baseVersion: nil)
         }
         defaults.removeObject(forKey: Self.storageKey)
     }
@@ -177,14 +172,7 @@ final class DietaryPreferencesStore {
         writeChain = Task {
             _ = await prev.value
             try? await repository?.upsert(hid, row)
-            guard let patch = DomainJSON.valueMap(row) else { return }
-            await syncWriter?.enqueue(
-                entityType: .dietaryPreference,
-                entityId: row.id,
-                operation: operation,
-                patch: patch,
-                baseVersion: baseVersion <= 0 ? nil : baseVersion
-            )
+            await syncWriter?.enqueue(row, type: .dietaryPreference, operation: operation, baseVersion: baseVersion <= 0 ? nil : baseVersion)
         }
     }
 

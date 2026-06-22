@@ -166,12 +166,7 @@ final class FavoritesStore {
             let fav = FavoriteRecipe.make(householdID: hid, recipeID: recipeID, clientUpdatedAt: now)
             rows[recipeID] = fav
             try? await repository.upsert(hid, fav)
-            if let patch = DomainJSON.valueMap(fav) {
-                await syncWriter?.enqueue(
-                    entityType: .favoriteRecipe, entityId: fav.id,
-                    operation: .create, patch: patch, baseVersion: nil
-                )
-            }
+            await syncWriter?.enqueue(fav, type: .favoriteRecipe, operation: .create, baseVersion: nil)
         }
         defaults.removeObject(forKey: Self.storageKey)
     }
@@ -186,14 +181,7 @@ final class FavoritesStore {
         writeChain = Task {
             _ = await prev.value
             try? await repository?.upsert(hid, row)
-            guard let patch = DomainJSON.valueMap(row) else { return }
-            await syncWriter?.enqueue(
-                entityType: .favoriteRecipe,
-                entityId: row.id,
-                operation: operation,
-                patch: patch,
-                baseVersion: baseVersion <= 0 ? nil : baseVersion
-            )
+            await syncWriter?.enqueue(row, type: .favoriteRecipe, operation: operation, baseVersion: baseVersion <= 0 ? nil : baseVersion)
         }
     }
 

@@ -216,15 +216,7 @@ final class ShoppingStore {
         }
         // Reflect locally without a whole-scope reload (append if not already shown).
         if !items.contains(where: { $0.id == item.id }) { items.append(item) }
-        if let patch = DomainJSON.valueMap(item) {
-            await syncWriter?.enqueue(
-                entityType: .shoppingItem,
-                entityId: item.id,
-                operation: .create,
-                patch: patch,
-                baseVersion: nil
-            )
-        }
+        await syncWriter?.enqueue(item, type: .shoppingItem, operation: .create, baseVersion: nil)
         return .added
     }
 
@@ -263,15 +255,7 @@ final class ShoppingStore {
         } else {
             items.append(merged)
         }
-        if let patch = DomainJSON.valueMap(merged) {
-            await syncWriter?.enqueue(
-                entityType: .shoppingItem,
-                entityId: merged.id,
-                operation: .update,
-                patch: patch,
-                baseVersion: existing.remoteVersion
-            )
-        }
+        await syncWriter?.enqueue(merged, type: .shoppingItem, operation: .update, baseVersion: existing.remoteVersion)
         return .added
     }
 
@@ -295,15 +279,7 @@ final class ShoppingStore {
                 self.revertRow(updated.id, to: prior)
                 return false
             }
-            if let patch = DomainJSON.valueMap(updated) {
-                await self.syncWriter?.enqueue(
-                    entityType: .shoppingItem,
-                    entityId: updated.id,
-                    operation: .update,
-                    patch: patch,
-                    baseVersion: prior.remoteVersion
-                )
-            }
+            await self.syncWriter?.enqueue(updated, type: .shoppingItem, operation: .update, baseVersion: prior.remoteVersion)
             return true
         }
     }
@@ -336,15 +312,7 @@ final class ShoppingStore {
             items = snapshot
             return .failed
         }
-        if let patch = DomainJSON.valueMap(item) {
-            await syncWriter?.enqueue(
-                entityType: .shoppingItem,
-                entityId: item.id,
-                operation: .update,
-                patch: patch,
-                baseVersion: item.remoteVersion
-            )
-        }
+        await syncWriter?.enqueue(item, type: .shoppingItem, operation: .update, baseVersion: item.remoteVersion)
         return .added
     }
 
@@ -368,15 +336,7 @@ final class ShoppingStore {
             // Enqueue the soft-delete so it propagates to other members (the gateway
             // routes shoppingItem/.delete to a soft-delete). Without this the row
             // stays on the server and re-appears on the next pull (remote wins).
-            if let patch = DomainJSON.valueMap(removed) {
-                await self.syncWriter?.enqueue(
-                    entityType: .shoppingItem,
-                    entityId: removed.id,
-                    operation: .delete,
-                    patch: patch,
-                    baseVersion: removed.remoteVersion
-                )
-            }
+            await self.syncWriter?.enqueue(removed, type: .shoppingItem, operation: .delete, baseVersion: removed.remoteVersion)
             return true
         }
     }
@@ -403,15 +363,7 @@ final class ShoppingStore {
             }
             // Same soft-delete propagation as the single `delete` (see note there).
             for item in removed {
-                if let patch = DomainJSON.valueMap(item) {
-                    await self.syncWriter?.enqueue(
-                        entityType: .shoppingItem,
-                        entityId: item.id,
-                        operation: .delete,
-                        patch: patch,
-                        baseVersion: item.remoteVersion
-                    )
-                }
+                await self.syncWriter?.enqueue(item, type: .shoppingItem, operation: .delete, baseVersion: item.remoteVersion)
             }
             return removed
         }
