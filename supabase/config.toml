@@ -272,11 +272,6 @@ content_path = "./supabase/templates/invite.html"
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
-
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
 # enabled = true
