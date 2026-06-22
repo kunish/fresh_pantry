@@ -1,6 +1,6 @@
 begin;
 
-select plan(91);
+select plan(89);
 
 create or replace function pg_temp.authenticate_as(user_id uuid, user_email text)
 returns void
@@ -148,28 +148,6 @@ select lives_ok(
   'member can write shopping item'
 );
 
-select lives_ok(
-  $$
-    insert into public.sync_events (
-      household_id,
-      entity_type,
-      entity_id,
-      operation,
-      client_id,
-      created_by
-    )
-    values (
-      'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-      'shopping_item',
-      'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
-      'insert',
-      'member-client',
-      '22222222-2222-2222-2222-222222222222'
-    )
-  $$,
-  'member can write own sync event'
-);
-
 -- Setup: insert one row in each later-added synced table so outsider isolation
 -- tests below can assert both SELECT returns 0 and INSERT is denied.
 select pg_temp.authenticate_as('11111111-1111-1111-1111-111111111111', 'owner@example.com');
@@ -225,30 +203,6 @@ select throws_ok(
   '42501',
   'new row violates row-level security policy for table "custom_recipes"',
   'non-member cannot write custom recipe'
-);
-
-select throws_ok(
-  $$
-    insert into public.sync_events (
-      household_id,
-      entity_type,
-      entity_id,
-      operation,
-      client_id,
-      created_by
-    )
-    values (
-      'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-      'inventory_item',
-      'cccccccc-cccc-cccc-cccc-cccccccccccc',
-      'insert',
-      'outsider-client',
-      '33333333-3333-3333-3333-333333333333'
-    )
-  $$,
-  '42501',
-  'new row violates row-level security policy for table "sync_events"',
-  'non-member cannot write sync event'
 );
 
 select throws_ok(

@@ -8,8 +8,9 @@ import Foundation
 /// consumed by recommendation on either side** (a dead toggle) and would be empty
 /// in the local-only self-use mode. This store keeps the prefs on-device so they
 /// work offline AND actually influence the 现有/今日推荐 ranking via
-/// `RecipeMatching.preferenceBoost`. The orphaned remote path was dropped — the
-/// `households.category_preferences` column is simply ignored on decode.
+/// `RecipeMatching.preferenceBoost`. The orphaned remote path was dropped; its
+/// dead `households.category_preferences` column was removed from the schema in
+/// migration 20260622120000.
 ///
 /// Mirrors `DietaryPreferencesStore` (忌口) shape, but the labels are FIXED Chinese
 /// presets compared by exact identity, so normalization is `trimmed` only (no
