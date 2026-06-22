@@ -112,15 +112,6 @@ struct RepositoryTests {
         #expect(loaded[0].id == "si_1")
     }
 
-    @Test func shoppingMergeFromRemoteDedups() async throws {
-        let repo = ShoppingRepository(modelContainer: try container())
-        let merged = await repo.mergeFromRemote([
-            ShoppingItem(id: "a", name: "Milk", detail: "", category: "其他"),
-            ShoppingItem(id: "b", name: "milk", detail: "", category: "其他"),
-        ])
-        #expect(merged.count == 1) // same dedup path as load
-    }
-
     // MARK: Shopping single-row primitives (the offline-first optimistic path)
 
     private func shopItem(_ id: String, _ name: String, checked: Bool = false, detail: String = "") -> ShoppingItem {

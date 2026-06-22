@@ -50,13 +50,4 @@ enum StepIngredientAnnotator {
         if !pending.isEmpty { segments.append(.text(pending)) }
         return segments
     }
-
-    /// Whether annotating would change anything (any inline ingredient found) —
-    /// lets the view skip the segmented renderer for plain steps.
-    static func hasAnnotations(_ step: String, ingredients: [RecipeIngredient]) -> Bool {
-        annotate(step, ingredients: ingredients).contains {
-            if case .ingredient = $0 { return true }
-            return false
-        }
-    }
 }

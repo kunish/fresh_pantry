@@ -19,12 +19,6 @@ enum JSONDate {
         return parse(string)
     }
 
-    /// `dateTimeToJsonValue`: `value?.toIso8601String()`.
-    static func toJSONValue(_ value: Date?) -> String? {
-        guard let value else { return nil }
-        return iso8601(value)
-    }
-
     // MARK: Encoding
 
     /// Mirrors Dart `DateTime.toIso8601String()`: `yyyy-MM-ddTHH:mm:ss.SSS` with

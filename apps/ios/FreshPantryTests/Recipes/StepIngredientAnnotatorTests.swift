@@ -57,9 +57,4 @@ struct StepIngredientAnnotatorTests {
         ])
     }
 
-    @Test func hasAnnotationsReflectsMatch() {
-        let ings = [RecipeIngredient(name: "番茄", quantity: 2, unit: "个")]
-        #expect(StepIngredientAnnotator.hasAnnotations("加入番茄翻炒", ingredients: ings))
-        #expect(!StepIngredientAnnotator.hasAnnotations("翻炒均匀", ingredients: ings))
-    }
 }

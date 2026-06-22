@@ -147,11 +147,6 @@ final class NotificationService: NSObject {
         center.removePendingNotificationRequests(withIdentifiers: obsolete.map(String.init))
         return true
     }
-
-    /// Cancels all previously scheduled notifications (sign-out / disable).
-    func cancelAll(previousIds: [Int]) async {
-        center.removePendingNotificationRequests(withIdentifiers: previousIds.map(String.init))
-    }
 }
 
 // MARK: - UNUserNotificationCenterDelegate

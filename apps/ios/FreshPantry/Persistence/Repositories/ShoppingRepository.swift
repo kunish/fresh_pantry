@@ -23,12 +23,6 @@ actor ShoppingRepository {
         return ShoppingItemNormalizer.deduplicate(items)
     }
 
-    /// Remote-merge entry point: same dedup must run here so the reloaded and
-    /// in-memory lists cannot diverge.
-    func mergeFromRemote(_ items: [ShoppingItem]) -> [ShoppingItem] {
-        ShoppingItemNormalizer.deduplicate(items.map(ShoppingItemNormalizer.normalizeCategory))
-    }
-
     func deleteHouseholdScope(_ householdID: String) throws {
         try modelContext.delete(
             model: ShoppingItemRecord.self,

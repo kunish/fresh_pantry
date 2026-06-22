@@ -81,8 +81,9 @@ It lands in two independently-green phases: (A) `SyncableEntity` + the
 factory + coordinator loop, with one focused `EntityPlan.applyFull` test.
 
 `foodLog.migrateLegacyIds()` stays a `startSync` preamble (one-shot, foodLog-only,
-outside the loop). `ShoppingRepository.mergeFromRemote` is not in any apply path
-(production-dead; only a repo test calls it) and is left untouched.
+outside the loop). `ShoppingRepository.mergeFromRemote` was production-dead — not in
+any apply path (remote shopping merge runs through `HouseholdMergePolicy.merge`) —
+and has since been deleted.
 
 ## Consequences
 

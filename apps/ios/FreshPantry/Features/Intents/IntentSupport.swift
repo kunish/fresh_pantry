@@ -18,11 +18,6 @@ import Foundation
 ///    real `syncWriter`, guaranteeing correct household scoping + outbox enqueue
 ///    + sync. See `AddToShoppingListIntent` for the `openAppWhenRun = true`
 ///    rationale.
-enum IntentSupport {
-    /// `UserDefaults` suite the queue persists into. `.standard` in the app; tests
-    /// inject an isolated suite.
-    typealias Defaults = UserDefaults
-}
 
 extension Notification.Name {
     /// Posted (in-process) by `AddToShoppingListIntent` right after it enqueues a

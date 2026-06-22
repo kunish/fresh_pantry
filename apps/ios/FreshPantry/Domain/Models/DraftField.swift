@@ -18,9 +18,4 @@ struct DraftField<T: Equatable>: Equatable {
     static func user(_ value: T) -> DraftField<T> {
         DraftField(value: value, source: .user)
     }
-
-    /// Returns a new field with the edited value, tagged `.user`.
-    func editedTo(_ next: T) -> DraftField<T> {
-        DraftField(value: next, source: .user)
-    }
 }
