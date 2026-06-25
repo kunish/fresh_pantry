@@ -19,14 +19,6 @@ struct FoodLogEntry: Hashable, Sendable, Codable {
     var clientUpdatedAt: Date?
     var deletedAt: Date?
 
-    var syncMetadata: SyncMetadata {
-        SyncMetadata(
-            remoteVersion: remoteVersion,
-            clientUpdatedAt: clientUpdatedAt,
-            deletedAt: deletedAt
-        )
-    }
-
     var isConsumed: Bool { outcome == .consumed }
     var isWasted: Bool { outcome == .wasted }
     /// Rescued a perishable that was already expiring (positive waste-reduction).

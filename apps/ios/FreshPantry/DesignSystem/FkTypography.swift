@@ -46,14 +46,7 @@ extension Font {
         .custom(family.postScriptName(for: weight), size: size, relativeTo: textStyle)
     }
 
-    // Display (Plus Jakarta Sans · ExtraBold)
-    static let fkDisplayLarge = fk(.display, size: 32, weight: .heavy, relativeTo: .largeTitle)
-    static let fkDisplayMedium = fk(.display, size: 28, weight: .heavy, relativeTo: .largeTitle)
-    static let fkDisplaySmall = fk(.display, size: 24, weight: .heavy, relativeTo: .title)
-
     // Headline (Plus Jakarta Sans · Bold)
-    static let fkHeadlineLarge = fk(.display, size: 28, weight: .bold, relativeTo: .title)
-    static let fkHeadlineMedium = fk(.display, size: 24, weight: .bold, relativeTo: .title2)
     static let fkHeadlineSmall = fk(.display, size: 20, weight: .bold, relativeTo: .title3)
 
     // Title (Large: Plus Jakarta Sans SemiBold; Medium/Small: Manrope SemiBold)
@@ -76,8 +69,4 @@ extension Font {
     static let fkHeroStat = fk(.display, size: 56, weight: .heavy, relativeTo: .largeTitle)
     /// 中量级 hero 数字(详情数量 / 剩余天数)。
     static let fkHeroSubStat = fk(.display, size: 28, weight: .heavy, relativeTo: .largeTitle)
-    /// FK 顶栏大标题。
-    static let fkSectionTitleLg = fk(.display, size: 22, weight: .bold, relativeTo: .title2)
-    /// 等宽数字(数量 / 代码)。
-    static let fkMono = Font.custom("JetBrainsMono-Regular", size: 14, relativeTo: .callout)
 }

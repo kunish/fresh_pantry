@@ -134,12 +134,6 @@ actor SyncCoordinator: CoordinatorPushing {
     /// Read-only view of the held-back op ids (diagnostics / tests).
     var deadLetteredOpIds: Set<String> { quarantinedOpIds }
 
-    /// Quarantined entities surfaced in the sync-failure sheet.
-    var deadLetteredEntitiesList: [DeadLetterEntity] {
-        deadLetteredEntities.map { DeadLetterEntity(entityType: $0.type, entityId: $0.id) }
-            .sorted { $0.sortKey < $1.sortKey }
-    }
-
     /// Human-readable rows for the failure sheet — one per quarantined entity,
     /// preferring the `name` field from the earliest queued op's patch.
     func deadLetterDisplayItems(pending: [SyncOperation]) -> [DeadLetterDisplayItem] {
@@ -332,16 +326,20 @@ actor SyncCoordinator: CoordinatorPushing {
     }
 }
 
-/// One quarantined sync entity — the failure sheet's row identity.
-struct DeadLetterEntity: Sendable, Hashable, Identifiable {
+/// A quarantined entity with an optional display name from the outbox patch —
+/// the failure sheet's row identity.
+struct DeadLetterDisplayItem: Sendable, Hashable, Identifiable {
     let entityType: SyncEntityType
     let entityId: String
+    let name: String?
 
     var id: String { "\(entityType.rawValue):\(entityId)" }
 
     var typeLabel: String { Self.label(for: entityType) }
 
-    var sortKey: String { "\(typeLabel):\(entityId)" }
+    var title: String { name ?? entityId }
+
+    var sortKey: String { "\(typeLabel):\(title)" }
 
     static func label(for type: SyncEntityType) -> String {
         switch type {
@@ -355,19 +353,4 @@ struct DeadLetterEntity: Sendable, Hashable, Identifiable {
         case .householdConfig: "家庭设置"
         }
     }
-}
-
-/// A quarantined entity with an optional display name from the outbox patch.
-struct DeadLetterDisplayItem: Sendable, Hashable, Identifiable {
-    let entityType: SyncEntityType
-    let entityId: String
-    let name: String?
-
-    var id: String { "\(entityType.rawValue):\(entityId)" }
-
-    var typeLabel: String { DeadLetterEntity.label(for: entityType) }
-
-    var title: String { name ?? entityId }
-
-    var sortKey: String { "\(typeLabel):\(title)" }
 }

@@ -143,7 +143,7 @@ struct CustomRecipeFormView: View {
             }
             .overlay {
                 if isParsing {
-                    AiImportBusyOverlay()
+                    FkBusyOverlay(text: "AI 解析中…")
                 }
             }
             .navigationTitle(isEditing ? "编辑食谱" : "新建食谱")
@@ -181,7 +181,10 @@ struct CustomRecipeFormView: View {
             } message: {
                 Text(store.errorMessage ?? "保存失败，请重试")
             }
-            .alert("覆盖已填内容", isPresented: parseOverwriteBinding) {
+            .alert("覆盖已填内容", isPresented: Binding(
+                get: { pendingParsedDraft != nil },
+                set: { if !$0 { pendingParsedDraft = nil } }
+            )) {
                 Button("取消", role: .cancel) { pendingParsedDraft = nil }
                 Button("覆盖", role: .destructive) {
                     if let parsed = pendingParsedDraft { applyParsed(parsed) }
@@ -898,14 +901,6 @@ struct CustomRecipeFormView: View {
         errors = [:]
     }
 
-    /// Drives the parse-overwrite confirm off the pending draft's presence.
-    private var parseOverwriteBinding: Binding<Bool> {
-        Binding(
-            get: { pendingParsedDraft != nil },
-            set: { if !$0 { pendingParsedDraft = nil } }
-        )
-    }
-
     /// Builds the parser used by `parseURL` — the test override when present, else
     /// the live `AiRecipeParser` over the configured AI settings (nil when AI is
     /// not configured so the caller surfaces the not-configured message).
@@ -1000,31 +995,6 @@ struct CustomRecipeFormView: View {
 /// the binding explicit and avoids ambiguity).
 private struct IdentifiedRowID: Identifiable {
     let id: CustomRecipeDraft.IngredientRow.ID
-}
-
-/// Dimmed busy overlay shown while the AI URL import is running — blocks form
-/// edits and signals progress (mirrors the Dart `AiBusyOverlay`).
-private struct AiImportBusyOverlay: View {
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.18)
-                .ignoresSafeArea()
-            VStack(spacing: FkSpacing.md) {
-                ProgressView()
-                    .controlSize(.large)
-                Text("AI 解析中…")
-                    .font(.fkLabelLarge)
-                    .foregroundStyle(Color.fkOnSurface)
-            }
-            .padding(FkSpacing.xl)
-            .background(
-                RoundedRectangle(cornerRadius: FkRadius.lg, style: .continuous)
-                    .fill(Color.fkSurfaceContainerHighest)
-            )
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("AI 解析中")
-    }
 }
 
 /// 5-star difficulty selector with labels, ported from the Dart `DifficultyStars`.

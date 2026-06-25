@@ -120,7 +120,6 @@ struct WasteInsightsStoreTests {
         let produce = try! #require(breakdown.first { $0.category == FoodCategories.freshProduce })
         #expect(produce.consumed == 1)
         #expect(produce.wasted == 1)
-        #expect(produce.total == 2)
     }
 
     @Test func categoryBreakdownNormalizesAliases() {
@@ -198,7 +197,7 @@ struct WasteInsightsStoreTests {
             entry(id: "old", category: FoodCategories.dairyAndEggs, outcome: .wasted, loggedAt: date(2026, 5, 1)),
         ])
         store.window = .thisMonth
-        let breakdown = store.categoryBreakdown(now: refNow)
+        let breakdown = store.summary(now: refNow).breakdown
         // The May dairy entry is outside 本月 → only the June meat rows show.
         #expect(breakdown.map(\.category) == [FoodCategories.meatAndSeafood])
         #expect(breakdown[0].consumed == 1)
@@ -225,7 +224,7 @@ struct WasteInsightsStoreTests {
         #expect(store.historyEntries(now: refNow).allSatisfy {
             FoodCategories.dropdownValue($0.category) == FoodCategories.freshProduce
         })
-        #expect(store.categoryBreakdown(now: refNow).map(\.category) == [FoodCategories.freshProduce])
+        #expect(store.summary(now: refNow).breakdown.map(\.category) == [FoodCategories.freshProduce])
     }
 
     @Test func categoryFilterMatchesLegacyAliasViaCanonicalBucket() async throws {
@@ -260,15 +259,12 @@ struct WasteInsightsStoreTests {
         #expect(changed)
         #expect(store.stats(now: refNow).consumed == 1)
         #expect(store.stats(now: refNow).wasted == 0)
-        #expect(!store.correctOutcomeError) // no error on success
     }
 
-    @Test func correctOutcomeSetErrorFlagWhenEntryNotFound() async throws {
-        // An empty store — the entry-not-found guard path sets correctOutcomeError.
+    @Test func correctOutcomeReturnsFalseWhenEntryNotFound() async throws {
+        // An empty store — the entry-not-found guard path returns false.
         let store = try await makeStore([])
-        #expect(!store.correctOutcomeError)
         let ok = await store.correctOutcome(entryId: "ghost", to: .consumed)
         #expect(!ok)
-        #expect(store.correctOutcomeError)
     }
 }

@@ -498,26 +498,6 @@ final class HouseholdSessionStore {
 
     // MARK: - Members
 
-    /// Reloads the selected household's members.
-    func loadMembers() async {
-        guard let remote else { return }
-        let householdId = session.selectedHouseholdId
-        guard !householdId.isEmpty else {
-            members = []
-            return
-        }
-        isLoading = true
-        errorMessage = nil
-        do {
-            members = try await remote.loadHouseholdMembers(householdId)
-            persistHouseholdSnapshot()
-            isLoading = false
-        } catch {
-            isLoading = false
-            errorMessage = Self.message(error)
-        }
-    }
-
     /// Removes a member from the selected household and reloads the member list.
     func removeMember(_ userId: String) async {
         guard let remote else { return }
@@ -651,9 +631,6 @@ final class HouseholdSessionStore {
             errorMessage = Self.message(error)
         }
     }
-
-    /// Clears the current error (e.g. when the user dismisses the banner).
-    func clearError() { errorMessage = nil }
 
     /// Persists the current households + members for the signed-in identity so the
     /// next launch can seed them offline-first (the cache read is identity-guarded).

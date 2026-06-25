@@ -31,11 +31,9 @@ public struct WidgetMealPlanSnapshot: Codable, Equatable, Sendable {
     public struct Item: Codable, Equatable, Sendable {
         public let title: String
         public let done: Bool
-        public let mealType: String?
-        public init(title: String, done: Bool, mealType: String?) {
+        public init(title: String, done: Bool) {
             self.title = title
             self.done = done
-            self.mealType = mealType
         }
     }
     public let items: [Item]
@@ -68,17 +66,15 @@ public struct WidgetShoppingSnapshot: Codable, Equatable, Sendable {
 public struct WidgetWasteSnapshot: Codable, Equatable, Sendable {
     public let useUpPercent: Int
     public let rescuedCount: Int
-    public let consumedCount: Int
     public let wastedCount: Int
     public let isEmpty: Bool
-    public init(useUpPercent: Int, rescuedCount: Int, consumedCount: Int, wastedCount: Int, isEmpty: Bool) {
+    public init(useUpPercent: Int, rescuedCount: Int, wastedCount: Int, isEmpty: Bool) {
         self.useUpPercent = useUpPercent
         self.rescuedCount = rescuedCount
-        self.consumedCount = consumedCount
         self.wastedCount = wastedCount
         self.isEmpty = isEmpty
     }
-    public static let empty = WidgetWasteSnapshot(useUpPercent: 0, rescuedCount: 0, consumedCount: 0, wastedCount: 0, isEmpty: true)
+    public static let empty = WidgetWasteSnapshot(useUpPercent: 0, rescuedCount: 0, wastedCount: 0, isEmpty: true)
 }
 
 /// 四类内容的合集快照,一次读取填满(Provider 只读一次容器)。

@@ -166,7 +166,7 @@ struct AddIngredientView: View {
             }
             .overlay {
                 if isLookingUpBarcode {
-                    BarcodeLookupBusyOverlay()
+                    FkBusyOverlay(text: "查询条码中…")
                 }
             }
         }
@@ -194,7 +194,7 @@ struct AddIngredientView: View {
                                 nameFocused = false
                             } label: {
                                 HStack(spacing: FkSpacing.xs) {
-                                    Image(systemName: storageIconName(item.storage))
+                                    Image(systemName: item.storage.sfSymbolOutline)
                                         .font(.system(size: 12, weight: .semibold))
                                     Text(item.name)
                                         .font(.fkLabelMedium)
@@ -229,13 +229,6 @@ struct AddIngredientView: View {
         }
     }
 
-    private func storageIconName(_ storage: IconType) -> String {
-        switch storage {
-        case .fridge: return "refrigerator"
-        case .freezer: return "snowflake"
-        case .pantry: return "cabinet"
-        }
-    }
 
     // MARK: Fields
 
@@ -404,7 +397,7 @@ struct AddIngredientView: View {
 
     private var storageField: some View {
         FkFormField(label: "存放位置") {
-            FkValuePill(value: form.storage.storageAreaLabel, systemImage: storageIcon) {
+            FkValuePill(value: form.storage.storageAreaLabel, systemImage: form.storage.sfSymbolOutline) {
                 showStoragePicker = true
             }
         }
@@ -504,14 +497,6 @@ struct AddIngredientView: View {
     private var tagsField: some View {
         FkFormField(label: "标签") {
             IngredientTagsEditor(tags: $form.tags)
-        }
-    }
-
-    private var storageIcon: String {
-        switch form.storage {
-        case .fridge: return "refrigerator"
-        case .freezer: return "snowflake"
-        case .pantry: return "cabinet"
         }
     }
 
@@ -734,7 +719,7 @@ struct FkSubmitErrorNotice: View {
 }
 
 /// Compact inline notice row for the barcode flow — e.g. "未找到该条码的产品信息"
-/// after a scan that OFF couldn't resolve. Mirrors `FkImageImportNotice`.
+/// after a scan that OFF couldn't resolve. Mirrors `FkInlineNotice`.
 private struct FkBarcodeNotice: View {
     let message: String
 
@@ -765,7 +750,7 @@ enum ExpiryScanNotice: Equatable {
 
 /// Inline notice row for the "拍照识别保质期" flow — a green-tinted confirmation on
 /// success or a danger-tinted "请手动填写" prompt on failure. Mirrors the styling of
-/// `FkBarcodeNotice` / `FkImageImportNotice`.
+/// `FkBarcodeNotice` / `FkInlineNotice`.
 private struct FkExpiryScanNotice: View {
     let notice: ExpiryScanNotice
 
@@ -794,31 +779,6 @@ private struct FkExpiryScanNotice: View {
             RoundedRectangle(cornerRadius: FkRadius.md, style: .continuous)
                 .fill(isSuccess ? Color.fkPrimarySoft : Color.fkDangerSoft)
         )
-    }
-}
-
-/// Dimmed busy overlay shown while the scanned barcode is looked up on OFF —
-/// blocks edits + signals progress (mirrors the AI import overlays).
-private struct BarcodeLookupBusyOverlay: View {
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.18)
-                .ignoresSafeArea()
-            VStack(spacing: FkSpacing.md) {
-                ProgressView()
-                    .controlSize(.large)
-                Text("查询条码中…")
-                    .font(.fkLabelLarge)
-                    .foregroundStyle(Color.fkOnSurface)
-            }
-            .padding(FkSpacing.xl)
-            .background(
-                RoundedRectangle(cornerRadius: FkRadius.lg, style: .continuous)
-                    .fill(Color.fkSurfaceContainerHighest)
-            )
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("查询条码中")
     }
 }
 

@@ -9,15 +9,15 @@ struct AccessoryCircularView: View {
         case .expiring:
             gauge(value: entry.bundle.expiring.needsAttentionCount, max: 9,
                   symbol: "exclamationmark.triangle", label: "\(entry.bundle.expiring.needsAttentionCount)")
-                .widgetURL(URL(string: "freshpantry://expiring"))
+                .widgetURL(URL(string: contentDeepLink(.expiring)))
         case .mealPlan:
             gauge(value: entry.bundle.mealPlan.items.count, max: 9,
                   symbol: "fork.knife", label: "\(entry.bundle.mealPlan.items.count)")
-                .widgetURL(URL(string: "freshpantry://mealplan"))
+                .widgetURL(URL(string: contentDeepLink(.mealPlan)))
         case .shopping:
             gauge(value: entry.bundle.shopping.uncheckedCount, max: 9,
                   symbol: "cart", label: "\(entry.bundle.shopping.uncheckedCount)")
-                .widgetURL(URL(string: "freshpantry://shopping"))
+                .widgetURL(URL(string: contentDeepLink(.shopping)))
         case .waste:
             Gauge(value: Double(min(max(entry.bundle.waste.useUpPercent, 0), 100)), in: 0...100) {
                 Image(systemName: "leaf")
@@ -25,7 +25,7 @@ struct AccessoryCircularView: View {
                 Text("\(entry.bundle.waste.useUpPercent)")
             }
             .gaugeStyle(.accessoryCircular)
-            .widgetURL(URL(string: "freshpantry://waste"))
+            .widgetURL(URL(string: contentDeepLink(.waste)))
         }
     }
 

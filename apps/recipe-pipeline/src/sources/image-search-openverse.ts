@@ -20,7 +20,6 @@ interface OpenverseResult {
 export interface OpenverseDeps {
   /** 注入以便测试;缺省走全局 fetch。返回解析后的 JSON,失败返回 null。 */
   fetchJson?: (url: string) => Promise<unknown>;
-  pageSize?: number;
 }
 
 async function defaultFetchJson(url: string): Promise<unknown> {
@@ -33,14 +32,13 @@ async function defaultFetchJson(url: string): Promise<unknown> {
 
 export function createOpenverseSearch(deps: OpenverseDeps = {}): ImageSearchProvider {
   const fetchJson = deps.fetchJson ?? defaultFetchJson;
-  const pageSize = deps.pageSize ?? 8;
   return {
     async search(dish: DishQuery, log: Log): Promise<ImageCandidate[]> {
       const params = new URLSearchParams({
         q: dish.name,
         mature: 'false',
         category: 'photograph',
-        page_size: String(pageSize),
+        page_size: '8',
       });
       const data = (await fetchJson(`${ENDPOINT}?${params}`).catch(() => null)) as
         | { results?: OpenverseResult[] }

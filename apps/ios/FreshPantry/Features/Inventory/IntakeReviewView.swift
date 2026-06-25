@@ -7,7 +7,7 @@ import SwiftUI
 /// proposals — the only entry point right now is the manual add's merge path.
 struct IntakeReviewView: View {
     let proposals: [IntakeProposal]
-    var title: String = "审核入库"
+    let title: String
     /// Called after a successful apply with the outcome (so the presenter can
     /// refresh, dismiss, and — for the shopping flow — remove only the source rows
     /// whose proposal actually applied via `outcome.appliedIds`).

@@ -242,7 +242,7 @@ struct ShoppingStoreTests {
         #expect(await store.delete(target))
         #expect(store.items.map(\.id) == ["b"])
 
-        #expect(await store.restore(target))
+        #expect(await store.restoreItem(target) == .added)
         #expect(store.items.map(\.id).sorted() == ["a", "b"])
         await store.load()
         #expect(store.items.map(\.id).sorted() == ["a", "b"]) // persisted
@@ -251,7 +251,7 @@ struct ShoppingStoreTests {
     @Test func restoreIsNoOpWhenRowStillPresent() async throws {
         let store = try await makeStore([item(id: "a", name: "牛奶", category: FoodCategories.dairyAndEggs)])
         let present = store.items.first { $0.id == "a" }!
-        #expect(!(await store.restore(present)))
+        #expect(await store.restoreItem(present) != .added)
         #expect(store.items.count == 1)
     }
 

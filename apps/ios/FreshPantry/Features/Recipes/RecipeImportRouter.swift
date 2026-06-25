@@ -28,11 +28,5 @@ final class RecipeImportRouter {
         return true
     }
 
-    func consume() -> String? {
-        let value = pendingURL
-        pendingURL = nil
-        return value
-    }
-
     func clear() { pendingURL = nil }
 }

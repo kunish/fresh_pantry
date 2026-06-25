@@ -80,17 +80,6 @@ describe('assembleRecipe', () => {
     expect(assembleRecipe(tier1, enr).cookingMinutes).toBe(20); // 无声明回落 enr
   });
 
-  it('enrichment 食材 quantity 装文字时被 normalize 提取出数字(防御遗留/越权输出)', () => {
-    // 真实管线里 valibot 强制 quantity 为 number;此处用 cast 模拟 LLM 越权塞文字,
-    // 验证 assembleRecipe→normalizeIngredient 仍能确定性提取(中文数字→number)。
-    const flipped = {
-      ...enr,
-      ingredients: [{ name: '草鱼', quantity: '大约三斤', unit: '斤', amount: '3' }],
-    } as unknown as Enrichment;
-    expect(assembleRecipe(tier1, flipped).ingredients[0])
-      .toEqual({ name: '草鱼', quantity: 3, unit: '斤' });
-  });
-
   it('enrichment 食材里的工具被剔除(LLM 从计算段抽到工具的回归)', () => {
     const withTools: Enrichment = {
       ...enr,

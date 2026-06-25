@@ -503,7 +503,8 @@ private struct RecipesContent: View {
                 .disabled(shoppingStore == nil)
             }
         }
-        if isCustom(recipe) {
+        // 用户自建食谱才显示 编辑 / 删除。
+        if customStore.recipes.contains(where: { $0.id == recipe.id }) {
             Divider()
             Button {
                 editRoute = RecipeActionRoute(recipe: recipe)
@@ -516,11 +517,6 @@ private struct RecipesContent: View {
                 Label("删除", systemImage: "trash")
             }
         }
-    }
-
-    /// Whether `recipe` is a user-authored custom recipe (drives 编辑 / 删除).
-    private func isCustom(_ recipe: Recipe) -> Bool {
-        customStore.recipes.contains { $0.id == recipe.id }
     }
 
     /// Adds the recipe's missing ingredients to the shopping list (unscaled — the

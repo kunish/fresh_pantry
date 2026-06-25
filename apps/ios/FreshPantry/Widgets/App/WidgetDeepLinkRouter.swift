@@ -40,6 +40,4 @@ final class WidgetDeepLinkRouter {
         pending = nil
         return value
     }
-
-    func clear() { pending = nil }
 }

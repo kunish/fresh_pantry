@@ -52,7 +52,7 @@ struct ImageImportView: View {
             }
             .overlay {
                 if store?.isParsing == true {
-                    ImageImportBusyOverlay()
+                    FkBusyOverlay(text: "AI 识别中…")
                 }
             }
             .navigationDestination(item: $reviewRoute) { route in
@@ -99,7 +99,7 @@ struct ImageImportView: View {
                     .disabled(store.isParsing)
 
                     if let message = loadError ?? store.errorMessage {
-                        FkImageImportNotice(systemImage: "exclamationmark.triangle", message: message)
+                        FkInlineNotice(systemImage: "exclamationmark.triangle", message: message)
                     }
                 }
                 .padding(FkSpacing.lg)
@@ -204,53 +204,5 @@ enum ImageDownscaler {
         CGImageDestinationAddImage(destination, thumbnail, destinationOptions as CFDictionary)
         guard CGImageDestinationFinalize(destination) else { return nil }
         return output as Data
-    }
-}
-
-/// Dimmed busy overlay shown while the AI image recognition is running — blocks
-/// interaction and signals progress (mirrors the recipe-import `AiImportBusyOverlay`).
-private struct ImageImportBusyOverlay: View {
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.18)
-                .ignoresSafeArea()
-            VStack(spacing: FkSpacing.md) {
-                ProgressView()
-                    .controlSize(.large)
-                Text("AI 识别中…")
-                    .font(.fkLabelLarge)
-                    .foregroundStyle(Color.fkOnSurface)
-            }
-            .padding(FkSpacing.xl)
-            .background(
-                RoundedRectangle(cornerRadius: FkRadius.lg, style: .continuous)
-                    .fill(Color.fkSurfaceContainerHighest)
-            )
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("AI 识别中")
-    }
-}
-
-/// A compact inline notice row (icon + message) for surfacing load / AI errors
-/// inside the image-import sheet.
-private struct FkImageImportNotice: View {
-    let systemImage: String
-    let message: String
-
-    var body: some View {
-        HStack(alignment: .top, spacing: FkSpacing.sm) {
-            Image(systemName: systemImage)
-                .foregroundStyle(Color.fkDanger)
-            Text(message)
-                .font(.fkBodyMedium)
-                .foregroundStyle(Color.fkOnSurface)
-            Spacer(minLength: 0)
-        }
-        .padding(FkSpacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: FkRadius.md, style: .continuous)
-                .fill(Color.fkDangerSoft)
-        )
     }
 }

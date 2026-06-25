@@ -13,7 +13,6 @@ enum FkMotion {
     static let normal: TimeInterval = 0.18 // 折叠 / 状态切换
     static let slow: TimeInterval = 0.25 // 入场 / cross-fade
     static let page: TimeInterval = 0.24 // 页面转场
-    static let shimmer: TimeInterval = 1.4 // 微光循环
 
     // Parameters
     static let pressScale: CGFloat = 0.97 // 按压缩放终值

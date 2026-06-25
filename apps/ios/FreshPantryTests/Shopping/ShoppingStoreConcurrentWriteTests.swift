@@ -160,7 +160,7 @@ struct ShoppingStoreConcurrentWriteTests {
         let removed = try #require(await store.deleteAll(store.items.filter(\.isChecked)))
         #expect(removed.count == 2)
         for item in removed {
-            #expect(await store.restore(item)) // the undo banner's loop
+            #expect(await store.restoreItem(item) == .added) // the undo banner's loop
         }
 
         let rows = try await repo.loadAllFor(household)

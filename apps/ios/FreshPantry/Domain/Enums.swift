@@ -75,13 +75,6 @@ enum FoodLogOutcome: String, Codable, Sendable, CaseIterable {
 enum IntakeAction: String, Codable, Sendable, CaseIterable {
     case newRow
     case mergeInto
-
-    static func fromName(_ name: String?) -> IntakeAction {
-        guard let name, let value = IntakeAction(rawValue: name) else {
-            return .newRow
-        }
-        return value
-    }
 }
 
 enum DeductionAction: String, Codable, Sendable, CaseIterable {
@@ -94,13 +87,6 @@ enum FieldOrigin: String, Codable, Sendable, CaseIterable {
     case ai
     case system
     case user
-
-    static func fromName(_ name: String?) -> FieldOrigin {
-        guard let name, let value = FieldOrigin(rawValue: name) else {
-            return .ai
-        }
-        return value
-    }
 }
 
 // MARK: - Draft

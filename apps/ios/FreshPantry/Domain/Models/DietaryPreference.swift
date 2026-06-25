@@ -13,10 +13,6 @@ struct DietaryPreference: Hashable, Sendable, Codable {
     var clientUpdatedAt: Date?
     var deletedAt: Date?
 
-    var syncMetadata: SyncMetadata {
-        SyncMetadata(remoteVersion: remoteVersion, clientUpdatedAt: clientUpdatedAt, deletedAt: deletedAt)
-    }
-
     init(
         id: String,
         keyword: String,

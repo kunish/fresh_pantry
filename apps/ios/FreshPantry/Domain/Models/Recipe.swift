@@ -267,14 +267,6 @@ struct Recipe: Hashable, Sendable, Codable {
     var clientUpdatedAt: Date?
     var deletedAt: Date?
 
-    var syncMetadata: SyncMetadata {
-        SyncMetadata(
-            remoteVersion: remoteVersion,
-            clientUpdatedAt: clientUpdatedAt,
-            deletedAt: deletedAt
-        )
-    }
-
     /// `'难度未设置'` when difficulty <= 0, else `'难度 N/5'` with N clamped 1...5.
     var difficultyLabel: String {
         if difficulty <= 0 { return "难度未设置" }

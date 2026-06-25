@@ -34,21 +34,6 @@ struct IntentSupportTests {
         #expect(queue.peek() == ["牛奶", "鸡蛋"])
     }
 
-    @Test func queueDrainReturnsAllThenClears() {
-        let queue = IntentPendingAddQueue(defaults: isolatedDefaults())
-        queue.enqueue("牛奶")
-        queue.enqueue("鸡蛋")
-        #expect(queue.drainAll() == ["牛奶", "鸡蛋"])
-        // Drained exactly once — a second drain is empty.
-        #expect(queue.drainAll() == [])
-        #expect(queue.peek() == [])
-    }
-
-    @Test func queueDrainOnEmptyIsNoOp() {
-        let queue = IntentPendingAddQueue(defaults: isolatedDefaults())
-        #expect(queue.drainAll() == [])
-    }
-
     @Test func queueRemoveTakesOnlyTheNamedConsumedEntries() {
         // The "ack on success" path: a name that failed to persist stays queued
         // for the next foreground retry; only the consumed names are removed.

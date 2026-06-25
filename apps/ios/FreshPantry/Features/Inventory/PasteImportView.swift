@@ -184,9 +184,10 @@ struct PasteImportView: View {
     }
 }
 
-/// A compact inline notice row (icon + message) for surfacing parse / AI errors
-/// inside the paste-import sheet.
-private struct FkInlineNotice: View {
+/// A compact inline notice row (icon + message) for surfacing parse / AI / load
+/// errors inside the import sheets. Module-internal so every import flow shares
+/// this single row instead of cloning it per sheet.
+struct FkInlineNotice: View {
     let systemImage: String
     let message: String
 
@@ -204,5 +205,34 @@ private struct FkInlineNotice: View {
             RoundedRectangle(cornerRadius: FkRadius.md, style: .continuous)
                 .fill(Color.fkDangerSoft)
         )
+    }
+}
+
+/// Dimmed busy overlay (scrim + spinner + label) shared by every import flow —
+/// `text` is the in-flight label (e.g. "AI 解析中…"); the accessibility label is
+/// the same text with its trailing ellipsis dropped. Module-internal so the
+/// per-sheet clones collapse to this one definition.
+struct FkBusyOverlay: View {
+    let text: String
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.18)
+                .ignoresSafeArea()
+            VStack(spacing: FkSpacing.md) {
+                ProgressView()
+                    .controlSize(.large)
+                Text(text)
+                    .font(.fkLabelLarge)
+                    .foregroundStyle(Color.fkOnSurface)
+            }
+            .padding(FkSpacing.xl)
+            .background(
+                RoundedRectangle(cornerRadius: FkRadius.lg, style: .continuous)
+                    .fill(Color.fkSurfaceContainerHighest)
+            )
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(text.hasSuffix("…") ? String(text.dropLast()) : text)
     }
 }

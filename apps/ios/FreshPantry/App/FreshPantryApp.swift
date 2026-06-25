@@ -116,23 +116,15 @@ struct FreshPantryApp: App {
                 // iOS can schedule an opportunistic flush even before the first
                 // background transition.
                 .task { Self.scheduleAppRefresh() }
-                // WIDGET 身份镜像:把当前家庭 + clientId 写进 App Group,供小组件
-                // 读取查询作用域 / 构造 outbox 操作;并触发一次时间线重载。
+                // WIDGET 快照:把当前家庭的展示数据发布进 App Group 共享容器
+                // 并触发一次时间线重载;家庭切换时重发。
                 .task {
-                    WidgetSharedDefaults.writeIdentity(
-                        householdID: dependencies.householdID,
-                        clientID: dependencies.syncSession.clientId
-                    )
                     await WidgetSnapshotPublisher.publish(
                         container: dependencies.modelContainer,
                         householdID: dependencies.householdID
                     )
                 }
                 .onChange(of: dependencies.householdID) { _, newID in
-                    WidgetSharedDefaults.writeIdentity(
-                        householdID: newID,
-                        clientID: dependencies.syncSession.clientId
-                    )
                     Task {
                         await WidgetSnapshotPublisher.publish(
                             container: dependencies.modelContainer,

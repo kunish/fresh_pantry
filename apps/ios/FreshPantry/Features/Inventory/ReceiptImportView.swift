@@ -54,7 +54,7 @@ struct ReceiptImportView: View {
             }
             .overlay {
                 if isBusy {
-                    ReceiptImportBusyOverlay(isRecognizing: isRecognizing)
+                    FkBusyOverlay(text: isRecognizing ? "识别小票文字中…" : "AI 解析中…")
                 }
             }
             .navigationDestination(item: $reviewRoute) { route in
@@ -104,7 +104,7 @@ struct ReceiptImportView: View {
                     .disabled(isBusy)
 
                     if let message = ocrError ?? store.errorMessage {
-                        FkReceiptImportNotice(systemImage: "exclamationmark.triangle", message: message)
+                        FkInlineNotice(systemImage: "exclamationmark.triangle", message: message)
                     }
                 }
                 .padding(FkSpacing.lg)
@@ -203,55 +203,5 @@ struct ReceiptImportView: View {
             reviewRoute = ReviewRoute(proposals: proposals)
             store.consumeProposals()
         }
-    }
-}
-
-/// Dimmed busy overlay shown while OCR (本机识别) or the AI parse runs — blocks
-/// interaction and signals which stage is in flight (mirrors the AI import overlays).
-private struct ReceiptImportBusyOverlay: View {
-    let isRecognizing: Bool
-
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.18)
-                .ignoresSafeArea()
-            VStack(spacing: FkSpacing.md) {
-                ProgressView()
-                    .controlSize(.large)
-                Text(isRecognizing ? "识别小票文字中…" : "AI 解析中…")
-                    .font(.fkLabelLarge)
-                    .foregroundStyle(Color.fkOnSurface)
-            }
-            .padding(FkSpacing.xl)
-            .background(
-                RoundedRectangle(cornerRadius: FkRadius.lg, style: .continuous)
-                    .fill(Color.fkSurfaceContainerHighest)
-            )
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(isRecognizing ? "识别小票文字中" : "AI 解析中")
-    }
-}
-
-/// A compact inline notice row (icon + message) for surfacing OCR / AI errors
-/// inside the receipt-import sheet. Mirrors `FkImageImportNotice`.
-private struct FkReceiptImportNotice: View {
-    let systemImage: String
-    let message: String
-
-    var body: some View {
-        HStack(alignment: .top, spacing: FkSpacing.sm) {
-            Image(systemName: systemImage)
-                .foregroundStyle(Color.fkDanger)
-            Text(message)
-                .font(.fkBodyMedium)
-                .foregroundStyle(Color.fkOnSurface)
-            Spacer(minLength: 0)
-        }
-        .padding(FkSpacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: FkRadius.md, style: .continuous)
-                .fill(Color.fkDangerSoft)
-        )
     }
 }

@@ -33,14 +33,6 @@ struct MealPlanEntry: Hashable, Sendable, Codable {
         recipeName.isEmpty ? (title ?? "") : recipeName
     }
 
-    var syncMetadata: SyncMetadata {
-        SyncMetadata(
-            remoteVersion: remoteVersion,
-            clientUpdatedAt: clientUpdatedAt,
-            deletedAt: deletedAt
-        )
-    }
-
     init(
         id: String,
         date: Date,

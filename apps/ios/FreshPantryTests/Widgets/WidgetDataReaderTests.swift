@@ -95,7 +95,6 @@ struct WidgetDataReaderTests {
         let reader = WidgetDataReader(container: container)
         let snap = await reader.wasteSnapshot(householdID: hh, now: now())
 
-        #expect(snap.consumedCount == 2)
         #expect(snap.wastedCount == 1)
         #expect(snap.rescuedCount == 1)
         #expect(snap.useUpPercent == 67)

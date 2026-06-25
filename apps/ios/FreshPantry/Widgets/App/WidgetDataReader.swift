@@ -79,7 +79,7 @@ struct WidgetDataReader {
         let todays = entries.filter { cal.isDate($0.date, inSameDayAs: now) }
         let items = todays.map { entry in
             // 复用模型的 displayTitle(与 MealPlanView 同一真源),避免 widget 与 app 显示不一致。
-            WidgetMealPlanSnapshot.Item(title: entry.displayTitle, done: entry.done, mealType: entry.mealType)
+            WidgetMealPlanSnapshot.Item(title: entry.displayTitle, done: entry.done)
         }
         return WidgetMealPlanSnapshot(items: items)
     }
@@ -113,7 +113,6 @@ struct WidgetDataReader {
         return WidgetWasteSnapshot(
             useUpPercent: stats.useUpPercent,
             rescuedCount: stats.rescued,
-            consumedCount: stats.consumed,
             wastedCount: stats.wasted,
             isEmpty: stats.isEmpty
         )

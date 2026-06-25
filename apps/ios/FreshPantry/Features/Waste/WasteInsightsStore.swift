@@ -40,7 +40,6 @@ struct WasteCategoryBreakdown: Equatable, Sendable, Identifiable {
     let wasted: Int
 
     var id: String { category }
-    var total: Int { consumed + wasted }
 }
 
 /// Feature store for the 减废统计 (waste-insights) slice — the same
@@ -68,10 +67,6 @@ final class WasteInsightsStore {
     private(set) var entries: [FoodLogEntry] = []
     private(set) var isLoading = false
     private(set) var hasLoaded = false
-    /// Set to true when `correctOutcome` fails (repo throw or entry-not-found).
-    /// The view observes this to surface a toast; reset to false after the toast
-    /// is consumed so subsequent failures can re-trigger.
-    var correctOutcomeError = false
 
     /// The active time window. Defaults to 本月 (matches the blueprint default).
     var window: WasteStatsWindow = .thisMonth
@@ -142,19 +137,6 @@ final class WasteInsightsStore {
         WasteAchievements.evaluate(entries, now: now)
     }
 
-    /// Per-category consumed/wasted breakdown for the selected window, ordered by
-    /// `FoodCategories.values` (canonical sort), dropping categories with no
-    /// departures. Categories are normalized so legacy aliases collapse correctly.
-    func categoryBreakdown(now: Date = Date()) -> [WasteCategoryBreakdown] {
-        Self.computeCategoryBreakdown(windowedEntries(now: now))
-    }
-
-    /// Categories ranked by WASTED count (desc) for the window — the "最常浪费"
-    /// list. Only categories with ≥1 wasted departure appear.
-    func mostWasted(now: Date = Date()) -> [WasteCategoryCount] {
-        Self.computeMostWasted(windowedEntries(now: now))
-    }
-
     /// All three windowed aggregates for one render pass. A single `now` and a
     /// single window filter back every aggregate, so a body evaluation doesn't
     /// re-filter `entries` per derived value.
@@ -180,10 +162,9 @@ final class WasteInsightsStore {
 
     /// Correct a mis-logged outcome (吃完 ↔ 扔了) OPTIMISTICALLY — the history row
     /// + the windowed stats re-derive the instant the user taps, before the repo
-    /// write. Returns false when the entry is missing (also sets
-    /// `correctOutcomeError = true` so the view toasts) or when it already carries
-    /// the requested outcome (a benign no-op — no error). A persist failure rolls
-    /// the flip back and sets the error flag.
+    /// write. Returns false when the entry is missing or when it already carries
+    /// the requested outcome (a benign no-op). A persist failure rolls the flip
+    /// back and returns false.
     @discardableResult
     func correctOutcome(entryId: String, to outcome: FoodLogOutcome) async -> Bool {
         let index = entries.firstIndex(where: { $0.id == entryId })
@@ -195,7 +176,6 @@ final class WasteInsightsStore {
             guard let updated = try await repository.updateOutcome(householdID, entryId, outcome) else {
                 // The repo found no row to update — roll back the optimistic flip.
                 if let index, let prior { entries[index] = prior }
-                correctOutcomeError = true
                 return false
             }
             // Stamp the persisted row (its bumped remoteVersion / clientUpdatedAt)
@@ -205,7 +185,6 @@ final class WasteInsightsStore {
             return true
         } catch {
             if let index, let prior { entries[index] = prior } // rollback
-            correctOutcomeError = true
             return false
         }
     }

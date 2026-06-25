@@ -56,7 +56,7 @@ struct BackupServiceTests {
 
     @Test func roundTripPreservesEveryField() throws {
         let original = sampleData()
-        let blob = BackupService.encode(original, exportedAt: exportedAt)
+        let blob = BackupService.encode(BackupArchive(data: original), exportedAt: exportedAt)
         let decoded = try BackupService.decode(blob)
         #expect(decoded == original)
     }
@@ -65,7 +65,7 @@ struct BackupServiceTests {
         let original = sampleData(
             aiSettings: AiSettings(baseUrl: "https://x/v1", apiKey: "sk-1", model: "gpt-4o", timeout: 45)
         )
-        let blob = BackupService.encode(original, exportedAt: exportedAt)
+        let blob = BackupService.encode(BackupArchive(data: original), exportedAt: exportedAt)
         let decoded = try BackupService.decode(blob)
         #expect(decoded == original)
         #expect(decoded.aiSettings == original.aiSettings)
@@ -73,7 +73,7 @@ struct BackupServiceTests {
 
     @Test func addHistoryMapRoundTripsVerbatim() throws {
         let original = sampleData()
-        let decoded = try BackupService.decode(BackupService.encode(original, exportedAt: exportedAt))
+        let decoded = try BackupService.decode(BackupService.encode(BackupArchive(data: original), exportedAt: exportedAt))
         #expect(decoded.addHistory == original.addHistory)
         #expect(decoded.addHistory["牛奶"]?.count == 3)
         #expect(decoded.addHistory["鸡蛋"]?.unit == "个")
@@ -82,7 +82,7 @@ struct BackupServiceTests {
     // MARK: Envelope shape
 
     @Test func encodeWritesVersion2EnvelopeWithTimestamp() throws {
-        let blob = BackupService.encode(sampleData(), exportedAt: exportedAt)
+        let blob = BackupService.encode(BackupArchive(data: sampleData()), exportedAt: exportedAt)
         let root = try jsonObject(blob)
         #expect(root["version"] as? Int == 2)
         #expect((root["exportedAt"] as? String)?.hasSuffix("Z") == true)
@@ -90,20 +90,20 @@ struct BackupServiceTests {
     }
 
     @Test func encodeIsPrettyPrintedWithTwoSpaceIndent() {
-        let blob = BackupService.encode(sampleData(), exportedAt: exportedAt)
+        let blob = BackupService.encode(BackupArchive(data: sampleData()), exportedAt: exportedAt)
         // Pretty-printed multi-line output indents nested keys by two spaces.
         #expect(blob.contains("\n  \"data\""))
     }
 
     @Test func encodeOmitsAiSettingsKeyWhenNil() throws {
-        let blob = BackupService.encode(sampleData(aiSettings: nil), exportedAt: exportedAt)
+        let blob = BackupService.encode(BackupArchive(data: sampleData(aiSettings: nil)), exportedAt: exportedAt)
         let payload = try dataPayload(blob)
         #expect(payload["aiSettings"] == nil)
     }
 
     @Test func encodeIncludesAiSettingsKeyWhenPresent() throws {
         let blob = BackupService.encode(
-            sampleData(aiSettings: AiSettings(baseUrl: "https://x", apiKey: "k", model: "m")),
+            BackupArchive(data: sampleData(aiSettings: AiSettings(baseUrl: "https://x", apiKey: "k", model: "m"))),
             exportedAt: exportedAt
         )
         let payload = try dataPayload(blob)
@@ -114,7 +114,7 @@ struct BackupServiceTests {
 
     @Test func decodeAcceptsEnvelopeWithUnknownExtraKeys() throws {
         let original = sampleData()
-        var root = try jsonObject(BackupService.encode(original, exportedAt: exportedAt))
+        var root = try jsonObject(BackupService.encode(BackupArchive(data: original), exportedAt: exportedAt))
         root["__unknown"] = "ignored"
         var payload = root["data"] as! [String: Any]
         payload["__alsoUnknown"] = 42

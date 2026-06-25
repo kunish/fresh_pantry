@@ -94,9 +94,9 @@ struct BackupArchiveCodecTests {
     }
 
     @Test func coreOnlyEncodeOmitsOptionalKeys() throws {
-        // The `BackupData` overload (and any nil archive field) writes no key —
-        // a core-only blob is shape-identical to the pre-expansion output.
-        let blob = BackupService.encode(emptyCore(), exportedAt: exportedAt)
+        // A core-only archive (every optional field nil) writes no key —
+        // shape-identical to the pre-expansion output.
+        let blob = BackupService.encode(BackupArchive(data: emptyCore()), exportedAt: exportedAt)
         let root = try JSONSerialization.jsonObject(with: blob.data(using: .utf8)!) as! [String: Any]
         let payload = root["data"] as! [String: Any]
         #expect(payload["foodLog"] == nil)

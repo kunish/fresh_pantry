@@ -16,10 +16,8 @@ export interface MergeResult {
 export function mergeWithExisting(
   fresh: CleanRecipe[],
   existing: CleanRecipe[],
-  now: string,
   opts: MergeOptions = {},
 ): MergeResult {
-  void now;
   const byId = new Map<string, CleanRecipe>(existing.map((r) => [r.id, r]));
   const stats = { added: 0, updated: 0, unchanged: 0 };
 

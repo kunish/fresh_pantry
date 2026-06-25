@@ -55,30 +55,6 @@ struct SentryDiagnostics: Diagnostics {
         )
     }
 
-    func log(_ level: DiagnosticLevel, _ message: String, _ tags: [String: String]) {
-        let attributes = tags as [String: Any]
-        switch level {
-        case .debug: SentrySDK.logger.debug(message, attributes: attributes)
-        case .info: SentrySDK.logger.info(message, attributes: attributes)
-        case .warning: SentrySDK.logger.warn(message, attributes: attributes)   // 注意是 warn 非 warning
-        case .error: SentrySDK.logger.error(message, attributes: attributes)
-        }
-    }
-
-    func count(_ key: String, by value: UInt, _ tags: [String: String]) {
-        Self.metricsApi.count(key: key, value: value, attributes: Self.attributes(tags))
-    }
-
-    func distribution(_ key: String, _ value: Double, unit: DiagnosticUnit, _ tags: [String: String]) {
-        Self.metricsApi.distribution(
-            key: key, value: value, unit: Self.unit(unit), attributes: Self.attributes(tags))
-    }
-
-    func gauge(_ key: String, _ value: Double, unit: DiagnosticUnit, _ tags: [String: String]) {
-        Self.metricsApi.gauge(
-            key: key, value: value, unit: Self.unit(unit), attributes: Self.attributes(tags))
-    }
-
     /// `SentrySDK.metrics` 是 SDK 的可变 `static var`(设计上允许注入替换),在 Swift 6
     /// `complete` 隔离下直接读会被判为「访问共享可变状态不安全」。它的 getter 只是
     /// 返回 SDK 全局并发使用的 metrics API 单例,本就是为跨线程并发埋点设计。
@@ -87,22 +63,6 @@ struct SentryDiagnostics: Diagnostics {
     /// 既不改 SDK,又把不安全读取面收敛到这一处。
     private static var metricsApi: any SentryMetricsApiProtocol {
         SentrySDK.metrics
-    }
-
-    /// 把低基数 `[String: String]` tag 升为指标属性 —— `String` 原生 conform
-    /// `SentryAttributeValue`,直接逐值上抛即可。
-    private static func attributes(_ tags: [String: String]) -> [String: SentryAttributeValue] {
-        tags.mapValues { $0 as SentryAttributeValue }
-    }
-
-    /// SDK 无关单位 → `SentryUnit`。`.none` 映射为 `nil`(无量纲)。
-    private static func unit(_ unit: DiagnosticUnit) -> SentryUnit? {
-        switch unit {
-        case .milliseconds: return .millisecond
-        case .bytes: return .byte
-        case .none: return nil
-        case .generic(let value): return .generic(value)
-        }
     }
 }
 #endif

@@ -63,7 +63,7 @@ struct RecipePhotoImportView: View {
             }
             .overlay {
                 if isProcessing {
-                    RecipePhotoImportBusyOverlay()
+                    FkBusyOverlay(text: "识别整理中…")
                 }
             }
             .sheet(item: $draftRoute, onDismiss: { dismiss() }) { route in
@@ -101,7 +101,7 @@ struct RecipePhotoImportView: View {
                 .disabled(isProcessing)
 
                 if let errorMessage {
-                    FkRecipePhotoNotice(systemImage: "exclamationmark.triangle", message: errorMessage)
+                    FkInlineNotice(systemImage: "exclamationmark.triangle", message: errorMessage)
                 }
             }
             .padding(FkSpacing.lg)
@@ -208,52 +208,4 @@ struct RecipePhotoImportView: View {
 private struct ParsedDraftRoute: Identifiable {
     let id = UUID()
     let draft: RecipeDraft
-}
-
-/// Dimmed busy overlay shown while OCR + AI structuring runs — blocks interaction
-/// and signals progress (mirrors `ImageImportBusyOverlay` / `AiImportBusyOverlay`).
-private struct RecipePhotoImportBusyOverlay: View {
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.18)
-                .ignoresSafeArea()
-            VStack(spacing: FkSpacing.md) {
-                ProgressView()
-                    .controlSize(.large)
-                Text("识别整理中…")
-                    .font(.fkLabelLarge)
-                    .foregroundStyle(Color.fkOnSurface)
-            }
-            .padding(FkSpacing.xl)
-            .background(
-                RoundedRectangle(cornerRadius: FkRadius.lg, style: .continuous)
-                    .fill(Color.fkSurfaceContainerHighest)
-            )
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("识别整理中")
-    }
-}
-
-/// A compact inline notice row (icon + message) for surfacing load / OCR / AI
-/// errors inside the photo-import sheet.
-private struct FkRecipePhotoNotice: View {
-    let systemImage: String
-    let message: String
-
-    var body: some View {
-        HStack(alignment: .top, spacing: FkSpacing.sm) {
-            Image(systemName: systemImage)
-                .foregroundStyle(Color.fkDanger)
-            Text(message)
-                .font(.fkBodyMedium)
-                .foregroundStyle(Color.fkOnSurface)
-            Spacer(minLength: 0)
-        }
-        .padding(FkSpacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: FkRadius.md, style: .continuous)
-                .fill(Color.fkDangerSoft)
-        )
-    }
 }

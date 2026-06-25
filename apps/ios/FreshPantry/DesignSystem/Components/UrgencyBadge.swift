@@ -3,8 +3,8 @@ import SwiftUI
 /// Status pill driven by the shared `FkStatusStyle` table — the only place a
 /// view should render an urgency tint/label. Ported from `FkPill.status`.
 ///
-/// Pass an explicit `FkStatus` (e.g. `.low`) or use the `FreshnessState`
-/// initializer for inventory rows.
+/// Pass an explicit `FkStatus` or use the `FreshnessState` initializer for
+/// inventory rows.
 struct UrgencyBadge: View {
     let status: FkStatus
     var label: String?

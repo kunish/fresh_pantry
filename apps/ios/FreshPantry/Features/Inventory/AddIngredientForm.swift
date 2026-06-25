@@ -172,7 +172,7 @@ final class AddIngredientForm {
         let draft = IngredientDraft(
             id: "manual_\(Int(Date().timeIntervalSince1970 * 1000))",
             name: .user(name.trimmed),
-            quantity: .user(normalizedQuantity),
+            quantity: .user(quantity.trimmed.isEmpty ? "1" : quantity.trimmed),
             unit: .user(unit.trimmed.isEmpty ? "个" : unit.trimmed),
             category: .user(FoodCategories.dropdownValue(category)),
             storage: .user(storage),
@@ -197,12 +197,5 @@ final class AddIngredientForm {
             barcode: (trimmedBarcode?.isEmpty == false) ? trimmedBarcode : nil,
             tags: Ingredient.normalizeTags(tags)
         )
-    }
-
-    /// Trimmed quantity, falling back to "1" when blank / non-positive-looking.
-    private var normalizedQuantity: String {
-        let trimmed = quantity.trimmed
-        if trimmed.isEmpty { return "1" }
-        return trimmed
     }
 }

@@ -18,14 +18,6 @@ struct UrgencyMappingTests {
         #expect(FreshnessState.expired.statusStyle.label == "已过期")
     }
 
-    @Test func lowIsTheExtraNonDomainStatus() {
-        // FkStatus adds `low` for shopping / low-stock; not reachable from any
-        // FreshnessState.
-        #expect(FkStatusStyle.of(.low).label == "库存不足")
-        let domainStatuses = FreshnessState.allCases.map(\.fkStatus)
-        #expect(!domainStatuses.contains(.low))
-    }
-
     @Test func categoryPaletteIdMappingMatchesFlutter() {
         #expect(FkCategoryIcon.paletteId(for: FoodCategories.dairyAndEggs) == "dairy")
         #expect(FkCategoryIcon.paletteId(for: FoodCategories.freshProduce) == "veg")

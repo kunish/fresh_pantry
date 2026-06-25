@@ -134,7 +134,7 @@ struct DeductionReviewView: View {
             Button {
                 Task { await confirm(store) }
             } label: {
-                Text(confirmLabel(store))
+                Text(isConfirming ? "扣减中…" : "确认扣减 (\(store.selectedCount))")
                     .font(.fkLabelLarge)
                     .foregroundStyle(Color.fkOnPrimary)
                     .padding(.horizontal, FkSpacing.xl)
@@ -149,11 +149,6 @@ struct DeductionReviewView: View {
         .padding(.horizontal, FkSpacing.lg)
         .padding(.vertical, FkSpacing.md)
         .background(.ultraThinMaterial)
-    }
-
-    private func confirmLabel(_ store: DeductionReviewStore) -> String {
-        if isConfirming { return "扣减中…" }
-        return "确认扣减 (\(store.selectedCount))"
     }
 
     private func confirm(_ store: DeductionReviewStore) async {

@@ -55,15 +55,6 @@ export function rawFromMarkdown(relPath: string, md: string, warn?: (name: strin
   };
 }
 
-async function* walkMarkdown(dir: string, root: string): AsyncIterable<string> {
-  for (const entry of await readdir(dir)) {
-    const full = join(dir, entry);
-    const s = await stat(full);
-    if (s.isDirectory()) yield* walkMarkdown(full, root);
-    else if (entry.endsWith('.md') && entry !== 'README.md') yield relative(root, full);
-  }
-}
-
 export function howtocookSource(): RecipeSource {
   return {
     id: 'howtocook',
@@ -80,7 +71,11 @@ export function howtocookSource(): RecipeSource {
           `HowToCook 仓库不可用(克隆失败且无缓存): ${dishesDir} —— 请检查网络,或手动克隆到 ${repoDir}`,
         );
       }
-      for await (const relPath of walkMarkdown(dishesDir, repoDir)) {
+      const entries = await readdir(dishesDir, { recursive: true });
+      for (const entry of entries) {
+        const base = basename(entry);
+        if (!base.endsWith('.md') || base === 'README.md') continue;
+        const relPath = relative(repoDir, join(dishesDir, entry));
         if (isTemplateDish(relPath)) continue;
         const md = await readFile(join(repoDir, relPath), 'utf8');
         const id = howtocookIdFromPath(relPath);

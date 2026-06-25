@@ -666,10 +666,10 @@ struct RecipeDetailView: View {
         }
     }
 
-    /// "½×" for 0.5, else "N×" with any trailing ".0" dropped.
+    /// "½×" for 0.5, else "N×" with any trailing ".0" dropped (formatFraction maps
+    /// 0.5 → ½ and renders whole numbers as plain ints).
     private static func scaleLabel(_ factor: Double) -> String {
-        if factor == 0.5 { return "½×" }
-        return "\(QuantityText.formatQuantity(factor))×"
+        "\(QuantityText.formatFraction(factor))×"
     }
 
     private func ingredientRow(_ ingredient: RecipeIngredient, hasInventory: Bool) -> some View {

@@ -64,15 +64,6 @@ struct IntentPendingAddQueue {
         save(names)
     }
 
-    /// Returns the queued names AND clears the queue in one step — the app's drain
-    /// path so a name is consumed exactly once across the intent → app handoff.
-    func drainAll() -> [String] {
-        let names = load()
-        guard !names.isEmpty else { return [] }
-        defaults.removeObject(forKey: Self.storageKey)
-        return names
-    }
-
     /// Removes the given names (one matching occurrence each) from the queue,
     /// leaving anything else untouched. The drainer's "ack on success" path: only
     /// names that actually landed in the store are removed, so a persist failure

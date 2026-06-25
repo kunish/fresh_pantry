@@ -128,7 +128,7 @@ struct EditIngredientView: View {
 
     private var storageField: some View {
         FkFormField(label: "存放位置") {
-            FkValuePill(value: form.storage.storageAreaLabel, systemImage: storageIcon) {
+            FkValuePill(value: form.storage.storageAreaLabel, systemImage: form.storage.sfSymbolOutline) {
                 showStoragePicker = true
             }
         }
@@ -187,14 +187,6 @@ struct EditIngredientView: View {
     private var tagsField: some View {
         FkFormField(label: "标签") {
             IngredientTagsEditor(tags: $form.tags)
-        }
-    }
-
-    private var storageIcon: String {
-        switch form.storage {
-        case .fridge: return "refrigerator"
-        case .freezer: return "snowflake"
-        case .pantry: return "cabinet"
         }
     }
 

@@ -130,9 +130,6 @@ struct NutritionCard: View {
     /// whole → int string, else 1-decimal. Matches the Flutter `_NutritionCard._fmt`
     /// (`toStringAsFixed(1)`), distinct from the 2-decimal `QuantityText`.
     static func format(_ value: Double) -> String {
-        if value == value.rounded() {
-            return String(Int(value))
-        }
-        return String(format: "%.1f", value)
+        value.formatted(.number.precision(.fractionLength(0...1)).grouping(.never))
     }
 }

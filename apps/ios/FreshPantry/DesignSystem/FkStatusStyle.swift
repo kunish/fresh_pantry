@@ -1,8 +1,7 @@
 import SwiftUI
 
 /// Urgency / status discriminator. Mirrors the Flutter `FkStatus` enum: the
-/// domain `FreshnessState` has four tiers, and `FkStatus` adds a fifth `low`
-/// for shopping / low-stock surfaces.
+/// domain `FreshnessState`'s four tiers.
 ///
 /// This (plus `FkStatusStyle.of`) is the SINGLE SOURCE OF TRUTH for urgency
 /// colors — no card/row/badge may re-derive "expired vs not" on its own, or the
@@ -13,7 +12,6 @@ enum FkStatus: String, Sendable, CaseIterable {
     case soon
     case urgent
     case expired
-    case low
 }
 
 /// `(bg, fg, label)` triple for a status chip. Ported from `kFkStatusStyles`.
@@ -33,14 +31,12 @@ struct FkStatusStyle: Sendable {
             return FkStatusStyle(background: .fkDangerSoft, foreground: .fkOnDangerContainer, label: "快过期")
         case .expired:
             return FkStatusStyle(background: .fkDanger, foreground: .fkOnDanger, label: "已过期")
-        case .low:
-            return FkStatusStyle(background: .fkDangerSoft, foreground: .fkOnDangerContainer, label: "库存不足")
         }
     }
 }
 
 extension FreshnessState {
-    /// Maps the 4-tier domain state onto the 5-case `FkStatus` (no `low`).
+    /// Maps the 4-tier domain state onto `FkStatus`.
     var fkStatus: FkStatus {
         switch self {
         case .fresh: return .fresh

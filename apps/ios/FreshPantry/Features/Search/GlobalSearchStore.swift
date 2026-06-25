@@ -22,7 +22,6 @@ final class GlobalSearchStore {
     private(set) var inventory: [Ingredient] = []
     private(set) var shopping: [ShoppingItem] = []
     private(set) var recipes: [Recipe] = []
-    private(set) var hasLoaded = false
 
     init(
         inventoryRepository: InventoryRepository,
@@ -50,7 +49,6 @@ final class GlobalSearchStore {
         let bundled = await bundledLoad
         let custom = await customLoad
         recipes = RecipesStore.merge(bundled: bundled, custom: custom)
-        hasLoaded = true
     }
 
     var trimmedQuery: String { query.trimmed }

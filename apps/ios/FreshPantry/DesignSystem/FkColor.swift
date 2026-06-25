@@ -61,15 +61,12 @@ extension Color {
     /// that host white text (unlike `fkPrimaryContainer`, which is ink in dark).
     static let fkPrimaryDeep = Color(hex: 0x3F60B5)
     static let fkOnPrimary = Color(hex: 0xFFFFFF)
-    static let fkOnPrimaryContainer = Color(light: 0xE5ECFA, dark: 0x1B2A50)
-    static let fkPrimaryLight = Color(light: 0x8AA3E0, dark: 0x9FB4E8)
     static let fkPrimarySoft = Color(light: 0xE5ECFA, dark: 0x2A3450)
 
     // Warn · butter yellow (临期 soon) — the chip bg + dark ink pair is fixed
     // (yellow pops on dark too); soft/ink adapt.
     static let fkWarn = Color(hex: 0xFFC857)
     static let fkWarnSoft = Color(light: 0xFFF3D6, dark: 0x423420)
-    static let fkOnWarn = Color(hex: 0x2D2438)
     static let fkOnWarnContainer = Color(light: 0x9B7A2A, dark: 0xE6C36F)
     /// 「用临期」火苗强调色 — 比 soon ink 更暖的橙,刻意区分。
     static let fkWarnInk = Color(light: 0xB26A1F, dark: 0xE89E55)
@@ -82,20 +79,15 @@ extension Color {
 
     // Success green — 完成态 / toast check(mid-tone,两模式通用)
     static let fkSuccess = Color(hex: 0x5CC9A7)
-    // Alert red — 邀请角标 / 未读徽章(纯红,有别于 danger 珊瑚)
-    static let fkAlert = Color(hex: 0xE5484D)
 
     // Surface · warm cream ramp ⇄ warm plum-charcoal ramp. NOTE the inversion:
     // in light, containers get darker/warmer with elevation (lowest = white);
     // in dark, containers get LIGHTER with elevation (lowest = card tone just
     // above the background).
     static let fkSurface = Color(light: 0xFBF8F3, dark: 0x17141C)
-    static let fkSurfaceDim = Color(light: 0xE8E3DA, dark: 0x100E13)
-    static let fkSurfaceBright = Color(light: 0xFFFFFF, dark: 0x3A3442)
     static let fkSurfaceContainerLowest = Color(light: 0xFFFFFF, dark: 0x201C26)
     static let fkSurfaceContainerLow = Color(light: 0xF6F2EB, dark: 0x251F2B)
     static let fkSurfaceContainer = Color(light: 0xF0EBE3, dark: 0x2A2430)
-    static let fkSurfaceContainerHigh = Color(light: 0xE9E2D6, dark: 0x332C3B)
     static let fkSurfaceContainerHighest = Color(light: 0xE3DCCB, dark: 0x3D3546)
 
     // On-surface · deep plum-ink ⇄ plum-tinted cream
@@ -105,17 +97,11 @@ extension Color {
     static let fkOutlineVariant = Color(light: 0xC7C1CE, dark: 0x49414F)
     static let fkHair = Color(light: 0x2D2438, dark: 0xEDE7F2, lightAlpha: 0.078, darkAlpha: 0.08)
 
-    // Switch off-track
-    static let fkSwitchTrackOff = Color(light: 0xD9DDD8, dark: 0x4A4452)
-
     // Overlays / scrims. Image scrims stay fixed (they sit on photos, not on
-    // themed surfaces); the modal barrier deepens in dark so sheets still read.
+    // themed surfaces).
     static let fkOnImageScrim = Color(hex: 0x000000, alpha: 0.2)
-    static let fkModalBarrier = Color(light: 0x000000, dark: 0x000000, lightAlpha: 0.278, darkAlpha: 0.5)
-    static let fkSubtleShadow = Color(hex: 0x000000, alpha: 0.059)
 
-    // Warm shadow tints — fixed; in dark, elevation reads from the lighter
+    // Warm shadow tint — fixed; in dark, elevation reads from the lighter
     // container ramp rather than shadows.
-    static let fkShadowWarm = Color(hex: 0x3C2D1E, alpha: 0.161)
     static let fkShadowSoft = Color(hex: 0x263A34, alpha: 0.039)
 }

@@ -60,7 +60,6 @@
 		<string>Manrope-SemiBold.ttf</string>
 		<string>Manrope-Bold.ttf</string>
 		<string>Manrope-ExtraBold.ttf</string>
-		<string>JetBrainsMono-Regular.ttf</string>
 	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>

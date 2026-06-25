@@ -284,14 +284,6 @@ final class ShoppingStore {
         }
     }
 
-    /// Compatibility shim over `restoreItem` — true ONLY when the row was
-    /// actually re-inserted. Prefer `restoreItem` where the already-present /
-    /// failure split reaches user-facing copy (the undo banner).
-    @discardableResult
-    func restore(_ item: ShoppingItem) async -> Bool {
-        await restoreItem(item) == .added
-    }
-
     /// Re-inserts a previously-deleted row (preserving its id), persisting and
     /// enqueuing a full-row `.update` to clear the soft-delete remotely — the undo
     /// path for a swipe-delete. Returns `.added` when the row was re-inserted,

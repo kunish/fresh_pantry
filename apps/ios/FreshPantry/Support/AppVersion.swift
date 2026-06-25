@@ -11,19 +11,13 @@ enum AppVersion {
             ?? "Fresh Pantry"
     }
 
-    /// The marketing version, e.g. "1.2.1".
-    static var marketingVersion: String {
-        bundleString("CFBundleShortVersionString") ?? "—"
-    }
-
-    /// The build number, e.g. "1".
-    static var buildNumber: String {
-        bundleString("CFBundleVersion") ?? "—"
-    }
-
-    /// Combined display string, e.g. "1.2.1 (1)".
+    /// Combined display string, e.g. "1.2.1 (1)" — marketing version
+    /// (`CFBundleShortVersionString`) and build (`CFBundleVersion`),
+    /// each falling back to "—" if its key is missing.
     static var displayString: String {
-        "\(marketingVersion) (\(buildNumber))"
+        let marketing = bundleString("CFBundleShortVersionString") ?? "—"
+        let build = bundleString("CFBundleVersion") ?? "—"
+        return "\(marketing) (\(build))"
     }
 
     private static func bundleString(_ key: String) -> String? {

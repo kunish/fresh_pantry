@@ -10,7 +10,7 @@ struct WidgetSnapshotStoreTests {
                 items: [.init(name: "牛奶", daysRemaining: -1)]
             ),
             mealPlan: WidgetMealPlanSnapshot(
-                items: [.init(title: "番茄炒蛋", done: false, mealType: "lunch")]
+                items: [.init(title: "番茄炒蛋", done: false)]
             ),
             shopping: WidgetShoppingSnapshot(
                 uncheckedCount: 2,
@@ -20,7 +20,7 @@ struct WidgetSnapshotStoreTests {
                     .init(id: "c", name: "酱油", isChecked: true),
                 ]
             ),
-            waste: WidgetWasteSnapshot(useUpPercent: 80, rescuedCount: 3, consumedCount: 8, wastedCount: 2, isEmpty: false)
+            waste: WidgetWasteSnapshot(useUpPercent: 80, rescuedCount: 3, wastedCount: 2, isEmpty: false)
         )
     }
 

@@ -43,4 +43,13 @@ extension IconType {
         case .pantry: return "cabinet.fill"
         }
     }
+
+    /// Outline (non-fill) variant, for inline chips/pills.
+    var sfSymbolOutline: String {
+        switch self {
+        case .fridge: return "refrigerator"
+        case .freezer: return "snowflake"
+        case .pantry: return "cabinet"
+        }
+    }
 }

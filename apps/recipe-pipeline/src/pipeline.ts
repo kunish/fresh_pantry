@@ -124,7 +124,7 @@ export async function runPipeline(deps: PipelineDeps): Promise<PipelineReport> {
     // 既有文件损坏:拒绝覆盖,避免用「仅新菜」抹掉已策展的 imageUrl/软删
     throw new Error(`既有菜谱文件 JSON 损坏,拒绝覆盖以保护数据: ${deps.existingPath}`);
   }
-  const { merged, stats } = mergeWithExisting(kept, existing, deps.now, {
+  const { merged, stats } = mergeWithExisting(kept, existing, {
     refreshDescriptions: deps.refreshDescriptions,
   });
 

@@ -117,11 +117,6 @@ enum BackupService {
         return prettyPrinted(envelope)
     }
 
-    /// Core-only convenience (the Flutter-parity call shape): no optional scopes.
-    static func encode(_ data: BackupData, exportedAt: Date = Date()) -> String {
-        encode(BackupArchive(data: data), exportedAt: exportedAt)
-    }
-
     // MARK: Decode
 
     /// Parses and structurally validates a backup blob into typed `BackupData`.

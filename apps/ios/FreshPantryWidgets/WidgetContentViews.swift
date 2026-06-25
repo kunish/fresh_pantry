@@ -30,7 +30,7 @@ struct ExpiringWidgetView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .widgetURL(URL(string: "freshpantry://expiring"))
+        .widgetURL(URL(string: contentDeepLink(.expiring)))
     }
 
     private var rowLimit: Int { family == .systemLarge ? 8 : 3 }
@@ -69,7 +69,7 @@ struct MealPlanWidgetView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .widgetURL(URL(string: "freshpantry://mealplan"))
+        .widgetURL(URL(string: contentDeepLink(.mealPlan)))
     }
 
     private var rowLimit: Int { family == .systemLarge ? 8 : 3 }
@@ -81,7 +81,7 @@ struct ShoppingWidgetView: View {
     let snapshot: WidgetShoppingSnapshot
     let family: WidgetFamily
 
-    private static let shoppingURL = URL(string: "freshpantry://shopping")!
+    private static let shoppingURL = URL(string: contentDeepLink(.shopping))!
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -163,6 +163,6 @@ struct WasteWidgetView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .widgetURL(URL(string: "freshpantry://waste"))
+        .widgetURL(URL(string: contentDeepLink(.waste)))
     }
 }
